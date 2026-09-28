@@ -9,10 +9,9 @@
 """
 Base interface and exception types for per-platform publishers.
 
-All concrete publishers (Facebook, Instagram, YouTube, LinkedIn, GMB) inherit
-from `BasePublisher` and override the methods relevant to their platform.
-Methods they don't support raise `PublishError(supported=False)` so the
-orchestrator can fail gracefully.
+All concrete publishers inherit from `BasePublisher` and override the methods
+relevant to their platform. Methods they don't support raise a structured
+`PublishError` so the orchestrator can fail gracefully.
 
 Each method takes a `PlatformCredential` instance + content args and returns
 a `PublishResult` (or raises a typed exception).
@@ -85,42 +84,23 @@ class PublishResult:
             'platform_post_id':  self.platform_post_id,
             'platform_url':      self.platform_url,
             'warnings':          self.warnings,
-            # raw_response kept on the instance but excluded from this digest
         }
 
 
 # ── Base publisher ────────────────────────────────────────────────────────────
 class BasePublisher:
-    """
-    Abstract publisher. Subclasses implement the platform's specifics.
+    """Abstract publisher. Subclasses implement platform-specific behavior."""
 
-    Convention:
-      - Every method MUST accept a `credential` (PlatformCredential) as the
-        first positional arg.
-      - Methods raise typed exceptions rather than returning failure objects.
-      - Methods that the platform doesn't support should NOT be overridden;
-        the default `_unsupported()` raises a clear PublishError.
-
-    Concrete publishers also expose:
-      MAX_TEXT_LENGTH:   int — character cap on post body (used by preflight)
-      MAX_IMAGE_BYTES:   int — single-image upload cap
-      MAX_VIDEO_BYTES:   int — single-video upload cap
-      MAX_VIDEO_SECONDS: int — duration cap
-      SUPPORTED_TYPES:   set[str] — subset of {'text','image','video','carousel','story','reel'}
-    """
-
-    platform: str = ''  # e.g. 'facebook'
+    platform: str = ''
     MAX_TEXT_LENGTH: int = 0
     MAX_IMAGE_BYTES: int = 0
     MAX_VIDEO_BYTES: int = 0
     MAX_VIDEO_SECONDS: int = 0
     SUPPORTED_TYPES: set = frozenset()
 
-    # ── Capability check ──
     def supports(self, media_type: str) -> bool:
         return media_type in self.SUPPORTED_TYPES
 
-    # ── Publish surface ──
     def publish_text(self, credential, content: str, **kwargs) -> PublishResult:
         return self._unsupported('publish_text')
 
@@ -139,14 +119,12 @@ class BasePublisher:
     def publish_reel(self, credential, video_url: str, content: str, **kwargs) -> PublishResult:
         return self._unsupported('publish_reel')
 
-    # ── Lifecycle ──
     def delete_post(self, credential, platform_post_id: str) -> dict:
         return self._unsupported('delete_post')
 
     def get_post_metrics(self, credential, platform_post_id: str) -> dict:
         return self._unsupported('get_post_metrics')
 
-    # ── Inbox / engagement (added in) ──
     def reply_to_comment(self, credential, comment_id: str, text: str, **kwargs) -> PublishResult:
         return self._unsupported('reply_to_comment')
 
@@ -156,7 +134,6 @@ class BasePublisher:
     def reply_to_review(self, credential, review_id: str, text: str, **kwargs) -> PublishResult:
         return self._unsupported('reply_to_review')
 
-    # ── Defaults / helpers ──
     def _unsupported(self, method_name: str):
         raise PublishError(
             f'{self.__class__.__name__} does not support {method_name}',
@@ -180,7 +157,6 @@ def get_publisher(platform: str) -> BasePublisher:
     """Return a fresh publisher instance for the given platform key."""
     cls = _REGISTRY.get(platform)
     if cls is None:
-        # Lazy import to avoid circular registration on first call.
         _autoload()
         cls = _REGISTRY.get(platform)
     if cls is None:
@@ -189,13 +165,11 @@ def get_publisher(platform: str) -> BasePublisher:
 
 
 def _autoload() -> None:
-    """
-    Best-effort import of all concrete publisher modules so they self-register.
-    Each concrete publisher imports lazily to avoid breaking when a module
-    isn't present yet(base only; concrete classes arrive in
-).
-    """
-    for mod_name in ('facebook', 'instagram', 'youtube', 'linkedin', 'gmb'):
+    """Best-effort import of concrete publisher modules so they self-register."""
+    for mod_name in (
+        'facebook', 'instagram', 'youtube', 'linkedin', 'gmb',
+        'telegram', 'bale',
+    ):
         try:
             __import__(f'social_stats.publishers.{mod_name}')
         except ImportError as e:
