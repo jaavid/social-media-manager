@@ -1,18 +1,19 @@
-import axios from 'axios';
-
-const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
-
-function headers() {
-  const token = localStorage.getItem('access_token');
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
+/* ============================================================================
+ *  Social Stats — Social Media Management & Marketing Platform
+ *  Author    : Chandrabhan Shekhawat
+ *  Company   : Gigai Kripa Services
+ *  Website   : https://gigaikripaservices.com/
+ *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
+ *  Released under the MIT License — see LICENSE. Keep this notice.
+ * ========================================================================== */
+import api from './api';
 
 export const botChannelsAPI = {
-  status: (clientId) => axios.get(`${API_BASE}/bot-channels/${clientId}/status/`, { headers: headers() }),
-  connect: (clientId, platform, data) => axios.post(
-    `${API_BASE}/bot-channels/${clientId}/${platform}/`, data, { headers: headers() }
+  status: (clientId) => api.get(`/bot-channels/${clientId}/status/`),
+  connect: (clientId, platform, data) => api.post(
+    `/bot-channels/${clientId}/${platform}/`, data
   ),
-  disconnect: (clientId, platform) => axios.delete(
-    `${API_BASE}/bot-channels/${clientId}/${platform}/`, { headers: headers() }
+  disconnect: (clientId, platform) => api.delete(
+    `/bot-channels/${clientId}/${platform}/`
   ),
 };
