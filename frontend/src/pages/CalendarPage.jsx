@@ -258,7 +258,7 @@ export default function CalendarPage({ clientId: propClientId }) {
     setCurrentDate(d => isPersian ? addPersianMonths(d, 1) : addMonths(d, 1));
   }
   function goToday() {
-    setCurrentDate(new Date());
+    setCurrentDate(isPersian ? startOfPersianMonth(new Date()) : new Date());
   }
 
   function openPostDetail(post) { setDetailPost(post); setDetailOpen(true); }
