@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CheckCircle2, CircleAlert, RefreshCw, Route, Server, XCircle } from 'lucide-react';
+import { CheckCircle2, AlertCircle, RefreshCw, Route, Server, XCircle } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { egressAPI } from '../services/egress';
 
@@ -97,7 +97,7 @@ export default function ApiConnectivityPanel() {
         </button>
       </div>
 
-      {error && <div style={styles.error}><CircleAlert size={15} /> {error}</div>}
+      {error && <div style={styles.error}><AlertCircle size={15} /> {error}</div>}
 
       {!data && !loading && (
         <div style={styles.empty}>
