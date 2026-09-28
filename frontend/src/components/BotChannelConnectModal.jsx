@@ -1,4 +1,12 @@
-import { useState } from 'react';
+/* ============================================================================
+ *  Social Stats — Social Media Management & Marketing Platform
+ *  Author    : Chandrabhan Shekhawat
+ *  Company   : Gigai Kripa Services
+ *  Website   : https://gigaikripaservices.com/
+ *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
+ *  Released under the MIT License — see LICENSE. Keep this notice.
+ * ========================================================================== */
+import { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import { botChannelsAPI } from '../services/botChannels';
 
@@ -7,6 +15,15 @@ export default function BotChannelConnectModal({ open, platform, clientId, onClo
   const [destinationId, setDestinationId] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!open) {
+      setToken('');
+      setDestinationId('');
+      setError('');
+      setLoading(false);
+    }
+  }, [open, platform]);
 
   if (!open) return null;
   const label = platform === 'bale' ? 'Bale' : 'Telegram';
@@ -22,7 +39,7 @@ export default function BotChannelConnectModal({ open, platform, clientId, onClo
       });
       setToken('');
       setDestinationId('');
-      onConnected?.();
+      await onConnected?.();
       onClose?.();
     } catch (err) {
       setError(err.response?.data?.detail || 'Connection failed. Check the bot token and destination.');
