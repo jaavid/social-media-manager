@@ -1,0 +1,36 @@
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap');
+
+html[lang='fa'] body,
+html[lang='fa'] button,
+html[lang='fa'] input,
+html[lang='fa'] select,
+html[lang='fa'] textarea {
+  font-family: 'Vazirmatn', 'Inter', Tahoma, Arial, sans-serif;
+}
+
+html[dir='rtl'] body {
+  direction: rtl;
+  text-align: start;
+}
+
+html[dir='rtl'] input,
+html[dir='rtl'] textarea,
+html[dir='rtl'] select {
+  direction: rtl;
+  text-align: start;
+}
+
+/* Technical values should remain readable in their natural LTR order. */
+html[dir='rtl'] code,
+html[dir='rtl'] pre,
+html[dir='rtl'] kbd,
+html[dir='rtl'] [data-ltr='true'] {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+/* Keep numeric badges compact and stable regardless of surrounding direction. */
+html[dir='rtl'] .ds-module-rail [aria-current='page'],
+html[dir='rtl'] .ds-mobile-nav {
+  unicode-bidi: plaintext;
+}
