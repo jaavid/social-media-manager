@@ -11,7 +11,11 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
+from social_stats.bot_channel_views import bot_channel_connection, bot_channel_status
+
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/bot-channels/<int:client_id>/status/', bot_channel_status),
+    path('api/bot-channels/<int:client_id>/<str:platform>/', bot_channel_connection),
     path('api/', include('social_stats.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
