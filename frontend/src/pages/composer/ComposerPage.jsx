@@ -30,7 +30,11 @@ const PLATFORMS = [
   { id: 'youtube',            label: 'YouTube',   color: '#FF0000', maxText: 5000,  types: ['video','reel'] },
   { id: 'linkedin',           label: 'LinkedIn',  color: '#0A66C2', maxText: 3000,  types: ['text','image','video','carousel'] },
   { id: 'google_my_business', label: 'Google',    color: '#34A853', maxText: 1500,  types: ['text','image'] },
+  { id: 'telegram',           label: 'Telegram',  color: '#229ED9', maxText: 4096,  types: ['text','image','video','carousel'] },
+  { id: 'bale',               label: 'Bale',      color: '#00A884', maxText: 4096,  types: ['text','image','video','carousel'] },
 ];
+
+const BOT_DESTINATION_PLATFORMS = ['telegram', 'bale'];
 
 const MEDIA_TYPES = [
   { id: 'text',     label: 'Text only', icon: null },
@@ -55,6 +59,7 @@ export default function ComposerPage() {
   const [mediaType, setMediaType] = useState('text');
   const [mediaAssets, setMediaAssets] = useState([]);   // [{id, file_url, thumbnail_url, mime_type}]
   const [targetPlatforms, setTargetPlatforms] = useState(['facebook', 'instagram']);
+  const [destinationOverrides, setDestinationOverrides] = useState({ telegram: '', bale: '' });
   const [scheduleMode, setScheduleMode] = useState('now'); // 'now' | 'schedule' | 'queue'
   const [scheduledAt, setScheduledAt] = useState('');
 
@@ -65,6 +70,10 @@ export default function ComposerPage() {
       setContent(existing.content || '');
       setMediaType(existing.media_type || 'text');
       setTargetPlatforms(existing.target_platforms || []);
+      setDestinationOverrides({
+        telegram: existing.platform_overrides?.telegram?.destination_id || '',
+        bale: existing.platform_overrides?.bale?.destination_id || '',
+      });
       if (existing.scheduled_at) {
         setScheduleMode('schedule');
         setScheduledAt(toLocalInput(existing.scheduled_at));
@@ -106,7 +115,6 @@ export default function ComposerPage() {
     try {
       const res = await composerAPI.media.upload(fd);
       setMediaAssets((cur) => [...cur, res.data]);
-      // Auto-pick media type if first upload
       if (mediaAssets.length === 0) {
         if ((res.data.mime_type || '').startsWith('video/')) setMediaType('video');
         else setMediaType('image');
@@ -125,11 +133,22 @@ export default function ComposerPage() {
 
   /* ── Save / publish flow ───────────────────────────────────────────── */
   function buildPayload() {
+    const platformOverrides = { ...(existing?.platform_overrides || {}) };
+    BOT_DESTINATION_PLATFORMS.forEach((pid) => {
+      const destinationId = (destinationOverrides[pid] || '').trim();
+      const current = { ...(platformOverrides[pid] || {}) };
+      if (destinationId) current.destination_id = destinationId;
+      else delete current.destination_id;
+      if (Object.keys(current).length) platformOverrides[pid] = current;
+      else delete platformOverrides[pid];
+    });
+
     return {
       title: title.trim(),
       content,
       media_type: mediaType,
       target_platforms: targetPlatforms,
+      platform_overrides: platformOverrides,
       // Reference assets via "asset:<id>" so the orchestrator resolves to S3
       // presigned URLs at publish time.
       media_urls: mediaAssets.map((a) => `asset:${a.id}`),
@@ -235,7 +254,6 @@ export default function ComposerPage() {
         keywords: '',
         call_to_action: '',
       });
-      // Pick the first platform's caption (existing endpoint returns dict per platform)
       const captions = res.data?.captions || res.data?.generated_captions || {};
       const first = targetPlatforms.find((p) => captions[p]) || Object.keys(captions)[0];
       if (first && captions[first]) setContent(captions[first]);
@@ -275,6 +293,8 @@ export default function ComposerPage() {
       </div>
     );
   }
+
+  const selectedBotPlatforms = BOT_DESTINATION_PLATFORMS.filter((pid) => targetPlatforms.includes(pid));
 
   /* ── Render ────────────────────────────────────────────────────────── */
   return (
@@ -346,6 +366,31 @@ export default function ComposerPage() {
             </div>
           </Card>
 
+          {selectedBotPlatforms.length > 0 && (
+            <Card padding="md">
+              <Card.Header
+                title="Bot destinations"
+                subtitle="Optional per-post override. Leave blank to use the channel configured in Connected Accounts."
+              />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 10 }}>
+                {selectedBotPlatforms.map((pid) => {
+                  const meta = PLATFORMS.find((p) => p.id === pid);
+                  return (
+                    <label key={pid} style={{ display: 'grid', gap: 5, fontSize: 12, fontWeight: 600 }}>
+                      {meta?.label || pid}
+                      <input
+                        value={destinationOverrides[pid] || ''}
+                        onChange={(e) => setDestinationOverrides((cur) => ({ ...cur, [pid]: e.target.value }))}
+                        placeholder="@channel or numeric chat_id"
+                        style={inputStyle}
+                      />
+                    </label>
+                  );
+                })}
+              </div>
+            </Card>
+          )}
+
           {/* Title + Body */}
           <Card padding="md">
             <input
@@ -394,7 +439,6 @@ export default function ComposerPage() {
                 minHeight: 'unset',
               }}
             />
-            {/* Per-platform char counts (only for selected) */}
             <div style={{
               display: 'flex', gap: 12, flexWrap: 'wrap',
               fontSize: 11, color: 'var(--text-tertiary)',
@@ -402,13 +446,13 @@ export default function ComposerPage() {
               borderTop: '1px solid var(--border-subtle)',
             }}>
               {targetPlatforms.map((pid) => {
-                const c = counts[pid];
+                const c = counts[pid] || { used: content.length, max: 0, over: false };
                 return (
                   <span key={pid} style={{
                     color: c.over ? 'var(--danger)' : 'var(--text-tertiary)',
                     fontWeight: c.over ? 600 : 500,
                   }}>
-                    {pid}: {c.used}/{c.max}
+                    {pid}: {c.used}/{c.max || '—'}
                   </span>
                 );
               })}
@@ -503,14 +547,12 @@ export default function ComposerPage() {
             </div>
           </Card>
 
-          {/* Preflight results */}
           {preflight && <PreflightPanel result={preflight} onClose={() => setPreflight(null)} />}
         </div>
 
         {/* ── RIGHT: live preview ────────────────────────────────── */}
         <div style={{ position: 'sticky', top: 'calc(var(--topbar-height) + 16px)', alignSelf: 'flex-start' }}>
           <Card padding="none" style={{ overflow: 'hidden' }}>
-            {/* Tabs */}
             <div style={{
               display: 'flex', gap: 0,
               borderBottom: '1px solid var(--border-subtle)',
@@ -554,7 +596,6 @@ export default function ComposerPage() {
         </div>
       </div>
 
-      {/* Mobile-friendly grid override */}
       <style>{`
         @media (max-width: 1024px) {
           .composer-grid { grid-template-columns: 1fr !important; }
@@ -649,7 +690,6 @@ function PlatformPreview({ platform, content, mediaAssets, mediaType, user }) {
   const meta = PLATFORMS.find((p) => p.id === platform) || PLATFORMS[0];
   const handle = user?.first_name || user?.email?.split('@')[0] || 'You';
 
-  // Common card shell (white card on surface-sunken background)
   return (
     <div style={{
       background: 'var(--surface-card)', color: 'var(--text-primary)',
@@ -659,7 +699,6 @@ function PlatformPreview({ platform, content, mediaAssets, mediaType, user }) {
       overflow: 'hidden',
       border: '1px solid var(--border-default)',
     }}>
-      {/* Header */}
       <div style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
         <div style={{
           width: 36, height: 36, borderRadius: 999,
@@ -677,26 +716,22 @@ function PlatformPreview({ platform, content, mediaAssets, mediaType, user }) {
         </div>
       </div>
 
-      {/* Body text (above media for FB/LI/GMB; below for IG) */}
       {platform !== 'instagram' && content && (
         <div style={{ padding: '0 14px 12px', whiteSpace: 'pre-wrap', fontSize: 14, lineHeight: 1.5 }}>
           {content}
         </div>
       )}
 
-      {/* Media */}
       {mediaAssets.length > 0 && mediaType !== 'text' && (
         <PreviewMedia assets={mediaAssets} mediaType={mediaType} platform={platform} />
       )}
 
-      {/* IG: caption below */}
       {platform === 'instagram' && content && (
         <div style={{ padding: '12px 14px', fontSize: 13, lineHeight: 1.5 }}>
           <strong>{handle}</strong> {content}
         </div>
       )}
 
-      {/* Engagement row */}
       <div style={{
         display: 'flex', gap: 16, padding: '8px 14px 14px',
         borderTop: '1px solid var(--surface-sunken)', fontSize: 12, color: '#667781',
@@ -754,7 +789,6 @@ function PreviewMedia({ assets, mediaType, platform }) {
     );
   }
 
-  // Single image (or first of carousel)
   const a = assets[0];
   return (
     <div style={{
@@ -861,7 +895,6 @@ function toLocalInput(iso) {
   return new Date(d - offset).toISOString().slice(0, 16);
 }
 
-// Lighten/darken hex color by `pct` (negative = darker)
 function shade(hex, pct) {
   const m = /^#([0-9a-f]{6})$/i.exec(hex);
   if (!m) return hex;
