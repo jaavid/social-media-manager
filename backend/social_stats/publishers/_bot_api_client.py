@@ -43,16 +43,22 @@ class BotAPIClient:
                 code='invalid_response', status_code=response.status_code,
             ) from exc
 
-        if response.status_code == 401:
+        error_code = int(payload.get('error_code') or response.status_code or 0)
+
+        if response.status_code == 401 or error_code == 401:
             raise TokenExpiredError(status_code=401, raw=payload)
-        if response.status_code == 403:
+        if response.status_code == 403 or error_code == 403:
             raise PermissionDeniedError(status_code=403, raw=payload)
 
         retry_after = (payload.get('parameters') or {}).get('retry_after')
-        if response.status_code == 429 or retry_after:
+        if response.status_code == 429 or error_code == 429 or retry_after:
+            try:
+                retry_after_seconds = int(retry_after or 60)
+            except (TypeError, ValueError):
+                retry_after_seconds = 60
             raise RateLimitError(
                 payload.get('description') or 'Bot API rate limit exceeded',
-                retry_after=int(retry_after or 60),
+                retry_after=retry_after_seconds,
                 status_code=response.status_code,
                 raw=payload,
             )
