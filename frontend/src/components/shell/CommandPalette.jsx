@@ -6,7 +6,7 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Command } from 'cmdk';
 import {
@@ -19,27 +19,21 @@ import {
 
 import { useClients } from '../../hooks/useData';
 import useUnifiedSearch from '../../hooks/useUnifiedSearch';
+import { useLanguage } from '../../i18n';
 
 const RECENTS_KEY = 'cmdk:recents';
 const RECENTS_MAX = 6;
 
-/**
- * Cmd+K command palette. Aggregates pages + clients + quick actions.
- *
- * Props:
- *   open, onOpenChange   — controlled
- *   basePath             — '/admin' or '/dashboard'
- */
 export default function CommandPalette({ open, onOpenChange, basePath }) {
   const navigate = useNavigate();
   const [recents, setRecents] = useState(() => readRecents());
   const [inputValue, setInputValue] = useState('');
   const { clients } = useClients();
+  const { tr } = useLanguage();
 
   const { results: searchResults, isFetching: searchFetching, debouncedQuery } =
     useUnifiedSearch(inputValue);
 
-  // Cmd+K toggle
   useEffect(() => {
     const onKey = (e) => {
       if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
@@ -52,14 +46,13 @@ export default function CommandPalette({ open, onOpenChange, basePath }) {
     return () => window.removeEventListener('keydown', onKey);
   }, [open, onOpenChange]);
 
-  // Reset the input when the palette closes — opening fresh next time.
   useEffect(() => {
     if (!open) setInputValue('');
   }, [open]);
 
-  const pages = useMemo(() => buildPages(basePath), [basePath]);
-  const actions = useMemo(() => buildActions(basePath), [basePath]);
-  const links = useMemo(() => buildLinks(), []);
+  const pages = localizeItems(buildPages(basePath), tr);
+  const actions = localizeItems(buildActions(basePath), tr);
+  const links = localizeItems(buildLinks(), tr);
 
   function pick(id, fn) {
     fn();
@@ -68,10 +61,8 @@ export default function CommandPalette({ open, onOpenChange, basePath }) {
     onOpenChange(false);
   }
 
-  // Show the cross-feature search section only when the user has actually
-  // typed enough — avoids an empty "Search results" header on first open.
   const hasSearchQuery = (debouncedQuery || '').trim().length >= 2;
-  const hasSearchHits  = hasSearchQuery && (searchResults.total > 0);
+  const hasSearchHits = hasSearchQuery && (searchResults.total > 0);
 
   if (!open) return null;
 
@@ -80,7 +71,7 @@ export default function CommandPalette({ open, onOpenChange, basePath }) {
       className="ds-cmdk-backdrop"
       role="dialog"
       aria-modal="true"
-      aria-label="Command palette"
+      aria-label={tr('Command palette')}
       onClick={() => onOpenChange(false)}
       style={{
         position: 'fixed', inset: 0,
@@ -92,7 +83,7 @@ export default function CommandPalette({ open, onOpenChange, basePath }) {
       }}
     >
       <Command
-        label="Command Menu"
+        label={tr('Command Menu')}
         loop
         onClick={(e) => e.stopPropagation()}
         style={{
@@ -115,20 +106,21 @@ export default function CommandPalette({ open, onOpenChange, basePath }) {
             autoFocus
             value={inputValue}
             onValueChange={setInputValue}
-            placeholder="Search pages, posts, leads, conversations…"
+            placeholder={tr('Search pages, posts, leads, conversations…')}
             style={{
               flex: 1, border: 'none', outline: 'none',
               background: 'transparent',
               fontSize: 15, fontFamily: 'var(--font-sans)',
               color: 'var(--text-primary)',
+              textAlign: 'start',
             }}
           />
           {searchFetching && (
             <span
-              aria-label="Searching"
+              aria-label={tr('Searching')}
               style={{ fontSize: 11, color: 'var(--text-tertiary)' }}
             >
-              Searching…
+              {tr('Searching…')}
             </span>
           )}
         </div>
@@ -138,11 +130,9 @@ export default function CommandPalette({ open, onOpenChange, basePath }) {
             padding: '32px 16px', textAlign: 'center',
             color: 'var(--text-tertiary)', fontSize: 13,
           }}>
-            No results found.
+            {tr('No results found.')}
           </Command.Empty>
 
-          {/* Cross-feature search results render before static navigation
-              so the user sees their actual content first. */}
           {hasSearchHits && (
             <SearchResultGroups
               results={searchResults}
@@ -151,7 +141,7 @@ export default function CommandPalette({ open, onOpenChange, basePath }) {
           )}
 
           {recents.length > 0 && !hasSearchQuery && (
-            <Group heading="Recent">
+            <Group heading={tr('Recent')}>
               {recents.map((r) => {
                 const item = [...pages, ...actions].find((p) => p.id === r);
                 if (!item) return null;
@@ -162,31 +152,31 @@ export default function CommandPalette({ open, onOpenChange, basePath }) {
             </Group>
           )}
 
-          <Group heading="Pages">
+          <Group heading={tr('Pages')}>
             {pages.map((p) => (
               <Item key={p.id} item={p} onSelect={() => pick(p.id, () => navigate(p.path))} />
             ))}
           </Group>
 
-          <Group heading="Quick actions">
+          <Group heading={tr('Quick actions')}>
             {actions.map((a) => (
               <Item key={a.id} item={a} onSelect={() => pick(a.id, a.run)} />
             ))}
           </Group>
 
           {(clients || []).length > 0 && (
-            <Group heading="Clients">
+            <Group heading={tr('Clients')}>
               {(clients || []).slice(0, 8).map((c) => (
                 <Item
                   key={`client-${c.id}`}
-                  item={{ id: `client-${c.id}`, label: c.company, hint: 'Switch to client', icon: Users2 }}
+                  item={{ id: `client-${c.id}`, label: c.company, hint: tr('Switch to client'), icon: Users2 }}
                   onSelect={() => pick(`client-${c.id}`, () => navigate(`/admin/client/${c.id}`))}
                 />
               ))}
             </Group>
           )}
 
-          <Group heading="Help & resources">
+          <Group heading={tr('Help & resources')}>
             {links.map((l) => (
               <Item
                 key={l.id}
@@ -202,36 +192,30 @@ export default function CommandPalette({ open, onOpenChange, basePath }) {
           borderTop: '1px solid var(--border-subtle)',
           background: 'var(--surface-sunken)',
           fontSize: 11, color: 'var(--text-tertiary)',
-          display: 'flex', justifyContent: 'space-between',
+          display: 'flex', justifyContent: 'space-between', gap: 12,
         }}>
-          <span>↑↓ to navigate · ↵ to select</span>
-          <span>esc to close</span>
+          <span>{tr('↑↓ to navigate · ↵ to select')}</span>
+          <span>{tr('esc to close')}</span>
         </div>
       </Command>
     </div>
   );
 }
 
-/**
- *
- * Each input bucket (posts / leads / conversations / contacts) becomes a
- * group; each hit becomes an Item that navigates to the backend-provided
- * `deep_link`. We let cmdk auto-hide empty groups so we don't need to
- * conditionally skip categories — passing the full payload is enough.
- */
 function SearchResultGroups({ results, onPick }) {
+  const { tr } = useLanguage();
   return (
     <>
       {(results.posts || []).length > 0 && (
-        <Group heading="Posts">
+        <Group heading={tr('Posts')}>
           {results.posts.map((p) => (
             <Item
               key={`s-post-${p.id}`}
               item={{
-                id:    `s-post-${p.id}`,
-                label: p.title || p.preview || 'Untitled post',
-                hint:  `Post · ${p.status || 'draft'}`,
-                icon:  FileType,
+                id: `s-post-${p.id}`,
+                label: p.title || p.preview || tr('Untitled post'),
+                hint: `${tr('Post')} · ${p.status || 'draft'}`,
+                icon: FileType,
               }}
               onSelect={() => onPick(`s-post-${p.id}`, p.deep_link)}
             />
@@ -239,49 +223,49 @@ function SearchResultGroups({ results, onPick }) {
         </Group>
       )}
       {(results.leads || []).length > 0 && (
-        <Group heading="Leads">
-          {results.leads.map((l) => (
+        <Group heading={tr('Leads')}>
+          {results.leads.map((lead) => (
             <Item
-              key={`s-lead-${l.id}`}
+              key={`s-lead-${lead.id}`}
               item={{
-                id:    `s-lead-${l.id}`,
-                label: l.name || l.phone || 'Lead',
-                hint:  `Lead · ${l.status || 'new'}` + (l.email ? ` · ${l.email}` : ''),
-                icon:  UserSquare,
+                id: `s-lead-${lead.id}`,
+                label: lead.name || lead.phone || tr('Lead'),
+                hint: `${tr('Lead')} · ${lead.status || 'new'}` + (lead.email ? ` · ${lead.email}` : ''),
+                icon: UserSquare,
               }}
-              onSelect={() => onPick(`s-lead-${l.id}`, l.deep_link)}
+              onSelect={() => onPick(`s-lead-${lead.id}`, lead.deep_link)}
             />
           ))}
         </Group>
       )}
       {(results.conversations || []).length > 0 && (
-        <Group heading="Conversations">
-          {results.conversations.map((c) => (
+        <Group heading={tr('Conversations')}>
+          {results.conversations.map((conversation) => (
             <Item
-              key={`s-conv-${c.id}`}
+              key={`s-conv-${conversation.id}`}
               item={{
-                id:    `s-conv-${c.id}`,
-                label: c.contact || '(unknown)',
-                hint:  `${c.platform || 'inbox'} · ${(c.preview || '').slice(0, 80)}`,
-                icon:  MessageSquare,
+                id: `s-conv-${conversation.id}`,
+                label: conversation.contact || tr('(unknown)'),
+                hint: `${conversation.platform || 'inbox'} · ${(conversation.preview || '').slice(0, 80)}`,
+                icon: MessageSquare,
               }}
-              onSelect={() => onPick(`s-conv-${c.id}`, c.deep_link)}
+              onSelect={() => onPick(`s-conv-${conversation.id}`, conversation.deep_link)}
             />
           ))}
         </Group>
       )}
       {(results.contacts || []).length > 0 && (
-        <Group heading="Contacts">
-          {results.contacts.map((ct) => (
+        <Group heading={tr('Contacts')}>
+          {results.contacts.map((contact) => (
             <Item
-              key={`s-contact-${ct.id}`}
+              key={`s-contact-${contact.id}`}
               item={{
-                id:    `s-contact-${ct.id}`,
-                label: ct.name || ct.phone || 'Contact',
-                hint:  ct.phone || '',
-                icon:  Users2,
+                id: `s-contact-${contact.id}`,
+                label: contact.name || contact.phone || tr('Contact'),
+                hint: contact.phone || '',
+                icon: Users2,
               }}
-              onSelect={() => onPick(`s-contact-${ct.id}`, ct.deep_link)}
+              onSelect={() => onPick(`s-contact-${contact.id}`, contact.deep_link)}
             />
           ))}
         </Group>
@@ -290,9 +274,7 @@ function SearchResultGroups({ results, onPick }) {
   );
 }
 
-
 function Group({ heading, children }) {
-  // cmdk hides empty groups automatically.
   return (
     <Command.Group
       heading={
@@ -348,24 +330,30 @@ function Item({ item, onSelect }) {
   );
 }
 
+function localizeItems(items, tr) {
+  return items.map((item) => ({
+    ...item,
+    label: tr(item.label),
+    hint: item.hint ? tr(item.hint) : item.hint,
+  }));
+}
+
 function buildPages(basePath) {
   return [
-    // Analytics
-    { id: 'analytics-dashboard', label: 'Dashboard',     hint: 'Analytics overview',     icon: LayoutDashboard, path: `${basePath}/analytics/dashboard` },
-    { id: 'analytics-analytics', label: 'Analytics',     hint: 'Deep metrics',           icon: LineChart,       path: `${basePath}/analytics/analytics` },
-    { id: 'analytics-reports',   label: 'Reports',       hint: 'PDF reports',            icon: FileText,        path: `${basePath}/analytics/reports` },
-    { id: 'analytics-calendar',  label: 'Content Calendar', hint: 'Plan & schedule',     icon: CalendarDays,    path: `${basePath}/analytics/calendar` },
-    { id: 'analytics-roi',       label: 'ROI Calculator', hint: 'Revenue forecasting',   icon: TrendingUp,      path: `${basePath}/analytics/roi` },
-    { id: 'analytics-alerts',    label: 'Alerts',         hint: 'Anomaly notifications', icon: AlertCircle,     path: `${basePath}/analytics/alerts` },
-    { id: 'analytics-caption',   label: 'Caption Writer', hint: 'AI-powered captions',   icon: Wand2,           path: `${basePath}/analytics/caption-writer` },
-    { id: 'analytics-ideas',     label: 'Post Ideas',     hint: 'AI content brainstorm', icon: Lightbulb,       path: `${basePath}/analytics/post-ideas` },
-    // Messaging
-    { id: 'messaging-dashboard', label: 'Messaging dashboard', hint: 'WhatsApp overview', icon: MessageCircle,   path: `${basePath}/messaging` },
-    { id: 'messaging-inbox',     label: 'Inbox',           hint: 'Conversations',         icon: Inbox,           path: `${basePath}/messaging/inbox` },
-    { id: 'messaging-campaigns', label: 'Campaigns',       hint: 'Broadcast outreach',    icon: Send,            path: `${basePath}/messaging/campaigns` },
-    { id: 'messaging-templates', label: 'Templates',       hint: 'Approved templates',    icon: FileType,        path: `${basePath}/messaging/templates` },
-    { id: 'messaging-contacts',  label: 'Contacts',        hint: 'Audience',              icon: Users2,          path: `${basePath}/messaging/contacts` },
-    { id: 'messaging-account',   label: 'Pinbot account',  hint: 'WhatsApp setup',        icon: Settings,        path: `${basePath}/messaging/account` },
+    { id: 'analytics-dashboard', label: 'Dashboard', hint: 'Analytics overview', icon: LayoutDashboard, path: `${basePath}/analytics/dashboard` },
+    { id: 'analytics-analytics', label: 'Analytics', hint: 'Deep metrics', icon: LineChart, path: `${basePath}/analytics/analytics` },
+    { id: 'analytics-reports', label: 'Reports', hint: 'PDF reports', icon: FileText, path: `${basePath}/analytics/reports` },
+    { id: 'analytics-calendar', label: 'Content Calendar', hint: 'Plan & schedule', icon: CalendarDays, path: `${basePath}/analytics/calendar` },
+    { id: 'analytics-roi', label: 'ROI Calculator', hint: 'Revenue forecasting', icon: TrendingUp, path: `${basePath}/analytics/roi` },
+    { id: 'analytics-alerts', label: 'Alerts', hint: 'Anomaly notifications', icon: AlertCircle, path: `${basePath}/analytics/alerts` },
+    { id: 'analytics-caption', label: 'Caption Writer', hint: 'AI-powered captions', icon: Wand2, path: `${basePath}/analytics/caption-writer` },
+    { id: 'analytics-ideas', label: 'Post Ideas', hint: 'AI content brainstorm', icon: Lightbulb, path: `${basePath}/analytics/post-ideas` },
+    { id: 'messaging-dashboard', label: 'Messaging dashboard', hint: 'WhatsApp overview', icon: MessageCircle, path: `${basePath}/messaging` },
+    { id: 'messaging-inbox', label: 'Inbox', hint: 'Conversations', icon: Inbox, path: `${basePath}/messaging/inbox` },
+    { id: 'messaging-campaigns', label: 'Campaigns', hint: 'Broadcast outreach', icon: Send, path: `${basePath}/messaging/campaigns` },
+    { id: 'messaging-templates', label: 'Templates', hint: 'Approved templates', icon: FileType, path: `${basePath}/messaging/templates` },
+    { id: 'messaging-contacts', label: 'Contacts', hint: 'Audience', icon: Users2, path: `${basePath}/messaging/contacts` },
+    { id: 'messaging-account', label: 'Pinbot account', hint: 'WhatsApp setup', icon: Settings, path: `${basePath}/messaging/account` },
   ];
 }
 
@@ -404,11 +392,11 @@ function buildActions(basePath) {
 
 function buildLinks() {
   return [
-    { id: 'link-changelog', label: "What's new",        hint: 'Recent product updates', icon: Sparkles,    path: '/changelog' },
-    { id: 'link-help',      label: 'Help center',       hint: 'Guides + troubleshooting', icon: BookOpen,    path: '/help' },
-    { id: 'link-status',    label: 'System status',     hint: 'Live uptime + incidents', icon: Activity,    path: '/status' },
-    { id: 'link-security',  label: 'Security & compliance', hint: 'GDPR, DPDP, certifications', icon: ShieldCheck, path: '/security' },
-    { id: 'link-contact',   label: 'Contact support',   hint: 'Send us a message',       icon: ExternalLink, path: '/contact' },
+    { id: 'link-changelog', label: "What's new", hint: 'Recent product updates', icon: Sparkles, path: '/changelog' },
+    { id: 'link-help', label: 'Help center', hint: 'Guides + troubleshooting', icon: BookOpen, path: '/help' },
+    { id: 'link-status', label: 'System status', hint: 'Live uptime + incidents', icon: Activity, path: '/status' },
+    { id: 'link-security', label: 'Security & compliance', hint: 'GDPR, DPDP, certifications', icon: ShieldCheck, path: '/security' },
+    { id: 'link-contact', label: 'Contact support', hint: 'Send us a message', icon: ExternalLink, path: '/contact' },
   ];
 }
 
