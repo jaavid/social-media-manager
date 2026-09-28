@@ -8,29 +8,24 @@
  * ========================================================================== */
 import { NavLink, useLocation } from 'react-router-dom';
 import {
-  LayoutDashboard, LineChart, FileText, CalendarDays, TrendingUp, AlertCircle,
+  LayoutDashboard, FileText, CalendarDays, AlertCircle,
   Inbox, Send, Users2, FileType,
-  Rocket, Mail,
+  Rocket,
 } from 'lucide-react';
+import { useLanguage } from '../../i18n';
 
-/**
- * Mobile bottom tab bar — 4 main features of the current module.
- *
- * Props:
- *   module:   'analytics' | 'messaging' | 'ads'
- *   basePath: '/admin' | '/dashboard'
- */
 export default function MobileNav({ module, basePath }) {
   const location = useLocation();
+  const { tr } = useLanguage();
   const tabs = MOBILE_TABS[module] || MOBILE_TABS.analytics;
 
   return (
     <nav
       className="mobile-bottom-nav ds-mobile-nav"
-      aria-label={`${module} bottom tabs`}
+      aria-label={`${tr(module === 'analytics' ? 'Analytics' : module === 'messaging' ? 'Messaging' : 'Ads')} bottom tabs`}
       style={{
         position: 'fixed',
-        bottom: 0, left: 0, right: 0,
+        bottom: 0, insetInlineStart: 0, insetInlineEnd: 0,
         zIndex: 150,
         background: 'var(--surface-card)',
         borderTop: '1px solid var(--border-subtle)',
@@ -42,16 +37,17 @@ export default function MobileNav({ module, basePath }) {
         alignItems: 'stretch',
       }}
     >
-      {tabs.map((t) => {
-        const to = `${basePath}/${module}${t.path}`;
-        const active = t.end ? location.pathname === to : location.pathname.startsWith(to);
-        const Icon = t.icon;
+      {tabs.map((tab) => {
+        const to = `${basePath}/${module}${tab.path}`;
+        const active = tab.end ? location.pathname === to : location.pathname.startsWith(to);
+        const Icon = tab.icon;
+        const label = tr(tab.label);
         return (
           <NavLink
-            key={t.path}
+            key={tab.path || tab.label}
             to={to}
-            end={t.end}
-            aria-label={t.label}
+            end={tab.end}
+            aria-label={label}
             style={{
               flex: 1,
               display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
@@ -74,7 +70,7 @@ export default function MobileNav({ module, basePath }) {
             }}>
               <Icon size={18} strokeWidth={active ? 2.4 : 2} />
             </span>
-            <span>{t.label}</span>
+            <span>{label}</span>
           </NavLink>
         );
       })}
@@ -84,16 +80,16 @@ export default function MobileNav({ module, basePath }) {
 
 const MOBILE_TABS = {
   analytics: [
-    { label: 'Home',     icon: LayoutDashboard, path: '/dashboard',  end: true },
-    { label: 'Calendar', icon: CalendarDays,    path: '/calendar' },
-    { label: 'Reports',  icon: FileText,        path: '/reports' },
-    { label: 'Alerts',   icon: AlertCircle,     path: '/alerts' },
+    { label: 'Home', icon: LayoutDashboard, path: '/dashboard', end: true },
+    { label: 'Calendar', icon: CalendarDays, path: '/calendar' },
+    { label: 'Reports', icon: FileText, path: '/reports' },
+    { label: 'Alerts', icon: AlertCircle, path: '/alerts' },
   ],
   messaging: [
-    { label: 'Inbox',     icon: Inbox,    path: '/inbox' },
-    { label: 'Campaigns', icon: Send,     path: '/campaigns' },
+    { label: 'Inbox', icon: Inbox, path: '/inbox' },
+    { label: 'Campaigns', icon: Send, path: '/campaigns' },
     { label: 'Templates', icon: FileType, path: '/templates' },
-    { label: 'Contacts',  icon: Users2,   path: '/contacts' },
+    { label: 'Contacts', icon: Users2, path: '/contacts' },
   ],
   ads: [
     { label: 'Soon', icon: Rocket, path: '' },
