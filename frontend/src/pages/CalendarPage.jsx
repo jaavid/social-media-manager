@@ -204,8 +204,7 @@ export default function CalendarPage({ clientId: propClientId }) {
     if (!clientId && !isAdmin && user?.client_id) setSelectedClientId(user.client_id);
   }, [user, isAdmin, clientId]);
 
-  const now = new Date();
-  const [currentDate, setCurrentDate] = useState(new Date(now.getFullYear(), now.getMonth(), 1));
+  const [currentDate, setCurrentDate] = useState(() => new Date());
   const month = currentDate.getMonth() + 1;
   const year = currentDate.getFullYear();
 
@@ -259,7 +258,7 @@ export default function CalendarPage({ clientId: propClientId }) {
     setCurrentDate(d => isPersian ? addPersianMonths(d, 1) : addMonths(d, 1));
   }
   function goToday() {
-    setCurrentDate(isPersian ? startOfPersianMonth(new Date()) : new Date(now.getFullYear(), now.getMonth(), 1));
+    setCurrentDate(new Date());
   }
 
   function openPostDetail(post) { setDetailPost(post); setDetailOpen(true); }
@@ -307,7 +306,7 @@ export default function CalendarPage({ clientId: propClientId }) {
   const pageTitle = t('calendar.title', 'Content Calendar');
   const pageSubtitle = t('calendar.subtitle', 'Plan, review, and measure your scheduled content.');
   const monthTitle = isPersian
-    ? formatDate(currentDate, { month: 'long', year: 'numeric' })
+    ? formatDate(visibleRange.start, { month: 'long', year: 'numeric' })
     : format(currentDate, 'MMMM yyyy');
 
   if (showClientSelector && !clientId) {
