@@ -9,27 +9,54 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { calendarAPI } from '../services/api';
 
+function mergeDateMaps(responses) {
+  const merged = {};
+  responses.forEach(response => {
+    Object.entries(response.data || {}).forEach(([date, items]) => {
+      const existing = merged[date] || [];
+      const next = [...existing, ...(Array.isArray(items) ? items : [])];
+      const seen = new Set();
+      merged[date] = next.filter(item => {
+        const key = item?.id != null ? `id:${item.id}` : JSON.stringify(item);
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    });
+  });
+  return merged;
+}
+
+function normalizeQueries(month, year, queryMonths) {
+  if (Array.isArray(queryMonths) && queryMonths.length) return queryMonths;
+  return [{ month, year }];
+}
+
 // ── useCalendarPosts ───────────────────────────────────────────────────────────
-export function useCalendarPosts(clientId, month, year, platform) {
+export function useCalendarPosts(clientId, month, year, platform, queryMonths = null) {
   const [postsByDate, setPostsByDate] = useState({});
-  const [loading,    setLoading]     = useState(false);
-  const [error,      setError]       = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const queryKey = JSON.stringify(normalizeQueries(month, year, queryMonths));
 
   const fetch = useCallback(async () => {
     if (!clientId) return;
     setLoading(true);
     setError('');
     try {
-      const params = { client_id: clientId, month, year };
-      if (platform && platform !== 'all') params.platform = platform;
-      const res = await calendarAPI.getPosts(params);
-      setPostsByDate(res.data || {});
+      const queries = JSON.parse(queryKey);
+      const responses = await Promise.all(queries.map(({ month: queryMonth, year: queryYear }) => {
+        const params = { client_id: clientId, month: queryMonth, year: queryYear };
+        if (platform && platform !== 'all') params.platform = platform;
+        return calendarAPI.getPosts(params);
+      }));
+      setPostsByDate(mergeDateMaps(responses));
     } catch (e) {
       setError(e.response?.data?.error || 'Failed to load calendar posts.');
     } finally {
       setLoading(false);
     }
-  }, [clientId, month, year, platform]);
+  }, [clientId, platform, queryKey]);
 
   useEffect(() => { fetch(); }, [fetch]);
 
@@ -43,7 +70,7 @@ export function useCalendarPosts(clientId, month, year, platform) {
 
 // ── useCalendarStats ───────────────────────────────────────────────────────────
 export function useCalendarStats(clientId, month, year) {
-  const [stats,   setStats]   = useState(null);
+  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -61,7 +88,7 @@ export function useCalendarStats(clientId, month, year) {
 // ── useUpcomingPosts ───────────────────────────────────────────────────────────
 export function useUpcomingPosts(clientId) {
   const [upcoming, setUpcoming] = useState([]);
-  const [loading,  setLoading]  = useState(false);
+  const [loading, setLoading] = useState(false);
   const intervalRef = useRef(null);
 
   const fetch = useCallback(async () => {
@@ -80,7 +107,7 @@ export function useUpcomingPosts(clientId) {
 
   useEffect(() => {
     fetch();
-    intervalRef.current = setInterval(fetch, 5 * 60 * 1000); // 5 minutes
+    intervalRef.current = setInterval(fetch, 5 * 60 * 1000);
     return () => clearInterval(intervalRef.current);
   }, [fetch]);
 
@@ -90,7 +117,7 @@ export function useUpcomingPosts(clientId) {
 // ── useCreatePost ──────────────────────────────────────────────────────────────
 export function useCreatePost() {
   const [creating, setCreating] = useState(false);
-  const [error,    setError]    = useState('');
+  const [error, setError] = useState('');
 
   const create = useCallback(async (data) => {
     setCreating(true);
@@ -160,17 +187,27 @@ export function useCreatePost() {
 }
 
 // ── useCalendarNotes ───────────────────────────────────────────────────────────
-export function useCalendarNotes(clientId, month, year) {
-  const [notes,       setNotes]       = useState([]);
+export function useCalendarNotes(clientId, month, year, queryMonths = null) {
+  const [notes, setNotes] = useState([]);
   const [notesByDate, setNotesByDate] = useState({});
-  const [loading,     setLoading]     = useState(false);
+  const [loading, setLoading] = useState(false);
+  const queryKey = JSON.stringify(normalizeQueries(month, year, queryMonths));
 
   const fetch = useCallback(async () => {
     if (!clientId) return;
     setLoading(true);
     try {
-      const res = await calendarAPI.getNotes({ client_id: clientId, month, year });
-      const data = res.data || [];
+      const queries = JSON.parse(queryKey);
+      const responses = await Promise.all(queries.map(({ month: queryMonth, year: queryYear }) =>
+        calendarAPI.getNotes({ client_id: clientId, month: queryMonth, year: queryYear })
+      ));
+      const seen = new Set();
+      const data = responses.flatMap(res => res.data || []).filter(note => {
+        const key = note?.id != null ? `id:${note.id}` : JSON.stringify(note);
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
       setNotes(data);
       const byDate = {};
       data.forEach(note => {
@@ -184,7 +221,7 @@ export function useCalendarNotes(clientId, month, year) {
     } finally {
       setLoading(false);
     }
-  }, [clientId, month, year]);
+  }, [clientId, queryKey]);
 
   useEffect(() => { fetch(); }, [fetch]);
 
@@ -215,8 +252,8 @@ export function useCalendarNotes(clientId, month, year) {
 // ── useSuggestedTimes ──────────────────────────────────────────────────────────
 export function useSuggestedTimes(clientId, platform) {
   const [suggestions, setSuggestions] = useState([]);
-  const [source,      setSource]      = useState('industry');
-  const [loading,     setLoading]     = useState(false);
+  const [source, setSource] = useState('industry');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!clientId || !platform) return;
