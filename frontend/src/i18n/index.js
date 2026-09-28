@@ -15,6 +15,19 @@ const fa = {
   'common.delete': 'حذف',
   'common.posts': 'پست',
   'common.language': 'زبان',
+  'common.home': 'خانه',
+  'common.navigation': 'ناوبری',
+  'common.soon': 'به‌زودی',
+  'common.settings': 'تنظیمات',
+  'common.notifications': 'اعلان‌ها',
+  'common.signOut': 'خروج',
+  'common.accountSettings': 'تنظیمات حساب',
+  'common.searchClients': 'جست‌وجوی مشتریان…',
+  'common.allClients': 'همه مشتریان',
+  'common.openMenu': 'باز کردن منو',
+  'common.closeMenu': 'بستن منو',
+  'common.accountMenu': 'منوی حساب',
+  'common.moduleSwitcher': 'تغییر بخش',
   'calendar.title': 'تقویم محتوا',
   'calendar.subtitle': 'محتوای زمان‌بندی‌شده را برنامه‌ریزی، بررسی و ارزیابی کنید.',
   'calendar.month': 'ماه',
@@ -38,6 +51,7 @@ const fa = {
 };
 
 const faRaw = {
+  'Home': 'خانه',
   'Analytics': 'تحلیل و آمار',
   'Social performance': 'عملکرد شبکه‌های اجتماعی',
   'Publish': 'انتشار',
@@ -92,8 +106,19 @@ const faRaw = {
   'Webhooks': 'وب‌هوک‌ها',
   'Ads': 'تبلیغات',
   'Coming soon': 'به‌زودی',
+  'Soon': 'به‌زودی',
+  'Settings': 'تنظیمات',
   'All clients': 'همه مشتریان',
   'Search clients…': 'جست‌وجوی مشتریان…',
+  'Navigation': 'ناوبری',
+  'Manage agency': 'مدیریت آژانس',
+  'Marketplace profile': 'پروفایل بازار',
+  'My agency': 'آژانس من',
+  'Account settings': 'تنظیمات حساب',
+  'Sign out': 'خروج',
+  'Account Settings': 'تنظیمات حساب',
+  'Notifications': 'اعلان‌ها',
+  'Ads management is coming soon. We\'re building it next.': 'مدیریت تبلیغات به‌زودی اضافه می‌شود.',
 };
 
 const dictionaries = { en: {}, fa };
