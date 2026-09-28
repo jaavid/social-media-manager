@@ -25,6 +25,14 @@ _PROVIDER_SERVICES = {
     'https://tapi.bale.ai': 'bale',
 }
 
+_GATEWAY_ERRORS = {
+    'unauthorized',
+    'route_not_found',
+    'upstream_unreachable',
+    'invalid_bot_token',
+    'invalid_route',
+}
+
 
 class BotAPIClient:
     def __init__(self, token: str, base_url: str, *, timeout: int = 30, service: str | None = None):
@@ -50,7 +58,7 @@ class BotAPIClient:
                 gateway_path=f'/bot/{method}',
                 gateway_headers={'X-Upstream-Bot-Token': self.token},
             )
-        except (requests.ConnectionError, requests.Timeout, requests.RequestException) as exc:
+        except requests.RequestException as exc:
             raise PublishError(
                 f'Bot API network error while calling {method}',
                 code='network_error',
@@ -68,6 +76,29 @@ class BotAPIClient:
                 f'Bot API returned a non-JSON response for {method}',
                 code='invalid_response', status_code=response.status_code,
             ) from exc
+
+        route = getattr(getattr(response, 'egress_route', None), 'route', None)
+        gateway_error = payload.get('error') if route == 'gateway' else None
+        if gateway_error in _GATEWAY_ERRORS and not payload.get('error_code'):
+            if gateway_error == 'unauthorized':
+                raise PublishError(
+                    'API gateway authentication failed',
+                    code='egress_auth', status_code=response.status_code, raw=payload,
+                )
+            if gateway_error == 'route_not_found':
+                raise PublishError(
+                    f'API gateway route is not configured for {self.service}',
+                    code='egress_route_missing', status_code=response.status_code, raw=payload,
+                )
+            if gateway_error == 'upstream_unreachable':
+                raise PublishError(
+                    f'API gateway could not reach {self.service}',
+                    code='network_error', status_code=response.status_code, raw=payload,
+                )
+            raise PublishError(
+                'API gateway rejected the outbound request',
+                code='egress_config', status_code=response.status_code, raw=payload,
+            )
 
         error_code = int(payload.get('error_code') or response.status_code or 0)
 
