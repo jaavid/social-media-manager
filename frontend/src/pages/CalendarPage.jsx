@@ -32,16 +32,17 @@ import {
   gregorianMonthsCovering,
   dateKeyInRange,
 } from '../utils/persianCalendar';
+import { deriveCalendarStats } from '../utils/calendarStats';
 
 const STYLE_ID = 'cal-keyframes';
 if (!document.getElementById(STYLE_ID)) {
-  const s = document.createElement('style');
-  s.id = STYLE_ID;
-  s.textContent = `
+  const style = document.createElement('style');
+  style.id = STYLE_ID;
+  style.textContent = `
     @keyframes calFadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
     .cal-fade { animation: calFadeIn 0.2s ease-out; }
   `;
-  document.head.appendChild(s);
+  document.head.appendChild(style);
 }
 
 function fmt(n, formatNumber) {
@@ -60,7 +61,7 @@ const STATUS_BADGE = {
 
 function ListView({
   postsByDate, onPostClick, onEditPost, onDeletePost, isAdmin,
-  month, year, rangeStart, rangeEnd, isPersian, t, formatDate, formatNumber,
+  month, year, rangeStart, rangeEnd, isPersian, t, tr, formatDate, formatNumber,
 }) {
   const prefix = `${year}-${String(month).padStart(2, '0')}`;
   const entries = Object.entries(postsByDate)
@@ -99,8 +100,9 @@ function ListView({
               {formatNumber(posts.length)} {t('common.posts', posts.length === 1 ? 'post' : 'posts')}
             </span>
           </div>
+
           {posts.map(post => {
-            const p = PLATFORMS[post.platform] || { color: 'var(--text-secondary)', label: post.platform };
+            const platform = PLATFORMS[post.platform] || { color: 'var(--text-secondary)', label: post.platform };
             const badge = STATUS_BADGE[post.status] || STATUS_BADGE.draft;
             const timestamp = post.scheduled_at || post.published_at;
             const timeStr = timestamp
@@ -108,16 +110,17 @@ function ListView({
                 ? formatDate(parseISO(timestamp), { hour: 'numeric', minute: '2-digit' })
                 : format(parseISO(timestamp), 'h:mm a')
               : '';
+
             return (
               <div key={post.id} style={{
                 display: 'flex', alignItems: 'flex-start', gap: 12,
                 background: 'var(--surface-card)', borderRadius: 10,
                 border: '1px solid var(--border-default)',
-                borderInlineStart: `4px solid ${p.color}`,
+                borderInlineStart: `4px solid ${platform.color}`,
                 padding: '12px 16px', marginBottom: 8,
               }}>
                 <div style={{
-                  width: 36, height: 36, borderRadius: '50%', background: p.color + '20',
+                  width: 36, height: 36, borderRadius: '50%', background: platform.color + '20',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
                 }}>
                   <SocialPlatformIcon platform={post.platform} size={18} />
@@ -126,10 +129,13 @@ function ListView({
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
                     <span style={{ fontWeight: 700, fontSize: 13, color: 'var(--text-primary)' }}>
-                      {post.title || '(no title)'}
+                      {post.title || tr('(no title)')}
                     </span>
-                    <span style={{ padding: '1px 8px', borderRadius: 20, fontSize: 10, fontWeight: 700, background: badge.bg, color: badge.color }}>
-                      {post.status}
+                    <span style={{
+                      padding: '1px 8px', borderRadius: 20, fontSize: 10, fontWeight: 700,
+                      background: badge.bg, color: badge.color,
+                    }}>
+                      {tr(post.status)}
                     </span>
                   </div>
                   <div style={{
@@ -137,11 +143,11 @@ function ListView({
                     overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2,
                     WebkitBoxOrient: 'vertical', marginBottom: 4,
                   }}>
-                    {post.caption || '(no caption)'}
+                    {post.caption || tr('(no caption)')}
                   </div>
                   {post.hashtags && (
                     <div style={{ fontSize: 11, color: '#007a9a' }}>
-                      {formatNumber(post.hashtags.split(' ').filter(h => h.startsWith('#')).length)} hashtags
+                      {formatNumber(post.hashtags.split(' ').filter(h => h.startsWith('#')).length)} {tr('hashtags')}
                     </div>
                   )}
                   {post.status === 'published' && (post.impressions > 0 || post.likes > 0) && (
@@ -186,7 +192,7 @@ export default function CalendarPage({ clientId: propClientId }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
   const { clients } = useClients();
-  const { isPersian, t, formatDate, formatNumber } = useLanguage();
+  const { isPersian, t, tr, formatDate, formatNumber } = useLanguage();
   const isAdmin = user?.role === 'superadmin' || user?.role === 'staff';
   const isEmbedded = !!propClientId;
   const showClientSelector = isAdmin && !propClientId;
@@ -218,7 +224,7 @@ export default function CalendarPage({ clientId: propClientId }) {
 
   const queryMonths = useMemo(
     () => isPersian ? gregorianMonthsCovering(visibleRange.start, visibleRange.end) : null,
-    [isPersian, visibleRange]
+    [isPersian, visibleRange.start, visibleRange.end]
   );
 
   const [view, setView] = useState(initialView);
@@ -247,30 +253,47 @@ export default function CalendarPage({ clientId: propClientId }) {
   const { postsByDate, loading: postsLoading, refetch: refetchPosts } =
     useCalendarPosts(clientId, month, year, platform === 'all' ? '' : platform, queryMonths);
   const { notesByDate } = useCalendarNotes(clientId, month, year, queryMonths);
-  const { stats } = useCalendarStats(clientId, month, year);
+  const { stats: apiStats } = useCalendarStats(clientId, month, year);
   const { upcoming } = useUpcomingPosts(clientId);
   const { create, update, remove, reschedule } = useCreatePost();
 
+  const stats = useMemo(
+    () => isPersian
+      ? deriveCalendarStats(postsByDate, visibleRange.start, visibleRange.end)
+      : apiStats,
+    [isPersian, postsByDate, visibleRange.start, visibleRange.end, apiStats]
+  );
+
   function prevMonth() {
-    setCurrentDate(d => isPersian ? addPersianMonths(d, -1) : subMonths(d, 1));
+    setCurrentDate(date => isPersian ? addPersianMonths(date, -1) : subMonths(date, 1));
   }
+
   function nextMonth() {
-    setCurrentDate(d => isPersian ? addPersianMonths(d, 1) : addMonths(d, 1));
+    setCurrentDate(date => isPersian ? addPersianMonths(date, 1) : addMonths(date, 1));
   }
+
   function goToday() {
     setCurrentDate(isPersian ? startOfPersianMonth(new Date()) : new Date());
   }
 
   function openPostDetail(post) { setDetailPost(post); setDetailOpen(true); }
   function closeDetail() { setDetailOpen(false); setTimeout(() => setDetailPost(null), 300); }
+
   function openFormForDate(date) {
     if (!isAdmin) return;
-    setEditingPost(null); setFormDate(date); setFormOpen(true);
+    setEditingPost(null);
+    setFormDate(date);
+    setFormOpen(true);
   }
+
   function openFormForEdit(post) {
     if (!isAdmin) return;
-    setEditingPost(post); setFormDate(null); setFormOpen(true); setDetailOpen(false);
+    setEditingPost(post);
+    setFormDate(null);
+    setFormOpen(true);
+    setDetailOpen(false);
   }
+
   function closeForm() {
     setFormOpen(false);
     setTimeout(() => { setEditingPost(null); setFormDate(null); }, 300);
@@ -280,7 +303,7 @@ export default function CalendarPage({ clientId: propClientId }) {
     let result;
     if (postId) result = await update(postId, data);
     else {
-      if (!clientId) return { success: false, error: 'No user selected.' };
+      if (!clientId) return { success: false, error: tr('No user selected.') };
       result = await create({ ...data, client: clientId });
     }
     if (result.success) { closeForm(); refetchPosts(); }
@@ -288,13 +311,15 @@ export default function CalendarPage({ clientId: propClientId }) {
   }
 
   async function handleDeletePost(postId) {
-    const r = await remove(postId);
-    if (r.success) { closeDetail(); refetchPosts(); } else alert(r.error);
+    const result = await remove(postId);
+    if (result.success) { closeDetail(); refetchPosts(); }
+    else alert(result.error);
   }
 
   async function handleReschedule(postId, datetime) {
-    const r = await reschedule(postId, datetime);
-    if (r.success) { setDetailPost(r.post); refetchPosts(); } else alert(r.error);
+    const result = await reschedule(postId, datetime);
+    if (result.success) { setDetailPost(result.post); refetchPosts(); }
+    else alert(result.error);
   }
 
   const views = [
@@ -319,14 +344,15 @@ export default function CalendarPage({ clientId: propClientId }) {
             actions={(
               <select
                 value=""
-                onChange={e => {
-                  const nextClientId = e.target.value ? parseInt(e.target.value, 10) : null;
-                  setSelectedClientId(nextClientId); updateSearch({ client: nextClientId });
+                onChange={event => {
+                  const nextClientId = event.target.value ? parseInt(event.target.value, 10) : null;
+                  setSelectedClientId(nextClientId);
+                  updateSearch({ client: nextClientId });
                 }}
                 style={adminClientSelectStyle}
               >
                 <option value="">{t('calendar.allUsers', 'All Users')}</option>
-                {clients.map(c => <option key={c.id} value={c.id}>{c.company}</option>)}
+                {clients.map(client => <option key={client.id} value={client.id}>{client.company}</option>)}
               </select>
             )}
           />
@@ -351,38 +377,43 @@ export default function CalendarPage({ clientId: propClientId }) {
           actions={showClientSelector ? (
             <select
               value={clientId || ''}
-              onChange={e => {
-                const nextClientId = e.target.value ? parseInt(e.target.value, 10) : null;
-                setSelectedClientId(nextClientId); updateSearch({ client: nextClientId });
+              onChange={event => {
+                const nextClientId = event.target.value ? parseInt(event.target.value, 10) : null;
+                setSelectedClientId(nextClientId);
+                updateSearch({ client: nextClientId });
               }}
               style={adminClientSelectStyle}
             >
               <option value="">{t('calendar.allUsers', 'All Users')}</option>
-              {clients.map(c => <option key={c.id} value={c.id}>{c.company}</option>)}
+              {clients.map(client => <option key={client.id} value={client.id}>{client.company}</option>)}
             </select>
           ) : null}
         />
 
         <div className="calendar-toolbar" style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 20, flexWrap: 'wrap', width: '100%' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', flex: '1 1 260px', minWidth: 0 }}>
-            <button onClick={prevMonth} style={navBtnStyle}><ChevronLeft size={16} style={isPersian ? { transform: 'rotate(180deg)' } : undefined} /></button>
+            <button onClick={prevMonth} style={navBtnStyle} aria-label={tr('Previous month')}>
+              <ChevronLeft size={16} style={isPersian ? { transform: 'rotate(180deg)' } : undefined} />
+            </button>
             <div style={{ fontWeight: 800, fontSize: 18, color: 'var(--text-primary)', minWidth: isEmbedded ? 140 : 160, textAlign: 'center' }}>
               {monthTitle}
             </div>
-            <button onClick={nextMonth} style={navBtnStyle}><ChevronRight size={16} style={isPersian ? { transform: 'rotate(180deg)' } : undefined} /></button>
+            <button onClick={nextMonth} style={navBtnStyle} aria-label={tr('Next month')}>
+              <ChevronRight size={16} style={isPersian ? { transform: 'rotate(180deg)' } : undefined} />
+            </button>
             <button onClick={goToday} style={todayBtnStyle}>{t('common.today', 'Today')}</button>
           </div>
 
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', flex: '999 1 420px', minWidth: 0 }}>
-            {[{ key: 'all', label: t('common.all', 'All'), color: '#00d7ff' }, ...PLATFORM_LIST.map(k => ({ key: k, ...PLATFORMS[k] }))].map(p => (
-              <button key={p.key} onClick={() => setPlatform(p.key)} style={{
+            {[{ key: 'all', label: t('common.all', 'All'), color: '#00d7ff' }, ...PLATFORM_LIST.map(key => ({ key, ...PLATFORMS[key] }))].map(item => (
+              <button key={item.key} onClick={() => setPlatform(item.key)} style={{
                 padding: '5px 10px', borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s',
-                background: platform === p.key ? '#00d7ff' : '#fff', color: platform === p.key ? '#fff' : 'var(--text-secondary)',
-                border: platform === p.key ? '1px solid #00d7ff' : '1px solid var(--border-default)',
+                background: platform === item.key ? '#00d7ff' : '#fff', color: platform === item.key ? '#fff' : 'var(--text-secondary)',
+                border: platform === item.key ? '1px solid #00d7ff' : '1px solid var(--border-default)',
               }}>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                  {p.key === 'all' ? null : <SocialPlatformIcon platform={p.key} size={14} />}
-                  {p.label?.split(' ')[0] || t('common.all', 'All')}
+                  {item.key === 'all' ? null : <SocialPlatformIcon platform={item.key} size={14} />}
+                  {item.label?.split(' ')[0] || t('common.all', 'All')}
                 </span>
               </button>
             ))}
@@ -395,26 +426,35 @@ export default function CalendarPage({ clientId: propClientId }) {
               </button>
             )}
             <div style={{ display: 'flex', border: '1px solid var(--border-default)', borderRadius: 8, overflow: 'hidden', flexWrap: 'wrap', maxWidth: '100%' }}>
-              {views.map(v => (
-                <button key={v.key} onClick={() => { setView(v.key); updateSearch({ view: v.key, client: clientId }); }} style={{
+              {views.map(item => (
+                <button key={item.key} onClick={() => { setView(item.key); updateSearch({ view: item.key, client: clientId }); }} style={{
                   display: 'flex', alignItems: 'center', gap: 5, padding: '7px 14px', border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 600,
-                  background: view === v.key ? '#00d7ff' : '#fff', color: view === v.key ? '#fff' : 'var(--text-secondary)', transition: 'all 0.15s', whiteSpace: 'nowrap',
+                  background: view === item.key ? '#00d7ff' : '#fff', color: view === item.key ? '#fff' : 'var(--text-secondary)', transition: 'all 0.15s', whiteSpace: 'nowrap',
                 }}>
-                  {v.icon} {v.label}
+                  {item.icon} {item.label}
                 </button>
               ))}
             </div>
           </div>
         </div>
 
-        {postsLoading && <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-tertiary)', fontSize: 14 }}>{t('calendar.loading', 'Loading calendar…')}</div>}
+        {postsLoading && (
+          <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-tertiary)', fontSize: 14 }}>
+            {t('calendar.loading', 'Loading calendar…')}
+          </div>
+        )}
 
         {!postsLoading && view === 'month' && (
           <div className="cal-fade">
             <CalendarGrid
-              month={month} year={year} currentDate={currentDate}
-              postsByDate={postsByDate} notesByDate={notesByDate}
-              onDayClick={openFormForDate} onPostClick={openPostDetail} selectedPlatform={platform}
+              month={month}
+              year={year}
+              currentDate={currentDate}
+              postsByDate={postsByDate}
+              notesByDate={notesByDate}
+              onDayClick={openFormForDate}
+              onPostClick={openPostDetail}
+              selectedPlatform={platform}
             />
           </div>
         )}
@@ -423,25 +463,62 @@ export default function CalendarPage({ clientId: propClientId }) {
           <div className="cal-fade">
             {upcoming.length > 0 && (
               <div style={{ background: 'var(--surface-card)', borderRadius: 12, border: '1px solid var(--border-default)', padding: '16px 20px', marginBottom: 20 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 12 }}>📅 {t('calendar.comingUp', 'Coming up this week')}</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 12 }}>
+                  📅 {t('calendar.comingUp', 'Coming up this week')}
+                </div>
                 <UpcomingPosts posts={upcoming} />
               </div>
             )}
             <ListView
-              postsByDate={postsByDate} onPostClick={openPostDetail} onEditPost={openFormForEdit}
-              onDeletePost={handleDeletePost} isAdmin={isAdmin} month={month} year={year}
-              rangeStart={visibleRange.start} rangeEnd={visibleRange.end} isPersian={isPersian}
-              t={t} formatDate={formatDate} formatNumber={formatNumber}
+              postsByDate={postsByDate}
+              onPostClick={openPostDetail}
+              onEditPost={openFormForEdit}
+              onDeletePost={handleDeletePost}
+              isAdmin={isAdmin}
+              month={month}
+              year={year}
+              rangeStart={visibleRange.start}
+              rangeEnd={visibleRange.end}
+              isPersian={isPersian}
+              t={t}
+              tr={tr}
+              formatDate={formatDate}
+              formatNumber={formatNumber}
             />
           </div>
         )}
 
         {!postsLoading && view === 'stats' && (
-          <div className="cal-fade"><CalendarStats stats={stats} month={month} year={year} postsByDate={postsByDate} /></div>
+          <div className="cal-fade">
+            <CalendarStats
+              stats={stats}
+              month={month}
+              year={year}
+              currentDate={currentDate}
+              rangeStart={visibleRange.start}
+              rangeEnd={visibleRange.end}
+              postsByDate={postsByDate}
+            />
+          </div>
         )}
 
-        <PostDrawer post={detailPost} isOpen={detailOpen} onClose={closeDetail} onEdit={openFormForEdit} onDelete={handleDeletePost} onReschedule={handleReschedule} />
-        <PostFormDrawer date={formDate} post={editingPost} isOpen={formOpen} onClose={closeForm} onSave={handleSavePost} clientId={clientId} readOnly={!isAdmin} />
+        <PostDrawer
+          post={detailPost}
+          isOpen={detailOpen}
+          onClose={closeDetail}
+          onEdit={openFormForEdit}
+          onDelete={handleDeletePost}
+          onReschedule={handleReschedule}
+        />
+        <PostFormDrawer
+          date={formDate}
+          post={editingPost}
+          isOpen={formOpen}
+          onClose={closeForm}
+          onSave={handleSavePost}
+          clientId={clientId}
+          readOnly={!isAdmin}
+        />
       </div>
     </div>
   );
