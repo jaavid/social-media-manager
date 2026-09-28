@@ -20,7 +20,7 @@ from .registry import configured_mode, get_service
 
 @dataclass(frozen=True)
 class RouteResult:
-    direct_url: str
+    service: str
     route: str
     latency_ms: int
 
@@ -114,9 +114,11 @@ def _send_gateway(
     )
 
 
-def _annotate(response, *, direct_url: str, route: str, started: float):
+def _annotate(response, *, service: str, route: str, started: float):
+    # Never retain the direct URL in metadata: Bot API direct URLs include the
+    # credential itself. Service/route/latency are sufficient for observability.
     response.egress_route = RouteResult(
-        direct_url=direct_url,
+        service=service,
         route=route,
         latency_ms=int((time.monotonic() - started) * 1000),
     )
@@ -157,7 +159,7 @@ def outbound_request(
         started = time.monotonic()
         response = _send_direct(method, url, **kwargs)
         clear_direct_circuit(service)
-        return _annotate(response, direct_url=url, route='direct', started=started)
+        return _annotate(response, service=service, route='direct', started=started)
 
     if selected == 'gateway':
         started = time.monotonic()
@@ -167,7 +169,7 @@ def outbound_request(
             gateway_headers=gateway_headers,
             **kwargs,
         )
-        return _annotate(response, direct_url=url, route='gateway', started=started)
+        return _annotate(response, service=service, route='gateway', started=started)
 
     # auto
     if direct_circuit_open(service) and gateway_url():
@@ -178,13 +180,13 @@ def outbound_request(
             gateway_headers=gateway_headers,
             **kwargs,
         )
-        return _annotate(response, direct_url=url, route='gateway', started=started)
+        return _annotate(response, service=service, route='gateway', started=started)
 
     try:
         started = time.monotonic()
         response = _send_direct(method, url, **kwargs)
         clear_direct_circuit(service)
-        return _annotate(response, direct_url=url, route='direct', started=started)
+        return _annotate(response, service=service, route='direct', started=started)
     except NETWORK_ERRORS:
         if not gateway_url():
             raise
@@ -197,4 +199,4 @@ def outbound_request(
         gateway_headers=gateway_headers,
         **kwargs,
     )
-    return _annotate(response, direct_url=url, route='gateway', started=started)
+    return _annotate(response, service=service, route='gateway', started=started)
