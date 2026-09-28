@@ -9,40 +9,37 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  BarChart3, MessageCircle, Target,
-  Bell, Settings, LogOut, ChevronUp,
-  Briefcase, Receipt, Store,
+  Bell, Settings, LogOut,
+  Briefcase, Store,
 } from 'lucide-react';
 
 import { BrandMark } from '../ui/BrandLogo';
 import AccountTypeBadge from '../ui/AccountTypeBadge';
 import { useAuth } from '../../hooks/useAuth';
+import { useLanguage } from '../../i18n';
 
 /**
- * 64px-wide left rail. Top = logo, middle = module switcher, bottom = secondary actions.
- *
- * Props:
- *   currentModule: 'analytics' | 'messaging' | 'ads'
- *   basePath:      '/admin' | '/dashboard'
- *   modules:       ordered list of { id, label, icon, enabled, comingSoon, badge }
- *   notifCount:    number for the bell dot
+ * 64px-wide module rail. Uses logical CSS properties so it mirrors correctly
+ * when the document language switches to Persian/RTL.
  */
 export default function ModuleRail({ currentModule, basePath, modules, notifCount = 0 }) {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { t, tr } = useLanguage();
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
     <aside
       className="ds-module-rail"
-      aria-label="Module switcher"
+      aria-label={t('common.moduleSwitcher', 'Module switcher')}
       style={{
         position: 'fixed',
-        top: 0, left: 0, bottom: 0,
+        top: 0, bottom: 0,
+        insetInlineStart: 0,
         width: 'var(--module-rail-width)',
         zIndex: 100,
         background: 'var(--surface-card)',
-        borderRight: '1px solid var(--border-subtle)',
+        borderInlineEnd: '1px solid var(--border-subtle)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -50,7 +47,6 @@ export default function ModuleRail({ currentModule, basePath, modules, notifCoun
         gap: 6,
       }}
     >
-      {/* Top: brand mark */}
       <button
         type="button"
         onClick={() => navigate(`${basePath}/${currentModule || 'analytics'}`)}
@@ -71,13 +67,13 @@ export default function ModuleRail({ currentModule, basePath, modules, notifCoun
 
       <Divider />
 
-      {/* Middle: modules */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'center', marginTop: 4 }}>
         {modules.map((m) => (
           <ModuleButton
             key={m.id}
             module={m}
             active={currentModule === m.id}
+            soonLabel={t('common.soon', 'Soon')}
             onClick={() => {
               if (!m.enabled || m.comingSoon) return;
               navigate(`${basePath}/${m.id}`);
@@ -86,17 +82,16 @@ export default function ModuleRail({ currentModule, basePath, modules, notifCoun
         ))}
       </div>
 
-      {/* Bottom: secondary */}
       <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
         <RailIconBtn
           icon={Bell}
-          label="Notifications"
+          label={t('common.notifications', 'Notifications')}
           onClick={() => navigate(`${basePath}/analytics/alerts`)}
           dot={notifCount > 0}
         />
         <RailIconBtn
           icon={Settings}
-          label="Settings"
+          label={t('common.settings', 'Settings')}
           onClick={() => navigate(`${basePath}/account-settings`)}
         />
 
@@ -104,6 +99,8 @@ export default function ModuleRail({ currentModule, basePath, modules, notifCoun
           user={user}
           open={menuOpen}
           onOpenChange={setMenuOpen}
+          tr={tr}
+          accountMenuLabel={t('common.accountMenu', 'Account menu')}
           onLogout={() => { logout(); navigate('/login'); }}
         />
       </div>
@@ -111,11 +108,10 @@ export default function ModuleRail({ currentModule, basePath, modules, notifCoun
   );
 }
 
-function ModuleButton({ module: m, active, onClick }) {
+function ModuleButton({ module: m, active, onClick, soonLabel }) {
   const Icon = m.icon;
   const disabled = !m.enabled || m.comingSoon;
-
-  const tooltip = m.comingSoon ? `${m.label} — Soon` : m.label;
+  const tooltip = m.comingSoon ? `${m.label} — ${soonLabel}` : m.label;
 
   return (
     <div className="ds-rail-tip" data-tip={tooltip} style={{ position: 'relative' }}>
@@ -156,18 +152,18 @@ function ModuleButton({ module: m, active, onClick }) {
 
         {m.comingSoon && (
           <span style={{
-            position: 'absolute', top: -2, right: -2,
+            position: 'absolute', top: -2, insetInlineEnd: -2,
             background: 'var(--warning)', color: '#fff',
             fontSize: 8, fontWeight: 700, padding: '1px 4px',
             borderRadius: 999, lineHeight: 1,
           }}>
-            SOON
+            {soonLabel}
           </span>
         )}
 
         {!!m.badge && m.badge > 0 && (
           <span style={{
-            position: 'absolute', top: 4, right: 4,
+            position: 'absolute', top: 4, insetInlineEnd: 4,
             minWidth: 16, height: 16, padding: '0 4px',
             background: 'var(--brand-primary-hover)', color: '#fff',
             fontSize: 9, fontWeight: 700, lineHeight: '16px',
@@ -210,7 +206,7 @@ function RailIconBtn({ icon: Icon, label, onClick, dot }) {
         <Icon size={16} strokeWidth={2} />
         {dot && (
           <span aria-hidden style={{
-            position: 'absolute', top: 8, right: 8,
+            position: 'absolute', top: 8, insetInlineEnd: 8,
             width: 6, height: 6, background: 'var(--danger)',
             borderRadius: '50%',
           }} />
@@ -220,12 +216,11 @@ function RailIconBtn({ icon: Icon, label, onClick, dot }) {
   );
 }
 
-function UserMenu({ user, open, onOpenChange, onLogout }) {
+function UserMenu({ user, open, onOpenChange, onLogout, tr, accountMenuLabel }) {
   const navigate = useNavigate();
   const isAgency = user?.account_type === 'agency_member';
   const isEndUser = user?.account_type === 'end_user';
 
-  // Close on outside click / escape
   useEffect(() => {
     if (!open) return;
     const onKey = (e) => { if (e.key === 'Escape') onOpenChange(false); };
@@ -248,13 +243,13 @@ function UserMenu({ user, open, onOpenChange, onLogout }) {
       <button
         type="button"
         onClick={() => onOpenChange(!open)}
-        aria-label="Account menu"
+        aria-label={accountMenuLabel}
         aria-haspopup="menu"
         aria-expanded={open}
         style={{
           width: 36, height: 36, padding: 0,
           borderRadius: 999, border: '1px solid var(--border-subtle)',
-          background: `linear-gradient(135deg, hsl(${hue},65%,55%), hsl(${(hue+50)%360},65%,45%))`,
+          background: `linear-gradient(135deg, hsl(${hue},65%,55%), hsl(${(hue + 50) % 360},65%,45%))`,
           color: '#fff', fontWeight: 700, fontSize: 13,
           cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -269,7 +264,7 @@ function UserMenu({ user, open, onOpenChange, onLogout }) {
           role="menu"
           style={{
             position: 'absolute',
-            left: 'calc(100% + 12px)',
+            insetInlineStart: 'calc(100% + 12px)',
             bottom: 0,
             background: 'var(--surface-elevated)',
             border: '1px solid var(--border-default)',
@@ -290,24 +285,24 @@ function UserMenu({ user, open, onOpenChange, onLogout }) {
           </div>
           {isAgency && (
             <>
-              <MenuRow icon={Briefcase} label="Manage agency" onClick={() => {
+              <MenuRow icon={Briefcase} label={tr('Manage agency')} onClick={() => {
                 onOpenChange(false); navigate('/agency');
               }} />
-              <MenuRow icon={Store} label="Marketplace profile" onClick={() => {
+              <MenuRow icon={Store} label={tr('Marketplace profile')} onClick={() => {
                 onOpenChange(false); navigate('/agency/marketplace-profile');
               }} />
             </>
           )}
           {isEndUser && (
-            <MenuRow icon={Briefcase} label="My agency" onClick={() => {
+            <MenuRow icon={Briefcase} label={tr('My agency')} onClick={() => {
               onOpenChange(false); navigate('/u/agency');
             }} />
           )}
-          <MenuRow icon={Settings} label="Account settings" onClick={() => {
+          <MenuRow icon={Settings} label={tr('Account settings')} onClick={() => {
             onOpenChange(false);
             navigate(user?.role === 'client' ? '/dashboard/account-settings' : '/admin/account-settings');
           }} />
-          <MenuRow icon={LogOut} label="Sign out" danger onClick={onLogout} />
+          <MenuRow icon={LogOut} label={tr('Sign out')} danger onClick={onLogout} />
         </div>
       )}
     </div>
@@ -327,7 +322,7 @@ function MenuRow({ icon: Icon, label, onClick, danger }) {
         borderRadius: 'var(--radius-sm)',
         color: danger ? 'var(--danger)' : 'var(--text-primary)',
         fontSize: 13, fontWeight: 500,
-        cursor: 'pointer', textAlign: 'left',
+        cursor: 'pointer', textAlign: 'start',
         transition: 'var(--transition-fast)',
       }}
       onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--surface-hover)'; }}
