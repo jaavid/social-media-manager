@@ -38,7 +38,7 @@ services:
       retries: 10
 
   backend:
-    image: ghcr.io/cbsshekhawat18-lab/social-stats-backend:latest
+    image: ${SOCIAL_STATS_BACKEND_IMAGE:-ghcr.io/jaavid/social-stats-backend:latest}
     build: ./backend
     env_file:
       - path: .env.docker
@@ -80,7 +80,7 @@ services:
       start_period: 30s
 
   worker:
-    image: ghcr.io/cbsshekhawat18-lab/social-stats-backend:latest
+    image: ${SOCIAL_STATS_BACKEND_IMAGE:-ghcr.io/jaavid/social-stats-backend:latest}
     build: ./backend
     env_file:
       - path: .env.docker
@@ -94,7 +94,7 @@ services:
         condition: service_healthy
 
   beat:
-    image: ghcr.io/cbsshekhawat18-lab/social-stats-backend:latest
+    image: ${SOCIAL_STATS_BACKEND_IMAGE:-ghcr.io/jaavid/social-stats-backend:latest}
     build: ./backend
     env_file:
       - path: .env.docker
@@ -106,7 +106,7 @@ services:
         condition: service_healthy
 
   frontend:
-    image: ghcr.io/cbsshekhawat18-lab/social-stats-frontend:latest
+    image: ${SOCIAL_STATS_FRONTEND_IMAGE:-ghcr.io/jaavid/social-stats-frontend:latest}
     build: ./frontend
     ports:
       - "${FRONTEND_PORT:-3000}:80"
