@@ -1,7 +1,9 @@
 """Shared HTTP client for Telegram Bot API compatible providers.
 
-The bot token is deliberately never included in exceptions or log messages because
-both Telegram and Bale embed it in the request URL.
+Direct calls retain the provider's normal ``/bot<TOKEN>/method`` URL. Gateway
+calls use ``/telegram/bot/method`` (or Bale equivalent) and send the token in an
+internal header that API Access Gateway strips before forwarding. Exceptions
+never include a token-bearing URL.
 """
 from __future__ import annotations
 
@@ -9,6 +11,7 @@ from typing import Any
 
 import requests
 
+from social_stats.egress import outbound_request
 from .base import (
     PermissionDeniedError,
     PublishError,
@@ -17,22 +20,53 @@ from .base import (
 )
 
 
+_PROVIDER_SERVICES = {
+    'https://api.telegram.org': 'telegram',
+    'https://tapi.bale.ai': 'bale',
+}
+
+_GATEWAY_ERRORS = {
+    'unauthorized',
+    'route_not_found',
+    'upstream_unreachable',
+    'invalid_bot_token',
+    'invalid_route',
+}
+
+
 class BotAPIClient:
-    def __init__(self, token: str, base_url: str, *, timeout: int = 30):
+    def __init__(self, token: str, base_url: str, *, timeout: int = 30, service: str | None = None):
         self.token = (token or '').strip()
         self.base_url = base_url.rstrip('/')
         self.timeout = timeout
+        self.service = service or _PROVIDER_SERVICES.get(self.base_url)
         if not self.token:
             raise TokenExpiredError('Bot token is missing')
+        if not self.service:
+            raise PublishError('Unknown bot API provider', code='missing_config')
 
     def call(self, method: str, *, data: dict | None = None, files: dict | None = None) -> dict:
-        url = f"{self.base_url}/bot{self.token}/{method}"
+        direct_url = f"{self.base_url}/bot{self.token}/{method}"
         try:
-            response = requests.post(url, data=data or {}, files=files, timeout=self.timeout)
+            response = outbound_request(
+                self.service,
+                'POST',
+                direct_url,
+                data=data or {},
+                files=files,
+                timeout=self.timeout,
+                gateway_path=f'/bot/{method}',
+                gateway_headers={'X-Upstream-Bot-Token': self.token},
+            )
         except requests.RequestException as exc:
             raise PublishError(
                 f'Bot API network error while calling {method}',
                 code='network_error',
+            ) from exc
+        except (RuntimeError, ValueError) as exc:
+            raise PublishError(
+                f'Bot API egress configuration error while calling {method}',
+                code='egress_config',
             ) from exc
 
         try:
@@ -42,6 +76,29 @@ class BotAPIClient:
                 f'Bot API returned a non-JSON response for {method}',
                 code='invalid_response', status_code=response.status_code,
             ) from exc
+
+        route = getattr(getattr(response, 'egress_route', None), 'route', None)
+        gateway_error = payload.get('error') if route == 'gateway' else None
+        if gateway_error in _GATEWAY_ERRORS and not payload.get('error_code'):
+            if gateway_error == 'unauthorized':
+                raise PublishError(
+                    'API gateway authentication failed',
+                    code='egress_auth', status_code=response.status_code, raw=payload,
+                )
+            if gateway_error == 'route_not_found':
+                raise PublishError(
+                    f'API gateway route is not configured for {self.service}',
+                    code='egress_route_missing', status_code=response.status_code, raw=payload,
+                )
+            if gateway_error == 'upstream_unreachable':
+                raise PublishError(
+                    f'API gateway could not reach {self.service}',
+                    code='network_error', status_code=response.status_code, raw=payload,
+                )
+            raise PublishError(
+                'API gateway rejected the outbound request',
+                code='egress_config', status_code=response.status_code, raw=payload,
+            )
 
         error_code = int(payload.get('error_code') or response.status_code or 0)
 

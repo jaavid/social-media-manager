@@ -14,6 +14,7 @@ import { Lightbulb, Zap } from 'lucide-react';
 import SocialPlatformIcon from './SocialPlatformIcon';
 import FacebookConnectModal from '../FacebookConnectModal';
 import BotChannelConnectModal from '../BotChannelConnectModal';
+import ApiConnectivityPanel from '../ApiConnectivityPanel';
 
 const BOT_PLATFORMS = new Set(['telegram', 'bale']);
 
@@ -146,6 +147,8 @@ export default function ConnectedAccounts({ clientId, status, onRefresh }) {
           <li>Facebook & Instagram share one login. YouTube & Google My Business share one login.</li>
         </ul>
       </div>
+
+      <ApiConnectivityPanel />
     </div>
   );
 }

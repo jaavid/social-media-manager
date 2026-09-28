@@ -116,9 +116,41 @@ class BotPublisherTests(SimpleTestCase):
 
 
 class BotAPIClientTests(SimpleTestCase):
-    @patch('social_stats.publishers._bot_api_client.requests.post')
-    def test_network_error_does_not_expose_token(self, post):
-        post.side_effect = requests.RequestException('connection failed')
+    @patch('social_stats.publishers._bot_api_client.outbound_request')
+    def test_gateway_contract_keeps_token_out_of_gateway_path(self, outbound):
+        response = Mock()
+        response.status_code = 200
+        response.ok = True
+        response.json.return_value = {'ok': True, 'result': {'message_id': 1}}
+        outbound.return_value = response
+        client = BotAPIClient('123456:ABC', 'https://api.telegram.org')
+
+        client.call('sendMessage', data={'chat_id': '@channel', 'text': 'hello'})
+
+        outbound.assert_called_once_with(
+            'telegram',
+            'POST',
+            'https://api.telegram.org/bot123456:ABC/sendMessage',
+            data={'chat_id': '@channel', 'text': 'hello'},
+            files=None,
+            timeout=30,
+            gateway_path='/bot/sendMessage',
+            gateway_headers={'X-Upstream-Bot-Token': '123456:ABC'},
+        )
+
+    @patch('social_stats.publishers._bot_api_client.outbound_request')
+    def test_bale_selects_bale_egress_service(self, outbound):
+        response = Mock(status_code=200, ok=True)
+        response.json.return_value = {'ok': True, 'result': {'id': 1}}
+        outbound.return_value = response
+        client = BotAPIClient('bale-token', 'https://tapi.bale.ai')
+        client.call('getMe')
+        self.assertEqual(outbound.call_args.args[0], 'bale')
+        self.assertEqual(outbound.call_args.kwargs['gateway_path'], '/bot/getMe')
+
+    @patch('social_stats.publishers._bot_api_client.outbound_request')
+    def test_network_error_does_not_expose_token(self, outbound):
+        outbound.side_effect = requests.ConnectionError('connection failed')
         client = BotAPIClient('super-secret-token', 'https://api.telegram.org')
 
         with self.assertRaises(PublishError) as ctx:
@@ -127,8 +159,8 @@ class BotAPIClientTests(SimpleTestCase):
         self.assertNotIn('super-secret-token', str(ctx.exception))
         self.assertEqual(ctx.exception.code, 'network_error')
 
-    @patch('social_stats.publishers._bot_api_client.requests.post')
-    def test_retry_after_maps_to_rate_limit_error(self, post):
+    @patch('social_stats.publishers._bot_api_client.outbound_request')
+    def test_retry_after_maps_to_rate_limit_error(self, outbound):
         response = Mock()
         response.status_code = 429
         response.ok = False
@@ -137,7 +169,7 @@ class BotAPIClientTests(SimpleTestCase):
             'description': 'Too Many Requests',
             'parameters': {'retry_after': 17},
         }
-        post.return_value = response
+        outbound.return_value = response
         client = BotAPIClient('token', 'https://api.telegram.org')
 
         with self.assertRaises(RateLimitError) as ctx:
@@ -145,8 +177,8 @@ class BotAPIClientTests(SimpleTestCase):
 
         self.assertEqual(ctx.exception.retry_after, 17)
 
-    @patch('social_stats.publishers._bot_api_client.requests.post')
-    def test_payload_401_maps_to_token_expired_even_if_http_status_differs(self, post):
+    @patch('social_stats.publishers._bot_api_client.outbound_request')
+    def test_payload_401_maps_to_token_expired_even_if_http_status_differs(self, outbound):
         response = Mock()
         response.status_code = 400
         response.ok = False
@@ -155,7 +187,7 @@ class BotAPIClientTests(SimpleTestCase):
             'error_code': 401,
             'description': 'Unauthorized',
         }
-        post.return_value = response
+        outbound.return_value = response
         client = BotAPIClient('token', 'https://api.telegram.org')
 
         with self.assertRaises(TokenExpiredError):

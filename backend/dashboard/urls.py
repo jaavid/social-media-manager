@@ -17,5 +17,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/bot-channels/<int:client_id>/status/', bot_channel_status),
     path('api/bot-channels/<int:client_id>/<str:platform>/', bot_channel_connection),
+    path('api/egress/', include('social_stats.egress_urls')),
     path('api/', include('social_stats.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
