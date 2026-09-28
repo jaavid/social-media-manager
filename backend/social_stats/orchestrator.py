@@ -27,7 +27,6 @@ from the children's statuses after each child task finishes.
 from __future__ import annotations
 
 import logging
-from typing import Optional
 
 from celery import shared_task
 from django.utils import timezone
@@ -63,7 +62,6 @@ def publish_unified_post(self, unified_post_id: int):
                     unified_post_id, post.status)
         return
 
-    # Approval gate
     if post.client.requires_approval and post.status != 'scheduled' and not post.approved_by_id:
         post.status = 'pending_approval'
         post.save(update_fields=['status'])
@@ -82,7 +80,6 @@ def publish_unified_post(self, unified_post_id: int):
     post.save(update_fields=['status'])
 
     for platform in targets:
-        # Materialize a log row per platform up-front so the UI shows them.
         PlatformPublishLog.objects.update_or_create(
             unified_post=post, platform=platform,
             defaults={'status': 'pending', 'attempted_at': None,
@@ -109,7 +106,6 @@ def publish_to_platform(self, unified_post_id: int, platform: str):
     log.attempted_at = timezone.now()
     log.save(update_fields=['status', 'attempted_at'])
 
-    # Find an active credential for this client+platform
     cred = PlatformCredential.objects.filter(
         client=post.client, platform=platform, is_active=True,
     ).first()
@@ -119,21 +115,26 @@ def publish_to_platform(self, unified_post_id: int, platform: str):
         update_unified_post_status(post.id)
         return
 
-    # Resolve content + media (apply per-platform overrides)
     overrides = (post.platform_overrides or {}).get(platform, {}) or {}
-    content    = overrides.get('content', post.content) or ''
+    content = overrides.get('content', post.content) or ''
     media_urls = overrides.get('media_urls', post.media_urls) or []
     media_type = overrides.get('media_type', post.media_type) or 'text'
+    destination_id = (overrides.get('destination_id') or '').strip()
 
-    # Resolve any internal MediaAsset IDs to public URLs (S3 presigned or local).
     media_urls = _resolve_media_urls(post, media_urls)
-
     publisher = get_publisher(platform)
 
     try:
-        result = _dispatch_publish(publisher, cred, content, media_urls, media_type, post=post)
+        result = _dispatch_publish(
+            publisher,
+            cred,
+            content,
+            media_urls,
+            media_type,
+            post=post,
+            destination_id=destination_id,
+        )
     except TokenExpiredError as e:
-        # Mark credential dead + alert + persist
         _mark_failed(log, code='token_expired', message=str(e))
         cred.is_active = False
         cred.save(update_fields=['is_active'])
@@ -177,7 +178,6 @@ def publish_to_platform(self, unified_post_id: int, platform: str):
         update_unified_post_status(post.id)
         return
 
-    # Success
     log.status = 'success'
     log.platform_post_id = result.platform_post_id or ''
     log.platform_url = result.platform_url or ''
@@ -190,32 +190,40 @@ def publish_to_platform(self, unified_post_id: int, platform: str):
         'completed_at', 'error_code', 'error_message', 'raw_response',
     ])
 
-    # Mark referenced media as used
     MediaAsset.objects.filter(used_in_posts=post, is_used=False).update(is_used=True)
-
     update_unified_post_status(post.id)
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
-def _dispatch_publish(publisher, credential, content, media_urls, media_type, *, post):
-    """Pick the right publisher method based on media_type."""
+def _dispatch_publish(
+    publisher,
+    credential,
+    content,
+    media_urls,
+    media_type,
+    *,
+    post,
+    destination_id: str = '',
+):
+    """Pick the right publisher method based on media type and pass safe overrides."""
     media_type = (media_type or 'text').lower()
+    publish_kwargs = {'destination_id': destination_id} if destination_id else {}
 
     if media_type == 'text':
-        return publisher.publish_text(credential, content)
+        return publisher.publish_text(credential, content, **publish_kwargs)
     if media_type == 'image':
-        return publisher.publish_image(credential, content, media_urls)
+        return publisher.publish_image(credential, content, media_urls, **publish_kwargs)
     if media_type == 'video':
         first = media_urls[0] if media_urls else ''
-        return publisher.publish_video(credential, content, first)
+        return publisher.publish_video(credential, content, first, **publish_kwargs)
     if media_type == 'carousel':
-        return publisher.publish_carousel(credential, content, media_urls)
+        return publisher.publish_carousel(credential, content, media_urls, **publish_kwargs)
     if media_type == 'reel':
         first = media_urls[0] if media_urls else ''
-        return publisher.publish_reel(credential, first, content)
+        return publisher.publish_reel(credential, first, content, **publish_kwargs)
     if media_type == 'story':
         first = media_urls[0] if media_urls else ''
-        return publisher.publish_story(credential, first)
+        return publisher.publish_story(credential, first, **publish_kwargs)
 
     raise PublishError(f'Unknown media_type: {media_type}', code='unknown_media_type')
 
@@ -261,7 +269,6 @@ def update_unified_post_status(unified_post_id: int):
     statuses = list(post.publish_logs.values_list('status', flat=True))
     targets = post.target_platforms or []
     if not statuses or len(statuses) < len(targets):
-        # Some children haven't been touched yet → still publishing.
         if post.status not in ('publishing',):
             return
         return
@@ -273,8 +280,8 @@ def update_unified_post_status(unified_post_id: int):
         post.save(update_fields=['status', 'published_at'])
         push_event('composer.post_published', post.client_id, {
             'unified_post_id': post.id,
-            'title':           post.title or post.content[:60],
-            'platforms':       post.target_platforms or [],
+            'title': post.title or post.content[:60],
+            'platforms': post.target_platforms or [],
         })
         log_action(post.created_by, post.client, 'composer.published',
                    object_type='UnifiedPost', object_id=post.id,
@@ -301,7 +308,7 @@ def update_unified_post_status(unified_post_id: int):
         post.save(update_fields=['status'])
         push_event('composer.post_failed', post.client_id, {
             'unified_post_id': post.id,
-            'title':           post.title or post.content[:60],
+            'title': post.title or post.content[:60],
         })
         log_action(post.created_by, post.client, 'composer.published',
                    object_type='UnifiedPost', object_id=post.id,
@@ -310,9 +317,12 @@ def update_unified_post_status(unified_post_id: int):
                             'title': post.title or post.content[:120]})
         try:
             from .events.publisher import EventPublisher
-            # Pull a representative reason from the first failed publish_log.
             failed_log = post.publish_logs.filter(status='failed').first()
-            reason = (failed_log.error if failed_log and failed_log.error else 'all platforms failed')
+            reason = (
+                failed_log.error_message
+                if failed_log and failed_log.error_message
+                else 'all platforms failed'
+            )
             EventPublisher.publish(
                 'post.failed',
                 client=post.client,
@@ -326,7 +336,6 @@ def update_unified_post_status(unified_post_id: int):
             pass
         return
 
-    # Mixed → partial
     if any(s == 'success' for s in statuses) and any(s == 'failed' for s in statuses):
         post.status = 'partial'
         if not post.published_at:
@@ -334,13 +343,13 @@ def update_unified_post_status(unified_post_id: int):
         post.save(update_fields=['status', 'published_at'])
         push_event('composer.post_partial', post.client_id, {
             'unified_post_id': post.id,
-            'title':           post.title or post.content[:60],
-            'success_count':   sum(1 for s in statuses if s == 'success'),
-            'failed_count':    sum(1 for s in statuses if s == 'failed'),
+            'title': post.title or post.content[:60],
+            'success_count': sum(1 for s in statuses if s == 'success'),
+            'failed_count': sum(1 for s in statuses if s == 'failed'),
         })
         log_action(post.created_by, post.client, 'composer.published',
                    object_type='UnifiedPost', object_id=post.id,
                    result='partial',
                    details={'platforms': post.target_platforms,
                             'success_count': sum(1 for s in statuses if s == 'success'),
-                            'failed_count':  sum(1 for s in statuses if s == 'failed')})
+                            'failed_count': sum(1 for s in statuses if s == 'failed')})
