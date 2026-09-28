@@ -21,22 +21,18 @@ import MobileNav from './MobileNav';
 import AIFloatingTrigger from '../ai/AIFloatingTrigger';
 import SkipLink from '../ui/SkipLink';
 import ThemeToggle from '../ui/ThemeToggle';
+import LanguageToggle from '../ui/LanguageToggle';
 import useBreakpoint from '../../hooks/useBreakpoint';
 import { useAuth } from '../../hooks/useAuth';
+import { useLanguage } from '../../i18n';
 
-/**
- * Root layout shell. Replaces the inline layout logic in App.js.
- *
- * Props:
- * children: routed content (already wrapped in <Routes>)
- * isAdmin: bool — admin sees all 3 modules; client sees a filtered set
- */
 export default function AppShell({ children, isAdmin }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, can } = useAuth();
   const { isMobile } = useBreakpoint();
   const reducedMotion = useReducedMotion();
+  const { language, tr } = useLanguage();
 
   const basePath = isAdmin ? '/admin' : '/dashboard';
   const currentModule = useMemo(() => deriveModule(location.pathname, basePath), [location.pathname, basePath]);
@@ -44,11 +40,8 @@ export default function AppShell({ children, isAdmin }) {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Close mobile menu on route change
   useEffect(() => { setMobileMenuOpen(false); }, [location.pathname]);
 
-  // Surface live events as toasts. Pages can also subscribe directly to
-  // useRealtime() to refetch their own data on relevant events.
   useRealtime((event) => {
     if (!event || !event.type) return;
     const d = event.data || {};
@@ -57,52 +50,46 @@ export default function AppShell({ children, isAdmin }) {
         toast.success(`Published: ${d.title || 'post'}`);
         break;
       case 'composer.post_partial':
-        toast(`Published partially (${d.success_count}/${(d.success_count||0) + (d.failed_count||0)})`,
-              { icon: '⚠️' });
+        toast(`Published partially (${d.success_count}/${(d.success_count || 0) + (d.failed_count || 0)})`, { icon: '⚠️' });
         break;
       case 'composer.post_failed':
         toast.error(`Publish failed: ${d.title || 'post'}`);
         break;
       case 'inbox.new_message':
         if (d.preview) {
-          toast(`💬 ${d.contact_name || 'New message'}: ${String(d.preview).slice(0, 80)}`,
-                { duration: 3500 });
+          toast(`💬 ${d.contact_name || 'New message'}: ${String(d.preview).slice(0, 80)}`, { duration: 3500 });
         }
         break;
       case 'inbox.new_review':
-        toast(`⭐ New ${d.rating || ''}-star review${d.reviewer_name ? ' from ' + d.reviewer_name : ''}`,
-              { duration: 4000 });
+        toast(`⭐ New ${d.rating || ''}-star review${d.reviewer_name ? ' from ' + d.reviewer_name : ''}`, { duration: 4000 });
         break;
       case 'credential.token_expired':
-        toast.error(`${d.platform || 'Platform'} token expired — please reconnect.`,
-                    { duration: 6000 });
+        toast.error(`${d.platform || 'Platform'} token expired — please reconnect.`, { duration: 6000 });
         break;
       default:
-        // Other events propagate silently; pages handle them via their own subscribers.
         break;
     }
   });
 
-  // Build module list, filtered by role/perms
   const modules = useMemo(() => {
     const all = [
       {
-        id: 'analytics', label: 'Analytics', icon: BarChart3,
-        enabled: true,  // always available
+        id: 'analytics', label: tr('Analytics'), icon: BarChart3,
+        enabled: true,
       },
       {
-        id: 'messaging', label: 'Messaging', icon: MessageCircle,
+        id: 'messaging', label: tr('Messaging'), icon: MessageCircle,
         enabled: isAdmin || can?.('whatsapp.view'),
       },
       {
-        id: 'ads', label: 'Ads', icon: Target,
+        id: 'ads', label: tr('Ads'), icon: Target,
         enabled: false, comingSoon: true,
       },
     ];
     return all.filter((m) => m.enabled || m.comingSoon || isAdmin);
-  }, [isAdmin, can]);
+  }, [isAdmin, can, language, tr]);
 
-  const showRail    = !isMobile;
+  const showRail = !isMobile;
   const showSidebar = !isMobile;
 
   return (
@@ -131,7 +118,6 @@ export default function AppShell({ children, isAdmin }) {
         />
       )}
 
-      {/* Mobile drawer */}
       {isMobile && (
         <MobileDrawer
           open={mobileMenuOpen}
@@ -152,19 +138,17 @@ export default function AppShell({ children, isAdmin }) {
 
       {isMobile && (
         <MobileTopBar
-          basePath={basePath}
           onMenuOpen={() => setMobileMenuOpen(true)}
           onOpenPalette={() => setPaletteOpen(true)}
         />
       )}
 
-      {/* Main content */}
       <main
         id="main-content"
         tabIndex={-1}
         className="main-content"
         style={{
-          marginLeft: isMobile ? 0 : 'calc(var(--module-rail-width) + var(--feature-sidebar-width))',
+          marginInlineStart: isMobile ? 0 : 'calc(var(--module-rail-width) + var(--feature-sidebar-width))',
           paddingTop: 'var(--topbar-height)',
           paddingBottom: isMobile ? 80 : 0,
           minHeight: '100vh',
@@ -192,14 +176,14 @@ export default function AppShell({ children, isAdmin }) {
         basePath={basePath}
       />
 
-      {/* Floating Social Stats assistant — global Cmd/Ctrl+J */}
       <AIFloatingTrigger />
     </div>
   );
 }
 
-function MobileTopBar({ basePath, onMenuOpen, onOpenPalette }) {
+function MobileTopBar({ onMenuOpen, onOpenPalette }) {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const initial = ((user?.name || user?.email || 'U').trim()[0] || 'U').toUpperCase();
   const hue = hashHue(user?.email || user?.name || '');
 
@@ -208,7 +192,7 @@ function MobileTopBar({ basePath, onMenuOpen, onOpenPalette }) {
       className="ds-mobile-topbar"
       style={{
         position: 'fixed',
-        top: 0, left: 0, right: 0,
+        top: 0, insetInlineStart: 0, insetInlineEnd: 0,
         height: 'var(--topbar-height)',
         zIndex: 150,
         background: 'var(--surface-card)',
@@ -220,13 +204,13 @@ function MobileTopBar({ basePath, onMenuOpen, onOpenPalette }) {
         paddingTop: 'env(safe-area-inset-top)',
       }}
     >
-      <button type="button" onClick={onMenuOpen} aria-label="Open menu" style={iconBtn}>
+      <button type="button" onClick={onMenuOpen} aria-label={t('common.openMenu', 'Open menu')} style={iconBtn}>
         <Menu size={18} strokeWidth={2} />
       </button>
       <button
         type="button"
         onClick={onOpenPalette}
-        aria-label="Search"
+        aria-label={t('common.search', 'Search')}
         style={{
           flex: 1, minWidth: 0,
           height: 36,
@@ -238,15 +222,17 @@ function MobileTopBar({ basePath, onMenuOpen, onOpenPalette }) {
           color: 'var(--text-tertiary)',
           fontSize: 13,
           minHeight: 'unset',
+          textAlign: 'start',
         }}
       >
-        Search anything…
+        {t('common.search', 'Search anything…')}
       </button>
+      <LanguageToggle />
       <ThemeToggle size="sm" />
       <div style={{
         width: 32, height: 32,
         borderRadius: 999,
-        background: `linear-gradient(135deg, hsl(${hue},65%,55%), hsl(${(hue+50)%360},65%,45%))`,
+        background: `linear-gradient(135deg, hsl(${hue},65%,55%), hsl(${(hue + 50) % 360},65%,45%))`,
         color: '#fff', fontWeight: 700, fontSize: 12,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         flexShrink: 0,
@@ -260,9 +246,8 @@ function MobileTopBar({ basePath, onMenuOpen, onOpenPalette }) {
 function MobileDrawer({ open, onClose, modules, currentModule, basePath }) {
   const navigate = useNavigate();
   const drawerRef = useRef(null);
+  const { isPersian, t } = useLanguage();
 
-  // Esc to close + Tab focus trap (so the drawer behaves like a real dialog
-  // when open).
   useEffect(() => {
     if (!open) return;
     const onKey = (e) => {
@@ -278,14 +263,13 @@ function MobileDrawer({ open, onClose, modules, currentModule, basePath }) {
       else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
     };
     window.addEventListener('keydown', onKey);
-    // Move focus into the drawer on open.
-    const t = setTimeout(() => {
+    const timer = setTimeout(() => {
       const first = drawerRef.current?.querySelector('button, [href]');
       first?.focus?.();
     }, 0);
     return () => {
       window.removeEventListener('keydown', onKey);
-      clearTimeout(t);
+      clearTimeout(timer);
     };
   }, [open, onClose]);
 
@@ -300,17 +284,17 @@ function MobileDrawer({ open, onClose, modules, currentModule, basePath }) {
         ref={drawerRef}
         role="dialog"
         aria-modal="true"
-        aria-label="Navigation drawer"
+        aria-label={t('common.navigation', 'Navigation drawer')}
         aria-hidden={!open}
         style={{
           position: 'fixed',
           top: 0, bottom: 0,
-          left: 0,
+          insetInlineStart: 0,
           width: 'min(82vw, 320px)',
           zIndex: 300,
           background: 'var(--surface-card)',
-          borderRight: '1px solid var(--border-subtle)',
-          transform: open ? 'translateX(0)' : 'translateX(-100%)',
+          borderInlineEnd: '1px solid var(--border-subtle)',
+          transform: open ? 'translateX(0)' : isPersian ? 'translateX(100%)' : 'translateX(-100%)',
           transition: 'transform var(--transition-default)',
           display: 'flex', flexDirection: 'column',
           boxShadow: open ? 'var(--shadow-lg)' : 'none',
@@ -321,13 +305,12 @@ function MobileDrawer({ open, onClose, modules, currentModule, basePath }) {
           padding: '14px 16px',
           borderBottom: '1px solid var(--border-subtle)',
         }}>
-          <strong style={{ fontSize: 14, color: 'var(--text-primary)' }}>Navigation</strong>
-          <button type="button" onClick={onClose} aria-label="Close menu" style={iconBtn}>
+          <strong style={{ fontSize: 14, color: 'var(--text-primary)' }}>{t('common.navigation', 'Navigation')}</strong>
+          <button type="button" onClick={onClose} aria-label={t('common.closeMenu', 'Close menu')} style={iconBtn}>
             <X size={16} />
           </button>
         </header>
 
-        {/* Module switcher */}
         <div style={{
           padding: '10px 12px',
           display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8,
@@ -358,7 +341,7 @@ function MobileDrawer({ open, onClose, modules, currentModule, basePath }) {
               >
                 <Icon size={18} />
                 {m.label}
-                {m.comingSoon && <span style={{ fontSize: 9, opacity: 0.7 }}>SOON</span>}
+                {m.comingSoon && <span style={{ fontSize: 9, opacity: 0.7 }}>{t('common.soon', 'Soon')}</span>}
               </button>
             );
           })}
@@ -376,7 +359,7 @@ function deriveModule(pathname, basePath) {
   const rest = pathname.startsWith(basePath) ? pathname.slice(basePath.length) : pathname;
   const seg = rest.split('/').filter(Boolean)[0];
   if (seg === 'analytics' || seg === 'messaging' || seg === 'ads') return seg;
-  return 'analytics';  // default
+  return 'analytics';
 }
 
 function hashHue(s) {
