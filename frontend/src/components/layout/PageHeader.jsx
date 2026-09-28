@@ -9,13 +9,15 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
+import { useLanguage } from '../../i18n';
 
-/**
- * Restyled with new design tokens (). Public API unchanged:
- * <PageHeader title subtitle action actions backHref meta eyebrow />
- */
+function localized(value, tr) {
+  return typeof value === 'string' ? tr(value) : value;
+}
+
 export default function PageHeader({ title, subtitle, action, actions, backHref, meta = [], eyebrow = null }) {
   const navigate = useNavigate();
+  const { isPersian, tr } = useLanguage();
   const actionContent = action || actions || null;
 
   const [pinned, setPinned] = useState(false);
@@ -42,7 +44,7 @@ export default function PageHeader({ title, subtitle, action, actions, backHref,
         {backHref && (
           <button
             onClick={() => navigate(backHref)}
-            aria-label="Back"
+            aria-label={tr('Back')}
             style={{
               width: 36, height: 36,
               borderRadius: 'var(--radius-md)',
@@ -54,10 +56,10 @@ export default function PageHeader({ title, subtitle, action, actions, backHref,
               WebkitTapHighlightColor: 'transparent',
               transition: 'var(--transition-fast)',
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--surface-hover)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--surface-card)'; }}
+            onMouseEnter={(event) => { event.currentTarget.style.background = 'var(--surface-hover)'; }}
+            onMouseLeave={(event) => { event.currentTarget.style.background = 'var(--surface-card)'; }}
           >
-            <ChevronLeft size={16} />
+            <ChevronLeft size={16} style={isPersian ? { transform: 'rotate(180deg)' } : undefined} />
           </button>
         )}
         <div style={{ minWidth: 0, flex: 1 }}>
@@ -68,7 +70,7 @@ export default function PageHeader({ title, subtitle, action, actions, backHref,
               textTransform: 'uppercase', letterSpacing: 0.6,
               marginBottom: 6,
             }}>
-              {eyebrow}
+              {localized(eyebrow, tr)}
             </div>
           )}
           <h1 style={{
@@ -82,7 +84,7 @@ export default function PageHeader({ title, subtitle, action, actions, backHref,
             overflow: 'hidden',
             textOverflow: 'ellipsis',
           }}>
-            {title}
+            {localized(title, tr)}
           </h1>
           {subtitle && (
             <p style={{
@@ -92,17 +94,17 @@ export default function PageHeader({ title, subtitle, action, actions, backHref,
               color: 'var(--text-secondary)',
               lineHeight: 1.45,
             }}>
-              {subtitle}
+              {localized(subtitle, tr)}
             </p>
           )}
           {meta?.length > 0 && (
             <div style={{ display: 'flex', gap: 12, marginTop: 8, flexWrap: 'wrap' }}>
-              {meta.map((m, i) => (
-                <span key={i} style={{
+              {meta.map((item, index) => (
+                <span key={index} style={{
                   fontSize: 12, color: 'var(--text-tertiary)',
                   display: 'inline-flex', alignItems: 'center', gap: 6,
                 }}>
-                  {m}
+                  {localized(item, tr)}
                 </span>
               ))}
             </div>
