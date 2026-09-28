@@ -51,7 +51,10 @@ def bot_channel_status(request, client_id):
     result = {}
     for credential in rows:
         result[credential.platform] = {
-            'status': credential.status,
+            # PlatformCredential.status historically ignores is_active, but a bot
+            # credential is explicitly deactivated after a 401. Do not present a
+            # revoked token as connected in the Settings UI.
+            'status': credential.status if credential.is_active else 'not_connected',
             'credential_id': credential.id,
             'destination_id': credential.platform_user_id,
             'account_name': credential.page_name or '',
@@ -79,6 +82,8 @@ def bot_channel_connection(request, client_id, platform):
     destination_id = (request.data.get('destination_id') or '').strip()
     if not token or not destination_id:
         return Response({'detail': 'token and destination_id are required'}, status=400)
+    if len(token) > 2048 or len(destination_id) > 200:
+        return Response({'detail': 'token or destination_id is too long'}, status=400)
 
     try:
         api = BotAPIClient(token, PROVIDERS[platform])
