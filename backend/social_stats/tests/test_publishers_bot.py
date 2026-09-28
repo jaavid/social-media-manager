@@ -7,7 +7,7 @@ from django.test import SimpleTestCase
 from social_stats.orchestrator import _dispatch_publish
 from social_stats.publishers import get_publisher
 from social_stats.publishers._bot_api_client import BotAPIClient
-from social_stats.publishers.base import PublishError, RateLimitError
+from social_stats.publishers.base import PublishError, RateLimitError, TokenExpiredError
 from social_stats.publishers.telegram import TelegramPublisher
 
 
@@ -85,6 +85,35 @@ class BotPublisherTests(SimpleTestCase):
 
         self.assertEqual(ctx.exception.code, 'missing_destination')
 
+    def test_text_limit_is_enforced_before_network_call(self):
+        publisher = TelegramPublisher()
+        with patch.object(publisher, '_client') as client:
+            with self.assertRaises(PublishError) as ctx:
+                publisher.publish_text(self.credential, 'x' * 4097)
+        self.assertEqual(ctx.exception.code, 'content_too_long')
+        client.assert_not_called()
+
+    def test_media_caption_limit_is_enforced(self):
+        publisher = TelegramPublisher()
+        with patch.object(publisher, '_client') as client:
+            with self.assertRaises(PublishError) as ctx:
+                publisher.publish_image(
+                    self.credential,
+                    'x' * 1025,
+                    ['https://example.test/photo.jpg'],
+                )
+        self.assertEqual(ctx.exception.code, 'content_too_long')
+        client.assert_not_called()
+
+    def test_media_group_does_not_silently_drop_items(self):
+        publisher = TelegramPublisher()
+        urls = [f'https://example.test/{index}.jpg' for index in range(11)]
+        with patch.object(publisher, '_client') as client:
+            with self.assertRaises(PublishError) as ctx:
+                publisher.publish_carousel(self.credential, 'caption', urls)
+        self.assertEqual(ctx.exception.code, 'media_invalid')
+        client.assert_not_called()
+
 
 class BotAPIClientTests(SimpleTestCase):
     @patch('social_stats.publishers._bot_api_client.requests.post')
@@ -115,3 +144,19 @@ class BotAPIClientTests(SimpleTestCase):
             client.call('sendMessage')
 
         self.assertEqual(ctx.exception.retry_after, 17)
+
+    @patch('social_stats.publishers._bot_api_client.requests.post')
+    def test_payload_401_maps_to_token_expired_even_if_http_status_differs(self, post):
+        response = Mock()
+        response.status_code = 400
+        response.ok = False
+        response.json.return_value = {
+            'ok': False,
+            'error_code': 401,
+            'description': 'Unauthorized',
+        }
+        post.return_value = response
+        client = BotAPIClient('token', 'https://api.telegram.org')
+
+        with self.assertRaises(TokenExpiredError):
+            client.call('sendMessage')
