@@ -6,7 +6,10 @@ function increment(target, key) {
 }
 
 function scorePost(post) {
-  if (Number.isFinite(Number(post?.performance_score))) return Number(post.performance_score);
+  const explicitScore = post?.performance_score;
+  if (explicitScore !== null && explicitScore !== undefined && Number.isFinite(Number(explicitScore))) {
+    return Number(explicitScore);
+  }
   return (
     Number(post?.impressions || 0) +
     Number(post?.reach || 0) +
