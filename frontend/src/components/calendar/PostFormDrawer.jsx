@@ -7,86 +7,93 @@
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
 import { useState, useEffect } from 'react';
-import { format, isBefore } from 'date-fns';
+import { isBefore } from 'date-fns';
 import { X, AlertCircle } from 'lucide-react';
 import { PLATFORMS, PLATFORM_LIST } from '../../services/platforms';
 import { useSuggestedTimes } from '../../hooks/useCalendar';
 import SocialPlatformIcon from '../ui/SocialPlatformIcon';
+import { useLanguage } from '../../i18n';
 
 const CHAR_LIMITS = {
-  facebook:          63206,
-  instagram:         2200,
-  linkedin:          3000,
-  youtube:           5000,
-  google_my_business:1500,
+  facebook: 63206,
+  instagram: 2200,
+  linkedin: 3000,
+  youtube: 5000,
+  google_my_business: 1500,
+  telegram: 4096,
+  bale: 4096,
 };
 
-const POST_TYPES = [
-  { value: 'image',    label: 'Image'    },
-  { value: 'video',    label: 'Video'    },
-  { value: 'reel',     label: 'Reel'     },
-  { value: 'story',    label: 'Story'    },
-  { value: 'carousel', label: 'Carousel' },
-  { value: 'text',     label: 'Text'     },
-  { value: 'article',  label: 'Article'  },
-  { value: 'short',    label: 'Short'    },
-];
-
-const DAY_NAMES = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const POST_TYPES = ['image', 'video', 'reel', 'story', 'carousel', 'text', 'article', 'short'];
+const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 function getMinScheduleValue() {
   const now = new Date();
-  const pad = n => String(n).padStart(2, '0');
+  const pad = value => String(value).padStart(2, '0');
   return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
 }
 
-function CharCounter({ text, limit }) {
+function toLocalDateTime(value) {
+  const date = new Date(value);
+  const pad = item => String(item).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function CharCounter({ text, limit, formatNumber }) {
   const count = (text || '').length;
-  const pct   = count / limit;
+  const pct = count / limit;
   const color = pct > 0.95 ? '#EF4444' : pct > 0.80 ? '#F59E0B' : '#10B981';
   return (
-    <div style={{ fontSize: 11, color, textAlign: 'right', marginTop: 2 }}>
-      {count.toLocaleString()} / {limit.toLocaleString()}
+    <div style={{ fontSize: 11, color, textAlign: 'end', marginTop: 2 }}>
+      {formatNumber(count)} / {formatNumber(limit)}
     </div>
   );
 }
 
 function SuggestRow({ clientId, platform }) {
   const { suggestions, source } = useSuggestedTimes(clientId, platform);
+  const { tr, formatNumber } = useLanguage();
   if (!suggestions.length) return null;
+
   return (
     <div style={{
       background: '#EFF6FF', border: '1px solid #BFDBFE',
       borderRadius: 8, padding: '8px 12px', marginTop: 6, fontSize: 12,
     }}>
-      <span style={{ color: '#2563EB', fontWeight: 600 }}>💡 Best times for {PLATFORMS[platform]?.label || platform}: </span>
-      <span style={{ color: '#1e40af' }}>
-        {suggestions.slice(0, 4).map(s => s.note || `${DAY_NAMES[s.day_of_week]} ${s.hour}:${String(s.minute||0).padStart(2,'0')}`).join(', ')}
+      <span style={{ color: '#2563EB', fontWeight: 600 }}>
+        💡 {tr('Best times for')} {PLATFORMS[platform]?.label || platform}:{' '}
       </span>
-      {source === 'industry' && <span style={{ color: '#64748B' }}> (industry)</span>}
+      <span style={{ color: '#1e40af' }}>
+        {suggestions.slice(0, 4).map(suggestion => (
+          suggestion.note || `${tr(DAY_NAMES[suggestion.day_of_week])} ${formatNumber(suggestion.hour)}:${String(suggestion.minute || 0).padStart(2, '0')}`
+        )).join('، ')}
+      </span>
+      {source === 'industry' && <span style={{ color: '#64748B' }}> ({tr('industry')})</span>}
     </div>
   );
 }
 
 export default function PostFormDrawer({ date, post, isOpen, onClose, onSave, clientId, readOnly }) {
+  const { isPersian, tr, formatDate, formatNumber } = useLanguage();
   const isEdit = !!post;
 
-  const [platform,    setPlatform]    = useState(post?.platform    || 'instagram');
-  const [postType,    setPostType]    = useState(post?.post_type   || 'image');
-  const [title,       setTitle]       = useState(post?.title       || '');
-  const [caption,     setCaption]     = useState(post?.caption     || '');
-  const [hashtags,    setHashtags]    = useState(post?.hashtags    || '');
-  const [mediaUrl,    setMediaUrl]    = useState(post?.media_url   || '');
-  const [postUrl,     setPostUrl]     = useState(post?.post_url    || '');
-  const [status,      setStatus]      = useState(post?.status === 'scheduled' ? 'scheduled' : 'draft');
+  const [platform, setPlatform] = useState(post?.platform || 'instagram');
+  const [postType, setPostType] = useState(post?.post_type || 'image');
+  const [title, setTitle] = useState(post?.title || '');
+  const [caption, setCaption] = useState(post?.caption || '');
+  const [hashtags, setHashtags] = useState(post?.hashtags || '');
+  const [mediaUrl, setMediaUrl] = useState(post?.media_url || '');
+  const [postUrl, setPostUrl] = useState(post?.post_url || '');
+  const [status, setStatus] = useState(post?.status === 'scheduled' ? 'scheduled' : 'draft');
   const [scheduledAt, setScheduledAt] = useState('');
-  const [notes,       setNotes]       = useState(post?.notes       || '');
-  const [saving,      setSaving]      = useState(false);
-  const [errors,      setErrors]      = useState({});
-  const [error,       setError]       = useState('');
+  const [notes, setNotes] = useState(post?.notes || '');
+  const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (!isOpen) return;
+
     if (post) {
       setPlatform(post.platform || 'instagram');
       setPostType(post.post_type || 'image');
@@ -97,16 +104,8 @@ export default function PostFormDrawer({ date, post, isOpen, onClose, onSave, cl
       setPostUrl(post.post_url || '');
       setStatus(post.status === 'scheduled' ? 'scheduled' : 'draft');
       setNotes(post.notes || '');
-      if (post.scheduled_at) {
-        // Convert to local datetime-local input format
-        const d = new Date(post.scheduled_at);
-        const pad = n => String(n).padStart(2, '0');
-        setScheduledAt(
-          `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
-        );
-      }
+      setScheduledAt(post.scheduled_at ? toLocalDateTime(post.scheduled_at) : '');
     } else {
-      // New post — pre-fill date
       setPlatform('instagram');
       setPostType('image');
       setTitle('');
@@ -117,25 +116,25 @@ export default function PostFormDrawer({ date, post, isOpen, onClose, onSave, cl
       setStatus('draft');
       setNotes('');
       if (date) {
-        const d = date instanceof Date ? date : new Date(date);
-        const pad = n => String(n).padStart(2, '0');
-        setScheduledAt(
-          `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T10:00`
-        );
+        const selectedDate = date instanceof Date ? date : new Date(date);
+        selectedDate.setHours(10, 0, 0, 0);
+        setScheduledAt(toLocalDateTime(selectedDate));
       } else {
         setScheduledAt('');
       }
     }
+
     setError('');
     setErrors({});
     setSaving(false);
   }, [isOpen, post, date]);
 
   const charLimit = CHAR_LIMITS[platform] || 2200;
-  const hashCount = hashtags.trim().split(/\s+/).filter(t => t.startsWith('#')).length;
+  const hashCount = hashtags.trim().split(/\s+/).filter(token => token.startsWith('#')).length;
+  const selectedPlatform = PLATFORMS[platform] || { color: '#64748B', label: platform };
 
   const clearFieldError = (field) => {
-    setErrors((prev) => {
+    setErrors(prev => {
       if (!prev[field]) return prev;
       const next = { ...prev };
       delete next[field];
@@ -145,17 +144,15 @@ export default function PostFormDrawer({ date, post, isOpen, onClose, onSave, cl
 
   const validateForm = (finalStatus) => {
     const nextErrors = {};
-    if (!platform) {
-      nextErrors.platform = 'Please select a platform.';
-    }
+    if (!platform) nextErrors.platform = tr('Please select a platform.');
     if (!caption.trim() && !title.trim()) {
-      nextErrors.caption = 'Caption is required. Add a caption or at least an internal title.';
+      nextErrors.caption = tr('Caption is required. Add a caption or at least an internal title.');
     }
     if (finalStatus === 'scheduled' && !scheduledAt) {
-      nextErrors.scheduledAt = 'Please pick a date and time to schedule this post.';
+      nextErrors.scheduledAt = tr('Please pick a date and time to schedule this post.');
     }
     if (finalStatus === 'scheduled' && scheduledAt && isBefore(new Date(scheduledAt), new Date())) {
-      nextErrors.scheduledAt = 'The scheduled time must be in the future.';
+      nextErrors.scheduledAt = tr('The scheduled time must be in the future.');
     }
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
@@ -164,56 +161,44 @@ export default function PostFormDrawer({ date, post, isOpen, onClose, onSave, cl
   async function handleSave(forcedStatus) {
     setError('');
     const finalStatus = forcedStatus || status;
-
-    // Auto-reveal the datetime picker when "Schedule Post" is clicked
-    if (finalStatus === 'scheduled') {
-      setStatus('scheduled');
-    }
+    if (finalStatus === 'scheduled') setStatus('scheduled');
 
     if (!validateForm(finalStatus)) {
-      // Build a specific summary of what's missing
       const missing = [];
-      if (!platform) missing.push('Platform');
-      if (!caption.trim() && !title.trim()) missing.push('Caption');
-      if (finalStatus === 'scheduled' && !scheduledAt) missing.push('Scheduled Date & Time');
+      if (!platform) missing.push(tr('Platform'));
+      if (!caption.trim() && !title.trim()) missing.push(tr('Caption'));
+      if (finalStatus === 'scheduled' && !scheduledAt) missing.push(tr('Scheduled Date & Time'));
       if (finalStatus === 'scheduled' && scheduledAt && isBefore(new Date(scheduledAt), new Date())) {
-        missing.push('Scheduled Date & Time (must be in the future)');
+        missing.push(tr('Scheduled Date & Time (must be in the future)'));
       }
-      setError(
-        missing.length > 0
-          ? `Required field${missing.length > 1 ? 's' : ''} missing: ${missing.join(', ')}.`
-          : 'Please fix the highlighted fields before saving.'
-      );
+      setError(missing.length
+        ? `${tr('Required fields missing')}: ${missing.join('، ')}.`
+        : tr('Please fix the highlighted fields before saving.'));
       return;
     }
 
     setSaving(true);
     const payload = {
-      platform, post_type: postType,
-      title, caption, hashtags,
-      media_url: mediaUrl, post_url: postUrl,
+      platform,
+      post_type: postType,
+      title,
+      caption,
+      hashtags,
+      media_url: mediaUrl,
+      post_url: postUrl,
       status: finalStatus,
       notes,
     };
-    if (finalStatus === 'scheduled' && scheduledAt) {
-      payload.scheduled_at = new Date(scheduledAt).toISOString();
-    }
-    if (!isEdit && clientId) {
-      payload.client = clientId;
-    }
+    if (finalStatus === 'scheduled' && scheduledAt) payload.scheduled_at = new Date(scheduledAt).toISOString();
+    if (!isEdit && clientId) payload.client = clientId;
 
     const result = await onSave(payload, post?.id);
     setSaving(false);
-    if (result?.success === false) {
-      setError(result.error || 'Save failed.');
-    }
+    if (result?.success === false) setError(result.error || tr('Save failed.'));
   }
-
-  const plat = PLATFORMS[platform] || { color: '#64748B', label: platform };
 
   return (
     <>
-      {/* Overlay */}
       <div
         onClick={onClose}
         style={{
@@ -225,219 +210,161 @@ export default function PostFormDrawer({ date, post, isOpen, onClose, onSave, cl
         }}
       />
 
-      {/* Drawer */}
       <div style={{
-        position:  'fixed', top: 0, right: 0, bottom: 0,
-        width:     460,
-        background:'#fff',
-        boxShadow: '-4px 0 24px rgba(0,0,0,0.12)',
-        zIndex:    1001,
-        transform: isOpen ? 'translateX(0)' : 'translateX(100%)',
-        transition:'transform 0.25s ease-out',
-        display:   'flex', flexDirection: 'column',
+        position: 'fixed', top: 0, bottom: 0, insetInlineEnd: 0,
+        width: 460, maxWidth: '100vw',
+        background: 'var(--surface-card)',
+        boxShadow: isPersian ? '4px 0 24px rgba(0,0,0,0.12)' : '-4px 0 24px rgba(0,0,0,0.12)',
+        zIndex: 1001,
+        transform: isOpen ? 'translateX(0)' : isPersian ? 'translateX(-100%)' : 'translateX(100%)',
+        transition: 'transform 0.25s ease-out',
+        display: 'flex', flexDirection: 'column',
         overflowY: 'auto',
       }}>
-        {/* Header */}
         <div style={{
-          padding: '16px 20px', borderBottom: '1px solid #E2E8F0',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          position: 'sticky', top: 0, background: '#fff', zIndex: 1,
+          padding: '16px 20px', borderBottom: '1px solid var(--border-default)',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
+          position: 'sticky', top: 0, background: 'var(--surface-card)', zIndex: 1,
         }}>
-          <div style={{ fontWeight: 700, fontSize: 16, color: '#0f172a' }}>
-            {isEdit ? 'Edit Post' : 'Schedule Post'}
+          <div style={{ fontWeight: 700, fontSize: 16, color: 'var(--text-primary)' }}>
+            {isEdit ? tr('Edit Post') : tr('Schedule Post')}
           </div>
           {date && !isEdit && (
-            <div style={{ fontSize: 12, color: '#64748B' }}>
-              {format(date instanceof Date ? date : new Date(date), 'EEEE, MMMM d')}
+            <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+              {formatDate(date instanceof Date ? date : new Date(date), { weekday: 'long', month: 'long', day: 'numeric' })}
             </div>
           )}
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748B' }}>
+          <button onClick={onClose} aria-label={tr('Close')} style={closeButtonStyle}>
             <X size={20} />
           </button>
         </div>
 
-        {/* Form */}
         <div style={{ padding: '20px', flex: 1 }}>
-          {/* Platform selector */}
-          <div style={{ marginBottom: 16 }}>
-            <label style={labelStyle}>Platform <span style={requiredAsteriskStyle}>*</span></label>
+          <Field label={tr('Platform')} required error={errors.platform}>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {PLATFORM_LIST.map(key => {
-                const p = PLATFORMS[key];
+                const item = PLATFORMS[key];
                 const active = platform === key;
                 return (
                   <button
                     key={key}
-                    onClick={() => setPlatform(key)}
+                    type="button"
+                    onClick={() => { setPlatform(key); clearFieldError('platform'); }}
                     style={{
                       display: 'flex', alignItems: 'center', gap: 5,
                       padding: '6px 12px', borderRadius: 8,
-                      background: active ? p.color : '#F1F5F9',
-                      color:      active ? '#fff'   : '#475569',
-                      border:     errors.platform
+                      background: active ? item.color : 'var(--surface-sunken)',
+                      color: active ? '#fff' : 'var(--text-secondary)',
+                      border: errors.platform
                         ? '1px solid #ef4444'
-                        : (active ? `1px solid ${p.color}` : '1px solid #E2E8F0'),
-                      cursor:     'pointer', fontSize: 12, fontWeight: 600,
-                      transition: 'all 0.15s',
+                        : active ? `1px solid ${item.color}` : '1px solid var(--border-default)',
+                      cursor: 'pointer', fontSize: 12, fontWeight: 600,
                     }}
                   >
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                      <SocialPlatformIcon platform={key} size={14} />
-                      {p.label.split(' ')[0]}
-                    </span>
+                    <SocialPlatformIcon platform={key} size={14} />
+                    {item.label.split(' ')[0]}
                   </button>
                 );
               })}
             </div>
-            {errors.platform && <div style={fieldErrorStyle}>{errors.platform}</div>}
-          </div>
+          </Field>
 
-          {/* Post Type */}
-          <div style={{ marginBottom: 16 }}>
-            <label style={labelStyle}>Post Type</label>
-            <select
-              value={postType}
-              onChange={e => setPostType(e.target.value)}
-              style={inputStyle}
-            >
-              {POST_TYPES.map(t => (
-                <option key={t.value} value={t.value}>{t.label}</option>
-              ))}
+          <Field label={tr('Post Type')}>
+            <select value={postType} onChange={event => setPostType(event.target.value)} style={inputStyle}>
+              {POST_TYPES.map(type => <option key={type} value={type}>{tr(type)}</option>)}
             </select>
-          </div>
+          </Field>
 
-          {/* Title */}
-          <div style={{ marginBottom: 16 }}>
-            <label style={labelStyle}>Internal Title</label>
+          <Field label={tr('Internal Title')}>
             <input
               type="text"
               value={title}
-              onChange={e => {
-                setTitle(e.target.value);
-                clearFieldError('caption');
-              }}
-              placeholder="Agency reference label"
+              onChange={event => { setTitle(event.target.value); clearFieldError('caption'); }}
+              placeholder={tr('Agency reference label')}
               style={inputStyle}
             />
-          </div>
+          </Field>
 
-          {/* Caption */}
-          <div style={{ marginBottom: 16 }}>
-            <label style={labelStyle}>Caption <span style={requiredAsteriskStyle}>*</span></label>
+          <Field label={tr('Caption')} required error={errors.caption}>
             <textarea
               value={caption}
-              onChange={e => {
-                setCaption(e.target.value);
-                clearFieldError('caption');
-              }}
-              placeholder={`Write your ${plat.label} caption…`}
+              onChange={event => { setCaption(event.target.value); clearFieldError('caption'); }}
+              placeholder={`${tr('Write your')} ${selectedPlatform.label} ${tr('caption')}…`}
               rows={5}
               style={{ ...inputStyle, ...(errors.caption ? inputErrorStyle : {}), resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.5 }}
             />
-            {errors.caption && <div style={fieldErrorStyle}>{errors.caption}</div>}
-            <CharCounter text={caption} limit={charLimit} />
-          </div>
+            <CharCounter text={caption} limit={charLimit} formatNumber={formatNumber} />
+          </Field>
 
-          {/* Hashtags */}
-          <div style={{ marginBottom: 16 }}>
-            <label style={labelStyle}>
-              Hashtags
-              {hashCount > 0 && (
-                <span style={{ marginLeft: 8, fontWeight: 400, color: '#64748B' }}>
-                  {hashCount} hashtag{hashCount !== 1 ? 's' : ''}
-                </span>
-              )}
-            </label>
+          <Field label={tr('Hashtags')} suffix={hashCount > 0 ? `${formatNumber(hashCount)} ${tr(hashCount === 1 ? 'hashtag' : 'hashtags')}` : null}>
             <input
               type="text"
               value={hashtags}
-              onChange={e => setHashtags(e.target.value)}
+              onChange={event => setHashtags(event.target.value)}
               placeholder="#socialmedia #marketing"
               style={inputStyle}
+              data-ltr="true"
             />
-          </div>
+          </Field>
 
-          {/* Media URL */}
-          <div style={{ marginBottom: 16 }}>
-            <label style={labelStyle}>Media URL (optional)</label>
-            <input
-              type="url"
-              value={mediaUrl}
-              onChange={e => setMediaUrl(e.target.value)}
-              placeholder="https://…"
-              style={inputStyle}
-            />
-          </div>
+          <Field label={tr('Media URL (optional)')}>
+            <input type="url" value={mediaUrl} onChange={event => setMediaUrl(event.target.value)} placeholder="https://…" style={inputStyle} data-ltr="true" />
+          </Field>
 
-          {/* Post URL */}
-          <div style={{ marginBottom: 16 }}>
-            <label style={labelStyle}>Post URL (optional)</label>
-            <input
-              type="url"
-              value={postUrl}
-              onChange={e => setPostUrl(e.target.value)}
-              placeholder="https://…"
-              style={inputStyle}
-            />
-          </div>
+          <Field label={tr('Post URL (optional)')}>
+            <input type="url" value={postUrl} onChange={event => setPostUrl(event.target.value)} placeholder="https://…" style={inputStyle} data-ltr="true" />
+          </Field>
 
-          {/* Status */}
-          <div style={{ marginBottom: 16 }}>
-            <label style={labelStyle}>Status</label>
+          <Field label={tr('Status')}>
             <div style={{ display: 'flex', gap: 8 }}>
-              {['draft', 'scheduled'].map(s => (
+              {['draft', 'scheduled'].map(item => (
                 <button
-                  key={s}
-                  onClick={() => setStatus(s)}
+                  key={item}
+                  type="button"
+                  onClick={() => setStatus(item)}
                   style={{
                     flex: 1, padding: '8px', borderRadius: 8,
-                    background: status === s ? (s === 'scheduled' ? '#2563EB' : '#F1F5F9') : '#F8FAFC',
-                    color:      status === s ? (s === 'scheduled' ? '#fff'   : '#374151') : '#94A3B8',
-                    border:     status === s ? `1px solid ${s === 'scheduled' ? '#2563EB' : '#CBD5E1'}` : '1px solid #E2E8F0',
+                    background: status === item ? (item === 'scheduled' ? '#2563EB' : 'var(--surface-sunken)') : 'var(--surface-card)',
+                    color: status === item ? (item === 'scheduled' ? '#fff' : 'var(--text-primary)') : 'var(--text-tertiary)',
+                    border: status === item ? `1px solid ${item === 'scheduled' ? '#2563EB' : 'var(--border-default)'}` : '1px solid var(--border-default)',
                     cursor: 'pointer', fontSize: 13, fontWeight: 600,
-                    textTransform: 'capitalize',
                   }}
                 >
-                  {s}
+                  {tr(item)}
                 </button>
               ))}
             </div>
-          </div>
+          </Field>
 
-          {/* DateTime picker */}
           {status === 'scheduled' && (
-            <div style={{ marginBottom: 16 }}>
-              <label style={labelStyle}>Scheduled Date & Time <span style={requiredAsteriskStyle}>*</span></label>
+            <Field label={tr('Scheduled Date & Time')} required error={errors.scheduledAt}>
               <input
                 type="datetime-local"
                 value={scheduledAt}
-                onChange={e => {
-                  setScheduledAt(e.target.value);
-                  clearFieldError('scheduledAt');
-                }}
+                onChange={event => { setScheduledAt(event.target.value); clearFieldError('scheduledAt'); }}
                 min={getMinScheduleValue()}
                 style={{ ...inputStyle, ...(errors.scheduledAt ? inputErrorStyle : {}) }}
+                data-ltr="true"
               />
-              {errors.scheduledAt && <div style={fieldErrorStyle}>{errors.scheduledAt}</div>}
-              {clientId && (
-                <SuggestRow clientId={clientId} platform={platform} />
+              {scheduledAt && (
+                <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 5 }}>
+                  {tr('Display date')}: {formatDate(new Date(scheduledAt), { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                </div>
               )}
-            </div>
+              {clientId && <SuggestRow clientId={clientId} platform={platform} />}
+            </Field>
           )}
 
-          {/* Agency notes */}
-          <div style={{ marginBottom: 16 }}>
-            <label style={labelStyle}>Internal Notes (not shown to user)</label>
+          <Field label={tr('Internal Notes (not shown to user)')}>
             <textarea
               value={notes}
-              onChange={e => setNotes(e.target.value)}
-              placeholder="e.g. Waiting on final image from designer"
+              onChange={event => setNotes(event.target.value)}
+              placeholder={tr('e.g. Waiting on final image from designer')}
               rows={2}
               style={{ ...inputStyle, resize: 'vertical', fontFamily: 'inherit' }}
             />
-          </div>
+          </Field>
 
-          {/* Error */}
           {error && (
             <div style={{
               display: 'flex', alignItems: 'flex-start', gap: 10,
@@ -451,37 +378,17 @@ export default function PostFormDrawer({ date, post, isOpen, onClose, onSave, cl
           )}
         </div>
 
-        {/* Footer */}
         {!readOnly && (
           <div style={{
-            padding: '14px 20px', borderTop: '1px solid #E2E8F0',
+            padding: '14px 20px', borderTop: '1px solid var(--border-default)',
             display: 'flex', gap: 8,
-            position: 'sticky', bottom: 0, background: '#fff', zIndex: 1,
+            position: 'sticky', bottom: 0, background: 'var(--surface-card)', zIndex: 1,
           }}>
-            <button
-              onClick={() => handleSave('draft')}
-              disabled={saving}
-              style={{
-                flex: 1, padding: '10px', borderRadius: 8,
-                background: '#F1F5F9', border: '1px solid #E2E8F0',
-                color: '#374151', cursor: 'pointer', fontSize: 13, fontWeight: 600,
-                opacity: saving ? 0.6 : 1,
-              }}
-            >
-              Save as Draft
+            <button onClick={() => handleSave('draft')} disabled={saving} style={{ ...footerButtonStyle, background: 'var(--surface-sunken)', color: 'var(--text-primary)' }}>
+              {tr('Save as Draft')}
             </button>
-            <button
-              onClick={() => handleSave('scheduled')}
-              disabled={saving}
-              style={{
-                flex: 1, padding: '10px', borderRadius: 8,
-                background: '#2563EB', color: '#fff',
-                border: 'none', cursor: saving ? 'not-allowed' : 'pointer',
-                fontSize: 13, fontWeight: 600,
-                opacity: saving ? 0.6 : 1,
-              }}
-            >
-              {saving ? 'Saving…' : 'Schedule Post'}
+            <button onClick={() => handleSave('scheduled')} disabled={saving} style={{ ...footerButtonStyle, background: '#2563EB', color: '#fff', borderColor: '#2563EB' }}>
+              {saving ? tr('Saving…') : tr('Schedule Post')}
             </button>
           </div>
         )}
@@ -490,20 +397,33 @@ export default function PostFormDrawer({ date, post, isOpen, onClose, onSave, cl
   );
 }
 
+function Field({ label, required, suffix, error, children }) {
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <label style={labelStyle}>
+        {label} {required && <span style={requiredAsteriskStyle}>*</span>}
+        {suffix && <span style={{ marginInlineStart: 8, fontWeight: 400, color: 'var(--text-tertiary)' }}>{suffix}</span>}
+      </label>
+      {children}
+      {error && <div style={fieldErrorStyle}>{error}</div>}
+    </div>
+  );
+}
+
 const labelStyle = {
   display: 'block', fontSize: 12, fontWeight: 600,
-  color: '#374151', marginBottom: 6,
+  color: 'var(--text-secondary)', marginBottom: 6,
 };
 
 const requiredAsteriskStyle = {
-  color: '#ef4444', marginLeft: 2, fontWeight: 800,
+  color: '#ef4444', marginInlineStart: 2, fontWeight: 800,
 };
 
 const inputStyle = {
   width: '100%', padding: '9px 11px', borderRadius: 8,
-  border: '1px solid #D1D5DB', fontSize: 13,
-  boxSizing: 'border-box', background: '#fff',
-  outline: 'none', color: '#1e293b',
+  border: '1px solid var(--border-default)', fontSize: 13,
+  boxSizing: 'border-box', background: 'var(--surface-card)',
+  outline: 'none', color: 'var(--text-primary)', textAlign: 'start',
 };
 
 const inputErrorStyle = {
@@ -515,4 +435,14 @@ const fieldErrorStyle = {
   marginTop: 6,
   fontSize: 12,
   color: '#dc2626',
+};
+
+const closeButtonStyle = {
+  background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', padding: 4,
+};
+
+const footerButtonStyle = {
+  flex: 1, padding: '10px', borderRadius: 8,
+  border: '1px solid var(--border-default)',
+  cursor: 'pointer', fontSize: 13, fontWeight: 600,
 };
