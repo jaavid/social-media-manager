@@ -10,6 +10,8 @@ from .base import BasePublisher, PublishError, PublishResult
 class BotPublisher(BasePublisher):
     API_BASE_URL = ''
     MAX_TEXT_LENGTH = 4096
+    MAX_CAPTION_LENGTH = 1024
+    MAX_MEDIA_GROUP_ITEMS = 10
     # Conservative defaults; providers may override as their APIs diverge.
     MAX_IMAGE_BYTES = 10 * 1024 * 1024
     MAX_VIDEO_BYTES = 50 * 1024 * 1024
@@ -28,6 +30,14 @@ class BotPublisher(BasePublisher):
         return destination
 
     @staticmethod
+    def _ensure_length(content: str, limit: int, label: str) -> None:
+        if content and len(content) > limit:
+            raise PublishError(
+                f'{label} exceeds provider limit ({len(content)}/{limit})',
+                code='content_too_long',
+            )
+
+    @staticmethod
     def _result(payload: dict) -> PublishResult:
         result = payload.get('result') or {}
         if isinstance(result, list):
@@ -42,6 +52,7 @@ class BotPublisher(BasePublisher):
         )
 
     def publish_text(self, credential, content: str, **kwargs) -> PublishResult:
+        self._ensure_length(content, self.MAX_TEXT_LENGTH, 'Text')
         payload = self._client(credential).call('sendMessage', data={
             'chat_id': self._destination(credential, **kwargs),
             'text': content,
@@ -51,6 +62,7 @@ class BotPublisher(BasePublisher):
     def publish_image(self, credential, content: str, image_urls: list[str], **kwargs) -> PublishResult:
         if not image_urls:
             return self.publish_text(credential, content, **kwargs)
+        self._ensure_length(content, self.MAX_CAPTION_LENGTH, 'Caption')
         if len(image_urls) > 1:
             return self.publish_carousel(credential, content, image_urls, **kwargs)
         payload = self._client(credential).call('sendPhoto', data={
@@ -63,6 +75,7 @@ class BotPublisher(BasePublisher):
     def publish_video(self, credential, content: str, video_url: str, *, thumbnail=None, **kwargs) -> PublishResult:
         if not video_url:
             raise PublishError('Video URL is required', code='media_invalid')
+        self._ensure_length(content, self.MAX_CAPTION_LENGTH, 'Caption')
         data = {
             'chat_id': self._destination(credential, **kwargs),
             'video': video_url,
@@ -75,13 +88,19 @@ class BotPublisher(BasePublisher):
     def publish_carousel(self, credential, content: str, image_urls: list[str], **kwargs) -> PublishResult:
         if not image_urls:
             return self.publish_text(credential, content, **kwargs)
+        if len(image_urls) > self.MAX_MEDIA_GROUP_ITEMS:
+            raise PublishError(
+                f'Media group exceeds provider limit ({len(image_urls)}/{self.MAX_MEDIA_GROUP_ITEMS})',
+                code='media_invalid',
+            )
+        self._ensure_length(content, self.MAX_CAPTION_LENGTH, 'Caption')
         media = [
             {
                 'type': 'photo',
                 'media': url,
                 **({'caption': content} if index == 0 and content else {}),
             }
-            for index, url in enumerate(image_urls[:10])
+            for index, url in enumerate(image_urls)
         ]
         payload = self._client(credential).call('sendMediaGroup', data={
             'chat_id': self._destination(credential, **kwargs),
