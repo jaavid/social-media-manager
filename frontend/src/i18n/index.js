@@ -57,6 +57,7 @@ const faRaw = {
   'Publish': 'انتشار',
   'Composer': 'ساخت محتوا',
   'Calendar': 'تقویم',
+  'Content Calendar': 'تقویم محتوا',
   'Queues': 'صف‌های انتشار',
   'Media Library': 'کتابخانه رسانه',
   'Video Studio': 'استودیوی ویدئو',
@@ -88,6 +89,8 @@ const faRaw = {
   'Notifications': 'اعلان‌ها',
   'Audit Log': 'گزارش ممیزی',
   'Messaging': 'پیام‌رسانی',
+  'Messaging Dashboard': 'داشبورد پیام‌رسانی',
+  'Social Performance': 'عملکرد شبکه‌های اجتماعی',
   'WhatsApp & SMS': 'واتس‌اپ و پیامک',
   'All conversations': 'همه گفتگوها',
   'Outreach': 'ارسال و کمپین',
@@ -115,9 +118,8 @@ const faRaw = {
   'Marketplace profile': 'پروفایل بازار',
   'My agency': 'آژانس من',
   'Account settings': 'تنظیمات حساب',
-  'Sign out': 'خروج',
   'Account Settings': 'تنظیمات حساب',
-  'Notifications': 'اعلان‌ها',
+  'Sign out': 'خروج',
   'Ads management is coming soon. We\'re building it next.': 'مدیریت تبلیغات به‌زودی اضافه می‌شود.',
 };
 
