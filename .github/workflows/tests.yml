@@ -1,11 +1,12 @@
 name: Tests
 
-# Runs on every PR + push to main/develop. Two parallel jobs:
+# Runs on every PR + push to main/develop and can also be started manually.
+# Three independent jobs:
 #   • backend  — Django unit + integration tests via `manage.py test`.
-#   • frontend — `npm run build` for type/import safety, then `npm test`
-#                (Jest + React Testing Library).
+#   • frontend — `npm run build` for type/import safety, then `npm test`.
+#   • docker   — builds and boots the full compose stack end-to-end.
 #
-# Both jobs are read-only — no deploys, no secrets uploaded. The existing
+# Jobs are read-only — no deploys, no secrets uploaded. The existing
 # `security.yml` workflow handles SAST + dep-CVE scans on the same triggers.
 
 on:
@@ -13,6 +14,7 @@ on:
     branches: [main, develop]
   push:
     branches: [main, develop]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -24,7 +26,7 @@ concurrency:
 
 jobs:
   # ───────────────────────────────────────────────────────────────────────
-  # Backend — Django test suite (230+ tests across all stages)
+  # Backend — Django test suite
   # ───────────────────────────────────────────────────────────────────────
   backend:
     name: Backend — Django tests
@@ -156,7 +158,8 @@ jobs:
           curl -fsS http://localhost:3000/ | grep -qi "<title>" || { docker compose logs frontend | tail -30; exit 1; }
           # API reachable through the same-origin proxy (401 = auth wall, which is correct)
           code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:3000/api/auth/me/)
-          [ "$code" = "401" ] || { echo "expected 401 from /api/auth/me/, got $code"; exit 1; }
+          [ "$code" = "401" ] || { echo "expected 401 from /api/auth/me/, got $code"; exit 1
+          }
 
       - name: Seed demo data inside the container
         run: docker compose exec -T backend python manage.py demo_setup
