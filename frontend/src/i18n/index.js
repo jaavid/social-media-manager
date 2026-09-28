@@ -37,7 +37,67 @@ const fa = {
   'calendar.weekday.fri': 'جمعه',
 };
 
+const faRaw = {
+  'Analytics': 'تحلیل و آمار',
+  'Social performance': 'عملکرد شبکه‌های اجتماعی',
+  'Publish': 'انتشار',
+  'Composer': 'ساخت محتوا',
+  'Calendar': 'تقویم',
+  'Queues': 'صف‌های انتشار',
+  'Media Library': 'کتابخانه رسانه',
+  'Video Studio': 'استودیوی ویدئو',
+  'Engage': 'تعامل',
+  'Inbox': 'صندوق ورودی',
+  'Reviews': 'بازخوردها',
+  'Automations': 'اتوماسیون‌ها',
+  'Overview': 'نمای کلی',
+  'Dashboard': 'داشبورد',
+  'Reports': 'گزارش‌ها',
+  'Content': 'محتوا',
+  'Posts': 'پست‌ها',
+  'Caption Writer': 'کپشن‌نویس',
+  'Post Ideas': 'ایده‌های پست',
+  'Hashtags': 'هشتگ‌ها',
+  'AI Studio': 'استودیوی هوش مصنوعی',
+  'Brand Voice': 'لحن برند',
+  'AI Insights': 'بینش هوش مصنوعی',
+  'AI Audit': 'ممیزی هوش مصنوعی',
+  'Performance': 'عملکرد',
+  'ROI Calculator': 'محاسبه بازگشت سرمایه',
+  'Alerts': 'هشدارها',
+  'Sync Logs': 'گزارش همگام‌سازی',
+  'Grow': 'رشد',
+  'Audience': 'مخاطبان',
+  'Competitors': 'رقبا',
+  'Setup': 'تنظیمات',
+  'Approvals': 'تأییدها',
+  'Notifications': 'اعلان‌ها',
+  'Audit Log': 'گزارش ممیزی',
+  'Messaging': 'پیام‌رسانی',
+  'WhatsApp & SMS': 'واتس‌اپ و پیامک',
+  'All conversations': 'همه گفتگوها',
+  'Outreach': 'ارسال و کمپین',
+  'Campaigns': 'کمپین‌ها',
+  'Templates': 'قالب‌ها',
+  'Contacts': 'مخاطبان',
+  'Lists': 'فهرست‌ها',
+  'Conversational AI': 'هوش مصنوعی مکالمه‌ای',
+  'Bot Flows': 'جریان‌های بات',
+  'Conversations': 'گفتگوها',
+  'Handoff Queue': 'صف ارجاع',
+  'Leads': 'سرنخ‌ها',
+  'CTWA Campaigns': 'کمپین‌های CTWA',
+  'Bot Safety': 'ایمنی بات',
+  'Account': 'حساب',
+  'Webhooks': 'وب‌هوک‌ها',
+  'Ads': 'تبلیغات',
+  'Coming soon': 'به‌زودی',
+  'All clients': 'همه مشتریان',
+  'Search clients…': 'جست‌وجوی مشتریان…',
+};
+
 const dictionaries = { en: {}, fa };
+const rawDictionaries = { en: {}, fa: faRaw };
 
 function detectInitialLanguage() {
   if (typeof window === 'undefined') return 'en';
@@ -75,6 +135,10 @@ export function translate(key, language = currentLanguage, fallback = key) {
   return dictionaries[language]?.[key] || fallback;
 }
 
+export function translateRaw(value, language = currentLanguage) {
+  return rawDictionaries[language]?.[value] || value;
+}
+
 export function localeFor(language = currentLanguage) {
   return language === 'fa' ? 'fa-IR-u-ca-persian' : 'en-US';
 }
@@ -105,6 +169,7 @@ export function useLanguage() {
     direction: language === 'fa' ? 'rtl' : 'ltr',
     setLanguage,
     t: (key, fallback) => translate(key, language, fallback),
+    tr: (value) => translateRaw(value, language),
     formatDate: (value, options) => formatUiDate(value, options, language),
     formatNumber: (value) => formatUiNumber(value, language),
   };
