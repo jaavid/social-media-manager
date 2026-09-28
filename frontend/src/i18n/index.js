@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import '../styles/i18n.css';
 
 const STORAGE_KEY = 'socialstats.language';
 const LANGUAGE_EVENT = 'socialstats:language-change';
