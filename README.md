@@ -7,15 +7,18 @@ agencies and teams. One product unifies a **social media scheduler** and **conte
 cross-platform **analytics dashboards**, a unified conversation inbox, a click-to-WhatsApp
 **bot builder**, and an **AI social media assistant** — across **Facebook**, **Instagram**,
 **YouTube**, **LinkedIn**, and **Google Business**, with WhatsApp Business as a first-class
-messaging module. It's built on **Django + React** and is fully self-hostable.
+messaging module and first-class **Telegram** / **Bale** bot-channel publishing. It's built
+on **Django + React** and is fully self-hostable.
 
-<!-- Badges — replace `cbsshekhawat18` with your GitHub org/username if different,
-     and the repo slug if you don't use `social-stats-social-media-manager`. -->
-[![Tests](https://github.com/cbsshekhawat18-lab/social-stats-social-media-manager/actions/workflows/tests.yml/badge.svg)](https://github.com/cbsshekhawat18-lab/social-stats-social-media-manager/actions/workflows/tests.yml)
+[![Tests](https://github.com/jaavid/social-media-manager/actions/workflows/tests.yml/badge.svg)](https://github.com/jaavid/social-media-manager/actions/workflows/tests.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
-[![Stars](https://img.shields.io/github/stars/cbsshekhawat18-lab/social-stats-social-media-manager?style=social)](https://github.com/cbsshekhawat18-lab/social-stats-social-media-manager/stargazers)
-[![Last commit](https://img.shields.io/github/last-commit/cbsshekhawat18-lab/social-stats-social-media-manager)](https://github.com/cbsshekhawat18-lab/social-stats-social-media-manager/commits)
+[![Stars](https://img.shields.io/github/stars/jaavid/social-media-manager?style=social)](https://github.com/jaavid/social-media-manager/stargazers)
+[![Last commit](https://img.shields.io/github/last-commit/jaavid/social-media-manager)](https://github.com/jaavid/social-media-manager/commits)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](./CONTRIBUTING.md)
+
+> **Independent maintenance:** this repository is maintained as its own product line.
+> The original MIT copyright and attribution are intentionally preserved; new releases,
+> container images, integrations, CI, and maintenance are owned by this repository.
 
 > **Status:** early-stage. The product is feature-complete enough to run
 > end-to-end (auth, OAuth onboarding, analytics, composer, AI features,
@@ -87,6 +90,8 @@ modules below — all in one codebase.
 
 ### ✍️ Content & publishing
 - **Composer** — write once, format per platform, schedule
+- Publish to Facebook, Instagram, YouTube, LinkedIn, Google Business, **Telegram**, and **Bale**
+- Telegram/Bale bot credentials are verified live and encrypted at rest; each post can optionally override its default channel/chat destination
 - **Content calendar** + **Queue manager** for scheduled posting
 - **Media Library** for reusable assets
 - **Video Studio** — trim/resize, captions, thumbnails, direct YouTube upload
@@ -138,8 +143,8 @@ modules below — all in one codebase.
 
 ## How it works
 
-1. **Connect accounts** — link Facebook, Instagram, YouTube, LinkedIn, Google Business, and WhatsApp via OAuth or the in-app manual setup wizard. Tokens are encrypted at rest, per workspace. See [docs/CONNECT_ACCOUNTS.md](docs/CONNECT_ACCOUNTS.md).
-2. **Plan & publish** — draft once in the composer, format per platform, schedule on the content calendar; agency posts can route through client approval.
+1. **Connect accounts** — link Facebook, Instagram, YouTube, LinkedIn, Google Business, and WhatsApp via OAuth/manual setup; connect Telegram and Bale with a bot token plus channel/chat destination. Tokens are encrypted at rest, per workspace. See [docs/CONNECT_ACCOUNTS.md](docs/CONNECT_ACCOUNTS.md).
+2. **Plan & publish** — draft once in the composer, format per platform, schedule on the content calendar; agency posts can route through client approval. Telegram/Bale posts can use the connected default destination or a per-post destination override.
 3. **Engage** — DMs, comments, and Google reviews land in one unified inbox with AI-suggested replies; build automated WhatsApp/CTWA bot flows.
 4. **Measure** — Celery syncs daily metrics into per-client analytics dashboards, with AI-narrated monthly reports.
 5. **Self-host** — run it on your own infrastructure (Django + DRF + Celery + Postgres + React); you own the data and the keys.
@@ -155,9 +160,9 @@ for the full picture.
 |---|---|---|
 | License | **Open source (MIT)** | Proprietary |
 | Hosting | **Self-host, own your data** | Vendor cloud only |
-| Source code | **Public & forkable** | Closed |
+| Source code | **Public & independently maintainable** | Closed |
 | Cost | **Free to self-host** | Paid subscription |
-| Platform coverage | FB, IG, YouTube, LinkedIn, Google Business + WhatsApp | Varies by plan |
+| Platform coverage | FB, IG, YouTube, LinkedIn, Google Business, Telegram, Bale + WhatsApp | Varies by plan |
 | Maturity / support | Early-stage, community | Mature, commercial SLAs |
 
 ---
@@ -166,12 +171,12 @@ for the full picture.
 
 | Layer | What |
 |---|---|
-| Backend | Django 4.2 + Django REST Framework |
+| Backend | Django 5.2 LTS + Django REST Framework |
 | Auth | JWT (SimpleJWT) + Argon2 hasher + django-axes brute-force protection |
 | Task queue | Celery + Redis |
 | Realtime | Django Channels (WebSockets) |
 | Database | SQLite for local dev, PostgreSQL for everything else |
-| Encryption | Fernet for OAuth tokens at rest |
+| Encryption | Fernet for OAuth/bot tokens at rest |
 | AI | Anthropic Claude (captions, replies, insights, assistant) |
 | Frontend | React 18 + React Router v6 |
 | Data fetching | TanStack Query + Zustand |
@@ -199,18 +204,20 @@ docker compose exec backend python manage.py demo_setup
 # Django admin: http://localhost:8000/admin/
 ```
 
-Images are published to GHCR on every release:
-`ghcr.io/cbsshekhawat18-lab/social-stats-backend` and
-`ghcr.io/cbsshekhawat18-lab/social-stats-frontend` (`:latest` + semver tags).
+Images are published by this repository to GHCR on releases/main builds:
+`ghcr.io/jaavid/social-stats-backend` and
+`ghcr.io/jaavid/social-stats-frontend` (`:latest` + semver tags).
+
+The compose image names can be overridden with `SOCIAL_STATS_BACKEND_IMAGE` and
+`SOCIAL_STATS_FRONTEND_IMAGE` when using a private registry or a different namespace.
 
 Set at least `SECRET_KEY` (and `ANTHROPIC_API_KEY` for AI) in a `.env.docker`
 file at the repo root — see `backend/.env.example` for every variable.
 
 ### Option B — manual (local dev)
 
-You'll need: Python 3.11–3.12 (Django 4.2 does not support 3.13+), Node 18+,
-Redis, and an Anthropic API key for AI features (everything else works
-without external credentials).
+Python **3.12** and Node **20** are the CI reference versions. Redis is required for
+non-eager Celery workers, and an Anthropic API key is only required for AI features.
 
 ### Backend
 
@@ -274,10 +281,10 @@ docker run -d -p 6379:6379 redis
 
 ---
 
-## OAuth setup
+## OAuth and bot-channel setup
 
-To connect real social-platform accounts during local dev, you need OAuth
-credentials. Each platform requires its own app:
+To connect real social-platform accounts during local dev, OAuth platforms need
+their own app credentials:
 
 - **Meta (Facebook + Instagram)** — `https://developers.facebook.com` → Create
   App → Business type → Pages API + Instagram Graph API. Add redirect URI
@@ -288,25 +295,29 @@ credentials. Each platform requires its own app:
 - **LinkedIn** — `https://www.linkedin.com/developers` → request Marketing
   Developer Platform. Add redirect URI
   `http://localhost:8000/api/oauth/linkedin/callback/`.
+- **Telegram / Bale** — create a bot with the provider, add the bot to the target
+  channel/chat with permission to post, then use **Settings → Connected Accounts**
+  to verify and store its bot token and `@channel` / numeric `chat_id`.
 
 Drop the resulting `*_CLIENT_ID` / `*_CLIENT_SECRET` values into `backend/.env`.
-Without these, the connect-account flows in Settings will redirect but fail at
-the platform-consent step; everything else (composer drafts, AI features,
-preview pages) still works.
+Without OAuth credentials, those OAuth connect-account flows cannot complete;
+everything else (composer drafts, bot-channel publishing after bot setup, AI
+features, preview pages) remains independently configurable.
 
 ---
 
 ## Project layout
 
 ```
-social-stats/
+social-media-manager/
 ├── backend/                     Django + DRF
 │   ├── dashboard/               Project config (settings, urls, celery)
 │   └── social_stats/            Main app
 │       ├── models.py            Client, UserProfile, PlatformCredential,
 │       │                        DailyMetric, Agency, HashtagSet, UnifiedPost, …
 │       ├── views.py             REST viewsets
-│       ├── oauth_views.py       OAuth flows for the 5 platforms
+│       ├── oauth_views.py       OAuth flows for Meta, Google and LinkedIn
+│       ├── publishers/          Per-platform publishing adapters
 │       ├── ai/                  Prompts + context builders
 │       ├── security/            MFA, sessions, login monitor, throttles
 │       └── tasks.py             Celery sync + notification tasks
@@ -374,18 +385,22 @@ for everyone else looking for an open-source social media management tool.
 
 ---
 
-## Author & Credits
+## Maintenance, Author & Credits
 
-**Social Stats** is built and maintained by **Chandrabhan Shekhawat** —
+This repository is independently maintained at
+[`jaavid/social-media-manager`](https://github.com/jaavid/social-media-manager).
+The original project attribution and MIT copyright notice are preserved below.
+
+**Social Stats** was originally built by **Chandrabhan Shekhawat** —
 **Gigai Kripa Services**.
 
-- 🌐 Website: <https://gigaikripaservices.com/>
-- 👤 Author: Chandrabhan Shekhawat
-- 🏢 Company: Gigai Kripa Services
+- 🌐 Original author website: <https://gigaikripaservices.com/>
+- 👤 Original author: Chandrabhan Shekhawat
+- 🏢 Original company: Gigai Kripa Services
 - © 2026 Chandrabhan Shekhawat — Gigai Kripa Services
 
 If you use Social Stats in your own project or product, a credit back to the
-author / this repository is appreciated. ⭐ Stars help others find it.
+original author and/or this independently maintained repository is appreciated.
 
 ---
 

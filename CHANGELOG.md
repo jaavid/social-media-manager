@@ -2,6 +2,25 @@
 
 ## [Unreleased]
 
+### Added — Telegram and Bale publishing
+
+- Telegram and Bale bot-channel connections in **Connected Accounts**.
+- Live bot token + destination verification before encrypted credential storage.
+- Composer targets for Telegram and Bale with optional per-post destination overrides.
+- Text, photo, video, and media-group publishing through the common publisher/orchestrator pipeline.
+- Typed bot API handling for revoked tokens, permission errors, and rate limits.
+- Publisher tests for destination routing, token redaction, API error mapping, text/caption limits, and media-group limits.
+
+### Changed — independent maintenance line
+
+- Repository documentation, security reporting, conduct contact, GHCR images, and badges now point to `jaavid/social-media-manager`.
+- Self-hosting no longer pulls container images from the upstream maintainer namespace by default.
+- Django upgraded from 4.2.9 to **5.2.17 LTS**; Django REST Framework and django-axes were aligned with Django 5.2 support.
+- Original MIT copyright and attribution notices remain preserved.
+
+> GitHub's fork-network metadata is not controlled by repository content. The repository
+> can be detached from the fork network separately after this change is merged.
+
 ### Changed — Social Stats is now free & open source (MIT)
 
 Payments and paid plans were removed; the product is free and self-hostable

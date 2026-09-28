@@ -1,8 +1,8 @@
 name: Publish images
 
-# Builds and pushes the self-hosting images to GitHub Container Registry:
-#   ghcr.io/cbsshekhawat18-lab/social-stats-backend
-#   ghcr.io/cbsshekhawat18-lab/social-stats-frontend
+# Builds and pushes the self-hosting images to the repository owner's GHCR namespace:
+#   ghcr.io/${repository_owner}/social-stats-backend
+#   ghcr.io/${repository_owner}/social-stats-frontend
 #
 # Triggers:
 #   • push to main       → :latest  (+ :main)

@@ -42,6 +42,20 @@ export const PLATFORMS = {
     bg:    '#E6F4EA',
     metrics: ['impressions','website_clicks','phone_calls','direction_requests'],
   },
+  telegram: {
+    label: 'Telegram',
+    shortLabel: 'Telegram',
+    color: '#229ED9',
+    bg:    '#E7F5FC',
+    metrics: [],
+  },
+  bale: {
+    label: 'Bale',
+    shortLabel: 'Bale',
+    color: '#00A884',
+    bg:    '#E7F8F3',
+    metrics: [],
+  },
 };
 
 export const PLATFORM_LIST = Object.keys(PLATFORMS);
