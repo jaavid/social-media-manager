@@ -8,6 +8,7 @@
  * ========================================================================== */
 import { forwardRef, useId } from 'react';
 import { Check, Minus } from 'lucide-react';
+import { useLanguage } from '../../i18n';
 
 /**
  * Checkbox — accessible custom checkbox built on a hidden native input.
@@ -35,9 +36,12 @@ const Checkbox = forwardRef(function Checkbox(
   },
   ref,
 ) {
+  const { tr } = useLanguage();
   const reactId = useId();
   const fieldId = id || `cb-${reactId}`;
   const dim = size === 'sm' ? 16 : 18;
+  const localizedLabel = typeof label === 'string' ? tr(label) : label;
+  const localizedDescription = typeof description === 'string' ? tr(description) : description;
 
   return (
     <label
@@ -45,14 +49,14 @@ const Checkbox = forwardRef(function Checkbox(
       className={className}
       style={{
         display: 'inline-flex',
-        alignItems: description ? 'flex-start' : 'center',
+        alignItems: localizedDescription ? 'flex-start' : 'center',
         gap: 10,
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.55 : 1,
         ...style,
       }}
     >
-      <span style={{ position: 'relative', display: 'inline-flex', flexShrink: 0, marginTop: description ? 1 : 0 }}>
+      <span style={{ position: 'relative', display: 'inline-flex', flexShrink: 0, marginTop: localizedDescription ? 1 : 0 }}>
         <input
           ref={ref}
           id={fieldId}
@@ -92,19 +96,19 @@ const Checkbox = forwardRef(function Checkbox(
         </span>
       </span>
 
-      {(label || description) && (
+      {(localizedLabel || localizedDescription) && (
         <span style={{ minWidth: 0 }}>
-          {label && (
+          {localizedLabel && (
             <span style={{
               display: 'block',
               fontSize: 13, fontWeight: 500,
               color: 'var(--text-primary)',
               lineHeight: 1.4,
             }}>
-              {label}
+              {localizedLabel}
             </span>
           )}
-          {description && (
+          {localizedDescription && (
             <span style={{
               display: 'block',
               fontSize: 12,
@@ -112,7 +116,7 @@ const Checkbox = forwardRef(function Checkbox(
               marginTop: 2,
               lineHeight: 1.4,
             }}>
-              {description}
+              {localizedDescription}
             </span>
           )}
         </span>
