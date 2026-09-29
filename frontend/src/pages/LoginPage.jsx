@@ -33,7 +33,7 @@ const DEMO_PASSWORD = 'demo';
 
 export default function LoginPage() {
   const { login, loginMfa } = useAuth();
-  const { tr, isPersian } = useLanguage();
+  const { tr } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
 
