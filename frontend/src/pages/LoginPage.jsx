@@ -16,6 +16,7 @@ import Input from '../components/ui/Input';
 import Checkbox from '../components/ui/Checkbox';
 import SocialPlatformIcon from '../components/ui/SocialPlatformIcon';
 import { useAuth } from '../hooks/useAuth';
+import { useLanguage } from '../i18n';
 
 const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
 
@@ -32,6 +33,7 @@ const DEMO_PASSWORD = 'demo';
 
 export default function LoginPage() {
   const { login, loginMfa } = useAuth();
+  const { tr } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -161,12 +163,12 @@ export default function LoginPage() {
                 color: 'var(--text-primary)',
               }}
             >
-              Two-factor verification
+              {tr('Two-factor verification')}
             </h1>
             <p style={{ margin: '6px 0 0', fontSize: 14, color: 'var(--text-secondary)' }}>
-              {useBackupCode
+              {tr(useBackupCode
                 ? 'Enter one of your backup codes.'
-                : 'Enter the 6-digit code from your authenticator app.'}
+                : 'Enter the 6-digit code from your authenticator app.')}
             </p>
           </header>
 
@@ -200,7 +202,7 @@ export default function LoginPage() {
                 }}
               >
                 <AlertCircle size={15} style={{ flexShrink: 0, marginTop: 1 }} />
-                <span>{serverError}</span>
+                <span>{tr(serverError)}</span>
               </div>
             )}
 
@@ -215,14 +217,14 @@ export default function LoginPage() {
               onClick={() => { setUseBackupCode((v) => !v); setMfaCode(''); setServerError(''); }}
               style={{ background: 'none', border: 0, padding: 0, color: 'var(--text-link)', fontWeight: 500, cursor: 'pointer' }}
             >
-              {useBackupCode ? 'Use authenticator code' : 'Use a backup code'}
+              {tr(useBackupCode ? 'Use authenticator code' : 'Use a backup code')}
             </button>
             <button
               type="button"
               onClick={() => { setMfaToken(''); setMfaCode(''); setServerError(''); }}
               style={{ background: 'none', border: 0, padding: 0, color: 'var(--text-secondary)', cursor: 'pointer' }}
             >
-              Back to sign in
+              {tr('Back to sign in')}
             </button>
           </div>
         </div>
@@ -234,9 +236,9 @@ export default function LoginPage() {
     <AuthLayout
       footer={
         <>
-          New to Social Stats?{' '}
+          {tr('New to Social Stats?')}{' '}
           <Link to="/signup" style={{ color: 'var(--text-link)', fontWeight: 600, textDecoration: 'none' }}>
-            Create an account
+            {tr('Create an account')}
           </Link>
         </>
       }
@@ -260,10 +262,10 @@ export default function LoginPage() {
               color: 'var(--text-primary)',
             }}
           >
-            Welcome back
+            {tr('Welcome back')}
           </h1>
           <p style={{ margin: '6px 0 0', fontSize: 14, color: 'var(--text-secondary)' }}>
-            Sign in to your Social Stats workspace.
+            {tr('Sign in to your Social Stats workspace.')}
           </p>
         </header>
 
@@ -291,12 +293,12 @@ export default function LoginPage() {
               error={errors.password}
               size="lg"
             />
-            <div style={{ marginTop: 6, textAlign: 'right' }}>
+            <div style={{ marginTop: 6, textAlign: 'end' }}>
               <Link
                 to="/forgot-password"
                 style={{ fontSize: 12, color: 'var(--text-link)', fontWeight: 500, textDecoration: 'none' }}
               >
-                Forgot password?
+                {tr('Forgot password?')}
               </Link>
             </div>
           </div>
@@ -306,10 +308,10 @@ export default function LoginPage() {
             onChange={(e) => setAccepted(e.target.checked)}
             label={
               <>
-                I agree to the{' '}
-                <Link to="/terms" style={{ color: 'var(--text-link)', fontWeight: 500 }}>Terms of Service</Link>
-                {' '}and{' '}
-                <Link to="/privacy" style={{ color: 'var(--text-link)', fontWeight: 500 }}>Privacy Policy</Link>
+                {tr('I agree to the')}{' '}
+                <Link to="/terms" style={{ color: 'var(--text-link)', fontWeight: 500 }}>{tr('Terms of Service')}</Link>
+                {' '}{tr('and')}{' '}
+                <Link to="/privacy" style={{ color: 'var(--text-link)', fontWeight: 500 }}>{tr('Privacy Policy')}</Link>
               </>
             }
           />
@@ -331,7 +333,7 @@ export default function LoginPage() {
               }}
             >
               <AlertCircle size={15} style={{ flexShrink: 0, marginTop: 1 }} />
-              <span>{serverError || decodeURIComponent(urlError)}</span>
+              <span>{tr(serverError || decodeURIComponent(urlError))}</span>
             </div>
           )}
 
@@ -359,7 +361,7 @@ export default function LoginPage() {
         >
           <span style={{ flex: 1, height: 1, background: 'var(--border-subtle)' }} />
           <span style={{ fontSize: 11, fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-            or continue with
+            {tr('or continue with')}
           </span>
           <span style={{ flex: 1, height: 1, background: 'var(--border-subtle)' }} />
         </div>
@@ -405,10 +407,10 @@ export default function LoginPage() {
               fontSize: 11, fontWeight: 700, letterSpacing: '0.08em',
               textTransform: 'uppercase', color: 'var(--brand-primary-hover)',
             }}>
-              Try the demo
+              {tr('Try the demo')}
             </span>
             <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
-              local only · password <code style={{ fontFamily: 'var(--font-mono)' }}>demo</code>
+              {tr('local only')} · {tr('password')} <code style={{ fontFamily: 'var(--font-mono)' }}>demo</code>
             </span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
@@ -429,14 +431,14 @@ export default function LoginPage() {
                     color: 'var(--text-primary)',
                     cursor: loading ? 'not-allowed' : 'pointer',
                     opacity: loading ? 0.6 : 1,
-                    textAlign: 'left',
+                    textAlign: 'start',
                     transition: 'var(--transition-fast)',
                   }}
                   onMouseEnter={(e) => { if (!loading) e.currentTarget.style.borderColor = 'var(--brand-primary-glow)'; }}
                   onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border-default)'; }}
                 >
                   <Icon size={14} color="var(--brand-primary-hover)" />
-                  <span style={{ fontSize: 12, fontWeight: 600 }}>{d.label}</span>
+                  <span style={{ fontSize: 12, fontWeight: 600 }}>{tr(d.label)}</span>
                   <span style={{ fontSize: 10, color: 'var(--text-tertiary)' }}>{d.email}</span>
                 </button>
               );

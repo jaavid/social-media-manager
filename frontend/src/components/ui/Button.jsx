@@ -8,6 +8,7 @@
  * ========================================================================== */
 import { forwardRef } from 'react';
 import { Loader2 } from 'lucide-react';
+import { useLanguage } from '../../i18n';
 
 /**
  * Button — design-system primitive.
@@ -42,6 +43,8 @@ const Button = forwardRef(function Button(
   },
   ref,
 ) {
+  const { tr } = useLanguage();
+  const localizedChildren = typeof children === 'string' ? tr(children) : children;
   const heights   = { xs: 24, sm: 28, md: 36, lg: 44, xl: 52 };
   const fontSizes = { xs: 11, sm: 12, md: 13, lg: 14, xl: 15 };
   const iconSizes = { xs: 12, sm: 14, md: 16, lg: 18, xl: 20 };
@@ -105,7 +108,7 @@ const Button = forwardRef(function Button(
         ? <Loader2 size={iconSizes[size]} className="ds-button-spin" aria-hidden />
         : (Icon && <Icon size={iconSizes[size]} strokeWidth={2} aria-hidden />)
       }
-      {!iconOnly && !loading && children}
+      {!iconOnly && !loading && localizedChildren}
       {!iconOnly && !loading && IconRight && <IconRight size={iconSizes[size]} strokeWidth={2} aria-hidden />}
 
       <style>{`

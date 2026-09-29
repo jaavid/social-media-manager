@@ -6,6 +6,8 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
+import { useLanguage } from '../../i18n';
+
 if (typeof document !== 'undefined' && !document.getElementById('segmented-tabs-styles')) {
   const style = document.createElement('style');
   style.id = 'segmented-tabs-styles';
@@ -31,6 +33,8 @@ export default function SegmentedTabs({
   fullWidth = false,
   style = {},
 }) {
+  const { tr } = useLanguage();
+
   return (
     <div
       className="segmented-tabs"
@@ -43,6 +47,7 @@ export default function SegmentedTabs({
     >
       {items.map((item) => {
         const isActive = active === item.id;
+        const label = typeof item.label === 'string' ? tr(item.label) : item.label;
         return (
           <button
             key={item.id}
@@ -62,7 +67,7 @@ export default function SegmentedTabs({
             }}
           >
             {item.icon ? <span style={styles.icon}>{item.icon}</span> : null}
-            <span style={styles.label}>{item.label}</span>
+            <span style={styles.label}>{label}</span>
             {item.trailing ? <span style={styles.trailing}>{item.trailing}</span> : null}
           </button>
         );

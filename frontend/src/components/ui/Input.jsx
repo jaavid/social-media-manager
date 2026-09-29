@@ -8,6 +8,7 @@
  * ========================================================================== */
 import { forwardRef, useId, useState } from 'react';
 import { Eye, EyeOff, Search, AlertCircle, Check } from 'lucide-react';
+import { useLanguage } from '../../i18n';
 
 /**
  * Input — text/email/password/search/number primitive.
@@ -46,6 +47,7 @@ const Input = forwardRef(function Input(
   },
   ref,
 ) {
+  const { tr } = useLanguage();
   const reactId = useId();
   const fieldId = id || `inp-${reactId}`;
   const [focused, setFocused] = useState(false);
@@ -53,6 +55,10 @@ const Input = forwardRef(function Input(
 
   const isPassword = type === 'password';
   const effectiveType = isPassword && revealed ? 'text' : type;
+  const localizedLabel = typeof label === 'string' ? tr(label) : label;
+  const localizedHint = typeof hint === 'string' ? tr(hint) : hint;
+  const localizedError = typeof error === 'string' ? tr(error) : error;
+  const localizedPlaceholder = typeof rest.placeholder === 'string' ? tr(rest.placeholder) : rest.placeholder;
 
   const heights = { sm: 32, md: 40, lg: 48 };
   const fontSizes = { sm: 13, md: 14, lg: 15 };
@@ -74,7 +80,7 @@ const Input = forwardRef(function Input(
 
   return (
     <div className={className} style={{ width: fullWidth ? '100%' : undefined, ...style }}>
-      {label && (
+      {localizedLabel && (
         <label
           htmlFor={fieldId}
           style={{
@@ -86,7 +92,7 @@ const Input = forwardRef(function Input(
             letterSpacing: '0.01em',
           }}
         >
-          {label}
+          {localizedLabel}
         </label>
       )}
 
@@ -111,7 +117,7 @@ const Input = forwardRef(function Input(
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
-              paddingLeft: 12,
+              paddingInlineStart: 12,
               color: 'var(--text-tertiary)',
             }}
           >
@@ -131,24 +137,28 @@ const Input = forwardRef(function Input(
             flex: 1,
             minWidth: 0,
             height: '100%',
-            padding: `0 ${suffix || (isPassword && showPasswordToggle) || success || error ? 4 : 12}px 0 ${autoPrefix ? 8 : 12}px`,
+            paddingBlock: 0,
+            paddingInlineEnd: suffix || (isPassword && showPasswordToggle) || success || error ? 4 : 12,
+            paddingInlineStart: autoPrefix ? 8 : 12,
             background: 'transparent',
             border: 'none',
             outline: 'none',
             fontFamily: 'inherit',
             fontSize: fontSizes[size] || 14,
             color: 'var(--text-primary)',
+            textAlign: 'start',
           }}
           {...rest}
+          placeholder={localizedPlaceholder}
         />
 
         {success && !error && (
-          <span aria-hidden style={{ display: 'inline-flex', paddingRight: 12, color: 'var(--success)' }}>
+          <span aria-hidden style={{ display: 'inline-flex', paddingInlineEnd: 12, color: 'var(--success)' }}>
             <Check size={15} strokeWidth={2.4} />
           </span>
         )}
         {error && (
-          <span aria-hidden style={{ display: 'inline-flex', paddingRight: 12, color: 'var(--danger)' }}>
+          <span aria-hidden style={{ display: 'inline-flex', paddingInlineEnd: 12, color: 'var(--danger)' }}>
             <AlertCircle size={15} strokeWidth={2.2} />
           </span>
         )}
@@ -156,7 +166,7 @@ const Input = forwardRef(function Input(
           <button
             type="button"
             onClick={() => setRevealed((v) => !v)}
-            aria-label={revealed ? 'Hide password' : 'Show password'}
+            aria-label={tr(revealed ? 'Hide password' : 'Show password')}
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -175,13 +185,13 @@ const Input = forwardRef(function Input(
           </button>
         )}
         {suffix && !isPassword && (
-          <span style={{ display: 'inline-flex', paddingRight: 12, color: 'var(--text-tertiary)' }}>
+          <span style={{ display: 'inline-flex', paddingInlineEnd: 12, color: 'var(--text-tertiary)' }}>
             {suffix}
           </span>
         )}
       </div>
 
-      {(error || hint) && (
+      {(localizedError || localizedHint) && (
         <div
           id={`${fieldId}-msg`}
           role={error ? 'alert' : undefined}
@@ -193,7 +203,7 @@ const Input = forwardRef(function Input(
             lineHeight: 1.4,
           }}
         >
-          {error || hint}
+          {localizedError || localizedHint}
         </div>
       )}
     </div>

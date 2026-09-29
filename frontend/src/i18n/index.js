@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import '../styles/i18n.css';
+import faExtra from './fa-extra';
 
 const STORAGE_KEY = 'socialstats.language';
 const LANGUAGE_EVENT = 'socialstats:language-change';
@@ -292,7 +293,7 @@ const faRaw = {
 };
 
 const dictionaries = { en: {}, fa };
-const rawDictionaries = { en: {}, fa: faRaw };
+const rawDictionaries = { en: {}, fa: { ...faRaw, ...faExtra } };
 
 function detectInitialLanguage() {
   if (typeof window === 'undefined') return 'en';

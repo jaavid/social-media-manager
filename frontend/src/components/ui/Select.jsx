@@ -8,6 +8,7 @@
  * ========================================================================== */
 import { forwardRef, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Check, ChevronDown, Search as SearchIcon } from 'lucide-react';
+import { useLanguage } from '../../i18n';
 
 /**
  * Select — accessible custom dropdown.
@@ -45,6 +46,7 @@ const Select = forwardRef(function Select(
   },
   ref,
 ) {
+  const { tr } = useLanguage();
   const reactId = useId();
   const fieldId = id || `sel-${reactId}`;
   const [open, setOpen] = useState(false);
@@ -52,6 +54,10 @@ const Select = forwardRef(function Select(
   const [activeIdx, setActiveIdx] = useState(-1);
   const wrapperRef = useRef(null);
   const listboxId = `${fieldId}-list`;
+  const localizedLabel = typeof label === 'string' ? tr(label) : label;
+  const localizedHint = typeof hint === 'string' ? tr(hint) : hint;
+  const localizedError = typeof error === 'string' ? tr(error) : error;
+  const localizedPlaceholder = typeof placeholder === 'string' ? tr(placeholder) : placeholder;
 
   // Close on outside click
   useEffect(() => {
@@ -71,8 +77,8 @@ const Select = forwardRef(function Select(
   const filtered = useMemo(() => {
     if (!searchable || !query) return options;
     const q = query.toLowerCase();
-    return options.filter((o) => (o.label || '').toLowerCase().includes(q));
-  }, [options, query, searchable]);
+    return options.filter((o) => tr(o.label || '').toLowerCase().includes(q));
+  }, [options, query, searchable, tr]);
 
   const selected = options.find((o) => o.value === value);
 
@@ -114,7 +120,7 @@ const Select = forwardRef(function Select(
 
   return (
     <div ref={wrapperRef} className={className} style={{ position: 'relative', width: fullWidth ? '100%' : undefined, ...style }}>
-      {label && (
+      {localizedLabel && (
         <label
           htmlFor={fieldId}
           style={{
@@ -125,7 +131,7 @@ const Select = forwardRef(function Select(
             marginBottom: 6,
           }}
         >
-          {label}
+          {localizedLabel}
         </label>
       )}
 
@@ -148,7 +154,9 @@ const Select = forwardRef(function Select(
           width: '100%',
           height: h,
           minHeight: 'auto',
-          padding: '0 10px 0 12px',
+          paddingBlock: 0,
+          paddingInlineStart: 12,
+          paddingInlineEnd: 10,
           background: 'var(--surface-card)',
           border: `1px solid ${borderColor}`,
           borderRadius: 'var(--radius-md)',
@@ -159,7 +167,7 @@ const Select = forwardRef(function Select(
           fontWeight: 500,
           cursor: disabled ? 'not-allowed' : 'pointer',
           opacity: disabled ? 0.6 : 1,
-          textAlign: 'left',
+          textAlign: 'start',
           transition: 'var(--transition-fast)',
         }}
       >
@@ -175,7 +183,7 @@ const Select = forwardRef(function Select(
           color: selected ? 'var(--text-primary)' : 'var(--text-tertiary)',
           fontWeight: selected ? 500 : 400,
         }}>
-          {selected?.label || placeholder}
+          {selected ? tr(selected.label) : localizedPlaceholder}
         </span>
         <ChevronDown
           size={15}
@@ -197,8 +205,8 @@ const Select = forwardRef(function Select(
           style={{
             position: 'absolute',
             top: 'calc(100% + 4px)',
-            left: 0,
-            right: 0,
+            insetInlineStart: 0,
+            insetInlineEnd: 0,
             zIndex: 'var(--z-popover)',
             maxHeight: 320,
             overflow: 'auto',
@@ -218,22 +226,24 @@ const Select = forwardRef(function Select(
             }}>
               <div style={{ position: 'relative' }}>
                 <SearchIcon size={13} aria-hidden style={{
-                  position: 'absolute', top: 8, left: 8, color: 'var(--text-tertiary)',
+                  position: 'absolute', top: 8, insetInlineStart: 8, color: 'var(--text-tertiary)',
                 }} />
                 <input
                   type="text"
                   value={query}
                   onChange={(e) => { setQuery(e.target.value); setActiveIdx(0); }}
-                  placeholder="Search…"
+                  placeholder={tr('Search…')}
                   autoFocus
                   style={{
                     width: '100%', height: 30, minHeight: 'auto',
-                    padding: '0 8px 0 26px',
+                    paddingBlock: 0,
+                    paddingInlineStart: 26,
+                    paddingInlineEnd: 8,
                     background: 'var(--surface-sunken)',
                     border: '1px solid var(--border-subtle)',
                     borderRadius: 'var(--radius-sm)',
                     fontSize: 13, color: 'var(--text-primary)',
-                    fontFamily: 'inherit', outline: 'none',
+                    fontFamily: 'inherit', outline: 'none', textAlign: 'start',
                   }}
                 />
               </div>
@@ -242,7 +252,7 @@ const Select = forwardRef(function Select(
 
           {filtered.length === 0 && (
             <div style={{ padding: '14px 10px', fontSize: 13, color: 'var(--text-tertiary)', textAlign: 'center' }}>
-              No options
+              {tr('No options')}
             </div>
           )}
 
@@ -266,12 +276,12 @@ const Select = forwardRef(function Select(
                   color: opt.disabled ? 'var(--text-quaternary)' : 'var(--text-primary)',
                   border: 'none', cursor: opt.disabled ? 'not-allowed' : 'pointer',
                   fontFamily: 'inherit', fontSize: 13, fontWeight: 500,
-                  textAlign: 'left',
+                  textAlign: 'start',
                 }}
               >
                 {opt.icon && <opt.icon size={14} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />}
                 <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {opt.label}
+                  {tr(opt.label)}
                 </span>
                 {isSelected && <Check size={14} style={{ color: 'var(--brand-primary-hover)' }} />}
               </button>
@@ -280,7 +290,7 @@ const Select = forwardRef(function Select(
         </div>
       )}
 
-      {(error || hint) && (
+      {(localizedError || localizedHint) && (
         <div
           role={error ? 'alert' : undefined}
           aria-live={error ? 'polite' : undefined}
@@ -290,7 +300,7 @@ const Select = forwardRef(function Select(
             color: error ? 'var(--danger)' : 'var(--text-tertiary)',
           }}
         >
-          {error || hint}
+          {localizedError || localizedHint}
         </div>
       )}
     </div>
