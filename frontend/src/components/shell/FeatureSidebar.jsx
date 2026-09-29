@@ -14,7 +14,7 @@ import {
   Inbox, Send, Users2, ListChecks, Settings, Webhook,
   Rocket, ChevronDown, Building2, Search,
   PenSquare, Layers, Images,
-  Star, AtSign,
+  Star,
   Zap, Film,
   Bell, ShieldCheck, ClipboardCheck,
   Mic, Sparkles,
@@ -22,19 +22,10 @@ import {
 } from 'lucide-react';
 
 import PermissionGate from '../ui/PermissionGate';
-import { useAuth } from '../../hooks/useAuth';
 import { useClients } from '../../hooks/useData';
 import { useBadgeCount } from '../../stores/appStore';
+import { useLanguage } from '../../i18n';
 
-/**
- * 240px feature sidebar; nav set varies by `module`.
- *
- * Props:
- *   module:        'analytics' | 'messaging' | 'ads'
- *   basePath:      '/admin' | '/dashboard'
- *   isAdmin:       bool — when true, show client switcher pill at the bottom
- *   selectedClient + onSelectClient: client switcher state (admin only)
- */
 export default function FeatureSidebar({
   module,
   basePath,
@@ -43,26 +34,25 @@ export default function FeatureSidebar({
   onSelectClient,
 }) {
   const location = useLocation();
-
+  const { isPersian, tr } = useLanguage();
   const navSet = NAV_SETS[module] || NAV_SETS.analytics;
 
   return (
     <aside
       className="ds-feature-sidebar"
-      aria-label={`${module} navigation`}
+      aria-label={`${tr(navSet.label)} navigation`}
       style={{
         position: 'fixed',
         top: 0, bottom: 0,
-        left: 'var(--module-rail-width)',
+        insetInlineStart: 'var(--module-rail-width)',
         width: 'var(--feature-sidebar-width)',
         zIndex: 90,
         background: 'var(--surface-card)',
-        borderRight: '1px solid var(--border-subtle)',
+        borderInlineEnd: '1px solid var(--border-subtle)',
         display: 'flex',
         flexDirection: 'column',
       }}
     >
-      {/* Module header */}
       <header style={{
         height: 'var(--topbar-height)',
         padding: '0 16px',
@@ -82,38 +72,38 @@ export default function FeatureSidebar({
         </div>
         <div>
           <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
-            {navSet.label}
+            {tr(navSet.label)}
           </div>
           {navSet.subtitle && (
             <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
-              {navSet.subtitle}
+              {tr(navSet.subtitle)}
             </div>
           )}
         </div>
       </header>
 
-      {/* Nav */}
       <div className="sidebar-scroll" style={{
         flex: 1,
         overflowY: 'auto',
         padding: '12px 10px',
       }}>
         {navSet.empty ? (
-          <EmptyModule message={navSet.empty} />
+          <EmptyModule message={tr(navSet.empty)} />
         ) : (
           navSet.sections.map((section) => (
-            <Section key={section.title} title={section.title}>
+            <Section key={section.title} title={tr(section.title)}>
               {section.items.map((item) => (
                 <PermissionGate key={item.path} code={item.permission}>
                   <NavItem
                     to={item.path.startsWith('/admin/') ? item.path : `${basePath}/${module}${item.path}`}
                     icon={item.icon}
-                    label={item.label}
+                    label={tr(item.label)}
                     end={item.end}
                     badge={item.badge}
                     badgeKey={item.badgeKey}
                     pathname={location.pathname}
                     disabled={item.disabled}
+                    isPersian={isPersian}
                   />
                 </PermissionGate>
               ))}
@@ -122,7 +112,6 @@ export default function FeatureSidebar({
         )}
       </div>
 
-      {/* Client switcher (admin only) */}
       {isAdmin && (
         <ClientSwitcher selected={selectedClient} onSelect={onSelectClient} />
       )}
@@ -130,7 +119,7 @@ export default function FeatureSidebar({
   );
 }
 
-function NavItem({ to, icon: Icon, label, end, badge, badgeKey, pathname, disabled }) {
+function NavItem({ to, icon: Icon, label, end, badge, badgeKey, pathname, disabled, isPersian }) {
   const liveBadge = useBadgeCount(badgeKey || '__none__');
   const effectiveBadge = badge ?? (badgeKey ? liveBadge : 0);
   const isActive = end ? pathname === to : pathname === to || pathname.startsWith(`${to}/`);
@@ -157,7 +146,7 @@ function NavItem({ to, icon: Icon, label, end, badge, badgeKey, pathname, disabl
         ...navItemBase,
         color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
         background: isActive ? 'var(--brand-primary-glow)' : 'transparent',
-        boxShadow: isActive ? 'inset 2px 0 0 var(--brand-primary)' : 'none',
+        boxShadow: isActive ? `inset ${isPersian ? '-2px' : '2px'} 0 0 var(--brand-primary)` : 'none',
         fontWeight: isActive ? 600 : 500,
       }}
       onMouseEnter={(e) => {
@@ -224,6 +213,7 @@ function ClientSwitcher({ selected, onSelect }) {
   const [search, setSearch] = useState('');
   const navigate = useNavigate();
   const { clients } = useClients();
+  const { t } = useLanguage();
 
   const filtered = (clients || []).filter((c) =>
     !search || (c.company || '').toLowerCase().includes(search.toLowerCase())
@@ -252,9 +242,9 @@ function ClientSwitcher({ selected, onSelect }) {
         <span style={{
           flex: 1, minWidth: 0,
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-          fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', textAlign: 'left',
+          fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', textAlign: 'start',
         }}>
-          {selected?.company || 'All clients'}
+          {selected?.company || t('common.allClients', 'All clients')}
         </span>
         <ChevronDown size={14} color="var(--text-tertiary)" />
       </button>
@@ -263,13 +253,12 @@ function ClientSwitcher({ selected, onSelect }) {
         <div
           role="listbox"
           style={{
-            position: 'absolute', bottom: 'calc(100% + 4px)', left: 10, right: 10,
+            position: 'absolute', bottom: 'calc(100% + 4px)',
+            insetInlineStart: 10, insetInlineEnd: 10,
             background: 'var(--surface-elevated)',
             border: '1px solid var(--border-default)',
             borderRadius: 'var(--radius-md)',
             boxShadow: 'var(--shadow-lg)',
-            // Cap at 320px AND viewport-height-minus-rail so we never overflow
-            // off the top of short viewports.
             maxHeight: 'min(320px, calc(100vh - 96px))',
             overflow: 'auto',
             zIndex: 110,
@@ -282,18 +271,19 @@ function ClientSwitcher({ selected, onSelect }) {
           }}>
             <div style={{ position: 'relative' }}>
               <Search size={12} color="var(--text-tertiary)"
-                      style={{ position: 'absolute', top: 9, left: 8 }} />
+                      style={{ position: 'absolute', top: 9, insetInlineStart: 8 }} />
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search clients…"
+                placeholder={t('common.searchClients', 'Search clients…')}
                 style={{
-                  width: '100%', padding: '6px 10px 6px 26px',
+                  width: '100%', padding: '6px 10px', paddingInlineStart: 26,
                   background: 'var(--surface-sunken)',
                   border: '1px solid var(--border-subtle)',
                   borderRadius: 'var(--radius-sm)',
                   fontSize: 12, color: 'var(--text-primary)',
                   outline: 'none',
+                  textAlign: 'start',
                 }}
                 autoFocus
               />
@@ -301,7 +291,7 @@ function ClientSwitcher({ selected, onSelect }) {
           </div>
           <div style={{ padding: 4 }}>
             <SwitcherRow
-              label="All clients"
+              label={t('common.allClients', 'All clients')}
               active={!selected}
               onClick={() => { onSelect?.(null); setOpen(false); }}
             />
@@ -333,7 +323,7 @@ function SwitcherRow({ label, active, onClick }) {
       aria-selected={active}
       style={{
         display: 'block', width: '100%',
-        textAlign: 'left',
+        textAlign: 'start',
         padding: '7px 10px',
         background: active ? 'var(--brand-primary-glow)' : 'transparent',
         color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
@@ -370,66 +360,63 @@ const NAV_SETS = {
       {
         title: 'Publish',
         items: [
-          { label: 'Composer',      icon: PenSquare,   path: '/composer',  permission: 'composer.view' },
-          { label: 'Calendar',      icon: CalendarDays, path: '/calendar', permission: 'calendar.view' },
-          { label: 'Queues',        icon: Layers,      path: '/queues',    permission: 'composer.view' },
-          { label: 'Media Library', icon: Images,      path: '/media',     permission: 'composer.view' },
-          { label: 'Video Studio',  icon: Film,        path: '/video',     permission: 'video.view' },
+          { label: 'Composer', icon: PenSquare, path: '/composer', permission: 'composer.view' },
+          { label: 'Calendar', icon: CalendarDays, path: '/calendar', permission: 'calendar.view' },
+          { label: 'Queues', icon: Layers, path: '/queues', permission: 'composer.view' },
+          { label: 'Media Library', icon: Images, path: '/media', permission: 'composer.view' },
+          { label: 'Video Studio', icon: Film, path: '/video', permission: 'video.view' },
         ],
       },
       {
         title: 'Engage',
         items: [
-          { label: 'Inbox',       icon: Inbox, path: '/inbox',       permission: 'inbox.view',
-            badgeKey: 'unread_inbox' },
-          { label: 'Reviews',     icon: Star,  path: '/reviews',     permission: 'inbox.view' },
-          { label: 'Automations', icon: Zap,   path: '/automations', permission: 'automations.view' },
+          { label: 'Inbox', icon: Inbox, path: '/inbox', permission: 'inbox.view', badgeKey: 'unread_inbox' },
+          { label: 'Reviews', icon: Star, path: '/reviews', permission: 'inbox.view' },
+          { label: 'Automations', icon: Zap, path: '/automations', permission: 'automations.view' },
         ],
       },
       {
         title: 'Overview',
         items: [
-          { label: 'Dashboard',  icon: LayoutDashboard, path: '/dashboard',  end: true, permission: 'dashboard.view' },
-          { label: 'Analytics',  icon: LineChart,       path: '/analytics',                permission: 'analytics.view' },
-          { label: 'Reports',    icon: FileText,        path: '/reports',                  permission: 'reports.view' },
+          { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard', end: true, permission: 'dashboard.view' },
+          { label: 'Analytics', icon: LineChart, path: '/analytics', permission: 'analytics.view' },
+          { label: 'Reports', icon: FileText, path: '/reports', permission: 'reports.view' },
         ],
       },
       {
         title: 'Content',
         items: [
-          { label: 'Posts',          icon: FileType,     path: '/posts',                  permission: 'dashboard.posts_table' },
-          { label: 'Caption Writer', icon: Wand2,        path: '/caption-writer' },
-          { label: 'Post Ideas',     icon: Lightbulb,    path: '/post-ideas' },
-          { label: 'Hashtags',       icon: Hash,         path: '/hashtags' },
-          { label: 'AI Studio',      icon: Sparkles,     path: '/ai-studio' },
-          { label: 'Brand Voice',    icon: Mic,          path: '/brand-voice',  permission: 'ai.brand_voice' },
-          { label: 'AI Insights',    icon: Sparkles,     path: '/insights' },
-          { label: 'AI Audit',       icon: ShieldCheck,  path: '/ai-audit' },
+          { label: 'Posts', icon: FileType, path: '/posts', permission: 'dashboard.posts_table' },
+          { label: 'Caption Writer', icon: Wand2, path: '/caption-writer' },
+          { label: 'Post Ideas', icon: Lightbulb, path: '/post-ideas' },
+          { label: 'Hashtags', icon: Hash, path: '/hashtags' },
+          { label: 'AI Studio', icon: Sparkles, path: '/ai-studio' },
+          { label: 'Brand Voice', icon: Mic, path: '/brand-voice', permission: 'ai.brand_voice' },
+          { label: 'AI Insights', icon: Sparkles, path: '/insights' },
+          { label: 'AI Audit', icon: ShieldCheck, path: '/ai-audit' },
         ],
       },
       {
         title: 'Performance',
         items: [
-          { label: 'ROI Calculator', icon: TrendingUp,  path: '/roi',       permission: 'roi.view' },
-          { label: 'Alerts',         icon: AlertCircle, path: '/alerts',    permission: 'alerts.view' },
-          { label: 'Sync Logs',      icon: FolderSync,  path: '/synclogs' },
+          { label: 'ROI Calculator', icon: TrendingUp, path: '/roi', permission: 'roi.view' },
+          { label: 'Alerts', icon: AlertCircle, path: '/alerts', permission: 'alerts.view' },
+          { label: 'Sync Logs', icon: FolderSync, path: '/synclogs' },
         ],
       },
       {
         title: 'Grow',
         items: [
-          { label: 'Audience',    icon: Users2,     path: '/audience',    permission: 'audience.view' },
+          { label: 'Audience', icon: Users2, path: '/audience', permission: 'audience.view' },
           { label: 'Competitors', icon: TrendingUp, path: '/competitors', permission: 'competitors.view' },
         ],
       },
       {
         title: 'Setup',
         items: [
-          { label: 'Approvals',     icon: ClipboardCheck, path: '/approvals',     permission: 'composer.approve',
-            badgeKey: 'pending_approvals' },
-          { label: 'Notifications', icon: Bell,           path: '/notifications',
-            badgeKey: 'unread_notifications' },
-          { label: 'Audit Log',     icon: ShieldCheck,    path: '/audit-log',     permission: 'audit.view' },
+          { label: 'Approvals', icon: ClipboardCheck, path: '/approvals', permission: 'composer.approve', badgeKey: 'pending_approvals' },
+          { label: 'Notifications', icon: Bell, path: '/notifications', badgeKey: 'unread_notifications' },
+          { label: 'Audit Log', icon: ShieldCheck, path: '/audit-log', permission: 'audit.view' },
         ],
       },
     ],
@@ -449,30 +436,29 @@ const NAV_SETS = {
       {
         title: 'Outreach',
         items: [
-          { label: 'Campaigns', icon: Send,       path: '/campaigns', permission: 'whatsapp.manage_campaigns' },
-          { label: 'Templates', icon: FileType,   path: '/templates', permission: 'whatsapp.manage_templates' },
-          { label: 'Contacts',  icon: Users2,     path: '/contacts',  permission: 'whatsapp.manage_contacts' },
-          { label: 'Lists',     icon: ListChecks, path: '/lists',     permission: 'whatsapp.manage_contacts' },
+          { label: 'Campaigns', icon: Send, path: '/campaigns', permission: 'whatsapp.manage_campaigns' },
+          { label: 'Templates', icon: FileType, path: '/templates', permission: 'whatsapp.manage_templates' },
+          { label: 'Contacts', icon: Users2, path: '/contacts', permission: 'whatsapp.manage_contacts' },
+          { label: 'Lists', icon: ListChecks, path: '/lists', permission: 'whatsapp.manage_contacts' },
         ],
       },
       {
         title: 'Conversational AI',
         items: [
-          { label: 'Bot Flows',     icon: Bot,            path: '/admin/bot-flows',     permission: 'bot.view' },
-          { label: 'Conversations', icon: MessageSquare,  path: '/admin/conversations', permission: 'bot.view' },
-          { label: 'Handoff Queue', icon: UserPlus,       path: '/admin/handoff',       permission: 'bot.view' },
-          { label: 'Leads',         icon: Users2,         path: '/admin/leads',         permission: 'leads.view',
-            badgeKey: 'new_leads' },
-          { label: 'CTWA Campaigns', icon: Megaphone,     path: '/admin/ctwa',          permission: 'ctwa.view' },
-          { label: 'Templates',     icon: Sparkles,       path: '/admin/bot-templates', permission: 'bot.view' },
-          { label: 'Bot Safety',    icon: ShieldCheck,    path: '/admin/bot-settings', permission: 'bot.view' },
+          { label: 'Bot Flows', icon: Bot, path: '/admin/bot-flows', permission: 'bot.view' },
+          { label: 'Conversations', icon: MessageSquare, path: '/admin/conversations', permission: 'bot.view' },
+          { label: 'Handoff Queue', icon: UserPlus, path: '/admin/handoff', permission: 'bot.view' },
+          { label: 'Leads', icon: Users2, path: '/admin/leads', permission: 'leads.view', badgeKey: 'new_leads' },
+          { label: 'CTWA Campaigns', icon: Megaphone, path: '/admin/ctwa', permission: 'ctwa.view' },
+          { label: 'Templates', icon: Sparkles, path: '/admin/bot-templates', permission: 'bot.view' },
+          { label: 'Bot Safety', icon: ShieldCheck, path: '/admin/bot-settings', permission: 'bot.view' },
         ],
       },
       {
         title: 'Setup',
         items: [
-          { label: 'Account',  icon: Settings, path: '/account',                                  permission: 'whatsapp.manage_account' },
-          { label: 'Webhooks', icon: Webhook,  path: '/account#webhooks', disabled: true },
+          { label: 'Account', icon: Settings, path: '/account', permission: 'whatsapp.manage_account' },
+          { label: 'Webhooks', icon: Webhook, path: '/account#webhooks', disabled: true },
         ],
       },
     ],

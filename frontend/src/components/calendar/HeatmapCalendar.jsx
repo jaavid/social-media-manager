@@ -8,6 +8,7 @@
  * ========================================================================== */
 import { useMemo, useEffect, useRef } from 'react';
 import { eachDayOfInterval, format, startOfMonth, endOfMonth } from 'date-fns';
+import { useLanguage } from '../../i18n';
 
 const INTENSITY_COLORS = ['#F1F5F9', '#BFDBFE', '#60A5FA', '#2563EB'];
 
@@ -18,41 +19,50 @@ function getColor(count) {
   return INTENSITY_COLORS[3];
 }
 
-export default function HeatmapCalendar({ month, year, postsByDate }) {
+export default function HeatmapCalendar({ month, year, postsByDate, rangeStart, rangeEnd }) {
   const containerRef = useRef(null);
+  const { isPersian, tr, formatDate, formatNumber } = useLanguage();
 
   const days = useMemo(() => {
+    if (isPersian && rangeStart && rangeEnd) {
+      return eachDayOfInterval({ start: rangeStart, end: rangeEnd });
+    }
     const start = startOfMonth(new Date(year, month - 1, 1));
-    const end   = endOfMonth(start);
+    const end = endOfMonth(start);
     return eachDayOfInterval({ start, end });
-  }, [month, year]);
+  }, [isPersian, rangeStart, rangeEnd, month, year]);
 
-  // Animate squares left-to-right on mount
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!containerRef.current) return undefined;
+    const timers = [];
     const squares = containerRef.current.querySelectorAll('.hm-sq');
-    squares.forEach((sq, i) => {
-      sq.style.opacity  = '0';
-      sq.style.transform= 'scale(0.5)';
-      setTimeout(() => {
-        sq.style.opacity   = '1';
-        sq.style.transform = 'scale(1)';
-        sq.style.transition = 'opacity 0.2s, transform 0.2s';
-      }, i * 12);
+    squares.forEach((square, index) => {
+      square.style.opacity = '0';
+      square.style.transform = 'scale(0.5)';
+      const timer = setTimeout(() => {
+        square.style.opacity = '1';
+        square.style.transform = 'scale(1)';
+        square.style.transition = 'opacity 0.2s, transform 0.2s';
+      }, index * 12);
+      timers.push(timer);
     });
-  }, [month, year, postsByDate]);
+    return () => timers.forEach(clearTimeout);
+  }, [days, postsByDate]);
 
   return (
     <div ref={containerRef} style={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
       {days.map(day => {
         const dateStr = format(day, 'yyyy-MM-dd');
-        const count   = (postsByDate[dateStr] || []).length;
-        const color   = getColor(count);
+        const count = (postsByDate[dateStr] || []).length;
+        const color = getColor(count);
+        const dayLabel = isPersian
+          ? formatDate(day, { month: 'short', day: 'numeric' })
+          : format(day, 'MMM d');
         return (
           <div
             key={dateStr}
             className="hm-sq"
-            title={`${format(day, 'MMM d')}: ${count} post${count !== 1 ? 's' : ''}`}
+            title={`${dayLabel}: ${formatNumber(count)} ${tr(count === 1 ? 'post' : 'posts')}`}
             style={{
               width: 12, height: 12,
               borderRadius: 2,
@@ -62,16 +72,15 @@ export default function HeatmapCalendar({ month, year, postsByDate }) {
           />
         );
       })}
-      {/* Legend */}
       <div style={{
         width: '100%', display: 'flex', alignItems: 'center',
         gap: 6, marginTop: 8, fontSize: 10, color: '#64748B',
       }}>
-        <span>Less</span>
-        {INTENSITY_COLORS.map(c => (
-          <div key={c} style={{ width: 10, height: 10, borderRadius: 2, background: c }} />
+        <span>{tr('Less')}</span>
+        {INTENSITY_COLORS.map(color => (
+          <div key={color} style={{ width: 10, height: 10, borderRadius: 2, background: color }} />
         ))}
-        <span>More</span>
+        <span>{tr('More')}</span>
       </div>
     </div>
   );

@@ -14,20 +14,9 @@ import NotificationBell from '../ui/NotificationBell';
 import LanguageToggle from '../ui/LanguageToggle';
 import { useLanguage } from '../../i18n';
 
-/**
- * 56px-tall top bar.
- * Left: breadcrumb (Module / Feature / Detail)
- * Center: command-palette trigger (⌘K)
- * Right: language, theme, notifications, what's new pill
- */
-export default function TopBar({
-  basePath,
-  module,
-  onOpenPalette,
-  onOpenMobileMenu,
-}) {
+export default function TopBar({ basePath, onOpenPalette }) {
   const location = useLocation();
-  const { isPersian, t } = useLanguage();
+  const { isPersian, t, tr } = useLanguage();
   const crumbs = buildBreadcrumbs(location.pathname, basePath);
   const isMac = typeof navigator !== 'undefined' && /mac/i.test(navigator.platform);
 
@@ -36,8 +25,8 @@ export default function TopBar({
       style={{
         position: 'fixed',
         top: 0,
-        left: 'calc(var(--module-rail-width) + var(--feature-sidebar-width))',
-        right: 0,
+        insetInlineStart: 'calc(var(--module-rail-width) + var(--feature-sidebar-width))',
+        insetInlineEnd: 0,
         height: 'var(--topbar-height)',
         zIndex: 80,
         background: 'var(--surface-card)',
@@ -49,31 +38,34 @@ export default function TopBar({
       }}
       className="ds-topbar"
     >
-      <nav aria-label="Breadcrumb" style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0, flex: '0 1 auto' }}>
-        {crumbs.map((c, i) => (
-          <span key={`${c.label}-${i}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            {i > 0 && <ChevronRight size={12} color="var(--text-tertiary)" style={isPersian ? { transform: 'rotate(180deg)' } : undefined} />}
-            {i === crumbs.length - 1 ? (
-              <span style={{
-                fontSize: 13, fontWeight: 600,
-                color: 'var(--text-primary)',
-                whiteSpace: 'nowrap',
-                maxWidth: 240, overflow: 'hidden', textOverflow: 'ellipsis',
-              }}>
-                {c.label}
-              </span>
-            ) : c.to ? (
-              <Link to={c.to} style={{
-                fontSize: 13, color: 'var(--text-tertiary)',
-                textDecoration: 'none', whiteSpace: 'nowrap',
-              }}>
-                {c.label}
-              </Link>
-            ) : (
-              <span style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>{c.label}</span>
-            )}
-          </span>
-        ))}
+      <nav aria-label={t('common.navigation', 'Breadcrumb')} style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0, flex: '0 1 auto' }}>
+        {crumbs.map((c, i) => {
+          const label = tr(c.label);
+          return (
+            <span key={`${c.label}-${i}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              {i > 0 && <ChevronRight size={12} color="var(--text-tertiary)" style={isPersian ? { transform: 'rotate(180deg)' } : undefined} />}
+              {i === crumbs.length - 1 ? (
+                <span style={{
+                  fontSize: 13, fontWeight: 600,
+                  color: 'var(--text-primary)',
+                  whiteSpace: 'nowrap',
+                  maxWidth: 240, overflow: 'hidden', textOverflow: 'ellipsis',
+                }}>
+                  {label}
+                </span>
+              ) : c.to ? (
+                <Link to={c.to} style={{
+                  fontSize: 13, color: 'var(--text-tertiary)',
+                  textDecoration: 'none', whiteSpace: 'nowrap',
+                }}>
+                  {label}
+                </Link>
+              ) : (
+                <span style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>{label}</span>
+              )}
+            </span>
+          );
+        })}
       </nav>
 
       <div style={{ flex: 1 }} />
@@ -81,7 +73,7 @@ export default function TopBar({
       <button
         type="button"
         onClick={onOpenPalette}
-        aria-label="Open command palette (Cmd+K)"
+        aria-label={t('common.search', 'Open command palette')}
         style={{
           display: 'flex', alignItems: 'center', gap: 8,
           flex: '0 1 280px',
@@ -136,7 +128,7 @@ export default function TopBar({
         }}
         onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--brand-primary-soft)'; }}
         onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--brand-primary-glow)'; }}
-        aria-label="What's new"
+        aria-label={t('common.new', "What's new")}
         className="ds-whats-new"
       >
         <Sparkles size={11} />
