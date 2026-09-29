@@ -6,6 +6,8 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
+import { useLanguage } from '../../i18n';
+
 /**
  * EmptyState — used in place of "No data" messages.
  *
@@ -27,6 +29,10 @@ export default function EmptyState({
   style,
   ...rest
 }) {
+  const { tr } = useLanguage();
+  const localizedTitle = typeof title === 'string' ? tr(title) : title;
+  const localizedDescription = typeof description === 'string' ? tr(description) : description;
+
   return (
     <div
       role="status"
@@ -62,24 +68,24 @@ export default function EmptyState({
           <Icon size={22} strokeWidth={1.8} />
         </div>
       )}
-      {title && (
+      {localizedTitle && (
         <div style={{
           fontSize: 16,
           fontWeight: 500,
           color: 'var(--text-primary)',
           letterSpacing: '-0.01em',
         }}>
-          {title}
+          {localizedTitle}
         </div>
       )}
-      {description && (
+      {localizedDescription && (
         <div style={{
           fontSize: 13,
           color: 'var(--text-secondary)',
           maxWidth: 380,
           lineHeight: 1.5,
         }}>
-          {description}
+          {localizedDescription}
         </div>
       )}
       {action && <div style={{ marginTop: 4 }}>{action}</div>}
