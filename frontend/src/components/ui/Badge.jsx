@@ -6,6 +6,8 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
+import { useLanguage } from '../../i18n';
+
 /**
  * Badge — small pill for status/labels.
  *
@@ -36,8 +38,10 @@ export default function Badge({
   style,
   ...rest
 }) {
+  const { tr } = useLanguage();
   const v = VARIANT_STYLES[variant] || VARIANT_STYLES.default;
   const s = SIZES[size] || SIZES.md;
+  const localizedChildren = typeof children === 'string' ? tr(children) : children;
 
   return (
     <span
@@ -69,7 +73,7 @@ export default function Badge({
         />
       )}
       {Icon && <Icon size={s.iconSize} strokeWidth={2.4} aria-hidden />}
-      {children}
+      {localizedChildren}
     </span>
   );
 }
