@@ -3,7 +3,10 @@
 FROM node:20-alpine AS frontend-build
 WORKDIR /src/frontend
 COPY frontend/package.json frontend/package-lock.json ./
-RUN npm ci --no-audit --no-fund
+# package.json currently contains newer safe dependency ranges than the checked-in
+# lockfile. npm install reconciles them during the image build; switch back to
+# npm ci once package-lock.json is regenerated and committed.
+RUN npm install --no-audit --no-fund
 COPY frontend/ ./
 ARG REACT_APP_API_URL=/api
 ENV REACT_APP_API_URL=${REACT_APP_API_URL}
