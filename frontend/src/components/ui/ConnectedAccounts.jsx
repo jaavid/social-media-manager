@@ -34,7 +34,7 @@ export default function ConnectedAccounts({ clientId, status, onRefresh }) {
     }
   };
 
-  useEffect(() => { refreshBotStatus(); }, [clientId]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { refreshBotStatus(); }, [clientId]);
 
   const handleConnect = (platform) => {
     if (!clientId) {

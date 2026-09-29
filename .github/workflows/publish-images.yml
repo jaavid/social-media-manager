@@ -1,17 +1,4 @@
-name: Publish images
-
-# Builds and pushes the self-hosting images to the repository owner's GHCR namespace:
-#   ghcr.io/${repository_owner}/social-stats-backend
-#   ghcr.io/${repository_owner}/social-stats-frontend
-#
-# Triggers:
-#   • push to main       → :latest  (+ :main)
-#   • version tags v*    → :1.2.3 / :1.2 / :latest
-#   • manual dispatch
-#
-# Multi-arch (amd64 + arm64) so Raspberry Pi / ARM servers can pull too.
-# First publish creates the packages as PRIVATE — flip each to Public once in
-# GitHub → Packages → (package) → Settings → Change visibility.
+name: Publish app image
 
 on:
   push:
@@ -24,23 +11,17 @@ permissions:
   packages: write
 
 concurrency:
-  group: publish-images-${{ github.ref }}
+  group: publish-app-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/social-stats-app
+
 jobs:
-  publish:
-    name: Build & push ${{ matrix.image }}
+  build:
+    name: Build unified app image
     runs-on: ubuntu-latest
     timeout-minutes: 60
-
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - image: social-stats-backend
-            context: backend
-          - image: social-stats-frontend
-            context: frontend
 
     steps:
       - uses: actions/checkout@v7
@@ -56,27 +37,30 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Image metadata (tags + labels)
+      - name: Image metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}
+          images: ${{ env.IMAGE_NAME }}
           tags: |
             type=ref,event=branch
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix=sha-
             type=raw,value=latest,enable={{is_default_branch}}
           labels: |
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.description=Social Stats unified frontend/backend/Celery application image
             org.opencontainers.image.licenses=MIT
 
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          context: ${{ matrix.context }}
+          context: .
+          file: ./Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha,scope=${{ matrix.image }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.image }}
+          cache-from: type=gha,scope=social-stats-app
+          cache-to: type=gha,mode=max,scope=social-stats-app
