@@ -7,6 +7,7 @@
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
 import { forwardRef } from 'react';
+import { useLanguage } from '../../i18n';
 
 /**
  * Card — neutral surface wrapper.
@@ -92,6 +93,10 @@ const Card = forwardRef(function Card(
 });
 
 function CardHeader({ title, subtitle, action, style, children }) {
+  const { tr } = useLanguage();
+  const localizedTitle = typeof title === 'string' ? tr(title) : title;
+  const localizedSubtitle = typeof subtitle === 'string' ? tr(subtitle) : subtitle;
+
   return (
     <div
       style={{
@@ -104,7 +109,7 @@ function CardHeader({ title, subtitle, action, style, children }) {
       }}
     >
       <div style={{ minWidth: 0 }}>
-        {title && (
+        {localizedTitle && (
           <h3 style={{
             margin: 0,
             fontSize: 16,
@@ -112,16 +117,16 @@ function CardHeader({ title, subtitle, action, style, children }) {
             color: 'var(--text-primary)',
             letterSpacing: '-0.01em',
           }}>
-            {title}
+            {localizedTitle}
           </h3>
         )}
-        {subtitle && (
+        {localizedSubtitle && (
           <div style={{
             marginTop: 2,
             fontSize: 13,
             color: 'var(--text-secondary)',
           }}>
-            {subtitle}
+            {localizedSubtitle}
           </div>
         )}
         {children}
