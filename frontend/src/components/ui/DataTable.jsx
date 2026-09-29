@@ -10,6 +10,7 @@ import { useMemo, useState } from 'react';
 import { ChevronUp, ChevronDown, ChevronsUpDown, ChevronLeft, ChevronRight, Loader2, Inbox } from 'lucide-react';
 
 import EmptyState from './EmptyState';
+import { useLanguage } from '../../i18n';
 
 /**
  * DataTable — modern table with sticky header, sortable columns, pagination,
@@ -50,6 +51,7 @@ export default function DataTable({
   className,
   style,
 }) {
+  const { tr, isPersian, formatNumber } = useLanguage();
   const [sortKey, setSortKey] = useState(null);
   const [sortDir, setSortDir] = useState('asc');
   const [page, setPage] = useState(1);
@@ -127,6 +129,7 @@ export default function DataTable({
               {columns.map((col) => {
                 const sortable = col.sortable !== false && (col.accessor || col.sortable);
                 const isActive = sortKey === col.key;
+                const header = typeof col.header === 'string' ? tr(col.header) : col.header;
                 return (
                   <th
                     key={col.key}
@@ -137,7 +140,7 @@ export default function DataTable({
                       position: stickyHeader ? 'sticky' : undefined,
                       top: stickyHeader ? 0 : undefined,
                       zIndex: stickyHeader ? 1 : undefined,
-                      textAlign: col.align || 'left',
+                      textAlign: col.align || 'start',
                       padding: '11px 16px',
                       width: col.width,
                       background: 'var(--surface-sunken)',
@@ -153,7 +156,7 @@ export default function DataTable({
                     }}
                   >
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                      {col.header}
+                      {header}
                       {sortable && <SortIcon active={isActive} dir={sortDir} />}
                     </span>
                   </th>
@@ -166,7 +169,7 @@ export default function DataTable({
               <tr>
                 <td colSpan={columns.length} style={cellStateStyle}>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                    <Loader2 size={14} className="ds-table-spin" /> Loading…
+                    <Loader2 size={14} className="ds-table-spin" /> {tr('Loading…')}
                   </span>
                 </td>
               </tr>
@@ -202,7 +205,7 @@ export default function DataTable({
                     <td
                       key={col.key}
                       style={{
-                        textAlign: col.align || 'left',
+                        textAlign: col.align || 'start',
                         padding: '12px 16px',
                         borderBottom: '1px solid var(--border-subtle)',
                         color: 'var(--text-primary)',
@@ -220,7 +223,16 @@ export default function DataTable({
       </div>
 
       {pageSize > 0 && total > pageSize && (
-        <Pagination page={page} pageCount={pageCount} pageSize={pageSize} total={total} onChange={setPage} />
+        <Pagination
+          page={page}
+          pageCount={pageCount}
+          pageSize={pageSize}
+          total={total}
+          onChange={setPage}
+          tr={tr}
+          isPersian={isPersian}
+          formatNumber={formatNumber}
+        />
       )}
 
       <style>{`
@@ -243,9 +255,11 @@ function SortIcon({ active, dir }) {
     : <ChevronDown size={12} aria-hidden />;
 }
 
-function Pagination({ page, pageCount, pageSize, total, onChange }) {
+function Pagination({ page, pageCount, pageSize, total, onChange, tr, isPersian, formatNumber }) {
   const start = (page - 1) * pageSize + 1;
   const end = Math.min(page * pageSize, total);
+  const PrevIcon = isPersian ? ChevronRight : ChevronLeft;
+  const NextIcon = isPersian ? ChevronLeft : ChevronRight;
   return (
     <div style={{
       display: 'flex',
@@ -257,16 +271,20 @@ function Pagination({ page, pageCount, pageSize, total, onChange }) {
       fontSize: 12,
       color: 'var(--text-secondary)',
     }}>
-      <span>Showing {start}–{end} of {total}</span>
+      <span>
+        {isPersian
+          ? `نمایش ${formatNumber(start)} تا ${formatNumber(end)} از ${formatNumber(total)}`
+          : `Showing ${start}–${end} of ${total}`}
+      </span>
       <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-        <PageBtn disabled={page === 1} onClick={() => onChange(page - 1)} aria-label="Previous page">
-          <ChevronLeft size={14} />
+        <PageBtn disabled={page === 1} onClick={() => onChange(page - 1)} aria-label={tr('Previous page')}>
+          <PrevIcon size={14} />
         </PageBtn>
         <span style={{ padding: '0 8px', fontWeight: 500, color: 'var(--text-primary)' }}>
-          {page} / {pageCount}
+          {formatNumber(page)} / {formatNumber(pageCount)}
         </span>
-        <PageBtn disabled={page >= pageCount} onClick={() => onChange(page + 1)} aria-label="Next page">
-          <ChevronRight size={14} />
+        <PageBtn disabled={page >= pageCount} onClick={() => onChange(page + 1)} aria-label={tr('Next page')}>
+          <NextIcon size={14} />
         </PageBtn>
       </div>
     </div>
