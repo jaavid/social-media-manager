@@ -22,10 +22,21 @@ untrusted clients; those headers can otherwise be spoofed.
 """
 from __future__ import annotations
 
+import os
 from ipaddress import ip_address
 from typing import Optional
 
 from django.conf import settings
+
+
+def _env_bool(name: str, default: bool = False) -> bool:
+    configured = getattr(settings, name, None)
+    if configured is not None:
+        return bool(configured)
+    raw = os.environ.get(name)
+    if raw is None:
+        return default
+    return raw.strip().lower() in ('1', 'true', 'yes', 'on')
 
 
 def _validated_ip(value: str | None) -> Optional[str]:
@@ -43,6 +54,10 @@ def _validated_ip(value: str | None) -> Optional[str]:
         return None
 
 
+def proxy_ip_trust_enabled() -> bool:
+    return _env_bool('TRUST_PROXY_CLIENT_IP', False)
+
+
 def get_client_ip(request) -> Optional[str]:
     """Resolve the effective client IP for security/audit/rate-limit use."""
     if request is None:
@@ -50,7 +65,7 @@ def get_client_ip(request) -> Optional[str]:
 
     remote = _validated_ip(request.META.get('REMOTE_ADDR'))
 
-    if not getattr(settings, 'TRUST_PROXY_CLIENT_IP', False):
+    if not proxy_ip_trust_enabled():
         return remote
 
     candidate = _validated_ip(request.META.get('HTTP_AR_REAL_IP'))
@@ -68,3 +83,33 @@ def get_client_ip(request) -> Optional[str]:
             return candidate
 
     return remote
+
+
+def normalize_request_client_ip(request) -> Optional[str]:
+    """Normalize proxy-aware IP metadata once, before auth/security middleware.
+
+    This lets django-axes and legacy call sites that still read REMOTE_ADDR or
+    the first X-Forwarded-For value observe the same canonical client address.
+    The original forwarding chain is kept after the canonical first element.
+    """
+    client_ip = get_client_ip(request)
+    if not client_ip:
+        return None
+
+    request.client_ip = client_ip
+
+    if not proxy_ip_trust_enabled():
+        return client_ip
+
+    request.META['REMOTE_ADDR'] = client_ip
+    request.META['HTTP_X_REAL_IP'] = client_ip
+
+    forwarded = [
+        part.strip() for part in (request.META.get('HTTP_X_FORWARDED_FOR') or '').split(',')
+        if part.strip()
+    ]
+    if not forwarded or forwarded[0] != client_ip:
+        forwarded.insert(0, client_ip)
+    request.META['HTTP_X_FORWARDED_FOR'] = ', '.join(forwarded)
+
+    return client_ip
