@@ -135,9 +135,20 @@ jobs:
           docker compose logs app | tail -100
           exit 1
 
-      - name: SPA and API share one origin
+      - name: SPA, static assets and API share one origin
         run: |
-          curl -fsS http://localhost:3000/ | grep -qi "<title>" || { docker compose logs app | tail -50; exit 1; }
+          html=$(curl -fsS http://localhost:3000/)
+          printf '%s' "$html" | grep -qi "<title>" || { docker compose logs app | tail -50; exit 1; }
+
+          js_asset=$(printf '%s' "$html" | grep -oE 'src="/static/js/[^"]+\.js"' | head -1 | cut -d'"' -f2)
+          css_asset=$(printf '%s' "$html" | grep -oE 'href="/static/css/[^"]+\.css"' | head -1 | cut -d'"' -f2)
+          [ -n "$js_asset" ] || { echo "React JS asset not found in index.html"; exit 1; }
+          [ -n "$css_asset" ] || { echo "React CSS asset not found in index.html"; exit 1; }
+
+          curl -fsS "http://localhost:3000${js_asset}" > /dev/null || { echo "React JS asset failed: $js_asset"; exit 1; }
+          curl -fsS "http://localhost:3000${css_asset}" > /dev/null || { echo "React CSS asset failed: $css_asset"; exit 1; }
+          curl -fsS http://localhost:3000/static/admin/css/base.css > /dev/null || { echo "Django admin static asset failed"; exit 1; }
+
           code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:3000/api/auth/me/)
           case "$code" in
             401|403)
@@ -158,13 +169,17 @@ jobs:
       - name: Seed demo data inside app container
         run: docker compose exec -T app python manage.py demo_setup
 
-      - name: Verify supervised processes
+      - name: Verify supervised processes and Celery scheduler tasks
         run: |
           docker compose exec -T app supervisorctl status | tee /tmp/supervisor.txt
           grep -E '^django[[:space:]]+RUNNING' /tmp/supervisor.txt
           grep -E '^celery[[:space:]]+RUNNING' /tmp/supervisor.txt
           grep -E '^beat[[:space:]]+RUNNING' /tmp/supervisor.txt
           grep -E '^nginx[[:space:]]+RUNNING' /tmp/supervisor.txt
+
+          docker compose exec -T app celery -A dashboard inspect registered --timeout=10 | tee /tmp/registered.txt
+          grep -F 'social_stats.scheduler.process_post_queues' /tmp/registered.txt
+          grep -F 'social_stats.scheduler.process_scheduled_posts' /tmp/registered.txt
 
       - name: Teardown
         if: always()
