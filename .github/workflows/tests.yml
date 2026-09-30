@@ -59,6 +59,23 @@ jobs:
           pip install -r requirements.txt
           if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
 
+      - name: Check migration drift
+        working-directory: backend
+        env:
+          DB_NAME: socialstats_test
+          DB_USER: socialstats
+          DB_PASSWORD: socialstats
+          DB_HOST: localhost
+          DB_PORT: "5432"
+          CELERY_BROKER_URL: redis://localhost:6379/0
+          CELERY_RESULT_BACKEND: redis://localhost:6379/0
+          DJANGO_SETTINGS_MODULE: dashboard.settings
+          SECRET_KEY: test-secret-not-for-prod
+          DEBUG: "False"
+          ANTHROPIC_API_KEY: ""
+          ALLOWED_HOSTS: "*"
+        run: python manage.py makemigrations social_stats --check --dry-run --verbosity=3
+
       - name: Run Django tests
         working-directory: backend
         env:
@@ -181,6 +198,7 @@ jobs:
           grep -F 'social_stats.scheduler.process_post_queues' /tmp/registered.txt
           grep -F 'social_stats.scheduler.process_scheduled_posts' /tmp/registered.txt
           grep -F 'social_stats.inbox_tasks.sync_inbox_for_all_clients' /tmp/registered.txt
+          grep -F 'social_stats.security.tasks.detect_security_anomalies' /tmp/registered.txt
 
       - name: Teardown
         if: always()
