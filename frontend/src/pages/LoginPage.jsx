@@ -6,7 +6,7 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowRight, AlertCircle, Briefcase, User as UserIcon, Shield } from 'lucide-react';
 
@@ -43,11 +43,26 @@ export default function LoginPage() {
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [ssoConfig, setSsoConfig] = useState(null);
   // MFA second-factor step (set when /auth/login/ returns mfa_required,
   // or handed over by /auth/callback when a social login needs a TOTP code)
   const [mfaToken, setMfaToken] = useState(location.state?.mfaToken || '');
   const [mfaCode, setMfaCode] = useState('');
   const [useBackupCode, setUseBackupCode] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    fetch(`${API_BASE}/auth/sso/`)
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data) => {
+        if (alive && data?.enabled) setSsoConfig(data);
+      })
+      .catch(() => {
+        // SSO is optional; password/social login must remain usable if the
+        // capability probe is unavailable.
+      });
+    return () => { alive = false; };
+  }, []);
 
   const params = new URLSearchParams(window.location.search);
   const urlError = params.get('error');
@@ -366,7 +381,7 @@ export default function LoginPage() {
           <span style={{ flex: 1, height: 1, background: 'var(--border-subtle)' }} />
         </div>
 
-        {/* SSO row */}
+        {/* Social login row */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
           <Button
             variant="secondary"
@@ -385,6 +400,19 @@ export default function LoginPage() {
             <SocialPlatformIcon platform="facebook" size={16} /> Facebook
           </Button>
         </div>
+
+        {ssoConfig && (
+          <div style={{ marginTop: 8 }}>
+            <Button
+              variant="secondary"
+              size="lg"
+              fullWidth
+              onClick={() => { window.location.href = `${API_BASE}/auth/sso/start/`; }}
+            >
+              <Shield size={16} /> {tr(ssoConfig.label || 'Organization SSO')}
+            </Button>
+          </div>
+        )}
 
         {/* Demo logins — populated by `python manage.py demo_setup` in the
             backend. Each button signs in as the corresponding demo account
