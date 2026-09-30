@@ -150,7 +150,7 @@ def oidc_sso_start(request):
 
     try:
         discovery = _discovery(config)
-    except (ValueError, http_requests.RequestException, ValueError):
+    except (ValueError, http_requests.RequestException):
         return _frontend_error('Organization SSO is temporarily unavailable.')
 
     state = secrets.token_urlsafe(32)
