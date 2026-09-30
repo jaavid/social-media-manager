@@ -674,6 +674,7 @@ class GoalViewSet(viewsets.ModelViewSet):
 # ── Alerts ────────────────────────────────────────────────────────────────────
 class AlertViewSet(viewsets.ModelViewSet):
     serializer_class   = AlertSerializer
+    permission_classes = [IsAuthenticated]
     http_method_names  = ['get', 'post', 'head', 'options']
 
     def get_queryset(self):

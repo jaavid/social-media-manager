@@ -13,6 +13,21 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
+// Authentication is process-wide, so refresh coordination must be process-wide too.
+// Consumers use this signal to stop pollers before navigation can render again.
+const sessionInvalidationListeners = new Set();
+let refreshPromise = null;
+
+export function onSessionInvalidated(listener) {
+  sessionInvalidationListeners.add(listener);
+  return () => sessionInvalidationListeners.delete(listener);
+}
+
+export function invalidateSession() {
+  try { localStorage.clear(); } catch {}
+  sessionInvalidationListeners.forEach((listener) => listener());
+}
+
 // Attach JWT token to every request
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('access_token');
@@ -30,7 +45,7 @@ const PUBLIC_PATH_PREFIXES = [
 ];
 
 function _redirectToLogin() {
-  try { localStorage.clear(); } catch {}
+  invalidateSession();
   if (typeof window === 'undefined') return;
   const path = window.location.pathname || '';
   if (PUBLIC_PATH_PREFIXES.some((p) => path.startsWith(p))) return;
@@ -60,12 +75,17 @@ api.interceptors.response.use(
     }
 
     try {
-      const res = await axios.post(
-        `${process.env.REACT_APP_API_URL || 'http://localhost:8000/api'}/auth/refresh/`,
-        { refresh }
-      );
-      localStorage.setItem('access_token', res.data.access);
-      original.headers.Authorization = `Bearer ${res.data.access}`;
+      if (!refreshPromise) {
+        refreshPromise = axios.post(
+          `${process.env.REACT_APP_API_URL || 'http://localhost:8000/api'}/auth/refresh/`,
+          { refresh }
+        ).then((res) => {
+          localStorage.setItem('access_token', res.data.access);
+          return res.data.access;
+        }).finally(() => { refreshPromise = null; });
+      }
+      const access = await refreshPromise;
+      original.headers.Authorization = `Bearer ${access}`;
       return api(original);
     } catch {
       _redirectToLogin();
@@ -357,7 +377,7 @@ export const topPostsAPI = {
 
 // ── Alerts ────────────────────────────────────────────
 export const alertsAPI = {
-  list:        (params) => api.get('/alerts/', { params }),
+  list:        (params, config = {}) => api.get('/alerts/', { ...config, params }),
   markRead:    (id)     => api.post(`/alerts/${id}/mark_read/`),
   markAllRead: (params) => api.post('/alerts/mark_all_read/', null, { params }),
   runCheck:    ()       => api.post('/alerts/run_check/'),
@@ -448,10 +468,12 @@ export const invitationAPI = {
 
 // ── Notifications ─────────────────────────────────────────────────────────────
 export const notificationAPI = {
-  list:     ()   => api.get('/notifications/'),
+  list:     (config = {}) => api.get('/notifications/', config),
   markRead: (id) => api.post(`/notifications/${id}/read/`),
   markAll:  ()   => api.post('/notifications/read-all/'),
 };
+
+export { api };
 
 // ── Solo Client Setup ─────────────────────────────────────────────────────────
 export const soloAPI = {
