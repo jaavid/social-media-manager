@@ -13,14 +13,7 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import timedelta
 from .fields import EncryptedTextField
-
-PLATFORM_CHOICES = [
-    ('facebook',          'Facebook'),
-    ('instagram',         'Instagram'),
-    ('youtube',           'YouTube'),
-    ('linkedin',          'LinkedIn'),
-    ('google_my_business','Google My Business'),
-]
+from .platforms.registry import PLATFORM_CHOICES
 
 ROLE_CHOICES = [
     ('superadmin', 'Super Admin'),
@@ -1244,12 +1237,7 @@ class PostIdea(models.Model):
 # ── AI Hashtag Research Tool ───────────────────────────────────────────────────
 
 class HashtagSet(models.Model):
-    PLATFORM_CHOICES = [
-        ('instagram', 'Instagram'),
-        ('facebook',  'Facebook'),
-        ('linkedin',  'LinkedIn'),
-        ('youtube',   'YouTube'),
-    ]
+    PLATFORM_CHOICES = PLATFORM_CHOICES
 
     client      = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='hashtag_sets')
     niche       = models.CharField(max_length=200)
@@ -2501,4 +2489,3 @@ from .security.platform_compliance import PlatformDataDeletionRequest  # noqa: E
 
 # ── central event bus ──────────────────────────────────
 from .events.models import EventLog  # noqa: E402,F401
-
