@@ -1,6 +1,10 @@
+from django.http import HttpResponse
 from django.test import RequestFactory, SimpleTestCase, override_settings
 
+from axes.helpers import get_client_ip_address
+
 from social_stats.security.client_ip import get_client_ip
+from social_stats.security.middleware import RequestIDMiddleware
 
 
 class ClientIPResolverTests(SimpleTestCase):
@@ -58,3 +62,23 @@ class ClientIPResolverTests(SimpleTestCase):
             REMOTE_ADDR='127.0.0.1',
         )
         self.assertEqual(get_client_ip(request), '127.0.0.1')
+
+    @override_settings(TRUST_PROXY_CLIENT_IP=True)
+    def test_first_middleware_normalizes_ip_for_django_axes(self):
+        request = self.factory.get(
+            '/admin/login/',
+            HTTP_AR_REAL_IP='203.0.113.77',
+            HTTP_X_FORWARDED_FOR='198.51.100.3',
+            REMOTE_ADDR='127.0.0.1',
+        )
+        middleware = RequestIDMiddleware(lambda req: HttpResponse('ok'))
+        response = middleware(request)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(request.META['REMOTE_ADDR'], '203.0.113.77')
+        self.assertEqual(request.META['HTTP_X_REAL_IP'], '203.0.113.77')
+        self.assertEqual(
+            request.META['HTTP_X_FORWARDED_FOR'].split(',')[0].strip(),
+            '203.0.113.77',
+        )
+        self.assertEqual(get_client_ip_address(request), '203.0.113.77')
