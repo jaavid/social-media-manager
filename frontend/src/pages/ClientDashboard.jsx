@@ -534,6 +534,7 @@ function ControlBar({ range, setRange, platform, setPlatform, connectedPlatforms
         onChange={setPlatform}
         connected={connectedPlatforms}
         platforms={platforms}
+        capability="analytics"
       />
     </div>
   );
