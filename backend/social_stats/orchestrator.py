@@ -36,10 +36,10 @@ from .models import (
     MediaAsset,
 )
 from .publishers import (
-    get_publisher,
     PublishError, TokenExpiredError, RateLimitError,
     PermissionDeniedError, MediaTooLargeError,
 )
+from .platforms.registry import get_provider
 from . import media_service
 from .realtime import push_event
 from .audit import log_action
@@ -122,11 +122,16 @@ def publish_to_platform(self, unified_post_id: int, platform: str):
     destination_id = (overrides.get('destination_id') or '').strip()
 
     media_urls = _resolve_media_urls(post, media_urls)
-    publisher = get_publisher(platform)
+    try:
+        provider = get_provider(platform)
+    except NotImplementedError:
+        _mark_failed(log, code='unsupported', message=f'Publishing is disabled for {platform}')
+        update_unified_post_status(post.id)
+        return
 
     try:
         result = _dispatch_publish(
-            publisher,
+            provider,
             cred,
             content,
             media_urls,
@@ -205,27 +210,22 @@ def _dispatch_publish(
     post,
     destination_id: str = '',
 ):
-    """Pick the right publisher method based on media type and pass safe overrides."""
+    """Publish through a capability-aware provider/publisher entry point."""
     media_type = (media_type or 'text').lower()
     publish_kwargs = {'destination_id': destination_id} if destination_id else {}
-
-    if media_type == 'text':
-        return publisher.publish_text(credential, content, **publish_kwargs)
-    if media_type == 'image':
-        return publisher.publish_image(credential, content, media_urls, **publish_kwargs)
-    if media_type == 'video':
-        first = media_urls[0] if media_urls else ''
-        return publisher.publish_video(credential, content, first, **publish_kwargs)
-    if media_type == 'carousel':
-        return publisher.publish_carousel(credential, content, media_urls, **publish_kwargs)
-    if media_type == 'reel':
-        first = media_urls[0] if media_urls else ''
-        return publisher.publish_reel(credential, first, content, **publish_kwargs)
-    if media_type == 'story':
-        first = media_urls[0] if media_urls else ''
-        return publisher.publish_story(credential, first, **publish_kwargs)
-
-    raise PublishError(f'Unknown media_type: {media_type}', code='unknown_media_type')
+    # Accept a raw legacy publisher for callers/tests during the registry
+    # transition; production passes a provider.
+    from .platforms.base import BasePlatformProvider
+    if not isinstance(publisher, BasePlatformProvider):
+        from .publishers.base import BasePublisher
+        return BasePublisher.publish(
+            publisher, credential, media_type=media_type, content=content,
+            media_urls=media_urls, **publish_kwargs,
+        )
+    return publisher.publish(
+        credential, media_type=media_type, content=content,
+        media_urls=media_urls, **publish_kwargs,
+    )
 
 
 def _resolve_media_urls(post: UnifiedPost, media_urls: list) -> list:

@@ -20,6 +20,10 @@ PLATFORM_CHOICES = [
     ('youtube',           'YouTube'),
     ('linkedin',          'LinkedIn'),
     ('google_my_business','Google My Business'),
+    ('telegram',         'Telegram'),
+    ('bale',             'Bale'),
+    ('eitaa',            'Eitaa'),
+    ('aparat',           'Aparat'),
 ]
 
 ROLE_CHOICES = [
@@ -2501,4 +2505,3 @@ from .security.platform_compliance import PlatformDataDeletionRequest  # noqa: E
 
 # ── central event bus ──────────────────────────────────
 from .events.models import EventLog  # noqa: E402,F401
-

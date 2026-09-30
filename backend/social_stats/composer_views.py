@@ -43,7 +43,7 @@ from .models import (
     PlatformCredential,
 )
 from .orchestrator import publish_unified_post
-from .publishers import get_publisher
+from .platforms.registry import get_provider
 from . import media_service
 from .tenant_mixins import TenantScopedMixin
 from .marketplace_permissions import (
@@ -306,9 +306,11 @@ class UnifiedPostViewSet(TenantScopedMixin, viewsets.ModelViewSet):
             overrides = (post.platform_overrides or {}).get(platform, {}) or {}
             content = overrides.get('content', post.content) or ''
             try:
-                publisher = get_publisher(platform)
+                provider = get_provider(platform)
+                publisher = provider.publisher
                 max_text = getattr(publisher, 'MAX_TEXT_LENGTH', 0) or 0
             except NotImplementedError:
+                provider = None
                 publisher = None
                 max_text = 0
             previews[platform] = {
@@ -318,7 +320,9 @@ class UnifiedPostViewSet(TenantScopedMixin, viewsets.ModelViewSet):
                 'max_text_length': max_text,
                 'over_limit':    max_text > 0 and len(content) > max_text,
                 'media_type':    overrides.get('media_type', post.media_type),
-                'supported':     bool(publisher and publisher.supports(post.media_type)),
+                'supported':     bool(provider and provider.capabilities.supports_media(
+                    overrides.get('media_type', post.media_type)
+                )),
             }
         return Response({'previews': previews})
 
@@ -471,9 +475,10 @@ class PreflightCheckView(APIView):
 
             # Capability + text length
             try:
-                publisher = get_publisher(platform)
+                provider = get_provider(platform)
+                publisher = provider.publisher
                 max_text  = getattr(publisher, 'MAX_TEXT_LENGTH', 0) or 0
-                if not publisher.supports(p_media_type):
+                if not provider.capabilities.supports_media(p_media_type):
                     errors.append(f'{platform} does not support media_type={p_media_type}')
                 if max_text and p_content and len(p_content) > max_text:
                     errors.append(f'Text exceeds {platform} max ({len(p_content)}/{max_text})')
