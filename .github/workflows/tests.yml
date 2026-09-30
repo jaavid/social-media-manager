@@ -169,7 +169,7 @@ jobs:
       - name: Seed demo data inside app container
         run: docker compose exec -T app python manage.py demo_setup
 
-      - name: Verify supervised processes and Celery scheduler tasks
+      - name: Verify supervised processes and Celery periodic tasks
         run: |
           docker compose exec -T app supervisorctl status | tee /tmp/supervisor.txt
           grep -E '^django[[:space:]]+RUNNING' /tmp/supervisor.txt
@@ -180,6 +180,7 @@ jobs:
           docker compose exec -T app celery -A dashboard inspect registered --timeout=10 | tee /tmp/registered.txt
           grep -F 'social_stats.scheduler.process_post_queues' /tmp/registered.txt
           grep -F 'social_stats.scheduler.process_scheduled_posts' /tmp/registered.txt
+          grep -F 'social_stats.inbox_tasks.sync_inbox_for_all_clients' /tmp/registered.txt
 
       - name: Teardown
         if: always()
