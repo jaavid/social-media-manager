@@ -57,7 +57,7 @@ function timeAgo(dateStr) {
 }
 
 export default function NotificationBell({ clientId }) {
-  const { refreshAuth } = useAuth();
+  const { refreshAuth, status, user } = useAuth();
   const navigate        = useNavigate();
   const dropRef         = useRef(null);
   const btnRef          = useRef(null);
@@ -67,24 +67,42 @@ export default function NotificationBell({ clientId }) {
   const [dropPos, setDropPos] = useState({ top: 0, left: VIEWPORT_GUTTER, width: DROPDOWN_WIDTH });
 
   // ── Alerts ──────────────────────────────────────────────────────────────────
-  const { alerts, unreadCount: alertUnread, markRead: markAlertRead, markAllRead: markAllAlerts } = useAlerts(clientId);
+  const hasAlertScope = !!user && (user.role !== 'client' || !!user.client_id);
+  const pollingEnabled = status === 'authenticated' && hasAlertScope;
+  const { alerts, unreadCount: alertUnread, markRead: markAlertRead, markAllRead: markAllAlerts } = useAlerts(clientId, {
+    enabled: pollingEnabled,
+    scopeKey: user?.id,
+  });
 
   // ── Notifications ────────────────────────────────────────────────────────────
   const [notifs, setNotifs]         = useState([]);
   const [responding, setResponding] = useState(null);
+  const notifRequestRef = useRef(null);
 
   const fetchNotifs = useCallback(async () => {
+    if (!pollingEnabled) return;
+    notifRequestRef.current?.abort();
+    const controller = new AbortController();
+    notifRequestRef.current = controller;
     try {
-      const res = await notificationAPI.list();
+      const res = await notificationAPI.list({ signal: controller.signal });
       setNotifs(res.data);
     } catch { /* ignore */ }
-  }, []);
+  }, [pollingEnabled]);
 
   useEffect(() => {
+    if (!pollingEnabled) {
+      setNotifs([]);
+      notifRequestRef.current?.abort();
+      return undefined;
+    }
     fetchNotifs();
     const id = setInterval(fetchNotifs, 30000);
-    return () => clearInterval(id);
-  }, [fetchNotifs]);
+    return () => {
+      clearInterval(id);
+      notifRequestRef.current?.abort();
+    };
+  }, [fetchNotifs, pollingEnabled, user?.id]);
 
   const notifUnread  = notifs.filter(n => !n.is_read).length;
   const totalUnread  = alertUnread + notifUnread;
