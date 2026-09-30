@@ -14,10 +14,10 @@ Django doesn't ship by default and a configurable Content-Security-Policy.
 The CSP `connect-src` is built from settings so each deploy points at its
 real frontend / API / third-party endpoints.
 
-`RequestIDMiddleware` mints a UUID per request (or honours an upstream-set
-``X-Request-Id``) and writes it back as ``X-Request-ID`` on the response.
-The id is stashed on ``request.id`` so downstream views and log handlers
-can include it.
+`RequestIDMiddleware` normalizes the effective client IP for trusted proxy
+setups, then mints a UUID per request (or honours an upstream-set
+``X-Request-Id``) and writes it back as ``X-Request-ID``. The id is stashed on
+``request.id`` so downstream views and log handlers can include it.
 
 Add both to MIDDLEWARE before ``CsrfViewMiddleware`` so headers cover error
 pages too.
@@ -28,6 +28,8 @@ import logging
 import uuid
 
 from django.conf import settings
+
+from .client_ip import normalize_request_client_ip
 
 
 logger = logging.getLogger(__name__)
@@ -59,7 +61,7 @@ _DEFAULT_CSP_DIRECTIVES = {
         'https://graph.facebook.com',
         'https://www.googleapis.com',
     ],
-    'frame-ancestors': ["'none'"],   # complements X-Frame-Options
+    'frame-ancestors': ["'none'"],
     'base-uri':        ["'self'"],
     'form-action':     ["'self'"],
     'object-src':      ["'none'"],
@@ -81,28 +83,14 @@ def _build_csp() -> str:
     for directive, sources in merged.items():
         parts.append(f'{directive} {" ".join(sources)}')
 
-    # `upgrade-insecure-requests` is a flag, not a source list
     if getattr(settings, 'CSP_UPGRADE_INSECURE_REQUESTS', not settings.DEBUG):
         parts.append('upgrade-insecure-requests')
 
     return '; '.join(parts)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Middlewares
-# ─────────────────────────────────────────────────────────────────────────────
 class SecurityHeadersMiddleware:
-    """Adds OWASP-baseline headers + CSP to every response.
-
-    Django's ``SecurityMiddleware`` already covers HSTS / X-Content-Type-Options
-    / Referrer-Policy when their settings are present. This middleware adds
-    what Django doesn't:
-      • Permissions-Policy
-      • Cross-Origin-Opener-Policy (COOP)
-      • X-Permitted-Cross-Domain-Policies
-      • Content-Security-Policy
-      • A safe default Referrer-Policy when SECURE_REFERRER_POLICY is unset
-    """
+    """Adds OWASP-baseline headers + CSP to every response."""
 
     def __init__(self, get_response):
         self.get_response = get_response
@@ -110,7 +98,6 @@ class SecurityHeadersMiddleware:
 
     def __call__(self, request):
         response = self.get_response(request)
-        # Belt-and-braces (Django's middleware sets some of these too)
         response.setdefault('X-Content-Type-Options', 'nosniff')
         response.setdefault('Referrer-Policy', getattr(
             settings, 'SECURE_REFERRER_POLICY', _DEFAULT_REFERRER_POLICY,
@@ -122,19 +109,13 @@ class SecurityHeadersMiddleware:
             settings, 'SECURE_CROSS_ORIGIN_OPENER_POLICY', 'same-origin',
         ))
         response.setdefault('X-Permitted-Cross-Domain-Policies', 'none')
-        # CSP — set unconditionally so dev mismatches surface early
         if 'Content-Security-Policy' not in response:
             response['Content-Security-Policy'] = self._csp
         return response
 
 
 class RequestIDMiddleware:
-    """Per-request UUID for tracing.
-
-    Honours an upstream ``X-Request-Id`` header when present (e.g. when a load
-    balancer / Cloudflare set one) so logs can be joined across hops. Truncates
-    to 64 chars to defend against header-bomb DoS.
-    """
+    """Normalize trusted proxy IP metadata and attach a per-request UUID."""
 
     HEADER_IN  = 'HTTP_X_REQUEST_ID'
     HEADER_OUT = 'X-Request-ID'
@@ -143,6 +124,11 @@ class RequestIDMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
+        # This middleware is first in the project stack. Normalizing here means
+        # django-axes, audit logging, Turnstile and session tracking all see the
+        # same client address rather than the inner nginx/Daphne loopback IP.
+        normalize_request_client_ip(request)
+
         incoming = (request.META.get(self.HEADER_IN) or '').strip()[:64]
         request_id = incoming if _looks_safe(incoming) else uuid.uuid4().hex
         request.id = request_id
@@ -152,8 +138,7 @@ class RequestIDMiddleware:
 
 
 def _looks_safe(s: str) -> bool:
-    """Allow alphanumerics + dashes + underscores only. Anything else, mint
-    fresh — protects log-injection via crafted headers."""
+    """Allow alphanumerics + dashes + underscores only."""
     if not s:
         return False
     return all(c.isalnum() or c in '-_' for c in s)
