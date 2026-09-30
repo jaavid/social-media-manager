@@ -22,6 +22,7 @@ import AIWriteButton from '../../components/ai/AIWriteButton';
 import { composerAPI, captionAPI, hashtagAPI } from '../../services/api';
 import { useAuth } from '../../hooks/useAuth';
 import { useComposerPost } from '../../hooks/useComposer';
+import { capabilityStatus, hasCapability } from '../../services/platforms';
 
 /* ── Platform metadata for toggles + previews ──────────────────────────── */
 const PLATFORMS = [
@@ -32,6 +33,8 @@ const PLATFORMS = [
   { id: 'google_my_business', label: 'Google',    color: '#34A853', maxText: 1500,  types: ['text','image'] },
   { id: 'telegram',           label: 'Telegram',  color: '#229ED9', maxText: 4096,  types: ['text','image','video','carousel'] },
   { id: 'bale',               label: 'Bale',      color: '#00A884', maxText: 4096,  types: ['text','image','video','carousel'] },
+  { id: 'eitaa',              label: 'Eitaa',     color: '#F58220', maxText: 4096,  types: [] },
+  { id: 'aparat',             label: 'Aparat',    color: '#ED145B', maxText: 0,     types: [] },
 ];
 
 const BOT_DESTINATION_PLATFORMS = ['telegram', 'bale'];
@@ -340,11 +343,15 @@ export default function ComposerPage() {
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
               {PLATFORMS.map((p) => {
                 const on = targetPlatforms.includes(p.id);
+                const capability = `publish_${mediaType}`;
+                const available = hasCapability(p.id, capability);
+                const planned = capabilityStatus(p.id, capability) === 'planned';
                 return (
                   <button
                     key={p.id}
                     type="button"
-                    onClick={() => togglePlatform(p.id)}
+                    onClick={() => available && togglePlatform(p.id)}
+                    disabled={!available}
                     aria-pressed={on}
                     style={{
                       padding: '8px 14px',
@@ -353,13 +360,14 @@ export default function ComposerPage() {
                       background: on ? p.color : 'var(--surface-card)',
                       color: on ? '#fff' : 'var(--text-primary)',
                       fontSize: 13, fontWeight: 600,
-                      cursor: 'pointer',
+                      cursor: available ? 'pointer' : 'not-allowed',
+                      opacity: available ? 1 : 0.5,
                       minHeight: 'unset', minWidth: 'unset',
                       transition: 'var(--transition-fast)',
                       boxShadow: on ? '0 2px 6px rgba(10,14,20,0.08)' : 'none',
                     }}
                   >
-                    {p.label}
+                    {p.label}{planned ? ' · Coming soon' : ''}
                   </button>
                 );
               })}

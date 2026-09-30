@@ -6,6 +6,7 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
+import platformCapabilities from './platformCapabilities.json';
 export const PLATFORMS = {
   facebook: {
     label: 'Facebook',
@@ -56,9 +57,25 @@ export const PLATFORMS = {
     bg:    '#E7F8F3',
     metrics: [],
   },
+  eitaa: {
+    label: 'Eitaa', shortLabel: 'Eitaa', color: '#F58220', bg: '#FFF3E8', metrics: [],
+  },
+  aparat: {
+    label: 'Aparat', shortLabel: 'Aparat', color: '#ED145B', bg: '#FDE8EF', metrics: [],
+  },
 };
 
 export const PLATFORM_LIST = Object.keys(PLATFORMS);
+export const PLATFORM_CAPABILITIES = platformCapabilities;
+export const ACTIVE_CAPABILITY_STATUSES = ['supported', 'beta'];
+
+export function capabilityStatus(platform, capability) {
+  return PLATFORM_CAPABILITIES[platform]?.capabilities?.[capability] || 'not_available';
+}
+
+export function hasCapability(platform, capability) {
+  return ACTIVE_CAPABILITY_STATUSES.includes(capabilityStatus(platform, capability));
+}
 
 export const METRIC_LABELS = {
   impressions:        'Impressions',

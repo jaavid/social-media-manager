@@ -6,18 +6,19 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
-import { PLATFORMS } from '../../services/platforms';
+import { PLATFORMS, hasCapability } from '../../services/platforms';
 import SocialPlatformIcon from './SocialPlatformIcon';
 import SegmentedTabs from './SegmentedTabs';
 
-export default function PlatformTabs({ selected, onChange, connected = [], platforms = [] }) {
-  const platformItems = platforms.length > 0
+export default function PlatformTabs({ selected, onChange, connected = [], platforms = [], capability = null }) {
+  const platformItems = (platforms.length > 0
     ? platforms.map((p) => ({
         key: p.key,
         label: p.label || p.key,
         color: PLATFORMS[p.key]?.color || '#64748b',
       }))
-    : Object.entries(PLATFORMS).map(([key, v]) => ({ key, ...v }));
+    : Object.entries(PLATFORMS).map(([key, v]) => ({ key, ...v })))
+      .filter((item) => !capability || hasCapability(item.key, capability));
 
   const items = [
     { key: 'all', label: 'All', color: '#6366f1' },
