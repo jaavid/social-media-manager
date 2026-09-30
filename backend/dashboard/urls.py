@@ -15,8 +15,8 @@ from social_stats.bot_channel_views import bot_channel_connection, bot_channel_s
 
 urlpatterns = [
     # Keep Django's framework admin outside the SPA namespace. The React app
-    # owns /admin/*, while the internal Django admin lives at /django-admin/*.
-    path('django-admin/', admin.site.urls),
+    # owns /admin/*, while the internal backend/admin interface lives at /backend/*.
+    path('backend/', admin.site.urls),
     path('api/bot-channels/<int:client_id>/status/', bot_channel_status),
     path('api/bot-channels/<int:client_id>/<str:platform>/', bot_channel_connection),
     path('api/egress/', include('social_stats.egress_urls')),
