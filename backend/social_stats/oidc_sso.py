@@ -61,6 +61,7 @@ def _config() -> dict:
         'scopes': scopes or 'openid email profile',
         'label': os.environ.get('SSO_OIDC_LABEL', 'Organization SSO').strip() or 'Organization SSO',
         'allowed_domains': allowed_domains,
+        'require_verified_email': _env_bool('SSO_OIDC_REQUIRE_VERIFIED_EMAIL', True),
         'allow_insecure': _env_bool('SSO_OIDC_ALLOW_INSECURE', False),
     }
 
@@ -223,8 +224,10 @@ def oidc_sso_callback(request):
 
     if not userinfo.get('sub'):
         return _frontend_error('The SSO provider did not return a subject identifier.')
-    if userinfo.get('email_verified') is False:
-        return _frontend_error('Your SSO email address is not verified.')
+    if config['require_verified_email'] and userinfo.get('email_verified') is not True:
+        return _frontend_error(
+            'Your SSO provider did not confirm that this email address is verified.'
+        )
 
     user, error = _resolve_existing_user(
         str(userinfo.get('email', '')),
