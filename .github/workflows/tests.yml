@@ -187,10 +187,32 @@ jobs:
               ;;
           esac
 
-      - name: Django admin route is reachable
+      - name: React admin deep links and Django admin are independently routed
         run: |
-          code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:3000/admin/)
-          case "$code" in 200|301|302) exit 0 ;; *) echo "unexpected admin status: $code"; exit 1 ;; esac
+          curl -fsS http://localhost:3000/ -o /tmp/spa-root.html
+          curl -fsS http://localhost:3000/admin/ -o /tmp/spa-admin.html
+          curl -fsS http://localhost:3000/admin/analytics/dashboard -o /tmp/spa-admin-deep.html
+
+          cmp -s /tmp/spa-root.html /tmp/spa-admin.html || {
+            echo "/admin/ did not return the React SPA entry document"
+            exit 1
+          }
+          cmp -s /tmp/spa-root.html /tmp/spa-admin-deep.html || {
+            echo "React /admin/* deep link did not fall back to index.html"
+            exit 1
+          }
+
+          slashless_code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:3000/django-admin)
+          case "$slashless_code" in
+            301|302|307|308) ;;
+            *) echo "expected redirect for /django-admin, got $slashless_code"; exit 1 ;;
+          esac
+
+          code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:3000/django-admin/)
+          case "$code" in
+            200|301|302) ;;
+            *) echo "unexpected Django admin status at /django-admin/: $code"; exit 1 ;;
+          esac
 
       - name: Seed demo data inside app container
         run: docker compose exec -T app python manage.py demo_setup
