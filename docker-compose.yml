@@ -60,10 +60,10 @@ services:
       POSTGRES_USER: "${POSTGRES_USER:-socialstats}"
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env}"
     volumes:
-      # Keep the original volume key for backwards-compatible upgrades.
-      # Renaming this creates a fresh Docker volume and makes existing users/data
-      # appear to be lost on upgrade.
-      - pgdata:/var/lib/postgresql/data
+      # Canonical volume key for the unified stack. Once a deployment is live,
+      # never rename this key or run `docker compose down -v` unless permanent
+      # database deletion is intended.
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-socialstats} -d ${POSTGRES_DB:-socialstats}"]
       interval: 5s
@@ -84,8 +84,6 @@ services:
     restart: unless-stopped
 
 volumes:
-  # Historical name from the pre-unified stack. Do not rename without an
-  # explicit data migration because Compose volume names are part of storage.
-  pgdata:
+  postgres_data:
   redis_data:
   media:
