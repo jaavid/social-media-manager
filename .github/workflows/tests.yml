@@ -157,10 +157,19 @@ jobs:
           html=$(curl -fsS http://localhost:3000/)
           printf '%s' "$html" | grep -qi "<title>" || { docker compose logs app | tail -50; exit 1; }
 
-          js_asset=$(printf '%s' "$html" | grep -oE 'src="/static/js/[^"]+\.js"' | head -1 | cut -d'"' -f2)
-          css_asset=$(printf '%s' "$html" | grep -oE 'href="/static/css/[^"]+\.css"' | head -1 | cut -d'"' -f2)
-          [ -n "$js_asset" ] || { echo "React JS asset not found in index.html"; exit 1; }
-          [ -n "$css_asset" ] || { echo "React CSS asset not found in index.html"; exit 1; }
+          if [[ "$html" =~ src=\"(/static/js/[^\"]+\.js)\" ]]; then
+            js_asset="${BASH_REMATCH[1]}"
+          else
+            echo "React JS asset not found in index.html"
+            exit 1
+          fi
+
+          if [[ "$html" =~ href=\"(/static/css/[^\"]+\.css)\" ]]; then
+            css_asset="${BASH_REMATCH[1]}"
+          else
+            echo "React CSS asset not found in index.html"
+            exit 1
+          fi
 
           curl -fsS "http://localhost:3000${js_asset}" > /dev/null || { echo "React JS asset failed: $js_asset"; exit 1; }
           curl -fsS "http://localhost:3000${css_asset}" > /dev/null || { echo "React CSS asset failed: $css_asset"; exit 1; }
