@@ -59,6 +59,23 @@ jobs:
           pip install -r requirements.txt
           if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
 
+      - name: Check migration drift
+        working-directory: backend
+        env:
+          DB_NAME: socialstats_test
+          DB_USER: socialstats
+          DB_PASSWORD: socialstats
+          DB_HOST: localhost
+          DB_PORT: "5432"
+          CELERY_BROKER_URL: redis://localhost:6379/0
+          CELERY_RESULT_BACKEND: redis://localhost:6379/0
+          DJANGO_SETTINGS_MODULE: dashboard.settings
+          SECRET_KEY: test-secret-not-for-prod
+          DEBUG: "False"
+          ANTHROPIC_API_KEY: ""
+          ALLOWED_HOSTS: "*"
+        run: python manage.py makemigrations social_stats --check --dry-run --verbosity=3
+
       - name: Run Django tests
         working-directory: backend
         env:
@@ -140,10 +157,19 @@ jobs:
           html=$(curl -fsS http://localhost:3000/)
           printf '%s' "$html" | grep -qi "<title>" || { docker compose logs app | tail -50; exit 1; }
 
-          js_asset=$(printf '%s' "$html" | grep -oE 'src="/static/js/[^"]+\.js"' | head -1 | cut -d'"' -f2)
-          css_asset=$(printf '%s' "$html" | grep -oE 'href="/static/css/[^"]+\.css"' | head -1 | cut -d'"' -f2)
-          [ -n "$js_asset" ] || { echo "React JS asset not found in index.html"; exit 1; }
-          [ -n "$css_asset" ] || { echo "React CSS asset not found in index.html"; exit 1; }
+          if [[ "$html" =~ src=\"(/static/js/[^\"]+\.js)\" ]]; then
+            js_asset="${BASH_REMATCH[1]}"
+          else
+            echo "React JS asset not found in index.html"
+            exit 1
+          fi
+
+          if [[ "$html" =~ href=\"(/static/css/[^\"]+\.css)\" ]]; then
+            css_asset="${BASH_REMATCH[1]}"
+          else
+            echo "React CSS asset not found in index.html"
+            exit 1
+          fi
 
           curl -fsS "http://localhost:3000${js_asset}" > /dev/null || { echo "React JS asset failed: $js_asset"; exit 1; }
           curl -fsS "http://localhost:3000${css_asset}" > /dev/null || { echo "React CSS asset failed: $css_asset"; exit 1; }
@@ -181,6 +207,7 @@ jobs:
           grep -F 'social_stats.scheduler.process_post_queues' /tmp/registered.txt
           grep -F 'social_stats.scheduler.process_scheduled_posts' /tmp/registered.txt
           grep -F 'social_stats.inbox_tasks.sync_inbox_for_all_clients' /tmp/registered.txt
+          grep -F 'social_stats.security.tasks.detect_security_anomalies' /tmp/registered.txt
 
       - name: Teardown
         if: always()

@@ -19,6 +19,7 @@ app.config_from_object('django.conf:settings', namespace='CELERY')
 app.conf.imports = (
     'social_stats.scheduler',
     'social_stats.inbox_tasks',
+    'social_stats.security.tasks',
 )
 
 app.autodiscover_tasks()
