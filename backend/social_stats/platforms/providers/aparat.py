@@ -16,8 +16,8 @@ from social_stats.publishers.base import (
 
 
 def _response_data(payload: dict) -> dict:
-    """Return Aparat's nested object payload or normalize malformed data."""
-    data = payload.get('data') or payload
+    """Return Aparat's object payload or normalize a malformed nested ``data`` value."""
+    data = payload['data'] if 'data' in payload else payload
     if not isinstance(data, dict):
         raise ProviderError(
             'Aparat returned an invalid response',
