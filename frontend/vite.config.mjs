@@ -30,6 +30,21 @@ export default defineConfig(({ mode }) => {
         '@': fileURLToPath(new URL('./src', import.meta.url)),
       },
     },
+    // The current codebase contains JSX in both .js and .jsx files. Keep that
+    // source layout intact for this migration; the later TypeScript/Next.js
+    // pass can rename files incrementally without coupling it to the bundler swap.
+    esbuild: {
+      loader: 'jsx',
+      include: /src\/.*\.[jt]sx?$/,
+      exclude: [],
+    },
+    optimizeDeps: {
+      esbuildOptions: {
+        loader: {
+          '.js': 'jsx',
+        },
+      },
+    },
     define: {
       'process.env': JSON.stringify(legacyReactEnv),
     },
