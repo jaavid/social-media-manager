@@ -1,0 +1,101 @@
+name: Platform OAuth publishing patch
+
+on:
+  push:
+    branches:
+      - fix/platform-oauth-publishing
+    paths:
+      - .github/workflows/platform-oauth-patch.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: fix/platform-oauth-publishing
+
+      - name: Patch OAuth scopes and Meta version
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace(path, old, new):
+              p = Path(path)
+              text = p.read_text()
+              if old not in text:
+                  raise SystemExit(f'Expected text not found in {path}: {old[:100]!r}')
+              p.write_text(text.replace(old, new))
+
+          replace(
+              'backend/dashboard/settings.py',
+              "META_API_VERSION   = 'v18.0'",
+              "META_API_VERSION   = os.environ.get('META_API_VERSION', 'v25.0')",
+          )
+
+          replace(
+              '.env.example',
+              'META_APP_SECRET=\n# Example: https://social.example.com/api/oauth/facebook/callback/\nMETA_REDIRECT_URI=',
+              'META_APP_SECRET=\n# Keep the Graph API version explicit so upgrades are deliberate.\nMETA_API_VERSION=v25.0\n# Example: https://social.example.com/api/oauth/facebook/callback/\nMETA_REDIRECT_URI=',
+          )
+
+          replace(
+              'backend/social_stats/oauth_views.py',
+              "'scope':         'pages_show_list,pages_read_engagement,pages_manage_metadata,instagram_manage_insights,read_insights',",
+              "'scope':         'pages_show_list,pages_read_engagement,pages_manage_metadata,instagram_basic,instagram_content_publish,instagram_manage_insights,read_insights',",
+          )
+          replace(
+              'backend/social_stats/oauth_views.py',
+              "'https://www.googleapis.com/auth/youtube.readonly',\n    'https://www.googleapis.com/auth/yt-analytics.readonly',",
+              "'https://www.googleapis.com/auth/youtube.force-ssl',\n    'https://www.googleapis.com/auth/yt-analytics.readonly',",
+          )
+          # The read-only scope occurs twice (YouTube-only + combined flow).
+          replace(
+              'backend/social_stats/oauth_views.py',
+              "'https://www.googleapis.com/auth/youtube.readonly',\n    'https://www.googleapis.com/auth/yt-analytics.readonly',",
+              "'https://www.googleapis.com/auth/youtube.force-ssl',\n    'https://www.googleapis.com/auth/yt-analytics.readonly',",
+          )
+
+          # Remove expired v18 usage from Facebook social login as well.
+          replace(
+              'backend/social_stats/social_auth_views.py',
+              "'https://graph.facebook.com/v18.0/oauth/access_token'",
+              "f'https://graph.facebook.com/{settings.META_API_VERSION}/oauth/access_token'",
+          )
+          replace(
+              'backend/social_stats/social_auth_views.py',
+              "'https://graph.facebook.com/v18.0/me'",
+              "f'https://graph.facebook.com/{settings.META_API_VERSION}/me'",
+          )
+
+          p = Path('docs/CONNECT_ACCOUNTS.md')
+          text = p.read_text()
+          text = text.replace(
+              'pages_show_list, pages_read_engagement, pages_manage_metadata,\ninstagram_manage_insights, read_insights',
+              'pages_show_list, pages_read_engagement, pages_manage_metadata,\ninstagram_basic, instagram_content_publish, instagram_manage_insights, read_insights',
+          )
+          text = text.replace(
+              'https://www.googleapis.com/auth/youtube.readonly\n  https://www.googleapis.com/auth/yt-analytics.readonly',
+              'https://www.googleapis.com/auth/youtube.force-ssl\n  https://www.googleapis.com/auth/yt-analytics.readonly',
+          )
+          text = text.replace(
+              'META_APP_SECRET=...\nMETA_REDIRECT_URI=',
+              'META_APP_SECRET=...\nMETA_API_VERSION=v25.0\nMETA_REDIRECT_URI=',
+          )
+          text += '''\n\n## Publishing-scope note\n\nThe application can publish Instagram media and YouTube videos, so production OAuth must grant write-capable scopes, not only analytics/read access. Reconnect existing platform authorizations after changing scopes so the newly requested permissions are actually present in the stored tokens. Never commit App Secrets or OAuth Client Secrets to Git; keep them in the deployment environment.\n'''
+          p.write_text(text)
+
+          # Remove this one-shot workflow from the resulting branch.
+          Path('.github/workflows/platform-oauth-patch.yml').unlink()
+          PY
+
+      - name: Commit patch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'fix(oauth): request publishing scopes and supported Meta version'
+          git push
