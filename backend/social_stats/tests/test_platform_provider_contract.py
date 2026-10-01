@@ -130,6 +130,20 @@ class ProviderConnectionAPITests(TestCase):
             client=self.tenant, platform='telegram',
         ).exists())
 
+    @patch('social_stats.platforms.providers.aparat.AparatClient.profile')
+    def test_api_key_alias_connects_api_credential_provider(self, profile):
+        profile.return_value = {
+            'data': {'id': 42, 'username': 'aparat-account', 'display_name': 'Aparat Account'},
+        }
+        connected = self.api.post(
+            f'/api/bot-channels/{self.tenant.id}/aparat/',
+            {'api_key': 'aparat-access-token'}, format='json',
+        )
+        self.assertEqual(connected.status_code, 200)
+        credential = PlatformCredential.objects.get(client=self.tenant, platform='aparat')
+        self.assertEqual(credential.access_token, 'aparat-access-token')
+        self.assertEqual(credential.platform_user_id, 'aparat-account')
+
     def test_cannot_access_another_clients_connections(self):
         response = self.api.get(f'/api/bot-channels/{self.other.id}/status/')
         self.assertEqual(response.status_code, 403)
