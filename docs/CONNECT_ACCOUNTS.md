@@ -62,13 +62,14 @@ From `oauth_views.py`:
 
 ```
 pages_show_list, pages_read_engagement, pages_manage_metadata,
-instagram_manage_insights, read_insights
+instagram_basic, instagram_content_publish, instagram_manage_insights, read_insights
 ```
 
 ### 4. Env vars
 ```
 META_APP_ID=...
 META_APP_SECRET=...
+META_API_VERSION=v25.0
 META_REDIRECT_URI=http://localhost:8000/api/oauth/facebook/callback/
 ```
 
@@ -107,7 +108,7 @@ to obtain a refresh token):
 
 - **YouTube** (`?platform=youtube`):
   ```
-  https://www.googleapis.com/auth/youtube.readonly
+  https://www.googleapis.com/auth/youtube.force-ssl
   https://www.googleapis.com/auth/yt-analytics.readonly
   openid email profile
   ```
@@ -193,3 +194,8 @@ only need them when you want to publish or pull live data.
 
 See [GOING_LIVE.md](GOING_LIVE.md) for the platform app-review process required
 to flip `OAUTH_APPS_APPROVED=True` in production.
+
+
+## Publishing-scope note
+
+The application can publish Instagram media and YouTube videos, so production OAuth must grant write-capable scopes, not only analytics/read access. Reconnect existing platform authorizations after changing scopes so the newly requested permissions are actually present in the stored tokens. Never commit App Secrets or OAuth Client Secrets to Git; keep them in the deployment environment.

@@ -260,7 +260,7 @@ def facebook_social_callback(request):
 
     # Exchange code for access token
     token_resp = http_requests.get(
-        'https://graph.facebook.com/v18.0/oauth/access_token',
+        f'https://graph.facebook.com/{settings.META_API_VERSION}/oauth/access_token',
         params={
             'client_id':     FACEBOOK_APP_ID,
             'client_secret': FACEBOOK_APP_SECRET,
@@ -276,7 +276,7 @@ def facebook_social_callback(request):
 
     # Get user info from Facebook Graph API
     userinfo_resp = http_requests.get(
-        'https://graph.facebook.com/v18.0/me',
+        f'https://graph.facebook.com/{settings.META_API_VERSION}/me',
         params={
             'fields':       'id,email,first_name,last_name',
             'access_token': access_token,

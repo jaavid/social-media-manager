@@ -349,7 +349,7 @@ CELERY_BEAT_SCHEDULE = {
 META_APP_ID        = os.environ.get('META_APP_ID', '')
 META_APP_SECRET    = os.environ.get('META_APP_SECRET', '')
 META_REDIRECT_URI  = os.environ.get('META_REDIRECT_URI', 'http://localhost:8000/api/oauth/facebook/callback/')
-META_API_VERSION   = 'v18.0'
+META_API_VERSION   = os.environ.get('META_API_VERSION', 'v25.0')
 
 # ── Google OAuth (YouTube + GMB) ─────────────────────
 GOOGLE_CLIENT_ID      = os.environ.get('GOOGLE_CLIENT_ID', '')
