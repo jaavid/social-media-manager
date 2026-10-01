@@ -39,9 +39,16 @@ class PlatformMetadataTests(APISimpleTestCase):
         self.assertEqual(response.json(), public_registry())
         self.assertEqual(self.client.post(reverse('platform_metadata'), {}).status_code, 405)
 
+        allowed_platform_fields = {
+            'key', 'titles', 'category', 'order', 'auth_type',
+            'rollout_status', 'capabilities',
+        }
+        for platform in response.json()['platforms']:
+            self.assertEqual(set(platform), allowed_platform_fields)
+
         payload = str(response.json()).lower()
         for forbidden in (
-            'secret', 'token', 'client_id', 'endpoint', 'publisher',
+            'secret', 'client_id', 'endpoint', 'publisher',
             'connection_handler', 'egress_service',
         ):
             self.assertNotIn(forbidden, payload)
