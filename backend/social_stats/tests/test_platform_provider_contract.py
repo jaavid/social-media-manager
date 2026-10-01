@@ -69,10 +69,12 @@ class AparatClientContractTests(SimpleTestCase):
 
     @patch('social_stats.platforms.providers.aparat.AparatClient.profile')
     def test_nested_profile_data_must_be_object(self, profile):
-        profile.return_value = {'data': ['unexpected']}
-        with self.assertRaises(ProviderError) as ctx:
-            get_provider('aparat').validate_credentials({'token': 'token'})
-        self.assertEqual(ctx.exception.code, 'invalid_response')
+        for malformed in (['unexpected'], [], 'unexpected', '', 0, None):
+            with self.subTest(data=malformed):
+                profile.return_value = {'data': malformed}
+                with self.assertRaises(ProviderError) as ctx:
+                    get_provider('aparat').validate_credentials({'token': 'token'})
+                self.assertEqual(ctx.exception.code, 'invalid_response')
 
     @patch('social_stats.platforms.providers.aparat.AparatClient.upload_video')
     def test_upload_requires_video_identifier(self, upload):
