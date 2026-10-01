@@ -9,13 +9,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useOverview, useDateRange, useClients, useGoals, useAlerts, useLookups } from '../hooks/useData';
-import { formatTimeAgo } from '../services/formatters';
 import DateRangePicker from '../components/ui/DateRangePicker';
 import StatCard from '../components/ui/StatCard';
-import { PLATFORMS, fmt } from '../services/platforms';
+import { PLATFORMS } from '../services/platforms';
 import { Users, Eye, MousePointer2, TrendingUp, Target, Plus, Trash2, ChevronDown, ChevronUp, Bell, CheckCheck, AlertCircle, TrendingDown, Zap, Trophy, ExternalLink, Play, Link2, Copy, Lock } from 'lucide-react';
 import { goalsAPI, topPostsAPI, sharedReportsAPI, roiAPI } from '../services/api';
 import SocialPlatformIcon from '../components/ui/SocialPlatformIcon';
+import { useLanguage } from '../i18n';
 
 const METRICS = [
   { value: 'impressions',    label: 'Impressions' },
@@ -37,9 +37,11 @@ const PLATFORM_OPTIONS = [
   { value: 'google_my_business',label: 'Google My Business' },
 ];
 
+const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const now = new Date();
 
-function GoalManager() {
+function GoalManager({ platformOptions = PLATFORM_OPTIONS }) {
+  const { tr, formatNumber } = useLanguage();
   const { clients }           = useClients();
   const [open, setOpen]       = useState(false);
   const [form, setForm]       = useState({
@@ -50,7 +52,6 @@ function GoalManager() {
   const [saving, setSaving]   = useState(false);
   const [msg, setMsg]         = useState('');
 
-  // List goals for the selected month/year + client
   const goalParams = {
     month: form.month,
     year:  form.year,
@@ -70,9 +71,9 @@ function GoalManager() {
 
   const validateGoalForm = () => {
     const nextErrors = {};
-    if (!form.client) nextErrors.client = 'Select a user.';
-    if (!String(form.target_value).trim()) nextErrors.target_value = 'Target value is required.';
-    else if (Number(form.target_value) < 1) nextErrors.target_value = 'Target value must be at least 1.';
+    if (!form.client) nextErrors.client = tr('Select a user.');
+    if (!String(form.target_value).trim()) nextErrors.target_value = tr('Target value is required.');
+    else if (Number(form.target_value) < 1) nextErrors.target_value = tr('Target value must be at least 1.');
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   };
@@ -80,7 +81,7 @@ function GoalManager() {
   const handleCreate = async (e) => {
     e.preventDefault();
     if (!validateGoalForm()) {
-      setMsg('❌ Please fix the highlighted fields.');
+      setMsg(`❌ ${tr('Please fix the highlighted fields.')}`);
       return;
     }
     setSaving(true); setMsg('');
@@ -93,17 +94,18 @@ function GoalManager() {
         month:        parseInt(form.month),
         year:         parseInt(form.year),
       });
-      setMsg('✅ Goal saved.');
+      setMsg(`✅ ${tr('Goal saved.')}`);
       setForm(f => ({ ...f, target_value: '' }));
       setErrors({});
       refetch();
     } catch (err) {
-      setMsg('❌ ' + (err.response?.data?.non_field_errors?.[0] || err.response?.data?.error || 'Failed to save goal'));
+      const fallback = err.response?.data?.non_field_errors?.[0] || err.response?.data?.error || tr('Failed to save goal');
+      setMsg(`❌ ${fallback}`);
     } finally { setSaving(false); }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Delete this goal?')) return;
+    if (!window.confirm(tr('Delete this goal?'))) return;
     try {
       await goalsAPI.delete(id);
       refetch();
@@ -115,7 +117,7 @@ function GoalManager() {
       <div style={styles.goalHeader} onClick={() => setOpen(o => !o)}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <Target size={16} style={{ color: '#00d7ff' }} />
-          <h3 style={styles.tableTitle}>Set Monthly Goals</h3>
+          <h3 style={styles.tableTitle}>{tr('Set Monthly Goals')}</h3>
         </div>
         {open ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
       </div>
@@ -124,32 +126,32 @@ function GoalManager() {
         <>
           <form onSubmit={handleCreate} className="admin-goal-form" style={styles.goalForm}>
             <div style={styles.goalField}>
-              <label style={styles.goalLabel}>User <span style={styles.requiredAsterisk}>*</span></label>
+              <label style={styles.goalLabel}>{tr('User')} <span style={styles.requiredAsterisk}>*</span></label>
               <select value={form.client} onChange={e => handleFieldChange('client', e.target.value)} style={{ ...styles.sel, ...(errors.client ? styles.inputError : {}) }}>
-                <option value="">Select user</option>
+                <option value="">{tr('Select user')}</option>
                 {clients.map(c => <option key={c.id} value={c.id}>{c.company}</option>)}
               </select>
               {errors.client && <div style={styles.goalError}>{errors.client}</div>}
             </div>
 
             <div style={styles.goalField}>
-              <label style={styles.goalLabel}>Platform</label>
+              <label style={styles.goalLabel}>{tr('Platform')}</label>
               <select value={form.platform} onChange={e => handleFieldChange('platform', e.target.value)} style={styles.sel}>
-                {(platformOptions || PLATFORM_OPTIONS).map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+                {platformOptions.map(p => <option key={p.value} value={p.value}>{tr(p.label)}</option>)}
               </select>
             </div>
 
             <div style={styles.goalField}>
-              <label style={styles.goalLabel}>Metric</label>
+              <label style={styles.goalLabel}>{tr('Metric')}</label>
               <select value={form.metric} onChange={e => handleFieldChange('metric', e.target.value)} style={styles.sel}>
-                {METRICS.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
+                {METRICS.map(m => <option key={m.value} value={m.value}>{tr(m.label)}</option>)}
               </select>
             </div>
 
             <div style={styles.goalField}>
-              <label style={styles.goalLabel}>Target Value <span style={styles.requiredAsterisk}>*</span></label>
+              <label style={styles.goalLabel}>{tr('Target Value')} <span style={styles.requiredAsterisk}>*</span></label>
               <input
-                type="number" min="1" placeholder="Enter target"
+                type="number" min="1" placeholder={tr('Enter target')} dir="ltr"
                 value={form.target_value}
                 onChange={e => handleFieldChange('target_value', e.target.value)}
                 style={{ ...styles.inp, ...(errors.target_value ? styles.inputError : {}) }}
@@ -158,18 +160,18 @@ function GoalManager() {
             </div>
 
             <div style={styles.goalField}>
-              <label style={styles.goalLabel}>Month</label>
+              <label style={styles.goalLabel}>{tr('Month')}</label>
               <select value={form.month} onChange={e => handleFieldChange('month', e.target.value)} style={styles.sel}>
-                {['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].map((m, i) => (
-                  <option key={i+1} value={i+1}>{m}</option>
+                {MONTH_NAMES.map((m, i) => (
+                  <option key={i+1} value={i+1}>{tr(m)}</option>
                 ))}
               </select>
             </div>
 
             <div style={{ ...styles.goalField, maxWidth: 100 }}>
-              <label style={styles.goalLabel}>Year</label>
+              <label style={styles.goalLabel}>{tr('Year')}</label>
               <input
-                type="number" min="2024" max="2030"
+                type="number" min="2024" max="2030" dir="ltr"
                 value={form.year}
                 onChange={e => handleFieldChange('year', e.target.value)}
                 style={styles.inp}
@@ -178,7 +180,7 @@ function GoalManager() {
 
             <button type="submit" disabled={saving} style={styles.addGoalBtn}>
               <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <Plus size={14} />{saving ? 'Saving…' : 'Add Goal'}
+                <Plus size={14} />{saving ? tr('Saving…') : tr('Add Goal')}
               </span>
             </button>
           </form>
@@ -190,7 +192,7 @@ function GoalManager() {
               <thead>
                 <tr>
                   {['User','Platform','Metric','Target','Month/Year',''].map(h => (
-                    <th key={h} style={styles.th}>{h}</th>
+                    <th key={h} style={styles.th}>{tr(h)}</th>
                   ))}
                 </tr>
               </thead>
@@ -198,12 +200,12 @@ function GoalManager() {
                 {goals.map(g => (
                   <tr key={g.id} style={styles.tr}>
                     <td style={styles.td}>{g.client_name}</td>
-                    <td style={styles.td}>{PLATFORM_OPTIONS.find(p => p.value === g.platform)?.label || g.platform}</td>
-                    <td style={styles.td}>{METRICS.find(m => m.value === g.metric)?.label || g.metric}</td>
-                    <td style={{ ...styles.td, fontWeight: 600 }}>{g.target_value.toLocaleString()}</td>
-                    <td style={styles.td}>{['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][g.month-1]} {g.year}</td>
+                    <td style={styles.td}>{tr(platformOptions.find(p => p.value === g.platform)?.label || g.platform)}</td>
+                    <td style={styles.td}>{tr(METRICS.find(m => m.value === g.metric)?.label || g.metric)}</td>
+                    <td style={{ ...styles.td, fontWeight: 600 }}>{formatNumber(g.target_value)}</td>
+                    <td style={styles.td}>{tr(MONTH_NAMES[g.month-1])} {formatNumber(g.year)}</td>
                     <td style={styles.td}>
-                      <button onClick={() => handleDelete(g.id)} style={styles.delBtn}>
+                      <button onClick={() => handleDelete(g.id)} style={styles.delBtn} aria-label={tr('Delete')}>
                         <Trash2 size={13} />
                       </button>
                     </td>
@@ -214,7 +216,7 @@ function GoalManager() {
           )}
           {goals.length === 0 && (
             <p style={{ color: 'var(--text-tertiary)', fontSize: 13, margin: '8px 0 0' }}>
-              No goals set for this period{form.client ? '' : ' — select a user to filter'}.
+              {tr(form.client ? 'No goals set for this period.' : 'No goals set for this period — select a user to filter.')}
             </p>
           )}
         </>
@@ -233,6 +235,7 @@ const ALERT_ICONS = {
 };
 
 function AlertsPanel() {
+  const { tr, formatDate, formatNumber } = useLanguage();
   const [open, setOpen] = useState(true);
   const { alerts, unreadCount, markRead, markAllRead } = useAlerts();
 
@@ -241,9 +244,9 @@ function AlertsPanel() {
       <div style={styles.goalHeader} onClick={() => setOpen(o => !o)}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <Bell size={16} style={{ color: '#00d7ff' }} />
-          <h3 style={styles.tableTitle}>Smart Alerts</h3>
+          <h3 style={styles.tableTitle}>{tr('Smart Alerts')}</h3>
           {unreadCount > 0 && (
-            <span style={alertBadgeStyle}>{unreadCount} unread</span>
+            <span style={alertBadgeStyle}>{formatNumber(unreadCount)} {tr('unread')}</span>
           )}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -252,7 +255,7 @@ function AlertsPanel() {
               onClick={e => { e.stopPropagation(); markAllRead(); }}
               style={styles.markAllBtn}
             >
-              <CheckCheck size={13} /> Mark all read
+              <CheckCheck size={13} /> {tr('Mark all read')}
             </button>
           )}
           {open ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
@@ -262,7 +265,7 @@ function AlertsPanel() {
       {open && (
         <div>
           {alerts.length === 0 ? (
-            <p style={{ color: 'var(--text-tertiary)', fontSize: 13, margin: '12px 0 0' }}>No alerts yet.</p>
+            <p style={{ color: 'var(--text-tertiary)', fontSize: 13, margin: '12px 0 0' }}>{tr('No alerts yet.')}</p>
           ) : (
             <div style={{ marginTop: 12 }}>
               {alerts.slice(0, 30).map(alert => {
@@ -282,17 +285,13 @@ function AlertsPanel() {
                         {alert.message}
                       </div>
                       <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                        {alert.client_name && (
-                          <span style={alertClientTag}>{alert.client_name}</span>
-                        )}
+                        {alert.client_name && <span style={alertClientTag}>{alert.client_name}</span>}
                         <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
-                          {formatTimeAgo(alert.created_at, { includeSeconds: false })}
+                          {formatDate(alert.created_at, { dateStyle: 'medium', timeStyle: 'short' })}
                         </span>
                       </div>
                     </div>
-                    {!alert.is_read && (
-                      <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#00d7ff', flexShrink: 0, marginTop: 4 }} />
-                    )}
+                    {!alert.is_read && <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#00d7ff', flexShrink: 0, marginTop: 4 }} />}
                   </div>
                 );
               })}
@@ -322,6 +321,7 @@ const alertClientTag = {
 };
 
 function TopPostsPanel() {
+  const { tr, formatDate, formatNumber } = useLanguage();
   const [posts, setPosts]   = useState([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen]     = useState(true);
@@ -348,14 +348,11 @@ function TopPostsPanel() {
       <div style={styles.goalHeader} onClick={() => setOpen(o => !o)}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <Trophy size={16} style={{ color: '#d97706' }} />
-          <h3 style={styles.tableTitle}>Best Post of the Week — All Users</h3>
+          <h3 style={styles.tableTitle}>{tr('Best Post of the Week — All Users')}</h3>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <button
-            onClick={e => { e.stopPropagation(); handleRun(); }}
-            style={styles.markAllBtn}
-          >
-            Re-score now
+          <button onClick={e => { e.stopPropagation(); handleRun(); }} style={styles.markAllBtn}>
+            {tr('Re-score now')}
           </button>
           {open ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
         </div>
@@ -363,18 +360,16 @@ function TopPostsPanel() {
 
       {open && (
         loading ? (
-          <p style={{ color: 'var(--text-tertiary)', fontSize: 13, marginTop: 12 }}>Loading…</p>
+          <p style={{ color: 'var(--text-tertiary)', fontSize: 13, marginTop: 12 }}>{tr('Loading…')}</p>
         ) : posts.length === 0 ? (
           <p style={{ color: 'var(--text-tertiary)', fontSize: 13, marginTop: 12 }}>
-            No top posts yet — posts are scored every Monday at 8am, or click "Re-score now".
+            {tr('No top posts yet — posts are scored every Monday at 8am, or click "Re-score now".')}
           </p>
         ) : (
           <table style={{ ...styles.table, marginTop: 12 }}>
             <thead>
               <tr>
-                {['User','Platform','Post','Score','vs Avg','Date',''].map(h => (
-                  <th key={h} style={styles.th}>{h}</th>
-                ))}
+                {['User','Platform','Post','Score','vs Avg','Date',''].map(h => <th key={h} style={styles.th}>{tr(h)}</th>)}
               </tr>
             </thead>
             <tbody>
@@ -393,7 +388,7 @@ function TopPostsPanel() {
                     <td style={{ ...styles.td, color: p.color }}>
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                         <SocialPlatformIcon platform={entry.platform} size={15} />
-                        {p.label || entry.platform}
+                        {tr(p.label || entry.platform)}
                       </span>
                     </td>
                     <td style={{ ...styles.td, maxWidth: 200 }}>
@@ -410,27 +405,19 @@ function TopPostsPanel() {
                         </span>
                       </div>
                     </td>
-                    <td style={{ ...styles.td, fontWeight: 700, color: '#d97706' }}>
-                      {fmt(Math.round(entry.score))}
-                    </td>
-                    <td style={styles.td}>
+                    <td style={{ ...styles.td, fontWeight: 700, color: '#d97706' }}>{formatNumber(Math.round(entry.score))}</td>
+                    <td style={styles.td} dir="ltr">
                       {vsPct !== null && (
-                        <span style={{
-                          fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 20,
-                          background: vsPct >= 0 ? '#dcfce7' : '#fee2e2',
-                          color:      vsPct >= 0 ? '#16a34a' : '#dc2626',
-                        }}>
-                          {vsPct >= 0 ? '+' : ''}{vsPct}%
+                        <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 20, background: vsPct >= 0 ? '#dcfce7' : '#fee2e2', color: vsPct >= 0 ? '#16a34a' : '#dc2626' }}>
+                          {vsPct >= 0 ? '+' : ''}{formatNumber(vsPct)}%
                         </span>
                       )}
                     </td>
-                    <td style={styles.td}>
-                      {post?.published_at ? new Date(post.published_at).toLocaleDateString() : '—'}
-                    </td>
+                    <td style={styles.td}>{post?.published_at ? formatDate(post.published_at, { dateStyle: 'medium' }) : '—'}</td>
                     <td style={styles.td}>
                       {post?.post_url && (
                         <a href={post.post_url} target="_blank" rel="noreferrer" style={{ color: '#00d7ff', display: 'flex', alignItems: 'center', gap: 3, fontSize: 12 }}>
-                          <ExternalLink size={12} /> View
+                          <ExternalLink size={12} /> {tr('View')}
                         </a>
                       )}
                     </td>
@@ -446,6 +433,7 @@ function TopPostsPanel() {
 }
 
 function SharedLinksPanel() {
+  const { tr, formatDate, formatNumber } = useLanguage();
   const [open,    setOpen]    = useState(false);
   const [links,   setLinks]   = useState([]);
   const [loading, setLoading] = useState(false);
@@ -477,56 +465,36 @@ function SharedLinksPanel() {
       <button onClick={() => setOpen(o => !o)} style={panelToggle}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <Link2 size={16} style={{ color: '#00d7ff' }} />
-          <span>Shared Report Links</span>
-          {links.length > 0 && !open && (
-            <span style={{ ...countBadge, background: '#e6fbff', color: '#00d7ff' }}>{links.length}</span>
-          )}
+          <span>{tr('Shared Report Links')}</span>
+          {links.length > 0 && !open && <span style={{ ...countBadge, background: '#e6fbff', color: '#00d7ff' }}>{formatNumber(links.length)}</span>}
         </div>
         {open ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
       </button>
 
       {open && (
         <div style={panelBody}>
-          {loading && <p style={emptyMsg}>Loading…</p>}
-          {!loading && links.length === 0 && <p style={emptyMsg}>No shared links yet.</p>}
+          {loading && <p style={emptyMsg}>{tr('Loading…')}</p>}
+          {!loading && links.length === 0 && <p style={emptyMsg}>{tr('No shared links yet.')}</p>}
           {!loading && links.length > 0 && (
             <table style={styles.table}>
-              <thead>
-                <tr>
-                  {['User', 'Period', 'Views', 'Expires', 'Protected', 'Actions'].map(h => (
-                    <th key={h} style={styles.th}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
+              <thead><tr>{['User', 'Period', 'Views', 'Expires', 'Protected', 'Actions'].map(h => <th key={h} style={styles.th}>{tr(h)}</th>)}</tr></thead>
               <tbody>
                 {links.map(link => (
                   <tr key={link.id} style={styles.tr}>
                     <td style={styles.td}>{link.client_name || link.client}</td>
-                    <td style={styles.td}>{link.date_from} → {link.date_until}</td>
-                    <td style={styles.td}>{link.view_count}</td>
+                    <td style={styles.td}>{formatDate(`${link.date_from}T00:00:00`, { dateStyle: 'medium' })} ← {formatDate(`${link.date_until}T00:00:00`, { dateStyle: 'medium' })}</td>
+                    <td style={styles.td}>{formatNumber(link.view_count)}</td>
                     <td style={styles.td}>
-                      {link.expires_at
-                        ? new Date(link.expires_at).toLocaleDateString()
-                        : <span style={{ color: 'var(--text-tertiary)' }}>Never</span>}
-                      {link.is_expired && <span style={{ color: '#dc2626', fontWeight: 700, marginLeft: 6 }}>EXPIRED</span>}
+                      {link.expires_at ? formatDate(link.expires_at, { dateStyle: 'medium' }) : <span style={{ color: 'var(--text-tertiary)' }}>{tr('Never')}</span>}
+                      {link.is_expired && <span style={{ color: '#dc2626', fontWeight: 700, marginInlineStart: 6 }}>{tr('EXPIRED')}</span>}
                     </td>
-                    <td style={styles.td}>
-                      {link.is_password_protected
-                        ? <Lock size={13} style={{ color: '#00d7ff' }} />
-                        : <span style={{ color: 'var(--text-tertiary)' }}>—</span>}
-                    </td>
+                    <td style={styles.td}>{link.is_password_protected ? <Lock size={13} style={{ color: '#00d7ff' }} /> : <span style={{ color: 'var(--text-tertiary)' }}>—</span>}</td>
                     <td style={{ ...styles.td, display: 'flex', gap: 8 }}>
-                      <button onClick={() => copyUrl(link.share_url, link.id)} style={iconActionBtn} title="Copy link">
-                        {copied === link.id
-                          ? <span style={{ fontSize: 11, color: '#16a34a', fontWeight: 700 }}>Copied!</span>
-                          : <Copy size={14} />}
+                      <button onClick={() => copyUrl(link.share_url, link.id)} style={iconActionBtn} title={tr('Copy link')}>
+                        {copied === link.id ? <span style={{ fontSize: 11, color: '#16a34a', fontWeight: 700 }}>{tr('Copied!')}</span> : <Copy size={14} />}
                       </button>
-                      <a href={link.share_url} target="_blank" rel="noreferrer" style={iconActionBtn} title="Open">
-                        <ExternalLink size={14} />
-                      </a>
-                      <button onClick={() => deactivate(link.id)} style={{ ...iconActionBtn, color: '#ef4444' }} title="Deactivate">
-                        <Trash2 size={14} />
-                      </button>
+                      <a href={link.share_url} target="_blank" rel="noreferrer" style={iconActionBtn} title={tr('Open')}><ExternalLink size={14} /></a>
+                      <button onClick={() => deactivate(link.id)} style={{ ...iconActionBtn, color: '#ef4444' }} title={tr('Deactivate')}><Trash2 size={14} /></button>
                     </td>
                   </tr>
                 ))}
@@ -539,22 +507,23 @@ function SharedLinksPanel() {
   );
 }
 
-function roiStatusLabel(pct) {
-  if (pct > 500)  return { text: 'Excellent', bg: '#D1FAE5', color: '#059669' };
-  if (pct > 200)  return { text: 'Good',      bg: '#DBEAFE', color: '#2563EB' };
-  if (pct >= 0)   return { text: 'Average',   bg: '#FEF3C7', color: '#D97706' };
-  return              { text: 'Review',    bg: '#FEE2E2', color: '#EF4444' };
+function roiStatusLabel(pct, tr) {
+  if (pct > 500)  return { text: tr('Excellent'), bg: '#D1FAE5', color: '#059669' };
+  if (pct > 200)  return { text: tr('Good'),      bg: '#DBEAFE', color: '#2563EB' };
+  if (pct >= 0)   return { text: tr('Average'),   bg: '#FEF3C7', color: '#D97706' };
+  return              { text: tr('Review'),    bg: '#FEE2E2', color: '#EF4444' };
 }
 
 function ROIOverviewPanel() {
   const navigate = useNavigate();
+  const { tr, formatNumber } = useLanguage();
   const [open, setOpen]       = useState(true);
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const now = new Date();
-  const [month] = useState(now.getMonth() + 1);
-  const [year]  = useState(now.getFullYear());
+  const current = new Date();
+  const [month] = useState(current.getMonth() + 1);
+  const [year]  = useState(current.getFullYear());
 
   useEffect(() => {
     setLoading(true);
@@ -564,71 +533,40 @@ function ROIOverviewPanel() {
       .finally(() => setLoading(false));
   }, [month, year]);
 
-  const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-
   return (
     <div className="admin-table-wrap" style={styles.tableWrap}>
       <div style={styles.goalHeader} onClick={() => setOpen(o => !o)}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <TrendingUp size={16} style={{ color: '#00d7ff' }} />
-          <h3 style={styles.tableTitle}>ROI Summary — {MONTH_NAMES[month - 1]} {year}</h3>
+          <h3 style={styles.tableTitle}>{tr('ROI Summary')} — {tr(MONTH_NAMES[month - 1])} {formatNumber(year)}</h3>
         </div>
         {open ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
       </div>
 
       {open && (
         loading ? (
-          <p style={{ color: 'var(--text-tertiary)', fontSize: 13, marginTop: 12 }}>Loading…</p>
+          <p style={{ color: 'var(--text-tertiary)', fontSize: 13, marginTop: 12 }}>{tr('Loading…')}</p>
         ) : reports.length === 0 ? (
-          <p style={{ color: 'var(--text-tertiary)', fontSize: 13, marginTop: 12 }}>
-            No ROI reports saved for this month yet.
-          </p>
+          <p style={{ color: 'var(--text-tertiary)', fontSize: 13, marginTop: 12 }}>{tr('No ROI reports saved for this month yet.')}</p>
         ) : (
           <table style={{ ...styles.table, marginTop: 12 }}>
-            <thead>
-              <tr>
-                {['User', 'ROI %', 'Est. Revenue', 'Investment', 'Status', ''].map(h => (
-                  <th key={h} style={styles.th}>{h}</th>
-                ))}
-              </tr>
-            </thead>
+            <thead><tr>{['User', 'ROI %', 'Est. Revenue', 'Investment', 'Status', ''].map(h => <th key={h} style={styles.th}>{tr(h)}</th>)}</tr></thead>
             <tbody>
               {reports.map(r => {
                 const pct   = parseFloat(r.roi_percentage) || 0;
-                const label = roiStatusLabel(pct);
+                const label = roiStatusLabel(pct, tr);
                 const sym   = r.currency_symbol || '$';
                 return (
                   <tr key={r.id || r.client_id} style={styles.tr}>
                     <td style={{ ...styles.td, fontWeight: 600 }}>{r.client_name || r.client}</td>
-                    <td style={{ ...styles.td, fontWeight: 700, color: pct > 0 ? '#059669' : '#EF4444' }}>
-                      {pct.toFixed(0)}%
-                    </td>
-                    <td style={styles.td}>
-                      {sym}{(r.estimated_revenue || 0).toLocaleString('en-US', { maximumFractionDigits: 0 })}
-                    </td>
-                    <td style={styles.td}>
-                      {sym}{(r.total_investment || 0).toLocaleString('en-US', { maximumFractionDigits: 0 })}
-                    </td>
-                    <td style={styles.td}>
-                      <span style={{
-                        display: 'inline-block', padding: '2px 10px', borderRadius: 20,
-                        fontSize: 11, fontWeight: 700,
-                        background: label.bg, color: label.color,
-                      }}>
-                        {label.text}
-                      </span>
-                    </td>
+                    <td style={{ ...styles.td, fontWeight: 700, color: pct > 0 ? '#059669' : '#EF4444' }} dir="ltr">{formatNumber(pct.toFixed(0))}%</td>
+                    <td style={styles.td} dir="ltr">{sym}{formatNumber(Math.round(r.estimated_revenue || 0))}</td>
+                    <td style={styles.td} dir="ltr">{sym}{formatNumber(Math.round(r.total_investment || 0))}</td>
+                    <td style={styles.td}><span style={{ display: 'inline-block', padding: '2px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700, background: label.bg, color: label.color }}>{label.text}</span></td>
                     <td style={styles.td}>
                       {r.client_id && (
-                        <button
-                          onClick={() => navigate(`/admin/client/${r.client_id}/roi`)}
-                          style={{
-                            background: 'none', border: '1px solid var(--border-default)', borderRadius: 6,
-                            padding: '4px 10px', cursor: 'pointer', fontSize: 12, color: '#00d7ff',
-                            display: 'flex', alignItems: 'center', gap: 4,
-                          }}
-                        >
-                          <ExternalLink size={12} /> View
+                        <button onClick={() => navigate(`/admin/client/${r.client_id}/roi`)} style={{ background: 'none', border: '1px solid var(--border-default)', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontSize: 12, color: '#00d7ff', display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <ExternalLink size={12} /> {tr('View')}
                         </button>
                       )}
                     </td>
@@ -654,6 +592,7 @@ function SignalCard({ label, value, detail, accent = '#00d7ff' }) {
 }
 
 export default function AdminOverview() {
+  const { tr, formatDate, formatNumber } = useLanguage();
   const [range, setRange] = useDateRange(30);
   const { data: overview, loading } = useOverview(range);
   const { lookups } = useLookups();
@@ -676,9 +615,12 @@ export default function AdminOverview() {
   const latestSync       = overview?.recent_syncs?.[0];
   const syncSuccessCount = (overview?.recent_syncs || []).filter((sync) => sync.status === 'success').length;
   const ctr = totalImpressions > 0 ? ((totalClicks / totalImpressions) * 100).toFixed(2) : '0.00';
-  const topPlatformLabel = topPlatform ? (platformLabelMap[topPlatform.platform] || PLATFORMS[topPlatform.platform]?.label || topPlatform.platform) : 'No data yet';
+  const topPlatformLabel = topPlatform ? tr(platformLabelMap[topPlatform.platform] || PLATFORMS[topPlatform.platform]?.label || topPlatform.platform) : tr('No data yet.');
   const topPlatformColor = topPlatform ? (PLATFORMS[topPlatform.platform]?.color || '#00d7ff') : '#00d7ff';
-  const latestSyncLabel = latestSync ? `${latestSync.client_name} · ${latestSync.status}` : 'No recent syncs';
+  const latestSyncLabel = latestSync ? `${latestSync.client_name} · ${tr(latestSync.status)}` : tr('No recent syncs');
+  const rangeLabel = overview?.period
+    ? `${formatDate(`${overview.period.since}T00:00:00`, { dateStyle: 'medium' })} — ${formatDate(`${overview.period.until}T00:00:00`, { dateStyle: 'medium' })}`
+    : tr('Current period');
 
   return (
     <div style={styles.page}>
@@ -687,114 +629,55 @@ export default function AdminOverview() {
         <div style={styles.heroGlowB} />
         <div className="admin-hero-top" style={styles.heroTopRow}>
           <div style={styles.heroCopy}>
-            <div style={styles.heroEyebrow}>Agency Command Center</div>
-            <h1 style={styles.heroTitle}>Make the numbers feel actionable.</h1>
-            <p style={styles.heroSubtitle}>
-              Track client momentum, sync health, campaign traction, and cross-platform performance from one polished control room.
-            </p>
+            <div style={styles.heroEyebrow}>{tr('Agency Command Center')}</div>
+            <h1 style={styles.heroTitle}>{tr('Make the numbers feel actionable.')}</h1>
+            <p style={styles.heroSubtitle}>{tr('Track client momentum, sync health, campaign traction, and cross-platform performance from one polished control room.')}</p>
           </div>
-          <div style={styles.heroActions}>
-            <DateRangePicker range={range} onChange={setRange} />
-          </div>
+          <div style={styles.heroActions}><DateRangePicker range={range} onChange={setRange} /></div>
         </div>
 
         <div className="admin-signal-grid" style={styles.signalGrid}>
-          <SignalCard
-            label="Active Users"
-            value={loading ? '...' : fmt(overview?.total_clients || 0)}
-            detail={loading ? 'Loading agency coverage' : `${activePlatforms} active platforms in this window`}
-            accent="#00d7ff"
-          />
-          <SignalCard
-            label="Top Platform"
-            value={topPlatformLabel}
-            detail={topPlatform ? `${fmt(topPlatform.impressions)} impressions · ${fmt(topPlatform.reach)} reach` : 'Waiting for synced performance data'}
-            accent={topPlatformColor}
-          />
-          <SignalCard
-            label="Click Efficiency"
-            value={`${ctr}%`}
-            detail={`${fmt(totalClicks)} clicks from ${fmt(totalImpressions)} impressions`}
-            accent="#22c55e"
-          />
-          <SignalCard
-            label="Sync Health"
-            value={latestSync ? `${syncSuccessCount}/${overview?.recent_syncs?.length || 0}` : '0/0'}
-            detail={latestSyncLabel}
-            accent={latestSync?.status === 'failed' ? '#ef4444' : latestSync?.status === 'running' ? '#00d7ff' : '#f59e0b'}
-          />
+          <SignalCard label={tr('Active Users')} value={loading ? '...' : formatNumber(overview?.total_clients || 0)} detail={loading ? tr('Loading agency coverage') : `${formatNumber(activePlatforms)} ${tr('active platforms in this window')}`} accent="#00d7ff" />
+          <SignalCard label={tr('Top Platform')} value={topPlatformLabel} detail={topPlatform ? `${formatNumber(topPlatform.impressions || 0)} ${tr('impressions')} · ${formatNumber(topPlatform.reach || 0)} ${tr('reach')}` : tr('Waiting for synced performance data')} accent={topPlatformColor} />
+          <SignalCard label={tr('Click Efficiency')} value={`${formatNumber(ctr)}%`} detail={`${formatNumber(totalClicks)} ${tr('clicks')} · ${formatNumber(totalImpressions)} ${tr('impressions')}`} accent="#22c55e" />
+          <SignalCard label={tr('Sync Health')} value={latestSync ? `${formatNumber(syncSuccessCount)}/${formatNumber(overview?.recent_syncs?.length || 0)}` : `${formatNumber(0)}/${formatNumber(0)}`} detail={latestSyncLabel} accent={latestSync?.status === 'failed' ? '#ef4444' : latestSync?.status === 'running' ? '#00d7ff' : '#f59e0b'} />
         </div>
       </div>
 
       <div className="admin-summary-bar" style={styles.summaryBar}>
-        <div style={styles.summaryItem}>
-          <span style={styles.summaryItemLabel}>Date Window</span>
-          <strong style={styles.summaryItemValue}>{overview?.period ? `${overview.period.since} to ${overview.period.until}` : 'Current period'}</strong>
-        </div>
-        <div style={styles.summaryItem}>
-          <span style={styles.summaryItemLabel}>Best Reach</span>
-          <strong style={styles.summaryItemValue}>{topPlatform ? fmt(topPlatform.reach) : '0'}</strong>
-        </div>
-        <div style={styles.summaryItem}>
-          <span style={styles.summaryItemLabel}>Total Reach</span>
-          <strong style={styles.summaryItemValue}>{fmt(totalReach)}</strong>
-        </div>
-        <div style={styles.summaryItem}>
-          <span style={styles.summaryItemLabel}>Latest Sync</span>
-          <strong style={styles.summaryItemValue}>{latestSyncLabel}</strong>
-        </div>
+        <div style={styles.summaryItem}><span style={styles.summaryItemLabel}>{tr('Date Window')}</span><strong style={styles.summaryItemValue}>{rangeLabel}</strong></div>
+        <div style={styles.summaryItem}><span style={styles.summaryItemLabel}>{tr('Best Reach')}</span><strong style={styles.summaryItemValue}>{formatNumber(topPlatform?.reach || 0)}</strong></div>
+        <div style={styles.summaryItem}><span style={styles.summaryItemLabel}>{tr('Total Reach')}</span><strong style={styles.summaryItemValue}>{formatNumber(totalReach)}</strong></div>
+        <div style={styles.summaryItem}><span style={styles.summaryItemLabel}>{tr('Latest Sync')}</span><strong style={styles.summaryItemValue}>{latestSyncLabel}</strong></div>
       </div>
 
-      <div style={styles.sectionHeading}>
-        <div>
-          <div style={styles.sectionEyebrow}>Performance Snapshot</div>
-          <h2 style={styles.sectionTitle}>Core agency metrics at a glance</h2>
-        </div>
-      </div>
+      <div style={styles.sectionHeading}><div><div style={styles.sectionEyebrow}>{tr('Performance Snapshot')}</div><h2 style={styles.sectionTitle}>{tr('Core agency metrics at a glance')}</h2></div></div>
 
       <div className="admin-stat-cards" style={styles.cards}>
-        <StatCard label="Total Users"        value={overview?.total_clients || 0} icon={Users}         color="#00d7ff" />
-        <StatCard label="Total Impressions" value={totalImpressions}             icon={Eye}           color="#00d7ff" />
-        <StatCard label="Total Clicks"      value={totalClicks}                  icon={MousePointer2} color="#22c55e" />
-        <StatCard label="Total Followers"   value={totalFollowers}               icon={TrendingUp}    color="#f59e0b" />
+        <StatCard label={tr('Total Users')} value={formatNumber(overview?.total_clients || 0)} icon={Users} color="#00d7ff" />
+        <StatCard label={tr('Total Impressions')} value={formatNumber(totalImpressions)} icon={Eye} color="#00d7ff" />
+        <StatCard label={tr('Total Clicks')} value={formatNumber(totalClicks)} icon={MousePointer2} color="#22c55e" />
+        <StatCard label={tr('Total Followers')} value={formatNumber(totalFollowers)} icon={TrendingUp} color="#f59e0b" />
       </div>
 
-      <div style={styles.sectionHeading}>
-        <div>
-          <div style={styles.sectionEyebrow}>Operational Detail</div>
-          <h2 style={styles.sectionTitle}>Performance tables, alerts, goals, and recent syncs</h2>
-        </div>
-      </div>
+      <div style={styles.sectionHeading}><div><div style={styles.sectionEyebrow}>{tr('Operational Detail')}</div><h2 style={styles.sectionTitle}>{tr('Performance tables, alerts, goals, and recent syncs')}</h2></div></div>
 
       <div className="admin-dashboard-grid" style={styles.dashboardGrid}>
         <div style={styles.mainColumn}>
           {overview?.by_platform?.length > 0 && (
             <div className="admin-table-wrap" style={styles.tableWrap}>
-              <h3 style={styles.tableTitle}>Platform Performance</h3>
+              <h3 style={styles.tableTitle}>{tr('Platform Performance')}</h3>
               <table style={styles.table}>
-                <thead>
-                  <tr>
-                    {['Platform','Impressions','Reach','Clicks','Video Views','Followers'].map(h => (
-                      <th key={h} style={styles.th}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
+                <thead><tr>{['Platform','Impressions','Reach','Clicks','Video Views','Followers'].map(h => <th key={h} style={styles.th}>{tr(h)}</th>)}</tr></thead>
                 <tbody>
                   {overview.by_platform.map(p => (
                     <tr key={p.platform} style={styles.tr}>
-                      <td style={styles.td}>
-                        <span style={{ color: PLATFORMS[p.platform]?.color }}>
-                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                            <SocialPlatformIcon platform={p.platform} size={15} />
-                            {platformLabelMap[p.platform] || PLATFORMS[p.platform]?.label || p.platform}
-                          </span>
-                        </span>
-                      </td>
-                      <td style={styles.td}>{fmt(p.impressions)}</td>
-                      <td style={styles.td}>{fmt(p.reach)}</td>
-                      <td style={styles.td}>{fmt(p.clicks)}</td>
-                      <td style={styles.td}>{fmt(p.video_views)}</td>
-                      <td style={styles.td}>{fmt(p.followers)}</td>
+                      <td style={styles.td}><span style={{ color: PLATFORMS[p.platform]?.color }}><span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><SocialPlatformIcon platform={p.platform} size={15} />{tr(platformLabelMap[p.platform] || PLATFORMS[p.platform]?.label || p.platform)}</span></span></td>
+                      <td style={styles.td}>{formatNumber(p.impressions || 0)}</td>
+                      <td style={styles.td}>{formatNumber(p.reach || 0)}</td>
+                      <td style={styles.td}>{formatNumber(p.clicks || 0)}</td>
+                      <td style={styles.td}>{formatNumber(p.video_views || 0)}</td>
+                      <td style={styles.td}>{formatNumber(p.followers || 0)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -804,7 +687,7 @@ export default function AdminOverview() {
 
           <ROIOverviewPanel />
           <TopPostsPanel />
-          <GoalManager />
+          <GoalManager platformOptions={platformOptions} />
           <AlertsPanel />
           <SharedLinksPanel />
         </div>
@@ -812,36 +695,23 @@ export default function AdminOverview() {
         <div style={styles.sideColumn}>
           {overview?.recent_syncs?.length > 0 && (
             <div className="admin-table-wrap" style={styles.tableWrap}>
-              <h3 style={styles.tableTitle}>Recent Sync Activity</h3>
+              <h3 style={styles.tableTitle}>{tr('Recent Sync Activity')}</h3>
               <table style={styles.table}>
-                <thead>
-                  <tr>
-                    {['Client','Platform','Status','Daily Rows','Started'].map(h => (
-                      <th key={h} style={styles.th}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
+                <thead><tr>{['Client','Platform','Status','Daily Rows','Started'].map(h => <th key={h} style={styles.th}>{tr(h)}</th>)}</tr></thead>
                 <tbody>
                   {overview.recent_syncs.map(l => (
                     <tr key={l.id} style={styles.tr}>
                       <td style={styles.td}>{l.client_name || '—'}</td>
-                      <td style={styles.td}>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                          <SocialPlatformIcon platform={l.platform} size={15} />
-                          {PLATFORMS[l.platform]?.label || l.platform}
-                        </span>
-                      </td>
-                      <td style={styles.td}>
-                        <span style={statusBadge(l.status)}>{l.status}</span>
-                      </td>
-                      <td style={styles.td}>{l.records_synced ?? 0}</td>
-                      <td style={styles.td}>{new Date(l.started_at).toLocaleString()}</td>
+                      <td style={styles.td}><span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><SocialPlatformIcon platform={l.platform} size={15} />{tr(PLATFORMS[l.platform]?.label || l.platform)}</span></td>
+                      <td style={styles.td}><span style={statusBadge(l.status)}>{tr(l.status)}</span></td>
+                      <td style={styles.td}>{formatNumber(l.records_synced ?? 0)}</td>
+                      <td style={styles.td}>{formatDate(l.started_at, { dateStyle: 'medium', timeStyle: 'short' })}</td>
                     </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -864,7 +734,7 @@ function statusBadge(status) {
 }
 
 const styles = {
-  page:      {
+  page: {
     padding: '32px 32px 54px',
     maxWidth: 1440,
     margin: '0 auto',
@@ -876,237 +746,49 @@ const styles = {
     minHeight: '100vh',
   },
   heroPanel: {
-    position: 'relative',
-    overflow: 'hidden',
-    background: 'var(--surface-card)',
-    borderRadius: 'var(--radius-2xl)',
-    padding: '28px 28px 24px',
-    marginBottom: 20,
-    border: '1px solid var(--border-subtle)',
-    boxShadow: 'var(--shadow-lg)',
+    position: 'relative', overflow: 'hidden', background: 'var(--surface-card)', borderRadius: 'var(--radius-2xl)',
+    padding: '28px 28px 24px', marginBottom: 20, border: '1px solid var(--border-subtle)', boxShadow: 'var(--shadow-lg)',
   },
-  heroGlowA: {
-    position: 'absolute',
-    top: -110,
-    right: -70,
-    width: 260,
-    height: 260,
-    borderRadius: '50%',
-    background: 'radial-gradient(circle, var(--brand-primary-glow) 0%, transparent 70%)',
-    pointerEvents: 'none',
-  },
-  heroGlowB: {
-    position: 'absolute',
-    bottom: -120,
-    left: -60,
-    width: 240,
-    height: 240,
-    borderRadius: '50%',
-    background: 'radial-gradient(circle, rgba(16,185,129,.14) 0%, transparent 70%)',
-    pointerEvents: 'none',
-  },
-  heroTopRow: {
-    position: 'relative',
-    zIndex: 1,
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    gap: 18,
-    flexWrap: 'wrap',
-    marginBottom: 24,
-  },
-  heroCopy: {
-    minWidth: 0,
-    maxWidth: 720,
-  },
-  heroEyebrow: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: 8,
-    padding: '4px 12px',
-    borderRadius: 999,
-    background: 'var(--brand-primary-soft)',
-    border: '1px solid var(--brand-primary-glow)',
-    color: 'var(--brand-primary-hover)',
-    fontSize: 11,
-    fontWeight: 600,
-    letterSpacing: '.10em',
-    textTransform: 'uppercase',
-    marginBottom: 14,
-  },
-  heroTitle: {
-    margin: 0,
-    fontSize: 36,
-    lineHeight: 1.05,
-    fontWeight: 600,
-    color: 'var(--text-primary)',
-    letterSpacing: '-0.025em',
-  },
-  heroSubtitle: {
-    margin: '12px 0 0',
-    color: 'var(--text-secondary)',
-    fontSize: 15,
-    lineHeight: 1.8,
-    maxWidth: 640,
-  },
-  heroActions: {
-    position: 'relative',
-    zIndex: 1,
-    display: 'flex',
-    alignItems: 'center',
-    gap: 10,
-  },
-  signalGrid: {
-    position: 'relative',
-    zIndex: 1,
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-    gap: 14,
-  },
-  signalCard: {
-    background: 'var(--surface-glass)',
-    backdropFilter: 'blur(14px) saturate(180%)',
-    WebkitBackdropFilter: 'blur(14px) saturate(180%)',
-    border: '1px solid var(--border-subtle)',
-    borderRadius: 'var(--radius-lg)',
-    padding: '18px 18px 16px',
-    minHeight: 120,
-  },
-  signalLabel: {
-    fontSize: 11,
-    fontWeight: 800,
-    letterSpacing: '.08em',
-    textTransform: 'uppercase',
-    color: 'var(--text-secondary)',
-    marginBottom: 10,
-  },
-  signalValue: {
-    fontSize: 24,
-    lineHeight: 1.2,
-    fontWeight: 800,
-    letterSpacing: '-0.03em',
-    marginBottom: 8,
-    wordBreak: 'break-word',
-  },
-  signalDetail: {
-    fontSize: 12,
-    lineHeight: 1.6,
-    color: 'var(--text-secondary)',
-  },
-  summaryBar: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-    gap: 12,
-    marginBottom: 22,
-  },
-  summaryItem: {
-    background: 'rgba(255,255,255,.82)',
-    border: '1px solid rgba(203,213,225,.8)',
-    borderRadius: 18,
-    padding: '16px 18px',
-    boxShadow: '0 8px 24px rgba(15,23,42,.06)',
-    backdropFilter: 'blur(10px)',
-  },
-  summaryItemLabel: {
-    display: 'block',
-    marginBottom: 6,
-    fontSize: 11,
-    fontWeight: 800,
-    color: 'var(--text-tertiary)',
-    letterSpacing: '.08em',
-    textTransform: 'uppercase',
-  },
-  summaryItemValue: {
-    fontSize: 15,
-    lineHeight: 1.4,
-    color: 'var(--text-primary)',
-  },
-  sectionHeading: {
-    display: 'flex',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-    gap: 16,
-    marginBottom: 16,
-  },
-  sectionEyebrow: {
-    fontSize: 11,
-    fontWeight: 800,
-    letterSpacing: '.08em',
-    textTransform: 'uppercase',
-    color: '#0891b2',
-    marginBottom: 6,
-  },
-  sectionTitle: {
-    margin: 0,
-    fontSize: 22,
-    fontWeight: 800,
-    color: 'var(--text-primary)',
-    letterSpacing: '-0.03em',
-  },
-  cards: {
-    display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px,1fr))',
-    gap: 14, marginBottom: 28,
-  },
-  dashboardGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'minmax(0, 1.25fr) minmax(360px, .75fr)',
-    gap: 20,
-    marginBottom: 8,
-    alignItems: 'start',
-  },
+  heroGlowA: { position: 'absolute', top: -110, right: -70, width: 260, height: 260, borderRadius: '50%', background: 'radial-gradient(circle, var(--brand-primary-glow) 0%, transparent 70%)', pointerEvents: 'none' },
+  heroGlowB: { position: 'absolute', bottom: -120, left: -60, width: 240, height: 240, borderRadius: '50%', background: 'radial-gradient(circle, rgba(16,185,129,.14) 0%, transparent 70%)', pointerEvents: 'none' },
+  heroTopRow: { position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 18, flexWrap: 'wrap', marginBottom: 24 },
+  heroCopy: { minWidth: 0, maxWidth: 720 },
+  heroEyebrow: { display: 'inline-flex', alignItems: 'center', gap: 8, padding: '4px 12px', borderRadius: 999, background: 'var(--brand-primary-soft)', border: '1px solid var(--brand-primary-glow)', color: 'var(--brand-primary-hover)', fontSize: 11, fontWeight: 700, letterSpacing: 0, marginBottom: 14 },
+  heroTitle: { margin: 0, fontSize: 36, lineHeight: 1.25, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: 0 },
+  heroSubtitle: { margin: '12px 0 0', color: 'var(--text-secondary)', fontSize: 15, lineHeight: 1.9, maxWidth: 700 },
+  heroActions: { position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: 10 },
+  signalGrid: { position: 'relative', zIndex: 1, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 },
+  signalCard: { background: 'var(--surface-glass)', backdropFilter: 'blur(14px) saturate(180%)', WebkitBackdropFilter: 'blur(14px) saturate(180%)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: '18px 18px 16px', minHeight: 120 },
+  signalLabel: { fontSize: 11, fontWeight: 600, letterSpacing: 0, color: 'var(--text-secondary)', marginBottom: 10 },
+  signalValue: { fontSize: 24, lineHeight: 1.35, fontWeight: 800, letterSpacing: 0, marginBottom: 8, wordBreak: 'break-word' },
+  signalDetail: { fontSize: 12, lineHeight: 1.7, color: 'var(--text-secondary)' },
+  summaryBar: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginBottom: 22 },
+  summaryItem: { background: 'rgba(255,255,255,.82)', border: '1px solid rgba(203,213,225,.8)', borderRadius: 18, padding: '16px 18px', boxShadow: '0 8px 24px rgba(15,23,42,.06)', backdropFilter: 'blur(10px)' },
+  summaryItemLabel: { display: 'block', marginBottom: 6, fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)', letterSpacing: 0 },
+  summaryItemValue: { fontSize: 15, lineHeight: 1.5, color: 'var(--text-primary)', fontWeight: 600 },
+  sectionHeading: { display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16, marginBottom: 16 },
+  sectionEyebrow: { fontSize: 11, fontWeight: 700, letterSpacing: 0, color: '#0891b2', marginBottom: 6 },
+  sectionTitle: { margin: 0, fontSize: 22, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: 0 },
+  cards: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px,1fr))', gap: 14, marginBottom: 28 },
+  dashboardGrid: { display: 'grid', gridTemplateColumns: 'minmax(0, 1.25fr) minmax(360px, .75fr)', gap: 20, marginBottom: 8, alignItems: 'start' },
   mainColumn: { minWidth: 0 },
   sideColumn: { minWidth: 0 },
-  tableWrap: {
-    background: 'linear-gradient(180deg, rgba(255,255,255,.98) 0%, rgba(248,250,252,.96) 100%)',
-    borderRadius: 22,
-    padding: 24,
-    boxShadow: '0 18px 40px rgba(15,23,42,.08)',
-    marginBottom: 24,
-    overflowX: 'auto',
-    border: '1px solid rgba(226,232,240,.95)',
-  },
-  goalHeader: {
-    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-    cursor: 'pointer', marginBottom: 0,
-  },
-  tableTitle: { margin: 0, fontSize: 16, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em' },
-  goalForm: {
-    display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center',
-    marginTop: 16, marginBottom: 12,
-  },
+  tableWrap: { background: 'linear-gradient(180deg, rgba(255,255,255,.98) 0%, rgba(248,250,252,.96) 100%)', borderRadius: 22, padding: 24, boxShadow: '0 18px 40px rgba(15,23,42,.08)', marginBottom: 24, overflowX: 'auto', border: '1px solid rgba(226,232,240,.95)' },
+  goalHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', marginBottom: 0 },
+  tableTitle: { margin: 0, fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: 0 },
+  goalForm: { display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', marginTop: 16, marginBottom: 12 },
   goalField: { flex: '1 1 180px', minWidth: 0 },
-  goalLabel: { display: 'block', marginBottom: 6, fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)' },
-  requiredAsterisk: { color: '#ef4444', marginLeft: 2, fontWeight: 800 },
+  goalLabel: { display: 'block', marginBottom: 6, fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)' },
+  requiredAsterisk: { color: '#ef4444', marginInlineStart: 2, fontWeight: 800 },
   goalError: { marginTop: 6, fontSize: 12, color: '#dc2626' },
-  sel: {
-    padding: '8px 10px', borderRadius: 8, border: '1.5px solid var(--border-default)',
-    fontSize: 13, background: 'var(--surface-card)', cursor: 'pointer', outline: 'none',
-  },
-  inp: {
-    padding: '8px 10px', borderRadius: 8, border: '1.5px solid var(--border-default)',
-    fontSize: 13, outline: 'none', width: 130,
-  },
+  sel: { padding: '8px 10px', borderRadius: 8, border: '1.5px solid var(--border-default)', fontSize: 13, background: 'var(--surface-card)', cursor: 'pointer', outline: 'none' },
+  inp: { padding: '8px 10px', borderRadius: 8, border: '1.5px solid var(--border-default)', fontSize: 13, outline: 'none', width: 130 },
   inputError: { borderColor: '#ef4444', background: '#fef2f2' },
-  addGoalBtn: {
-    padding: '8px 16px', borderRadius: 8, border: 'none',
-    background: '#00d7ff', color: 'var(--text-primary)', cursor: 'pointer',
-    fontWeight: 700, fontSize: 13,
-  },
-  delBtn: {
-    background: 'none', border: 'none', cursor: 'pointer',
-    color: '#dc2626', padding: 4,
-  },
-  markAllBtn: {
-    display: 'flex', alignItems: 'center', gap: 4,
-    background: 'none', border: '1px solid var(--border-default)', borderRadius: 8,
-    cursor: 'pointer', color: 'var(--text-secondary)', fontSize: 12, padding: '4px 10px',
-  },
-  table:      { width: '100%', borderCollapse: 'collapse', fontSize: 13 },
-  th: {
-    textAlign: 'left', padding: '12px 12px', background: '#eef6fb',
-    color: '#5b6b79', fontWeight: 700, fontSize: 12, borderBottom: '1px solid #dbe5f0',
-    whiteSpace: 'nowrap',
-  },
+  addGoalBtn: { padding: '8px 16px', borderRadius: 8, border: 'none', background: '#00d7ff', color: 'var(--text-primary)', cursor: 'pointer', fontWeight: 600, fontSize: 13 },
+  delBtn: { background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626', padding: 4 },
+  markAllBtn: { display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: '1px solid var(--border-default)', borderRadius: 8, cursor: 'pointer', color: 'var(--text-secondary)', fontSize: 12, padding: '4px 10px', fontWeight: 600 },
+  table: { width: '100%', borderCollapse: 'collapse', fontSize: 13 },
+  th: { textAlign: 'start', padding: '12px 12px', background: '#eef6fb', color: '#5b6b79', fontWeight: 600, fontSize: 12, borderBottom: '1px solid #dbe5f0', whiteSpace: 'nowrap' },
   tr: { borderBottom: '1px solid #eef2f7' },
   td: { padding: '13px 12px', color: 'var(--text-secondary)' },
   inlineSuccess: { fontSize: 13, marginBottom: 12, padding: '10px 14px', borderRadius: 8, background: '#dcfce7', color: '#16a34a' },
@@ -1114,15 +796,8 @@ const styles = {
 };
 
 const panelWrap   = { background: 'linear-gradient(180deg, rgba(255,255,255,.98) 0%, rgba(248,250,252,.96) 100%)', borderRadius: 22, boxShadow: '0 18px 40px rgba(15,23,42,.08)', marginBottom: 24, overflow: 'hidden', border: '1px solid rgba(226,232,240,.95)' };
-const panelToggle = {
-  width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-  padding: '18px 22px', background: 'none', border: 'none', cursor: 'pointer',
-  fontSize: 14, fontWeight: 800, color: 'var(--text-primary)',
-};
+const panelToggle = { width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 22px', background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' };
 const panelBody   = { padding: '0 22px 22px', overflowX: 'auto' };
 const countBadge  = { fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 20 };
 const emptyMsg    = { color: 'var(--text-tertiary)', fontSize: 13, textAlign: 'center', padding: '16px 0', margin: 0 };
-const iconActionBtn = {
-  background: 'none', border: 'none', cursor: 'pointer',
-  color: 'var(--text-secondary)', padding: 4, display: 'inline-flex', alignItems: 'center',
-};
+const iconActionBtn = { background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', padding: 4, display: 'inline-flex', alignItems: 'center' };
