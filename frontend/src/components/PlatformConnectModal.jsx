@@ -6,6 +6,8 @@
 import { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import { botChannelsAPI } from '../services/botChannels';
+import { getApiErrorCode } from '../services/apiErrors';
+import { useLanguage } from '../i18n';
 
 const submitters = {
   bot_token: (clientId, platform, values) => botChannelsAPI.connect(clientId, platform.key, values),
@@ -13,6 +15,7 @@ const submitters = {
 };
 
 export default function PlatformConnectModal({ open, platform, clientId, onClose, onConnected }) {
+  const { t, isPersian } = useLanguage();
   const [values, setValues] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -25,7 +28,27 @@ export default function PlatformConnectModal({ open, platform, clientId, onClose
 
   if (!open || !platform) return null;
   const schema = platform.connection || { fields: [] };
-  const label = platform.labels.default;
+  const label = isPersian
+    ? (platform.labels?.fa || platform.labels?.default || platform.key)
+    : (platform.labels?.en || platform.labels?.default || platform.key);
+  const isBot = platform.authType === 'bot_token';
+  const description = isBot
+    ? t('botConnect.description')
+    : (isPersian
+      ? 'اطلاعات دسترسی API را وارد کنید. سرور اعتبار آن را پیش از ذخیره‌سازی بررسی می‌کند.'
+      : 'Enter the API credentials. The server verifies them before storing the credential.');
+
+  const fieldLabel = (input) => {
+    if (input.key === 'token') return t('botConnect.token');
+    if (input.key === 'destination_id') return t('botConnect.destination');
+    if (input.key === 'api_key') return isPersian ? 'کلید API' : 'API key';
+    return input.label;
+  };
+
+  const fieldPlaceholder = (input) => {
+    if (input.key === 'destination_id') return t('botConnect.destinationPlaceholder');
+    return input.placeholder;
+  };
 
   const submit = async (event) => {
     event.preventDefault();
@@ -33,13 +56,19 @@ export default function PlatformConnectModal({ open, platform, clientId, onClose
     setLoading(true);
     try {
       const handler = submitters[platform.authType];
-      if (!handler) throw new Error(`Unsupported authentication type: ${platform.authType}`);
-      const payload = Object.fromEntries(Object.entries(values).map(([key, value]) => [key, value.trim()]));
+      if (!handler) {
+        setError(t('errors.connectionFailed'));
+        return;
+      }
+      const payload = Object.fromEntries(
+        Object.entries(values).map(([key, value]) => [key, String(value || '').trim()])
+      );
       await handler(clientId, platform, payload);
       await onConnected?.();
       onClose?.();
     } catch (err) {
-      setError(err.response?.data?.detail || err.message || 'Connection failed. Check the credentials and try again.');
+      const code = getApiErrorCode(err, 'connectionFailed');
+      setError(t(`errors.${code}`, t('errors.connectionFailed')));
     } finally {
       setLoading(false);
     }
@@ -47,21 +76,22 @@ export default function PlatformConnectModal({ open, platform, clientId, onClose
 
   return (
     <div style={styles.backdrop} role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose?.()}>
-      <div style={styles.modal} role="dialog" aria-modal="true" aria-label={`Connect ${label}`}>
-        <button onClick={onClose} style={styles.close} aria-label="Close"><X size={18} /></button>
-        <h2 style={styles.title}>Connect {label}</h2>
-        <p style={styles.sub}>{schema.help}</p>
+      <div style={styles.modal} role="dialog" aria-modal="true" aria-label={t('botConnect.title', undefined, { platform: label })}>
+        <button onClick={onClose} style={styles.close} aria-label={t('common.close')}><X size={18} /></button>
+        <h2 style={styles.title}>{t('botConnect.title', undefined, { platform: label })}</h2>
+        <p style={styles.sub}>{description}</p>
         <form onSubmit={submit}>
           {schema.fields.map(input => (
             <label key={input.key} style={styles.field}>
-              <span style={styles.label}>{input.label}</span>
+              <span style={styles.label}>{fieldLabel(input)}</span>
               <input
                 type={input.type || 'text'}
                 autoComplete={input.autoComplete}
                 value={values[input.key] || ''}
                 onChange={(event) => setValues(current => ({ ...current, [input.key]: event.target.value }))}
-                placeholder={input.placeholder}
+                placeholder={fieldPlaceholder(input)}
                 required={input.required !== false}
+                dir="ltr"
                 style={styles.input}
               />
               {input.help && <span style={styles.fieldHelp}>{input.help}</span>}
@@ -69,7 +99,9 @@ export default function PlatformConnectModal({ open, platform, clientId, onClose
           ))}
           {error && <div role="alert" style={styles.error}>{error}</div>}
           <button type="submit" disabled={loading} style={styles.submit}>
-            {loading ? 'Verifying…' : `Verify & connect ${label}`}
+            {loading
+              ? t('botConnect.verifying')
+              : t('botConnect.submit', undefined, { platform: label })}
           </button>
         </form>
       </div>
@@ -80,7 +112,7 @@ export default function PlatformConnectModal({ open, platform, clientId, onClose
 const styles = {
   backdrop: { position: 'fixed', inset: 0, background: 'rgba(15,23,42,.55)', display: 'grid', placeItems: 'center', zIndex: 1000, padding: 16 },
   modal: { width: 'min(520px, 100%)', background: 'var(--surface-card, #fff)', color: 'var(--text-primary, #0f172a)', borderRadius: 18, padding: 24, position: 'relative', boxShadow: '0 24px 70px rgba(0,0,0,.2)' },
-  close: { position: 'absolute', right: 14, top: 14, border: 0, background: 'transparent', cursor: 'pointer', color: 'inherit' },
+  close: { position: 'absolute', insetInlineEnd: 14, top: 14, border: 0, background: 'transparent', cursor: 'pointer', color: 'inherit' },
   title: { margin: '0 0 6px', fontSize: 22 },
   sub: { margin: '0 0 20px', color: 'var(--text-tertiary, #64748b)', fontSize: 13, lineHeight: 1.55 },
   field: { display: 'block', marginBottom: 16 },

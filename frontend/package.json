@@ -40,7 +40,9 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test --watchAll=false",
-    "test:watch": "react-scripts test"
+    "test:watch": "react-scripts test",
+    "i18n:inventory": "node scripts/check-user-facing-strings.js",
+    "i18n:check": "node scripts/check-user-facing-strings.js --check"
   },
   "proxy": "http://localhost:8000",
   "browserslist": {

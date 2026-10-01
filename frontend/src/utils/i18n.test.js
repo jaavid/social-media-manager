@@ -1,6 +1,14 @@
-import { formatUiDate, formatUiNumber, translateRaw } from '../i18n';
+import { enMessages, faMessages, formatUiDate, formatUiNumber, translateRaw } from '../i18n';
 
 describe('Persian i18n', () => {
+  test('English and Persian semantic dictionaries have identical, non-empty keys', () => {
+    expect(Object.keys(faMessages).sort()).toEqual(Object.keys(enMessages).sort());
+    Object.entries(faMessages).forEach(([key, value]) => {
+      expect(typeof value).toBe('string');
+      expect(value.trim()).not.toBe('');
+      expect(enMessages[key].trim()).not.toBe('');
+    });
+  });
   test('translates shell navigation labels', () => {
     expect(translateRaw('Analytics', 'fa')).toBe('تحلیل و آمار');
     expect(translateRaw('Calendar', 'fa')).toBe('تقویم');
