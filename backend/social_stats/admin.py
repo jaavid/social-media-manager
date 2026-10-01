@@ -6,12 +6,41 @@
 #  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
 #  Released under the MIT License — see LICENSE. Keep this notice.
 # ============================================================================
+from django import forms
 from django.contrib import admin
 from .models import (
     Client, UserProfile, PlatformCredential, DailyMetric, PostMetric, SyncLog,
     ROISettings, ROIReport,
     CalendarPost, CalendarNote, PostingSchedule, SiteContent, LookupCollection, LookupItem,
 )
+from .platforms.registry import PLATFORMS_BY_KEY, PLATFORM_REGISTRY, grouped_platform_choices
+
+
+class PlatformCredentialAdminForm(forms.ModelForm):
+    class Meta:
+        model = PlatformCredential
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['platform'].choices = grouped_platform_choices()
+
+
+class PlatformCategoryFilter(admin.SimpleListFilter):
+    title = 'دسته پلتفرم'
+    parameter_name = 'platform_category'
+
+    def lookups(self, request, model_admin):
+        categories = {}
+        for platform in PLATFORM_REGISTRY:
+            categories.setdefault(platform.category, platform.category_title_fa)
+        return categories.items()
+
+    def queryset(self, request, queryset):
+        if not self.value():
+            return queryset
+        keys = [p.key for p in PLATFORM_REGISTRY if p.category == self.value()]
+        return queryset.filter(platform__in=keys)
 
 @admin.register(Client)
 class ClientAdmin(admin.ModelAdmin):
@@ -25,9 +54,20 @@ class UserProfileAdmin(admin.ModelAdmin):
 
 @admin.register(PlatformCredential)
 class CredentialAdmin(admin.ModelAdmin):
-    list_display = ['client', 'platform', 'status', 'connected_at', 'expires_at']
-    list_filter = ['platform', 'is_active']
+    form = PlatformCredentialAdminForm
+    list_display = ['client', 'platform_title', 'platform_category', 'status', 'connected_at', 'expires_at']
+    list_filter = [PlatformCategoryFilter, 'platform', 'is_active']
     readonly_fields = ['connected_at', 'updated_at']
+
+    @admin.display(description='پلتفرم', ordering='platform')
+    def platform_title(self, obj):
+        platform = PLATFORMS_BY_KEY.get(obj.platform)
+        return platform.title_fa if platform else obj.platform
+
+    @admin.display(description='دسته')
+    def platform_category(self, obj):
+        platform = PLATFORMS_BY_KEY.get(obj.platform)
+        return platform.category_title_fa if platform else '—'
 
 @admin.register(DailyMetric)
 class DailyMetricAdmin(admin.ModelAdmin):

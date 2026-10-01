@@ -7,23 +7,32 @@
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { authAPI, mfaAPI } from '../services/api';
+import { authAPI, mfaAPI, invalidateSession, onSessionInvalidated } from '../services/api';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser]       = useState(null);
   const [loading, setLoading] = useState(true);
+  const [status, setStatus] = useState('initializing');
+
+  const becomeAnonymous = useCallback(() => {
+    setUser(null);
+    setStatus('anonymous');
+    setLoading(false);
+  }, []);
+
+  useEffect(() => onSessionInvalidated(becomeAnonymous), [becomeAnonymous]);
 
   useEffect(() => {
     const token = localStorage.getItem('access_token');
     if (token) {
       authAPI.me()
-        .then(res => setUser(res.data))
-        .catch(() => { localStorage.clear(); })
+        .then(res => { setUser(res.data); setStatus('authenticated'); })
+        .catch(() => { invalidateSession(); becomeAnonymous(); })
         .finally(() => setLoading(false));
     } else {
-      setLoading(false);
+      becomeAnonymous();
     }
   }, []);
 
@@ -38,6 +47,7 @@ export function AuthProvider({ children }) {
     localStorage.setItem('refresh_token', res.data.refresh);
     const me = await authAPI.me();
     setUser(me.data);
+    setStatus('authenticated');
     return me.data;
   };
 
@@ -53,17 +63,18 @@ export function AuthProvider({ children }) {
     localStorage.setItem('refresh_token', res.data.refresh);
     const me = await authAPI.me();
     setUser(me.data);
+    setStatus('authenticated');
     return me.data;
   };
 
   const logout = () => {
-    localStorage.clear();
-    setUser(null);
+    invalidateSession();
   };
 
   const refreshUser = useCallback(async () => {
     const me = await authAPI.me();
     setUser(me.data);
+    setStatus('authenticated');
     return me.data;
   }, []);
 
@@ -73,6 +84,7 @@ export function AuthProvider({ children }) {
     if (newRefreshToken) localStorage.setItem('refresh_token', newRefreshToken);
     const me = await authAPI.me();
     setUser(me.data);
+    setStatus('authenticated');
     return me.data;
   }, []);
 
@@ -96,7 +108,7 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider value={{
-      user, loading, login, loginMfa, logout, can,
+      user, loading, status, login, loginMfa, logout, can,
       refreshUser, refreshAuth, isPending,
       accountType, isEndUser, isAgency,
     }}>

@@ -215,26 +215,40 @@ export function useGoals(params) {
   return { goals, loading, refetch: fetch };
 }
 
-export function useAlerts(clientId) {
+export function useAlerts(clientId, { enabled = true, scopeKey = null } = {}) {
   const [alerts, setAlerts]   = useState([]);
   const [loading, setLoading] = useState(false);
   const timerRef              = useRef(null);
+  const requestRef            = useRef(null);
 
   const fetch = useCallback(async () => {
+    if (!enabled) return;
+    requestRef.current?.abort();
+    const controller = new AbortController();
+    requestRef.current = controller;
     try {
       setLoading(true);
       const params = clientId ? { client: clientId } : {};
-      const res = await alertsAPI.list(params);
+      const res = await alertsAPI.list(params, { signal: controller.signal });
       setAlerts(res.data.results || res.data);
-    } catch (e) { console.error(e); }
-    finally { setLoading(false); }
-  }, [clientId]);
+    } catch (e) { if (e?.code !== 'ERR_CANCELED') console.error(e); }
+    finally { if (!controller.signal.aborted) setLoading(false); }
+  }, [clientId, enabled, scopeKey]);
 
   useEffect(() => {
+    if (!enabled) {
+      setAlerts([]);
+      setLoading(false);
+      requestRef.current?.abort();
+      return undefined;
+    }
     fetch();
     timerRef.current = setInterval(fetch, 60000);
-    return () => clearInterval(timerRef.current);
-  }, [fetch]);
+    return () => {
+      clearInterval(timerRef.current);
+      requestRef.current?.abort();
+    };
+  }, [fetch, enabled]);
 
   const markRead = useCallback(async (id) => {
     await alertsAPI.markRead(id);

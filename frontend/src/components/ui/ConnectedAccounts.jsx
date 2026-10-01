@@ -9,7 +9,7 @@
 import { useEffect, useState } from 'react';
 import { oauthAPI } from '../../services/api';
 import { botChannelsAPI } from '../../services/botChannels';
-import { PLATFORMS } from '../../services/platforms';
+import { PLATFORMS, capabilityStatus, hasCapability } from '../../services/platforms';
 import { Lightbulb, Zap } from 'lucide-react';
 import SocialPlatformIcon from './SocialPlatformIcon';
 import FacebookConnectModal from '../FacebookConnectModal';
@@ -77,7 +77,7 @@ export default function ConnectedAccounts({ clientId, status, onRefresh }) {
     }
   };
 
-  const platformOrder = ['facebook','instagram','youtube','google_my_business','linkedin','telegram','bale'];
+  const platformOrder = ['facebook','instagram','youtube','google_my_business','linkedin','telegram','bale','eitaa','aparat'];
   const combinedStatus = { ...(status || {}), ...botStatus };
 
   return (
@@ -92,6 +92,8 @@ export default function ConnectedAccounts({ clientId, status, onRefresh }) {
           const active = s.status === 'active';
           const expired = s.status === 'expired';
           const conn = active || expired;
+          const canConnect = hasCapability(key, 'connection');
+          const connectionStatus = capabilityStatus(key, 'connection');
           const fbConnected = (combinedStatus.facebook || {}).status === 'active';
           const groupNote = key === 'instagram' && fbConnected && conn
             ? <span style={styles.groupNoteInner}><Zap size={13} /> Connected via Facebook</span>
@@ -120,11 +122,15 @@ export default function ConnectedAccounts({ clientId, status, onRefresh }) {
                 <button className="oauth-btn-row" onClick={() => handleDisconnect(key)} disabled={loading[key]} style={styles.disconnectBtn}>
                   {loading[key] ? 'Disconnecting…' : 'Disconnect'}
                 </button>
-              ) : (
+              ) : canConnect ? (
                 <button className="oauth-btn-row" onClick={() => handleConnect(key)} style={{ ...styles.connectBtn, background: p.color }}>
                   Connect {p.label} →
                 </button>
-              )}
+              ) : connectionStatus === 'planned' ? (
+                <button className="oauth-btn-row" disabled style={{ ...styles.connectBtn, opacity: 0.55, cursor: 'not-allowed' }}>
+                  Coming soon
+                </button>
+              ) : null}
             </div>
           );
         })}
