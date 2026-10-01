@@ -640,7 +640,7 @@ export default function AdminOverview() {
           <SignalCard label={tr('Active Users')} value={loading ? '...' : formatNumber(overview?.total_clients || 0)} detail={loading ? tr('Loading agency coverage') : `${formatNumber(activePlatforms)} ${tr('active platforms in this window')}`} accent="#00d7ff" />
           <SignalCard label={tr('Top Platform')} value={topPlatformLabel} detail={topPlatform ? `${formatNumber(topPlatform.impressions || 0)} ${tr('impressions')} · ${formatNumber(topPlatform.reach || 0)} ${tr('reach')}` : tr('Waiting for synced performance data')} accent={topPlatformColor} />
           <SignalCard label={tr('Click Efficiency')} value={`${formatNumber(ctr)}%`} detail={`${formatNumber(totalClicks)} ${tr('clicks')} · ${formatNumber(totalImpressions)} ${tr('impressions')}`} accent="#22c55e" />
-          <SignalCard label={tr('Sync Health')} value={latestSync ? `${formatNumber(syncSuccessCount)}/${formatNumber(overview?.recent_syncs?.length || 0)}` : '۰/۰'} detail={latestSyncLabel} accent={latestSync?.status === 'failed' ? '#ef4444' : latestSync?.status === 'running' ? '#00d7ff' : '#f59e0b'} />
+          <SignalCard label={tr('Sync Health')} value={latestSync ? `${formatNumber(syncSuccessCount)}/${formatNumber(overview?.recent_syncs?.length || 0)}` : `${formatNumber(0)}/${formatNumber(0)}`} detail={latestSyncLabel} accent={latestSync?.status === 'failed' ? '#ef4444' : latestSync?.status === 'running' ? '#00d7ff' : '#f59e0b'} />
         </div>
       </div>
 
