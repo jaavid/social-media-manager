@@ -101,6 +101,29 @@ class BasePublisher:
     def supports(self, media_type: str) -> bool:
         return media_type in self.SUPPORTED_TYPES
 
+    def publish(self, credential, *, media_type: str, content: str = '',
+                media_urls: list[str] | None = None, **kwargs) -> PublishResult:
+        """Capability-driven entry point used by the platform provider contract."""
+        media_type = (media_type or 'text').lower()
+        urls = media_urls or []
+        handlers = {
+            'text': lambda: self.publish_text(credential, content, **kwargs),
+            'image': lambda: self.publish_image(credential, content, urls, **kwargs),
+            'video': lambda: self.publish_video(
+                credential, content, urls[0] if urls else '', **kwargs,
+            ),
+            'carousel': lambda: self.publish_carousel(credential, content, urls, **kwargs),
+            'reel': lambda: self.publish_reel(
+                credential, urls[0] if urls else '', content, **kwargs,
+            ),
+            'story': lambda: self.publish_story(
+                credential, urls[0] if urls else '', **kwargs,
+            ),
+        }
+        if not self.supports(media_type) or media_type not in handlers:
+            return self._unsupported(f'publish_{media_type}')
+        return handlers[media_type]()
+
     def publish_text(self, credential, content: str, **kwargs) -> PublishResult:
         return self._unsupported('publish_text')
 
@@ -160,7 +183,17 @@ def get_publisher(platform: str) -> BasePublisher:
         _autoload()
         cls = _REGISTRY.get(platform)
     if cls is None:
-        raise NotImplementedError(f'No publisher registered for platform={platform}')
+        # New integrations register through the provider registry. This bridge
+        # keeps the historical factory API while making capability ownership
+        # explicit and central.
+        try:
+            from social_stats.platforms.registry import get_provider
+            publisher = get_provider(platform).publisher
+        except NotImplementedError:
+            publisher = None
+        if publisher is not None:
+            return publisher
+        raise NotImplementedError(f'Publishing is disabled for platform={platform}')
     return cls()
 
 
