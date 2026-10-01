@@ -97,7 +97,7 @@ def facebook_oauth_start(request, client_id):
     params = {
         'client_id':     settings.META_APP_ID,
         'redirect_uri':  settings.META_REDIRECT_URI,
-        'scope':         'pages_show_list,pages_read_engagement,pages_manage_metadata,instagram_manage_insights,read_insights',
+        'scope':         'pages_show_list,pages_read_engagement,pages_manage_metadata,instagram_basic,instagram_content_publish,instagram_manage_insights,read_insights',
         'response_type': 'code',
         'state':          state,
     }
@@ -394,7 +394,7 @@ def facebook_oauth_callback(request):
 # ══════════════════════════════════════════════════════════════════════
 
 GOOGLE_SCOPES_YOUTUBE = ' '.join([
-    'https://www.googleapis.com/auth/youtube.readonly',
+    'https://www.googleapis.com/auth/youtube.force-ssl',
     'https://www.googleapis.com/auth/yt-analytics.readonly',
     'openid', 'email', 'profile',
 ])
@@ -406,7 +406,7 @@ GOOGLE_SCOPES_GMB = ' '.join([
 
 # Keep combined for backwards compatibility
 GOOGLE_SCOPES = ' '.join([
-    'https://www.googleapis.com/auth/youtube.readonly',
+    'https://www.googleapis.com/auth/youtube.force-ssl',
     'https://www.googleapis.com/auth/yt-analytics.readonly',
     'https://www.googleapis.com/auth/business.manage',
     'openid', 'email', 'profile',
