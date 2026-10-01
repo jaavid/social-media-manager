@@ -154,8 +154,8 @@ export default function LoginPage() {
               style={{
                 margin: 0,
                 fontSize: 24,
-                fontWeight: 600,
-                letterSpacing: '-0.02em',
+                fontWeight: 800,
+                letterSpacing: 0,
                 color: 'var(--text-primary)',
               }}
             >
@@ -170,7 +170,7 @@ export default function LoginPage() {
 
           <form onSubmit={handleMfaSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <Input
-              label={useBackupCode ? 'Backup code' : 'Verification code'}
+              label={tr(useBackupCode ? 'Backup code' : 'Verification code')}
               type="text"
               inputMode={useBackupCode ? 'text' : 'numeric'}
               autoComplete="one-time-code"
@@ -203,7 +203,7 @@ export default function LoginPage() {
             )}
 
             <Button type="submit" size="lg" iconRight={ArrowRight} fullWidth loading={loading}>
-              Verify
+              {tr('Verify')}
             </Button>
           </form>
 
@@ -253,8 +253,8 @@ export default function LoginPage() {
             style={{
               margin: 0,
               fontSize: 24,
-              fontWeight: 600,
-              letterSpacing: '-0.02em',
+              fontWeight: 800,
+              letterSpacing: 0,
               color: 'var(--text-primary)',
             }}
           >
@@ -267,26 +267,26 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <Input
-            label="Email"
+            label={tr('Email')}
             type="email"
             autoComplete="email"
             value={email}
             onChange={(e) => { setEmail(e.target.value); if (errors.email) setErrors((p) => ({ ...p, email: undefined })); }}
             placeholder="you@company.com"
-            error={errors.email}
+            error={errors.email ? tr(errors.email) : undefined}
             size="lg"
             autoFocus
           />
 
           <div>
             <Input
-              label="Password"
+              label={tr('Password')}
               type="password"
               autoComplete="current-password"
               value={password}
               onChange={(e) => { setPassword(e.target.value); if (errors.password) setErrors((p) => ({ ...p, password: undefined })); }}
-              placeholder="Enter your password"
-              error={errors.password}
+              placeholder={tr('Enter your password')}
+              error={errors.password ? tr(errors.password) : undefined}
               size="lg"
             />
             <div style={{ marginTop: 6, textAlign: 'end' }}>
@@ -341,7 +341,7 @@ export default function LoginPage() {
             loading={loading}
             disabled={!accepted}
           >
-            Sign in
+            {tr('Sign in')}
           </Button>
         </form>
 
@@ -356,7 +356,7 @@ export default function LoginPage() {
           }}
         >
           <span style={{ flex: 1, height: 1, background: 'var(--border-subtle)' }} />
-          <span style={{ fontSize: 11, fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+          <span style={{ fontSize: 11, fontWeight: 600 }}>
             {tr('or continue with')}
           </span>
           <span style={{ flex: 1, height: 1, background: 'var(--border-subtle)' }} />
