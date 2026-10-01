@@ -1,33 +1,27 @@
-/* ============================================================================
- *  Social Stats — Social Media Management & Marketing Platform
- *  Author    : Chandrabhan Shekhawat
- *  Company   : Gigai Kripa Services
- *  Website   : https://gigaikripaservices.com/
- *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
- *  Released under the MIT License — see LICENSE. Keep this notice.
- * ========================================================================== */
 import { useLanguage } from '../../i18n';
+import { cn } from '../../lib/utils';
 
-/**
- * Badge — small pill for status/labels.
- *
- * Variants: 'default' | 'success' | 'warning' | 'danger' | 'info' | 'brand'
- * Optional dot prefix via `dot` prop.
- */
-const VARIANT_STYLES = {
-  default: { bg: 'var(--surface-sunken)',     color: 'var(--text-secondary)',       border: 'var(--border-subtle)' },
-  success: { bg: 'var(--success-bg)',         color: 'var(--success)',              border: 'transparent' },
-  warning: { bg: 'var(--warning-bg)',         color: 'var(--warning)',              border: 'transparent' },
-  danger:  { bg: 'var(--danger-bg)',          color: 'var(--danger)',               border: 'transparent' },
-  info:    { bg: 'var(--info-bg)',            color: 'var(--info)',                 border: 'transparent' },
-  brand:   { bg: 'var(--brand-primary-glow)', color: 'var(--brand-primary-hover)',  border: 'transparent' },
-  outline: { bg: 'transparent',               color: 'var(--text-secondary)',       border: 'var(--border-default)' },
+const VARIANT_CLASSES = {
+  default: 'border-[var(--border-subtle)] bg-muted text-[var(--text-secondary)]',
+  success: 'border-transparent bg-[var(--success-bg)] text-[var(--success)]',
+  warning: 'border-transparent bg-[var(--warning-bg)] text-[var(--warning)]',
+  danger: 'border-transparent bg-[var(--danger-bg)] text-[var(--danger)]',
+  info: 'border-transparent bg-[var(--info-bg)] text-[var(--info)]',
+  brand: 'border-transparent bg-[var(--brand-primary-glow)] text-[var(--brand-primary-hover)]',
+  outline: 'border-border bg-transparent text-[var(--text-secondary)]',
 };
 
-const SIZES = {
-  sm: { padding: '1px 6px',  fontSize: 10, dotSize: 5, iconSize: 10 },
-  md: { padding: '2px 8px',  fontSize: 11, dotSize: 6, iconSize: 11 },
+const SIZE_CLASSES = {
+  sm: 'px-1.5 py-px text-[10px]',
+  md: 'px-2 py-0.5 text-[11px]',
 };
+
+const DOT_CLASSES = {
+  sm: 'size-[5px]',
+  md: 'size-1.5',
+};
+
+const ICON_SIZES = { sm: 10, md: 11 };
 
 export default function Badge({
   variant = 'default',
@@ -35,44 +29,32 @@ export default function Badge({
   dot = false,
   icon: Icon,
   children,
+  className,
   style,
   ...rest
 }) {
   const { tr } = useLanguage();
-  const v = VARIANT_STYLES[variant] || VARIANT_STYLES.default;
-  const s = SIZES[size] || SIZES.md;
+  const resolvedSize = SIZE_CLASSES[size] ? size : 'md';
   const localizedChildren = typeof children === 'string' ? tr(children) : children;
 
   return (
     <span
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 5,
-        padding: s.padding,
-        borderRadius: 'var(--radius-pill)',
-        background: v.bg,
-        color: v.color,
-        border: `1px solid ${v.border}`,
-        fontSize: s.fontSize,
-        fontWeight: 500,
-        letterSpacing: 0.1,
-        lineHeight: 1.4,
-        whiteSpace: 'nowrap',
-        ...style,
-      }}
+      className={cn(
+        'inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border font-medium leading-[1.4] tracking-[0.1px]',
+        VARIANT_CLASSES[variant] || VARIANT_CLASSES.default,
+        SIZE_CLASSES[resolvedSize],
+        className,
+      )}
+      style={style}
       {...rest}
     >
       {dot && (
         <span
           aria-hidden
-          style={{
-            width: s.dotSize, height: s.dotSize, borderRadius: '50%',
-            background: 'currentColor', flexShrink: 0,
-          }}
+          className={cn('shrink-0 rounded-full bg-current', DOT_CLASSES[resolvedSize])}
         />
       )}
-      {Icon && <Icon size={s.iconSize} strokeWidth={2.4} aria-hidden />}
+      {Icon && <Icon size={ICON_SIZES[resolvedSize]} strokeWidth={2.4} aria-hidden />}
       {localizedChildren}
     </span>
   );
