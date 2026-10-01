@@ -6,6 +6,104 @@ const STORAGE_KEY = 'socialstats.language';
 const LANGUAGE_EVENT = 'socialstats:language-change';
 const SUPPORTED = new Set(['en', 'fa']);
 
+export const enMessages = {
+  'accounts.title': 'Connected Accounts',
+  'accounts.subtitle': 'Connect social accounts and publishing destinations.',
+  'accounts.workspacePreparing': 'Your client workspace is still being prepared. Please refresh the page and try again.',
+  'accounts.disconnectConfirm': 'Disconnect {platform}? Publishing and synchronization will stop.',
+  'accounts.connectedViaFacebook': 'Connected via Facebook',
+  'accounts.status.active': 'Active',
+  'accounts.status.expired': 'Expired',
+  'accounts.status.disconnected': 'Not connected',
+  'accounts.tokenExpires': 'Token expires: {date}',
+  'accounts.disconnecting': 'Disconnecting…',
+  'accounts.disconnect': 'Disconnect',
+  'accounts.connect': 'Connect {platform}',
+  'accounts.help.title': 'How it works:',
+  'accounts.help.oauth': 'OAuth platforms redirect you to the provider for authorization.',
+  'accounts.help.bot': 'Telegram and Bale use a bot token plus a channel/chat ID and are verified before storage.',
+  'accounts.help.shared': 'Facebook and Instagram share one login. YouTube and Google Business Profile share one login.',
+  'botConnect.title': 'Connect {platform}',
+  'botConnect.description': 'Add the bot token and the channel/chat destination. The server verifies both before saving the encrypted token.',
+  'botConnect.token': 'Bot token',
+  'botConnect.destination': 'Channel / chat ID',
+  'botConnect.destinationPlaceholder': '@channel or numeric chat_id',
+  'botConnect.verifying': 'Verifying…',
+  'botConnect.submit': 'Verify and connect {platform}',
+  'common.close': 'Close',
+  'errors.unknown': 'Something went wrong. Please try again.',
+  'errors.connectionFailed': 'Connection failed. Check the bot token and destination.',
+  'errors.invalidCredentials': 'The supplied credentials are invalid.',
+  'errors.permissionDenied': 'You do not have permission to perform this action.',
+  'errors.notFound': 'The requested item was not found.',
+  'errors.rateLimited': 'Too many requests. Please try again later.',
+  'errors.network': 'Could not reach the server. Check your connection and try again.',
+  'platform.facebook': 'Facebook',
+  'platform.instagram': 'Instagram',
+  'platform.linkedin': 'LinkedIn',
+  'platform.youtube': 'YouTube',
+  'platform.google_my_business': 'Google Business Profile',
+  'platform.telegram': 'Telegram',
+  'platform.bale': 'Bale',
+  'platform.eitaa': 'Eitaa',
+  'platform.aparat': 'Aparat',
+  'platform.tiktok': 'TikTok',
+  'platform.neshan': 'Neshan',
+  'category.social': 'Social networks',
+  'category.messaging': 'Messengers',
+  'category.video': 'Video platforms',
+  'category.business': 'Business listings',
+};
+
+export const faMessages = {
+  'accounts.title': 'حساب‌های متصل',
+  'accounts.subtitle': 'حساب‌های اجتماعی و مقصدهای انتشار را متصل کنید.',
+  'accounts.workspacePreparing': 'فضای کاری مشتری هنوز در حال آماده‌سازی است. صفحه را تازه‌سازی و دوباره تلاش کنید.',
+  'accounts.disconnectConfirm': 'اتصال {platform} قطع شود؟ انتشار و همگام‌سازی متوقف خواهد شد.',
+  'accounts.connectedViaFacebook': 'متصل از طریق فیسبوک',
+  'accounts.status.active': 'فعال',
+  'accounts.status.expired': 'منقضی‌شده',
+  'accounts.status.disconnected': 'متصل نیست',
+  'accounts.tokenExpires': 'انقضای توکن: {date}',
+  'accounts.disconnecting': 'در حال قطع اتصال…',
+  'accounts.disconnect': 'قطع اتصال',
+  'accounts.connect': 'اتصال {platform}',
+  'accounts.help.title': 'نحوه کار:',
+  'accounts.help.oauth': 'پلتفرم‌های OAuth برای صدور مجوز شما را به ارائه‌دهنده هدایت می‌کنند.',
+  'accounts.help.bot': 'تلگرام و بله از توکن بات و شناسه کانال یا گفتگو استفاده می‌کنند و پیش از ذخیره‌سازی بررسی می‌شوند.',
+  'accounts.help.shared': 'فیسبوک و اینستاگرام یک ورود مشترک دارند. یوتیوب و گوگل بیزینس نیز یک ورود مشترک دارند.',
+  'botConnect.title': 'اتصال {platform}',
+  'botConnect.description': 'توکن بات و مقصد کانال یا گفتگو را وارد کنید. سرور پیش از ذخیره رمزگذاری‌شده، هر دو را بررسی می‌کند.',
+  'botConnect.token': 'توکن بات',
+  'botConnect.destination': 'شناسه کانال / گفتگو',
+  'botConnect.destinationPlaceholder': '@channel یا شناسه عددی chat_id',
+  'botConnect.verifying': 'در حال بررسی…',
+  'botConnect.submit': 'بررسی و اتصال {platform}',
+  'common.close': 'بستن',
+  'errors.unknown': 'خطایی رخ داد. دوباره تلاش کنید.',
+  'errors.connectionFailed': 'اتصال ناموفق بود. توکن بات و مقصد را بررسی کنید.',
+  'errors.invalidCredentials': 'اطلاعات احراز هویت واردشده معتبر نیست.',
+  'errors.permissionDenied': 'اجازه انجام این عملیات را ندارید.',
+  'errors.notFound': 'مورد درخواستی پیدا نشد.',
+  'errors.rateLimited': 'تعداد درخواست‌ها بیش از حد است. کمی بعد دوباره تلاش کنید.',
+  'errors.network': 'ارتباط با سرور برقرار نشد. اتصال خود را بررسی و دوباره تلاش کنید.',
+  'platform.facebook': 'فیسبوک',
+  'platform.instagram': 'اینستاگرام',
+  'platform.linkedin': 'لینکدین',
+  'platform.youtube': 'یوتیوب',
+  'platform.google_my_business': 'گوگل بیزینس',
+  'platform.telegram': 'تلگرام',
+  'platform.bale': 'بله',
+  'platform.eitaa': 'ایتا',
+  'platform.aparat': 'آپارات',
+  'platform.tiktok': 'تیک‌تاک',
+  'platform.neshan': 'نشان',
+  'category.social': 'شبکه‌های اجتماعی',
+  'category.messaging': 'پیام‌رسان‌ها',
+  'category.video': 'پلتفرم‌های ویدئویی',
+  'category.business': 'فهرست‌های کسب‌وکار',
+};
+
 const fa = {
   'common.search': 'جست‌وجو…',
   'common.new': 'جدید',
@@ -292,7 +390,7 @@ const faRaw = {
   'Save failed.': 'ذخیره ناموفق بود.',
 };
 
-const dictionaries = { en: {}, fa };
+const dictionaries = { en: enMessages, fa: { ...enMessages, ...faMessages, ...fa } };
 const rawDictionaries = { en: {}, fa: { ...faRaw, ...faExtra } };
 
 function detectInitialLanguage() {
@@ -331,6 +429,12 @@ export function translate(key, language = currentLanguage, fallback = key) {
   return dictionaries[language]?.[key] || fallback;
 }
 
+export function interpolate(message, values = {}) {
+  return String(message).replace(/\{(\w+)\}/g, (match, key) =>
+    Object.prototype.hasOwnProperty.call(values, key) ? String(values[key]) : match
+  );
+}
+
 export function translateRaw(value, language = currentLanguage) {
   return rawDictionaries[language]?.[value] || value;
 }
@@ -364,7 +468,7 @@ export function useLanguage() {
     isPersian: language === 'fa',
     direction: language === 'fa' ? 'rtl' : 'ltr',
     setLanguage,
-    t: (key, fallback) => translate(key, language, fallback),
+    t: (key, fallback, values) => interpolate(translate(key, language, fallback), values),
     tr: (value) => translateRaw(value, language),
     formatDate: (value, options) => formatUiDate(value, options, language),
     formatNumber: (value) => formatUiNumber(value, language),

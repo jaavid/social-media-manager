@@ -14,6 +14,7 @@ import {
   platformHasCapability,
   usePlatformUiRegistry,
 } from '../../services/platforms';
+import { useLanguage } from '../../i18n';
 import { Lightbulb, Zap } from 'lucide-react';
 import SocialPlatformIcon from './SocialPlatformIcon';
 import FacebookConnectModal from '../FacebookConnectModal';
@@ -21,6 +22,7 @@ import PlatformConnectModal from '../PlatformConnectModal';
 import ApiConnectivityPanel from '../ApiConnectivityPanel';
 
 export default function ConnectedAccounts({ clientId, status, onRefresh }) {
+  const { t, formatDate, isPersian } = useLanguage();
   const [loading, setLoading] = useState({});
   const [fbConsentOpen, setFbConsentOpen] = useState(false);
   const [connectionModal, setConnectionModal] = useState(null);
@@ -52,9 +54,19 @@ export default function ConnectedAccounts({ clientId, status, onRefresh }) {
     platforms: platforms.filter(platform => platform.category === category.key),
   })).filter(group => group.platforms.length > 0), [categories, platforms]);
 
+  const localizedPlatformLabel = (platform) => (
+    isPersian
+      ? (platform.labels?.fa || platform.labels?.default || platform.key)
+      : (platform.labels?.en || platform.labels?.default || platform.key)
+  );
+
+  const localizedCategoryLabel = (category) => (
+    isPersian ? (category.title_fa || category.title_en || category.key) : (category.title_en || category.key)
+  );
+
   const handleConnect = (platform) => {
     if (!clientId) {
-      window.alert('Your client workspace is still being prepared. Please refresh the page and try again.');
+      window.alert(t('accounts.workspacePreparing'));
       return;
     }
     if (!platformHasCapability(platform, 'connect')) return;
@@ -79,7 +91,8 @@ export default function ConnectedAccounts({ clientId, status, onRefresh }) {
   };
 
   const handleDisconnect = async (platform) => {
-    if (!window.confirm(`Disconnect ${platform.labels.default}? Publishing/sync will stop.`)) return;
+    const platformLabel = localizedPlatformLabel(platform);
+    if (!window.confirm(t('accounts.disconnectConfirm', undefined, { platform: platformLabel }))) return;
     setLoading(current => ({ ...current, [platform.key]: true }));
     try {
       if (platform.authType === 'bot_token' || platform.authType === 'api_credentials') {
@@ -96,87 +109,97 @@ export default function ConnectedAccounts({ clientId, status, onRefresh }) {
 
   return (
     <div>
-      <h2 style={styles.heading}>Connected Accounts</h2>
-      <p style={styles.sub}>Connect social accounts and publishing destinations.</p>
+      <h2 style={styles.heading}>{t('accounts.title')}</h2>
+      <p style={styles.sub}>{t('accounts.subtitle')}</p>
 
-      {grouped.map(({ category, platforms: groupPlatforms }) => (
-        <section key={category.key} aria-label={category.key} style={styles.category}>
-          <h3 style={styles.categoryTitle}>{category.title_en || category.key}</h3>
-          <div className="oauth-platform-grid" style={styles.grid}>
-            {groupPlatforms.map(platform => {
-              const key = platform.key;
-              const connectionState = combinedStatus[key] || {};
-              const active = connectionState.status === 'active';
-              const expired = connectionState.status === 'expired';
-              const connected = active || expired;
-              const canConnect = platformHasCapability(platform, 'connect');
-              const connectionCapability = platform.capabilityStatuses?.connection || 'not_available';
-              const fbConnected = (combinedStatus.facebook || {}).status === 'active';
-              const groupNote = key === 'instagram' && fbConnected && connected
-                ? <span style={styles.groupNoteInner}><Zap size={13} /> Connected via Facebook</span>
-                : null;
+      {grouped.map(({ category, platforms: groupPlatforms }) => {
+        const categoryLabel = localizedCategoryLabel(category);
+        return (
+          <section key={category.key} aria-label={categoryLabel} style={styles.category}>
+            <h3 style={styles.categoryTitle}>{categoryLabel}</h3>
+            <div className="oauth-platform-grid" style={styles.grid}>
+              {groupPlatforms.map(platform => {
+                const key = platform.key;
+                const platformLabel = localizedPlatformLabel(platform);
+                const connectionState = combinedStatus[key] || {};
+                const active = connectionState.status === 'active';
+                const expired = connectionState.status === 'expired';
+                const connected = active || expired;
+                const canConnect = platformHasCapability(platform, 'connect');
+                const connectionCapability = platform.capabilityStatuses?.connection || 'not_available';
+                const fbConnected = (combinedStatus.facebook || {}).status === 'active';
+                const groupNote = key === 'instagram' && fbConnected && connected
+                  ? <span style={styles.groupNoteInner}><Zap size={13} /> {t('accounts.connectedViaFacebook')}</span>
+                  : null;
 
-              return (
-                <div key={key} className="oauth-platform-card" style={styles.card}>
-                  <div style={styles.cardTop}>
-                    <div style={styles.platformInfo}>
-                      <span style={styles.platformIcon}>
-                        <SocialPlatformIcon
-                          platform={key}
-                          size={28}
-                          label={platform.labels.default}
-                          color={platform.color}
-                        />
-                      </span>
-                      <div>
-                        <div style={styles.platformName}>{platform.labels.default}</div>
-                        {connectionState.account_name && <div style={styles.accountName}>@{connectionState.account_name}</div>}
-                        {connectionState.destination_id && <div style={styles.accountName}>→ {connectionState.destination_id}</div>}
+                return (
+                  <div key={key} className="oauth-platform-card" style={styles.card}>
+                    <div style={styles.cardTop}>
+                      <div style={styles.platformInfo}>
+                        <span style={styles.platformIcon}>
+                          <SocialPlatformIcon
+                            platform={key}
+                            size={28}
+                            label={platformLabel}
+                            color={platform.color}
+                          />
+                        </span>
+                        <div>
+                          <div style={styles.platformName}>{platformLabel}</div>
+                          {connectionState.account_name && <div dir="ltr" style={styles.accountName}>@{connectionState.account_name}</div>}
+                          {connectionState.destination_id && <div dir="ltr" style={styles.accountName}>→ {connectionState.destination_id}</div>}
+                        </div>
+                      </div>
+                      <div style={styles.statusBadge(active, expired)}>
+                        {active
+                          ? `● ${t('accounts.status.active')}`
+                          : expired
+                            ? `⚠ ${t('accounts.status.expired')}`
+                            : `○ ${t('accounts.status.disconnected')}`}
                       </div>
                     </div>
-                    <div style={styles.statusBadge(active, expired)}>
-                      {active ? '● Active' : expired ? '⚠ Expired' : '○ Not connected'}
-                    </div>
+
+                    {connectionState.expires_at && (
+                      <div style={styles.expiry}>
+                        {t('accounts.tokenExpires', undefined, { date: formatDate(connectionState.expires_at) })}
+                      </div>
+                    )}
+
+                    {groupNote ? (
+                      <div style={styles.groupNote}>{groupNote}</div>
+                    ) : connected ? (
+                      <button
+                        className="oauth-btn-row"
+                        onClick={() => handleDisconnect(platform)}
+                        disabled={loading[key]}
+                        style={styles.disconnectBtn}
+                      >
+                        {loading[key] ? t('accounts.disconnecting') : t('accounts.disconnect')}
+                      </button>
+                    ) : canConnect ? (
+                      <button
+                        className="oauth-btn-row"
+                        onClick={() => handleConnect(platform)}
+                        style={{ ...styles.connectBtn, background: platform.color }}
+                      >
+                        {t('accounts.connect', undefined, { platform: platformLabel })} →
+                      </button>
+                    ) : connectionCapability === 'planned' ? (
+                      <button
+                        className="oauth-btn-row"
+                        disabled
+                        style={{ ...styles.connectBtn, opacity: 0.55, cursor: 'not-allowed', background: platform.color }}
+                      >
+                        {t('common.soon', 'Coming soon')}
+                      </button>
+                    ) : null}
                   </div>
-
-                  {connectionState.expires_at && (
-                    <div style={styles.expiry}>Token expires: {new Date(connectionState.expires_at).toLocaleDateString()}</div>
-                  )}
-
-                  {groupNote ? (
-                    <div style={styles.groupNote}>{groupNote}</div>
-                  ) : connected ? (
-                    <button
-                      className="oauth-btn-row"
-                      onClick={() => handleDisconnect(platform)}
-                      disabled={loading[key]}
-                      style={styles.disconnectBtn}
-                    >
-                      {loading[key] ? 'Disconnecting…' : 'Disconnect'}
-                    </button>
-                  ) : canConnect ? (
-                    <button
-                      className="oauth-btn-row"
-                      onClick={() => handleConnect(platform)}
-                      style={{ ...styles.connectBtn, background: platform.color }}
-                    >
-                      Connect {platform.labels.default} →
-                    </button>
-                  ) : connectionCapability === 'planned' ? (
-                    <button
-                      className="oauth-btn-row"
-                      disabled
-                      style={{ ...styles.connectBtn, opacity: 0.55, cursor: 'not-allowed', background: platform.color }}
-                    >
-                      Coming soon
-                    </button>
-                  ) : null}
-                </div>
-              );
-            })}
-          </div>
-        </section>
-      ))}
+                );
+              })}
+            </div>
+          </section>
+        );
+      })}
 
       <FacebookConnectModal
         appName="Social Stats"
@@ -193,11 +216,11 @@ export default function ConnectedAccounts({ clientId, status, onRefresh }) {
       />
 
       <div style={styles.helpBox}>
-        <strong style={styles.helpTitle}><Lightbulb size={14} /> How it works:</strong>
-        <ul style={{ margin: '8px 0 0', paddingLeft: 20, fontSize: 13, color: 'var(--text-tertiary)' }}>
-          <li>OAuth platforms redirect you to the provider for authorization.</li>
-          <li>Token/API credential fields are generated from the platform authentication contract.</li>
-          <li>Planned providers stay disabled until backend capability status is promoted to beta or supported.</li>
+        <strong style={styles.helpTitle}><Lightbulb size={14} /> {t('accounts.help.title')}</strong>
+        <ul style={{ margin: '8px 0 0', paddingInlineStart: 20, fontSize: 13, color: 'var(--text-tertiary)' }}>
+          <li>{t('accounts.help.oauth')}</li>
+          <li>{t('accounts.help.bot')}</li>
+          <li>{t('accounts.help.shared')}</li>
         </ul>
       </div>
 
