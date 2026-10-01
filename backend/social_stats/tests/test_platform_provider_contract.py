@@ -67,6 +67,23 @@ class AparatClientContractTests(SimpleTestCase):
             AparatClient('token').profile()
         self.assertEqual(ctx.exception.retry_after, 12)
 
+    @patch('social_stats.platforms.providers.aparat.AparatClient.profile')
+    def test_nested_profile_data_must_be_object(self, profile):
+        profile.return_value = {'data': ['unexpected']}
+        with self.assertRaises(ProviderError) as ctx:
+            get_provider('aparat').validate_credentials({'token': 'token'})
+        self.assertEqual(ctx.exception.code, 'invalid_response')
+
+    @patch('social_stats.platforms.providers.aparat.AparatClient.upload_video')
+    def test_upload_requires_video_identifier(self, upload):
+        upload.return_value = {'data': {'url': 'https://www.aparat.com/v/example'}}
+        credential = SimpleNamespace(access_token='token')
+        with self.assertRaises(ProviderError) as ctx:
+            get_provider('aparat').publisher.publish_video(
+                credential, 'caption', 'https://cdn.example.test/video.mp4',
+            )
+        self.assertEqual(ctx.exception.code, 'invalid_response')
+
     def test_video_is_required_before_upload(self):
         credential = SimpleNamespace(access_token='token')
         with self.assertRaises(ProviderError) as ctx:
