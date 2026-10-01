@@ -2,11 +2,13 @@
 from __future__ import annotations
 
 import importlib
+import threading
 
 from .base import BasePlatformProvider
 
 _PROVIDERS: dict[str, type[BasePlatformProvider]] = {}
 _LOADED = False
+_LOAD_LOCK = threading.Lock()
 
 
 def register_provider(provider_cls: type[BasePlatformProvider]):
@@ -22,34 +24,37 @@ def _autoload() -> None:
     global _LOADED
     if _LOADED:
         return
-    _LOADED = True
-    for name in ('telegram', 'bale', 'eitaa', 'aparat'):
-        importlib.import_module(f'social_stats.platforms.providers.{name}')
-    # Existing first-party publishers participate through the same provider
-    # contract. Their connection flows remain OAuth-specific, so ``connect`` is
-    # explicitly false rather than implied by the existence of a publisher.
-    from social_stats.publishers.base import _REGISTRY
-    for name in ('facebook', 'instagram', 'youtube', 'linkedin', 'gmb'):
-        importlib.import_module(f'social_stats.publishers.{name}')
-    from .base import ProviderCapabilities
-    for key, publisher_cls in tuple(_REGISTRY.items()):
-        if key in _PROVIDERS:
-            continue
-        publisher = publisher_cls()
-        adapter = type(
-            f'{publisher_cls.__name__}Provider',
-            (BasePlatformProvider,),
-            {
-                'key': key,
-                'label': key.replace('_', ' ').title(),
-                'publisher': publisher,
-                'capabilities': ProviderCapabilities(
-                    publish=bool(publisher.SUPPORTED_TYPES),
-                    media_types=frozenset(publisher.SUPPORTED_TYPES),
-                ),
-            },
-        )
-        _PROVIDERS[key] = adapter
+    with _LOAD_LOCK:
+        if _LOADED:
+            return
+        for name in ('telegram', 'bale', 'eitaa', 'aparat'):
+            importlib.import_module(f'social_stats.platforms.providers.{name}')
+        # Existing first-party publishers participate through the same provider
+        # contract. Their connection flows remain OAuth-specific, so ``connect`` is
+        # explicitly false rather than implied by the existence of a publisher.
+        from social_stats.publishers.base import _REGISTRY
+        for name in ('facebook', 'instagram', 'youtube', 'linkedin', 'gmb'):
+            importlib.import_module(f'social_stats.publishers.{name}')
+        from .base import ProviderCapabilities
+        for key, publisher_cls in tuple(_REGISTRY.items()):
+            if key in _PROVIDERS:
+                continue
+            publisher = publisher_cls()
+            adapter = type(
+                f'{publisher_cls.__name__}Provider',
+                (BasePlatformProvider,),
+                {
+                    'key': key,
+                    'label': key.replace('_', ' ').title(),
+                    'publisher': publisher,
+                    'capabilities': ProviderCapabilities(
+                        publish=bool(publisher.SUPPORTED_TYPES),
+                        media_types=frozenset(publisher.SUPPORTED_TYPES),
+                    ),
+                },
+            )
+            _PROVIDERS[key] = adapter
+        _LOADED = True
 
 
 def get_provider(platform: str) -> BasePlatformProvider:
