@@ -16,13 +16,16 @@
     <link rel="apple-touch-icon" sizes="180x180" href="%PUBLIC_URL%/apple-touch-icon.png" />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
 
-    <!-- Persian is the product default for first-time visitors. A user's
-         explicit language choice in localStorage is always preserved. -->
+    <!-- Persian is the product default for first-time visitors. Preserve an
+         explicit English/Persian choice and apply direction before first paint. -->
     <script>
       try {
-        if (!window.localStorage.getItem('socialstats.language')) {
-          window.localStorage.setItem('socialstats.language', 'fa');
-        }
+        var languageKey = 'socialstats.language';
+        var storedLanguage = window.localStorage.getItem(languageKey);
+        var initialLanguage = storedLanguage === 'en' || storedLanguage === 'fa' ? storedLanguage : 'fa';
+        if (!storedLanguage) window.localStorage.setItem(languageKey, initialLanguage);
+        document.documentElement.lang = initialLanguage;
+        document.documentElement.dir = initialLanguage === 'fa' ? 'rtl' : 'ltr';
       } catch (_) {}
     </script>
 
