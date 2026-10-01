@@ -35,7 +35,7 @@ describe('metadata-driven platform UI', () => {
 
       const options = connectedPlatforms(
         getPlatformRegistry(),
-        { fixture_network: { status: 'active' } },
+        { __connectionState: 'ready', fixture_network: { status: 'active' } },
         'image'
       );
       render(<PlatformChoices platforms={options} />);
@@ -43,5 +43,11 @@ describe('metadata-driven platform UI', () => {
     } finally {
       unregister();
     }
+  });
+
+  test('unknown connection state preserves compatible targets while a known empty state filters them', () => {
+    const registry = getPlatformRegistry();
+    expect(connectedPlatforms(registry, { __connectionState: 'pending' }, 'image').length).toBeGreaterThan(0);
+    expect(connectedPlatforms(registry, { __connectionState: 'ready' }, 'image')).toHaveLength(0);
   });
 });

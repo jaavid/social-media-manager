@@ -9,7 +9,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { isBefore } from 'date-fns';
 import { X, AlertCircle } from 'lucide-react';
-import { connectedPlatforms, PLATFORMS, getPlatformRegistry } from '../../services/platforms';
+import { connectedPlatforms, PLATFORMS, usePlatformUiRegistry } from '../../services/platforms';
 import usePlatformConnections from '../../hooks/usePlatformConnections';
 import { useSuggestedTimes } from '../../hooks/useCalendar';
 import SocialPlatformIcon from '../ui/SocialPlatformIcon';
@@ -77,7 +77,11 @@ function SuggestRow({ clientId, platform }) {
 export default function PostFormDrawer({ date, post, isOpen, onClose, onSave, clientId, readOnly }) {
   const { isPersian, tr, formatDate, formatNumber } = useLanguage();
   const isEdit = !!post;
-  const { status: connectionStatus } = usePlatformConnections(isOpen ? clientId : null);
+  const {
+    status: connectionStatus,
+    loaded: connectionsLoaded,
+    error: connectionError,
+  } = usePlatformConnections(isOpen ? clientId : null);
 
   const [platform, setPlatform] = useState(post?.platform || 'instagram');
   const [postType, setPostType] = useState(post?.post_type || 'image');
@@ -92,16 +96,26 @@ export default function PostFormDrawer({ date, post, isOpen, onClose, onSave, cl
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
   const [error, setError] = useState('');
-  const platformRegistry = useMemo(() => getPlatformRegistry(), []);
+  const { platforms: platformRegistry } = usePlatformUiRegistry();
   const compatiblePlatforms = useMemo(
     () => connectedPlatforms(platformRegistry, connectionStatus, postType),
     [platformRegistry, connectionStatus, postType]
   );
+  const selectablePlatforms = useMemo(() => {
+    if (!isEdit || !platform || compatiblePlatforms.some(item => item.key === platform)) {
+      return compatiblePlatforms;
+    }
+    const savedPlatform = platformRegistry.find(item => item.key === platform);
+    return savedPlatform ? [savedPlatform, ...compatiblePlatforms] : compatiblePlatforms;
+  }, [compatiblePlatforms, isEdit, platform, platformRegistry]);
 
   useEffect(() => {
-    if (!isOpen || compatiblePlatforms.some(item => item.key === platform)) return;
+    if (
+      !isOpen || isEdit || !connectionsLoaded || connectionError ||
+      compatiblePlatforms.some(item => item.key === platform)
+    ) return;
     setPlatform(compatiblePlatforms[0]?.key || '');
-  }, [compatiblePlatforms, isOpen, platform]);
+  }, [compatiblePlatforms, connectionError, connectionsLoaded, isEdit, isOpen, platform]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -254,7 +268,7 @@ export default function PostFormDrawer({ date, post, isOpen, onClose, onSave, cl
         <div style={{ padding: '20px', flex: 1 }}>
           <Field label={tr('Platform')} required error={errors.platform}>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {compatiblePlatforms.map(item => {
+              {selectablePlatforms.map(item => {
                 const key = item.key;
                 const active = platform === key;
                 return (
@@ -278,9 +292,11 @@ export default function PostFormDrawer({ date, post, isOpen, onClose, onSave, cl
                   </button>
                 );
               })}
-              {compatiblePlatforms.length === 0 && (
+              {selectablePlatforms.length === 0 && (
                 <span role="status" style={{ color: 'var(--text-tertiary)', fontSize: 12 }}>
-                  {tr('No connected platform supports this post type.')}
+                  {connectionError
+                    ? tr('Connection status is temporarily unavailable. Your saved selection has not been changed.')
+                    : tr('No connected platform supports this post type.')}
                 </span>
               )}
             </div>

@@ -134,10 +134,13 @@ function readCachedRegistry() {
 }
 
 let runtimeRegistry = readCachedRegistry() || fallbackRegistry();
+let runtimeUiPlatforms = [];
+let uiRegistryInitialized = false;
 let registryRequest = null;
 
 function publishRegistry(next) {
   runtimeRegistry = next;
+  syncUiPlatformRegistry();
   listeners.forEach(listener => listener(next));
   if (typeof window !== 'undefined') {
     try {
@@ -154,7 +157,7 @@ export function getPlatformMetadataRegistry() {
 
 export function loadPlatformRegistry() {
   if (registryRequest) return registryRequest;
-  const apiBase = (process.env.REACT_APP_API_URL || 'http://localhost:8000/api').replace(/\/$/, '');
+  const apiBase = (process.env.REACT_APP_API_URL || '/api').replace(/\/$/, '');
   registryRequest = fetch(`${apiBase}/platforms/`, {
     method: 'GET',
     headers: { Accept: 'application/json' },
@@ -255,11 +258,19 @@ function categoryOrderMap(categories = runtimeRegistry.categories) {
   return Object.fromEntries(categories.map(item => [item.key, item.order ?? 999]));
 }
 
-export function getPlatformRegistry() {
+function syncUiPlatformRegistry() {
   const order = categoryOrderMap();
-  return runtimeRegistry.platforms
+  const next = runtimeRegistry.platforms
     .map(uiPlatform)
     .sort((a, b) => (order[a.category] ?? 999) - (order[b.category] ?? 999) || (a.order ?? 999) - (b.order ?? 999) || a.key.localeCompare(b.key));
+  runtimeUiPlatforms.splice(0, runtimeUiPlatforms.length, ...next);
+  uiRegistryInitialized = true;
+  return runtimeUiPlatforms;
+}
+
+export function getPlatformRegistry() {
+  if (!uiRegistryInitialized) syncUiPlatformRegistry();
+  return runtimeUiPlatforms;
 }
 
 export function hydratePlatformRegistry(payload = []) {
@@ -342,20 +353,28 @@ export function supportsMedia(platform, mediaType) {
 }
 
 export function connectedPlatforms(metadata, status, mediaType) {
-  return (metadata || []).filter(item =>
-    status?.[item.key]?.status === 'active' && (!mediaType || supportsMedia(item, mediaType))
-  );
+  const statusKnown = status?.__connectionState === 'ready';
+  return (metadata || []).filter(item => {
+    if (mediaType && !supportsMedia(item, mediaType)) return false;
+    // Pending/failed status is unknown, not disconnected. Returning the
+    // media-compatible set prevents editors from destructively pruning saved
+    // targets while connection status is unavailable.
+    if (!statusKnown) return true;
+    return status?.[item.key]?.status === 'active';
+  });
 }
 
 export async function getConnectionStatus(clientId) {
-  if (!clientId) return {};
-  const settled = await Promise.allSettled([
+  if (!clientId) return { __connectionState: 'ready' };
+  const [oauth, botChannels] = await Promise.all([
     oauthAPI.status(clientId),
     botChannelsAPI.status(clientId),
   ]);
-  return settled.reduce((combined, result) => (
-    result.status === 'fulfilled' ? { ...combined, ...(result.value.data || {}) } : combined
-  ), {});
+  return {
+    __connectionState: 'ready',
+    ...(oauth.data || {}),
+    ...(botChannels.data || {}),
+  };
 }
 
 export function getOAuthUrl(platform, clientId) {

@@ -59,7 +59,7 @@ export default function ConnectedAccounts({ clientId, status, onRefresh }) {
     }
     if (!platformHasCapability(platform, 'connect')) return;
 
-    if (platform.authType === 'bot_token') {
+    if (platform.authType === 'bot_token' || platform.authType === 'api_credentials') {
       setConnectionModal(platform);
       return;
     }
@@ -82,7 +82,7 @@ export default function ConnectedAccounts({ clientId, status, onRefresh }) {
     if (!window.confirm(`Disconnect ${platform.labels.default}? Publishing/sync will stop.`)) return;
     setLoading(current => ({ ...current, [platform.key]: true }));
     try {
-      if (platform.authType === 'bot_token') {
+      if (platform.authType === 'bot_token' || platform.authType === 'api_credentials') {
         await botChannelsAPI.disconnect(clientId, platform.key);
         await refreshCredentialStatus();
       } else if (platform.authType === 'oauth') {
@@ -196,7 +196,7 @@ export default function ConnectedAccounts({ clientId, status, onRefresh }) {
         <strong style={styles.helpTitle}><Lightbulb size={14} /> How it works:</strong>
         <ul style={{ margin: '8px 0 0', paddingLeft: 20, fontSize: 13, color: 'var(--text-tertiary)' }}>
           <li>OAuth platforms redirect you to the provider for authorization.</li>
-          <li>Bot-token connection fields are generated from the platform authentication contract.</li>
+          <li>Token/API credential fields are generated from the platform authentication contract.</li>
           <li>Planned providers stay disabled until backend capability status is promoted to beta or supported.</li>
         </ul>
       </div>
