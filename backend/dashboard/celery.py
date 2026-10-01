@@ -13,13 +13,18 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'dashboard.settings')
 app = Celery('dashboard')
 app.config_from_object('django.conf:settings', namespace='CELERY')
 
-# Celery autodiscovery imports each Django app's tasks.py. Some periodic tasks
-# live in dedicated modules, so import them explicitly or beat will publish task
-# names the worker never registers.
+# Celery autodiscovery imports each Django app's tasks.py. A number of Social
+# Stats tasks intentionally live in feature-specific modules instead. Every
+# module referenced directly by beat or by `.delay()` must therefore be loaded
+# at worker startup; otherwise Celery accepts the message and then discards it
+# as an "unregistered task".
 app.conf.imports = (
     'social_stats.scheduler',
     'social_stats.inbox_tasks',
     'social_stats.security.tasks',
+    'social_stats.notification_watchers',
+    'social_stats.security.privacy_tasks',
+    'social_stats.events.publisher',
 )
 
 app.autodiscover_tasks()
