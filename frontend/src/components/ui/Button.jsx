@@ -1,30 +1,41 @@
-/* ============================================================================
- *  Social Stats — Social Media Management & Marketing Platform
- *  Author    : Chandrabhan Shekhawat
- *  Company   : Gigai Kripa Services
- *  Website   : https://gigaikripaservices.com/
- *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
- *  Released under the MIT License — see LICENSE. Keep this notice.
- * ========================================================================== */
 import { forwardRef } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useLanguage } from '../../i18n';
+import { cn } from '../../lib/utils';
 
-/**
- * Button — design-system primitive.
- *
- * Props:
- *   variant: 'primary' | 'secondary' | 'ghost' | 'danger' | 'success'   (default: 'primary')
- *   size:    'sm' | 'md' | 'lg'                                          (default: 'md')
- *   icon:    Lucide icon component (rendered on the left)
- *   iconRight: Lucide icon component (rendered on the right)
- *   iconOnly: render as a square icon-only button (children omitted)
- *   loading: replaces content with a spinner; auto-disables clicks
- *   fullWidth: stretches to 100%
- *   as:      'button' (default) | 'a' | React component (e.g. Link)
- *
- * Pass any other DOM props (onClick, href, type, etc.) — they're forwarded.
- */
+const SIZE_CLASSES = {
+  xs: 'h-6 px-2.5 text-[11px]',
+  sm: 'h-7 px-3 text-xs',
+  md: 'h-9 px-3.5 text-[13px]',
+  lg: 'h-11 px-[18px] text-sm',
+  xl: 'h-[52px] px-[22px] text-[15px]',
+};
+
+const ICON_ONLY_CLASSES = {
+  xs: 'size-6',
+  sm: 'size-7',
+  md: 'size-9',
+  lg: 'size-11',
+  xl: 'size-[52px]',
+};
+
+const ICON_SIZES = { xs: 12, sm: 14, md: 16, lg: 18, xl: 20 };
+
+const VARIANT_CLASSES = {
+  primary:
+    'border-transparent bg-[var(--brand-gradient)] text-[var(--text-on-brand)] shadow-sm hover:-translate-y-px hover:shadow-[var(--shadow-md),var(--shadow-glow)]',
+  secondary:
+    'border-border bg-card text-foreground shadow-sm hover:border-[var(--border-strong)] hover:bg-accent',
+  ghost:
+    'border-transparent bg-transparent text-[var(--text-secondary)] shadow-none hover:bg-accent hover:text-foreground',
+  outline:
+    'border-[var(--brand-primary)] bg-transparent text-[var(--brand-primary-hover)] shadow-none hover:border-[var(--brand-primary-hover)] hover:bg-[var(--brand-primary-soft)]',
+  danger:
+    'border-transparent bg-destructive text-white shadow-sm hover:bg-[#dc2626] hover:shadow-md',
+  success:
+    'border-transparent bg-[var(--success)] text-white shadow-sm hover:bg-[#059669] hover:shadow-md',
+};
+
 const Button = forwardRef(function Button(
   {
     variant = 'primary',
@@ -38,6 +49,7 @@ const Button = forwardRef(function Button(
     as: Component = 'button',
     type,
     children,
+    className,
     style,
     ...rest
   },
@@ -45,42 +57,10 @@ const Button = forwardRef(function Button(
 ) {
   const { tr } = useLanguage();
   const localizedChildren = typeof children === 'string' ? tr(children) : children;
-  const heights   = { xs: 24, sm: 28, md: 36, lg: 44, xl: 52 };
-  const fontSizes = { xs: 11, sm: 12, md: 13, lg: 14, xl: 15 };
-  const iconSizes = { xs: 12, sm: 14, md: 16, lg: 18, xl: 20 };
-  const padding   = { xs: '0 10px', sm: '0 12px', md: '0 14px', lg: '0 18px', xl: '0 22px' };
-
-  const h = heights[size] || heights.md;
-  const variantStyles = VARIANTS[variant] || VARIANTS.primary;
+  const resolvedSize = SIZE_CLASSES[size] ? size : 'md';
   const isDisabled = disabled || loading;
-
-  const baseStyle = {
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    height: h,
-    width: iconOnly ? h : (fullWidth ? '100%' : undefined),
-    minWidth: iconOnly ? h : undefined,
-    padding: iconOnly ? 0 : (padding[size] || padding.md),
-    borderRadius: 'var(--radius-md)',
-    fontSize: fontSizes[size] || 13,
-    fontWeight: 500,
-    fontFamily: 'inherit',
-    lineHeight: 1,
-    cursor: isDisabled ? 'not-allowed' : 'pointer',
-    opacity: isDisabled ? 0.6 : 1,
-    transition: 'var(--transition-fast)',
-    textDecoration: 'none',
-    whiteSpace: 'nowrap',
-    boxSizing: 'border-box',
-    userSelect: 'none',
-    ...variantStyles.base,
-    ...style,
-  };
-
-  // Native <button> needs a default type to avoid accidental form submits.
   const nativeType = Component === 'button' ? (type || 'button') : type;
+  const iconSize = ICON_SIZES[resolvedSize];
 
   return (
     <Component
@@ -89,110 +69,25 @@ const Button = forwardRef(function Button(
       disabled={Component === 'button' ? isDisabled : undefined}
       aria-disabled={isDisabled || undefined}
       aria-busy={loading || undefined}
-      style={baseStyle}
-      onMouseEnter={(e) => {
-        if (isDisabled) return;
-        Object.assign(e.currentTarget.style, variantStyles.hover);
-        rest.onMouseEnter?.(e);
-      }}
-      onMouseLeave={(e) => {
-        if (isDisabled) return;
-        Object.assign(e.currentTarget.style, variantStyles.base);
-        // re-apply user-supplied style overrides
-        if (style) Object.assign(e.currentTarget.style, style);
-        rest.onMouseLeave?.(e);
-      }}
+      className={cn(
+        'inline-flex min-h-0 min-w-0 select-none items-center justify-center gap-1.5 whitespace-nowrap rounded-[var(--radius-md)] border font-medium leading-none no-underline transition-[background-color,border-color,color,box-shadow,transform,opacity] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-60 aria-disabled:pointer-events-none aria-disabled:opacity-60',
+        iconOnly ? ICON_ONLY_CLASSES[resolvedSize] : SIZE_CLASSES[resolvedSize],
+        VARIANT_CLASSES[variant] || VARIANT_CLASSES.primary,
+        fullWidth && 'w-full',
+        className,
+      )}
+      style={style}
       {...rest}
     >
-      {loading
-        ? <Loader2 size={iconSizes[size]} className="ds-button-spin" aria-hidden />
-        : (Icon && <Icon size={iconSizes[size]} strokeWidth={2} aria-hidden />)
-      }
+      {loading ? (
+        <Loader2 size={iconSize} className="animate-spin" aria-hidden />
+      ) : (
+        Icon && <Icon size={iconSize} strokeWidth={2} aria-hidden />
+      )}
       {!iconOnly && !loading && localizedChildren}
-      {!iconOnly && !loading && IconRight && <IconRight size={iconSizes[size]} strokeWidth={2} aria-hidden />}
-
-      <style>{`
-        .ds-button-spin { animation: ds-button-spin 0.9s linear infinite; }
-        @keyframes ds-button-spin { to { transform: rotate(360deg); } }
-      `}</style>
+      {!iconOnly && !loading && IconRight && <IconRight size={iconSize} strokeWidth={2} aria-hidden />}
     </Component>
   );
 });
-
-const VARIANTS = {
-  primary: {
-    base: {
-      background: 'var(--brand-gradient)',
-      color: 'var(--text-on-brand)',
-      border: '1px solid transparent',
-      boxShadow: 'var(--shadow-sm)',
-    },
-    hover: {
-      boxShadow: 'var(--shadow-md), var(--shadow-glow)',
-      transform: 'translateY(-1px)',
-    },
-  },
-  secondary: {
-    base: {
-      background: 'var(--surface-card)',
-      color: 'var(--text-primary)',
-      border: '1px solid var(--border-default)',
-      boxShadow: 'var(--shadow-sm)',
-    },
-    hover: {
-      background: 'var(--surface-hover)',
-      borderColor: 'var(--border-strong)',
-    },
-  },
-  ghost: {
-    base: {
-      background: 'transparent',
-      color: 'var(--text-secondary)',
-      border: '1px solid transparent',
-      boxShadow: 'none',
-    },
-    hover: {
-      background: 'var(--surface-hover)',
-      color: 'var(--text-primary)',
-    },
-  },
-  outline: {
-    base: {
-      background: 'transparent',
-      color: 'var(--brand-primary-hover)',
-      border: '1px solid var(--brand-primary)',
-      boxShadow: 'none',
-    },
-    hover: {
-      background: 'var(--brand-primary-soft)',
-      color: 'var(--brand-primary-hover)',
-      borderColor: 'var(--brand-primary-hover)',
-    },
-  },
-  danger: {
-    base: {
-      background: 'var(--danger)',
-      color: '#fff',
-      border: '1px solid transparent',
-      boxShadow: 'var(--shadow-sm)',
-    },
-    hover: {
-      background: '#dc2626',
-      boxShadow: 'var(--shadow-md)',
-    },
-  },
-  success: {
-    base: {
-      background: 'var(--success)',
-      color: '#fff',
-      border: '1px solid transparent',
-      boxShadow: 'var(--shadow-sm)',
-    },
-    hover: {
-      background: '#059669',
-      boxShadow: 'var(--shadow-md)',
-    },
-  },
-};
 
 export default Button;
