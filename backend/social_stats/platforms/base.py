@@ -25,8 +25,9 @@ class ProviderCapabilities:
     revoke: bool = False
     media_types: frozenset[str] = frozenset()
 
-    def supports_media(self, media_type: str) -> bool:
-        return self.publish and media_type.lower() in self.media_types
+    def supports_media(self, media_type: str | None) -> bool:
+        normalized = (media_type or 'text').lower()
+        return self.publish and normalized in self.media_types
 
 
 @dataclass
