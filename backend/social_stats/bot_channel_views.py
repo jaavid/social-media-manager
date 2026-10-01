@@ -65,12 +65,15 @@ def bot_channel_connection(request, client_id, platform):
             return Response({'detail': str(exc), 'code': exc.code}, status=400)
         return Response(status=204)
 
-    token = (request.data.get('token') or '').strip()
+    # The metadata-driven UI calls API-key style credentials ``api_key`` while
+    # current token-based providers persist them in PlatformCredential.access_token.
+    # Normalize the transport alias here and keep provider contracts token-based.
+    token = (request.data.get('token') or request.data.get('api_key') or '').strip()
     destination_id = (request.data.get('destination_id') or '').strip()
     if not token:
-        return Response({'detail': 'token is required'}, status=400)
+        return Response({'detail': 'token or api_key is required'}, status=400)
     if len(token) > 2048 or len(destination_id) > 200:
-        return Response({'detail': 'token or destination_id is too long'}, status=400)
+        return Response({'detail': 'credential or destination_id is too long'}, status=400)
 
     try:
         credential, result = ConnectionService().connect(client, platform, {
