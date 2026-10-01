@@ -1,11 +1,56 @@
-@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap');
+html,
+body,
+button,
+input,
+select,
+textarea {
+  font-family: var(--font-sans, 'Vazirmatn', Tahoma, Arial, sans-serif);
+}
 
-html[lang='fa'] body,
-html[lang='fa'] button,
-html[lang='fa'] input,
-html[lang='fa'] select,
-html[lang='fa'] textarea {
-  font-family: 'Vazirmatn', 'Inter', Tahoma, Arial, sans-serif;
+/* Product typography: Vazirmatn is loaded once from index.html with real
+   300–900 weights. Keep body copy calm and use stronger weights for controls
+   and headings so Persian UI hierarchy stays clear without synthetic bold. */
+body {
+  font-weight: 400;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  font-weight: 600;
+}
+
+label {
+  font-weight: 500;
+}
+
+h1,
+h2 {
+  font-weight: 800;
+}
+
+h3,
+h4,
+h5,
+h6,
+strong,
+b {
+  font-weight: 700;
+}
+
+html[lang='fa'] h1,
+html[lang='fa'] h2,
+html[lang='fa'] h3,
+html[lang='fa'] h4,
+html[lang='fa'] h5,
+html[lang='fa'] h6,
+html[lang='fa'] button {
+  letter-spacing: 0;
 }
 
 html[dir='rtl'] body {
