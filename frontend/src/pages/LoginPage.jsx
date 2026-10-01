@@ -8,7 +8,7 @@
  * ========================================================================== */
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { ArrowRight, AlertCircle, Briefcase, User as UserIcon, Shield } from 'lucide-react';
+import { ArrowRight, AlertCircle, Shield } from 'lucide-react';
 
 import AuthLayout from '../components/auth/AuthLayout';
 import Button from '../components/ui/Button';
@@ -19,17 +19,6 @@ import { useAuth } from '../hooks/useAuth';
 import { useLanguage } from '../i18n';
 
 const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
-
-// Seeded by `python manage.py demo_setup`. Surfaced here so anyone cloning
-// the repo can take the dashboard for a spin without standing up a real
-// account. Safe to remove this block (and the panel below) once the demo
-// command is dropped — nothing else depends on it.
-const DEMO_LOGINS = [
-  { email: 'admin@demo.local',   label: 'Superadmin', icon: Shield,    landing: '/admin'     },
-  { email: 'agency@demo.local',  label: 'Agency',     icon: Briefcase, landing: '/dashboard' },
-  { email: 'enduser@demo.local', label: 'End user',   icon: UserIcon,  landing: '/u'         },
-];
-const DEMO_PASSWORD = 'demo';
 
 export default function LoginPage() {
   const { login, loginMfa } = useAuth();
@@ -147,14 +136,6 @@ export default function LoginPage() {
     await doLogin(email, password);
   }
 
-  async function signInAsDemo(demoEmail) {
-    setServerError('');
-    setEmail(demoEmail);
-    setPassword(DEMO_PASSWORD);
-    setAccepted(true);
-    await doLogin(demoEmail, DEMO_PASSWORD);
-  }
-
   // ── MFA second-factor step ────────────────────────────────────────────────
   if (mfaToken) {
     return (
@@ -173,8 +154,8 @@ export default function LoginPage() {
               style={{
                 margin: 0,
                 fontSize: 24,
-                fontWeight: 600,
-                letterSpacing: '-0.02em',
+                fontWeight: 800,
+                letterSpacing: 0,
                 color: 'var(--text-primary)',
               }}
             >
@@ -189,7 +170,7 @@ export default function LoginPage() {
 
           <form onSubmit={handleMfaSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <Input
-              label={useBackupCode ? 'Backup code' : 'Verification code'}
+              label={tr(useBackupCode ? 'Backup code' : 'Verification code')}
               type="text"
               inputMode={useBackupCode ? 'text' : 'numeric'}
               autoComplete="one-time-code"
@@ -222,7 +203,7 @@ export default function LoginPage() {
             )}
 
             <Button type="submit" size="lg" iconRight={ArrowRight} fullWidth loading={loading}>
-              Verify
+              {tr('Verify')}
             </Button>
           </form>
 
@@ -272,8 +253,8 @@ export default function LoginPage() {
             style={{
               margin: 0,
               fontSize: 24,
-              fontWeight: 600,
-              letterSpacing: '-0.02em',
+              fontWeight: 800,
+              letterSpacing: 0,
               color: 'var(--text-primary)',
             }}
           >
@@ -286,26 +267,26 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <Input
-            label="Email"
+            label={tr('Email')}
             type="email"
             autoComplete="email"
             value={email}
             onChange={(e) => { setEmail(e.target.value); if (errors.email) setErrors((p) => ({ ...p, email: undefined })); }}
             placeholder="you@company.com"
-            error={errors.email}
+            error={errors.email ? tr(errors.email) : undefined}
             size="lg"
             autoFocus
           />
 
           <div>
             <Input
-              label="Password"
+              label={tr('Password')}
               type="password"
               autoComplete="current-password"
               value={password}
               onChange={(e) => { setPassword(e.target.value); if (errors.password) setErrors((p) => ({ ...p, password: undefined })); }}
-              placeholder="Enter your password"
-              error={errors.password}
+              placeholder={tr('Enter your password')}
+              error={errors.password ? tr(errors.password) : undefined}
               size="lg"
             />
             <div style={{ marginTop: 6, textAlign: 'end' }}>
@@ -360,7 +341,7 @@ export default function LoginPage() {
             loading={loading}
             disabled={!accepted}
           >
-            Sign in
+            {tr('Sign in')}
           </Button>
         </form>
 
@@ -375,7 +356,7 @@ export default function LoginPage() {
           }}
         >
           <span style={{ flex: 1, height: 1, background: 'var(--border-subtle)' }} />
-          <span style={{ fontSize: 11, fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+          <span style={{ fontSize: 11, fontWeight: 600 }}>
             {tr('or continue with')}
           </span>
           <span style={{ flex: 1, height: 1, background: 'var(--border-subtle)' }} />
@@ -413,66 +394,6 @@ export default function LoginPage() {
             </Button>
           </div>
         )}
-
-        {/* Demo logins — populated by `python manage.py demo_setup` in the
-            backend. Each button signs in as the corresponding demo account
-            and lands on the right shell. Safe to remove this whole block
-            for a production deployment. */}
-        <div
-          style={{
-            marginTop: 24,
-            padding: 16,
-            background: 'var(--surface-sunken)',
-            border: '1px dashed var(--border-default)',
-            borderRadius: 'var(--radius-lg)',
-          }}
-        >
-          <div style={{
-            display: 'flex', alignItems: 'baseline', justifyContent: 'space-between',
-            marginBottom: 10, gap: 12,
-          }}>
-            <span style={{
-              fontSize: 11, fontWeight: 700, letterSpacing: '0.08em',
-              textTransform: 'uppercase', color: 'var(--brand-primary-hover)',
-            }}>
-              {tr('Try the demo')}
-            </span>
-            <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
-              {tr('local only')} · {tr('password')} <code style={{ fontFamily: 'var(--font-mono)' }}>demo</code>
-            </span>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
-            {DEMO_LOGINS.map((d) => {
-              const Icon = d.icon;
-              return (
-                <button
-                  type="button"
-                  key={d.email}
-                  onClick={() => signInAsDemo(d.email)}
-                  disabled={loading}
-                  style={{
-                    display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4,
-                    padding: '10px 12px', minHeight: 'unset',
-                    background: 'var(--surface-card)',
-                    border: '1px solid var(--border-default)',
-                    borderRadius: 'var(--radius-md)',
-                    color: 'var(--text-primary)',
-                    cursor: loading ? 'not-allowed' : 'pointer',
-                    opacity: loading ? 0.6 : 1,
-                    textAlign: 'start',
-                    transition: 'var(--transition-fast)',
-                  }}
-                  onMouseEnter={(e) => { if (!loading) e.currentTarget.style.borderColor = 'var(--brand-primary-glow)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border-default)'; }}
-                >
-                  <Icon size={14} color="var(--brand-primary-hover)" />
-                  <span style={{ fontSize: 12, fontWeight: 600 }}>{tr(d.label)}</span>
-                  <span style={{ fontSize: 10, color: 'var(--text-tertiary)' }}>{d.email}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
       </div>
     </AuthLayout>
   );
