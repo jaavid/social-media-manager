@@ -1,18 +1,17 @@
-/* ============================================================================
- *  Social Stats — Social Media Management & Marketing Platform
- *  Author    : Chandrabhan Shekhawat
- *  Company   : Gigai Kripa Services
- *  Website   : https://gigaikripaservices.com/
- *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
- *  Released under the MIT License — see LICENSE. Keep this notice.
- * ========================================================================== */
 import { NavLink, useLocation } from 'react-router-dom';
 import {
-  LayoutDashboard, FileText, CalendarDays, AlertCircle,
-  Inbox, Send, Users2, FileType,
+  LayoutDashboard,
+  FileText,
+  CalendarDays,
+  AlertCircle,
+  Inbox,
+  Send,
+  Users2,
+  FileType,
   Rocket,
 } from 'lucide-react';
 import { useLanguage } from '../../i18n';
+import { cn } from '../../lib/utils';
 
 export default function MobileNav({ module, basePath }) {
   const location = useLocation();
@@ -21,56 +20,36 @@ export default function MobileNav({ module, basePath }) {
 
   return (
     <nav
-      className="mobile-bottom-nav ds-mobile-nav"
+      className="mobile-bottom-nav ds-mobile-nav fixed inset-x-3 bottom-3 z-150 flex h-16 items-stretch overflow-hidden rounded-2xl border border-border/70 bg-card/92 px-1.5 pb-[env(safe-area-inset-bottom)] shadow-xl backdrop-blur-2xl"
       aria-label={`${tr(module === 'analytics' ? 'Analytics' : module === 'messaging' ? 'Messaging' : 'Ads')} bottom tabs`}
-      style={{
-        position: 'fixed',
-        bottom: 0, insetInlineStart: 0, insetInlineEnd: 0,
-        zIndex: 150,
-        background: 'var(--surface-card)',
-        borderTop: '1px solid var(--border-subtle)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-        height: 64,
-        paddingBottom: 'env(safe-area-inset-bottom)',
-        display: 'flex',
-        alignItems: 'stretch',
-      }}
     >
       {tabs.map((tab) => {
         const to = `${basePath}/${module}${tab.path}`;
         const active = tab.end ? location.pathname === to : location.pathname.startsWith(to);
         const Icon = tab.icon;
         const label = tr(tab.label);
+
         return (
           <NavLink
             key={tab.path || tab.label}
             to={to}
             end={tab.end}
             aria-label={label}
-            style={{
-              flex: 1,
-              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-              gap: 4,
-              textDecoration: 'none',
-              color: active ? 'var(--brand-primary-hover)' : 'var(--text-tertiary)',
-              fontSize: 10, fontWeight: 600,
-              transition: 'var(--transition-fast)',
-              WebkitTapHighlightColor: 'transparent',
-              minHeight: 'unset',
-              minWidth: 'unset',
-            }}
+            className={cn(
+              'group relative flex min-h-0 min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-semibold no-underline transition',
+              active ? 'text-primary' : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+            )}
           >
-            <span style={{
-              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-              width: 36, height: 28,
-              borderRadius: 999,
-              background: active ? 'var(--brand-primary-glow)' : 'transparent',
-              transition: 'var(--transition-fast)',
-            }}>
+            <span
+              className={cn(
+                'grid h-7 w-9 place-items-center rounded-xl transition',
+                active ? 'bg-primary/12 shadow-sm' : 'bg-transparent group-hover:bg-muted'
+              )}
+            >
               <Icon size={18} strokeWidth={active ? 2.4 : 2} />
             </span>
-            <span>{label}</span>
+            <span className="truncate px-1">{label}</span>
+            {active && <span className="absolute inset-x-5 bottom-0 h-0.5 rounded-full bg-primary" aria-hidden />}
           </NavLink>
         );
       })}
@@ -91,7 +70,5 @@ const MOBILE_TABS = {
     { label: 'Templates', icon: FileType, path: '/templates' },
     { label: 'Contacts', icon: Users2, path: '/contacts' },
   ],
-  ads: [
-    { label: 'Soon', icon: Rocket, path: '' },
-  ],
+  ads: [{ label: 'Soon', icon: Rocket, path: '' }],
 };
