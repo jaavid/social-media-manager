@@ -41,6 +41,9 @@ class AparatClient:
         except ValueError as exc:
             raise ProviderError('Aparat returned an invalid response', code='invalid_response',
                                 status_code=response.status_code) from exc
+        if not isinstance(payload, dict):
+            raise ProviderError('Aparat returned an invalid response', code='invalid_response',
+                                status_code=response.status_code)
         if response.status_code == 401:
             raise TokenExpiredError(status_code=401, raw=payload)
         if response.status_code == 429:
