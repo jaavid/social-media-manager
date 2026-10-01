@@ -1,30 +1,13 @@
-/* ============================================================================
- *  Social Stats — Social Media Management & Marketing Platform
- *  Author    : Chandrabhan Shekhawat
- *  Company   : Gigai Kripa Services
- *  Website   : https://gigaikripaservices.com/
- *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
- *  Released under the MIT License — see LICENSE. Keep this notice.
- * ========================================================================== */
 import { forwardRef } from 'react';
 import { useLanguage } from '../../i18n';
+import { cn } from '../../lib/utils';
 
-/**
- * Card — neutral surface wrapper.
- *
- * Props:
- *   padding:     'none' | 'sm' | 'md' | 'lg'    (default 'md')
- *   interactive: enables hover lift + cursor pointer
- *   elevated:    drops a stronger shadow
- *   as:          underlying element (default 'div')
- *
- * Subcomponents (composable):
- *   Card.Header — { title, subtitle, action }
- *   Card.Body   — wraps content with consistent padding
- *   Card.Footer — separator + action row
- */
-
-const PADDINGS = { none: 0, sm: 12, md: 20, lg: 28 };
+const PADDING_CLASSES = {
+  none: 'p-0',
+  sm: 'p-3',
+  md: 'p-5',
+  lg: 'p-7',
+};
 
 const Card = forwardRef(function Card(
   {
@@ -33,58 +16,31 @@ const Card = forwardRef(function Card(
     elevated = false,
     glass = false,
     as: Component = 'div',
+    className,
     style,
     children,
-    onMouseEnter,
-    onMouseLeave,
     ...rest
   },
   ref,
 ) {
-  const pad = PADDINGS[padding] ?? PADDINGS.md;
-
-  const baseStyle = glass
-    ? {
-        background: 'var(--surface-glass)',
-        backdropFilter: 'blur(14px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(14px) saturate(180%)',
-        border: '1px solid var(--border-subtle)',
-        borderRadius: 'var(--radius-lg)',
-        boxShadow: elevated ? 'var(--shadow-lg)' : 'var(--shadow-md)',
-        padding: pad,
-        transition: 'var(--transition-default)',
-        cursor: interactive ? 'pointer' : undefined,
-        ...style,
-      }
-    : {
-        background: 'var(--surface-card)',
-        border: '1px solid var(--border-subtle)',
-        borderRadius: 'var(--radius-lg)',
-        boxShadow: elevated ? 'var(--shadow-md)' : 'var(--shadow-sm)',
-        padding: pad,
-        transition: 'var(--transition-default)',
-        cursor: interactive ? 'pointer' : undefined,
-        ...style,
-      };
+  const resolvedPadding = PADDING_CLASSES[padding] || PADDING_CLASSES.md;
 
   return (
     <Component
       ref={ref}
-      style={baseStyle}
-      onMouseEnter={(e) => {
-        if (interactive) {
-          e.currentTarget.style.borderColor = 'var(--border-default)';
-          e.currentTarget.style.boxShadow = 'var(--shadow-md)';
-          e.currentTarget.style.transform = 'translateY(-2px)';
-        }
-        onMouseEnter?.(e);
-      }}
-      onMouseLeave={(e) => {
-        if (interactive) {
-          Object.assign(e.currentTarget.style, baseStyle);
-        }
-        onMouseLeave?.(e);
-      }}
+      className={cn(
+        'rounded-[var(--radius-lg)] border border-[var(--border-subtle)] transition-[background-color,border-color,box-shadow,transform] duration-200',
+        glass
+          ? 'bg-[var(--surface-glass)] backdrop-blur-[14px] backdrop-saturate-[180%]'
+          : 'bg-card',
+        elevated
+          ? glass ? 'shadow-lg' : 'shadow-md'
+          : glass ? 'shadow-md' : 'shadow-sm',
+        interactive && 'cursor-pointer hover:-translate-y-0.5 hover:border-border hover:shadow-md',
+        resolvedPadding,
+        className,
+      )}
+      style={style}
       {...rest}
     >
       {children}
@@ -92,66 +48,56 @@ const Card = forwardRef(function Card(
   );
 });
 
-function CardHeader({ title, subtitle, action, style, children }) {
+function CardHeader({ title, subtitle, action, className, style, children, ...rest }) {
   const { tr } = useLanguage();
   const localizedTitle = typeof title === 'string' ? tr(title) : title;
   const localizedSubtitle = typeof subtitle === 'string' ? tr(subtitle) : subtitle;
 
   return (
     <div
-      style={{
-        display: 'flex',
-        alignItems: 'flex-start',
-        justifyContent: 'space-between',
-        gap: 12,
-        marginBottom: title || subtitle ? 12 : 0,
-        ...style,
-      }}
+      className={cn(
+        'flex items-start justify-between gap-3',
+        (title || subtitle) && 'mb-3',
+        className,
+      )}
+      style={style}
+      {...rest}
     >
-      <div style={{ minWidth: 0 }}>
+      <div className="min-w-0">
         {localizedTitle && (
-          <h3 style={{
-            margin: 0,
-            fontSize: 16,
-            fontWeight: 600,
-            color: 'var(--text-primary)',
-            letterSpacing: '-0.01em',
-          }}>
+          <h3 className="m-0 text-base font-semibold tracking-[-0.01em] text-foreground">
             {localizedTitle}
           </h3>
         )}
         {localizedSubtitle && (
-          <div style={{
-            marginTop: 2,
-            fontSize: 13,
-            color: 'var(--text-secondary)',
-          }}>
+          <div className="mt-0.5 text-[13px] text-[var(--text-secondary)]">
             {localizedSubtitle}
           </div>
         )}
         {children}
       </div>
-      {action && <div style={{ flexShrink: 0 }}>{action}</div>}
+      {action && <div className="shrink-0">{action}</div>}
     </div>
   );
 }
 
-function CardBody({ children, style }) {
-  return <div style={style}>{children}</div>;
+function CardBody({ children, className, style, ...rest }) {
+  return (
+    <div className={className} style={style} {...rest}>
+      {children}
+    </div>
+  );
 }
 
-function CardFooter({ children, style }) {
+function CardFooter({ children, className, style, ...rest }) {
   return (
     <div
-      style={{
-        marginTop: 16,
-        paddingTop: 16,
-        borderTop: '1px solid var(--border-subtle)',
-        display: 'flex',
-        justifyContent: 'flex-end',
-        gap: 8,
-        ...style,
-      }}
+      className={cn(
+        'mt-4 flex justify-end gap-2 border-t border-[var(--border-subtle)] pt-4',
+        className,
+      )}
+      style={style}
+      {...rest}
     >
       {children}
     </div>
@@ -159,7 +105,7 @@ function CardFooter({ children, style }) {
 }
 
 Card.Header = CardHeader;
-Card.Body   = CardBody;
+Card.Body = CardBody;
 Card.Footer = CardFooter;
 
 export default Card;
