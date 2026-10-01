@@ -1,8 +1,11 @@
-"""Canonical platform catalogue.
+"""Canonical platform catalogue and runtime provider bridge.
 
 Keep platform-facing metadata here rather than scattering slightly different
 choice lists throughout models, forms, and services. The registry is an
 ordered tuple so generated choices remain stable across migrations.
+
+Runtime provider implementations live in ``provider_registry``. ``get_provider``
+bridges canonical platform keys to their concrete output-service adapters.
 """
 from dataclasses import dataclass
 
@@ -82,3 +85,18 @@ def grouped_platform_choices():
         group = f"{category['title_fa']} / {category['title_en']}"
         groups.setdefault(group, []).append((platform.key, f'{platform.title_fa} / {platform.title_en}'))
     return [(title, choices) for title, choices in groups.items()]
+
+
+from .provider_registry import (  # noqa: E402  (provider layer depends on base only)
+    get_provider as _get_registered_provider,
+    iter_providers,
+    register_provider,
+)
+
+
+def get_provider(platform: str):
+    """Resolve a canonical platform key to its concrete runtime provider."""
+    key = (platform or '').lower()
+    definition = PLATFORMS_BY_KEY.get(key)
+    runtime_key = definition.output_service if definition else key
+    return _get_registered_provider(runtime_key)

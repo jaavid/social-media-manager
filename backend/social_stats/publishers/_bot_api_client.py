@@ -23,6 +23,7 @@ from .base import (
 _PROVIDER_SERVICES = {
     'https://api.telegram.org': 'telegram',
     'https://tapi.bale.ai': 'bale',
+    'https://eitaayar.ir/api': 'eitaa',
 }
 
 _GATEWAY_ERRORS = {
@@ -35,18 +36,20 @@ _GATEWAY_ERRORS = {
 
 
 class BotAPIClient:
-    def __init__(self, token: str, base_url: str, *, timeout: int = 30, service: str | None = None):
+    def __init__(self, token: str, base_url: str, *, timeout: int = 30,
+                 service: str | None = None, token_prefix: str = 'bot'):
         self.token = (token or '').strip()
         self.base_url = base_url.rstrip('/')
         self.timeout = timeout
         self.service = service or _PROVIDER_SERVICES.get(self.base_url)
+        self.token_prefix = token_prefix
         if not self.token:
             raise TokenExpiredError('Bot token is missing')
         if not self.service:
             raise PublishError('Unknown bot API provider', code='missing_config')
 
     def call(self, method: str, *, data: dict | None = None, files: dict | None = None) -> dict:
-        direct_url = f"{self.base_url}/bot{self.token}/{method}"
+        direct_url = f"{self.base_url}/{self.token_prefix}{self.token}/{method}"
         try:
             response = outbound_request(
                 self.service,
@@ -58,6 +61,10 @@ class BotAPIClient:
                 gateway_path=f'/bot/{method}',
                 gateway_headers={'X-Upstream-Bot-Token': self.token},
             )
+        except requests.Timeout as exc:
+            raise PublishError(
+                f'Bot API timed out while calling {method}', code='timeout',
+            ) from exc
         except requests.RequestException as exc:
             raise PublishError(
                 f'Bot API network error while calling {method}',

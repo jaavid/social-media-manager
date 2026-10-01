@@ -32,6 +32,16 @@ SERVICES: dict[str, EgressService] = {
         gateway_route='bale',
         probe_url='https://tapi.bale.ai/',
     ),
+    'eitaa': EgressService(
+        key='eitaa', label='Eitaa Bot API',
+        direct_origin='https://eitaayar.ir', gateway_route='eitaa',
+        probe_url='https://eitaayar.ir/api/',
+    ),
+    'aparat': EgressService(
+        key='aparat', label='Aparat API',
+        direct_origin='https://www.aparat.com', gateway_route='aparat',
+        probe_url='https://www.aparat.com/',
+    ),
     'meta': EgressService(
         key='meta', label='Meta Graph API',
         direct_origin='https://graph.facebook.com',
