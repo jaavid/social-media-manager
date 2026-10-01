@@ -55,7 +55,7 @@ def _build_metrics_snapshot(client: Client, days: int = 30) -> dict:
     suitable for sending to Claude. Capped to keep prompts within budget.
     """
     since = timezone.now() - timedelta(days=days)
-    qs = PostMetric.objects.filter(client=client, posted_at__gte=since)
+    qs = PostMetric.objects.filter(client=client, published_at__gte=since)
 
     by_platform = defaultdict(lambda: {
         'platform': '', 'posts': 0,
@@ -82,7 +82,9 @@ def _build_metrics_snapshot(client: Client, days: int = 30) -> dict:
         b['engagement_total'] += likes + comments + shares
         posts.append({
             'platform':  p,
-            'posted_at': m.posted_at.isoformat() if m.posted_at else '',
+            # Keep the snapshot contract stable while sourcing from the
+            # canonical PostMetric timestamp field.
+            'posted_at': m.published_at.isoformat() if m.published_at else '',
             'engagement': likes + comments + shares,
             'reach':     int(getattr(m, 'reach', 0) or 0),
             'preview':   (getattr(m, 'caption', '') or getattr(m, 'content', '') or '')[:140],
@@ -108,15 +110,15 @@ def _series_for_metric(client: Client, metric: str, days: int = 60,
     Build a daily {date, value} series for a metric over the last `days`.
     """
     since = timezone.now() - timedelta(days=days)
-    qs = PostMetric.objects.filter(client=client, posted_at__gte=since)
+    qs = PostMetric.objects.filter(client=client, published_at__gte=since)
     if platform:
         qs = qs.filter(platform=platform)
 
     by_day = defaultdict(int)
     for m in qs:
-        if not m.posted_at:
+        if not m.published_at:
             continue
-        day = m.posted_at.date().isoformat()
+        day = m.published_at.date().isoformat()
         if metric == 'engagement_total':
             v = (int(getattr(m, 'likes', 0) or 0)
                  + int(getattr(m, 'comments', 0) or 0)
