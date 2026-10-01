@@ -1,4 +1,4 @@
-"""Connection endpoints for Telegram-compatible channel publishers."""
+"""Connection endpoints for provider credentials managed by ConnectionService."""
 from __future__ import annotations
 
 from rest_framework.decorators import api_view, permission_classes
@@ -50,7 +50,7 @@ def bot_channel_connection(request, client_id, platform):
     try:
         provider = get_provider(platform)
     except NotImplementedError:
-        return Response({'detail': 'Unsupported bot provider'}, status=404)
+        return Response({'detail': 'Unsupported provider'}, status=404)
     if not provider.capabilities.connect:
         return Response({'detail': 'Provider does not support connections'}, status=400)
 
