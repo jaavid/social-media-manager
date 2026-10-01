@@ -33,7 +33,7 @@ function SvgWrap({ size, title, children, viewBox = '0 0 24 24', style }) {
   );
 }
 
-export default function SocialPlatformIcon({ platform, size = 18, title, style }) {
+export default function SocialPlatformIcon({ platform, size = 18, title, label, color = '#64748B', style }) {
   const key = normalizePlatform(platform);
 
   switch (key) {
@@ -95,12 +95,23 @@ export default function SocialPlatformIcon({ platform, size = 18, title, style }
           <circle cx="18.3" cy="13.2" r="1.25" fill="#EA4335" />
         </SvgWrap>
       );
-    default:
+    default: {
+      const fallbackLabel = label || title || String(platform || '?');
       return (
-        <SvgWrap size={size} title={title || 'Platform'} style={style}>
-          <circle cx="12" cy="12" r="10" fill="#CBD5E1" />
-          <path fill="#fff" d="M12 6.5a5.5 5.5 0 0 0-5.44 4.75h2.05a3.6 3.6 0 1 1 .01 1.5H6.56A5.5 5.5 0 1 0 12 6.5z" />
-        </SvgWrap>
+        <span
+          role="img"
+          aria-label={fallbackLabel}
+          title={title || fallbackLabel}
+          style={{
+            width: size, height: size, borderRadius: '28%', background: color, color: '#fff',
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+            fontSize: Math.max(9, Number(size) * 0.46), fontWeight: 800, lineHeight: 1,
+            fontFamily: 'system-ui, sans-serif', ...style,
+          }}
+        >
+          {fallbackLabel.trim().slice(0, 1).toUpperCase() || '?'}
+        </span>
       );
+    }
   }
 }

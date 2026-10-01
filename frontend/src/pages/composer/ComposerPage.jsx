@@ -22,22 +22,8 @@ import AIWriteButton from '../../components/ai/AIWriteButton';
 import { composerAPI, captionAPI, hashtagAPI } from '../../services/api';
 import { useAuth } from '../../hooks/useAuth';
 import { useComposerPost } from '../../hooks/useComposer';
-import { capabilityStatus, hasCapability } from '../../services/platforms';
-
-/* ── Platform metadata for toggles + previews ──────────────────────────── */
-const PLATFORMS = [
-  { id: 'facebook',           label: 'Facebook',  color: '#1877F2', maxText: 63206, types: ['text','image','video','carousel','reel'] },
-  { id: 'instagram',          label: 'Instagram', color: '#E1306C', maxText: 2200,  types: ['image','video','carousel','reel','story'] },
-  { id: 'youtube',            label: 'YouTube',   color: '#FF0000', maxText: 5000,  types: ['video','reel'] },
-  { id: 'linkedin',           label: 'LinkedIn',  color: '#0A66C2', maxText: 3000,  types: ['text','image','video','carousel'] },
-  { id: 'google_my_business', label: 'Google',    color: '#34A853', maxText: 1500,  types: ['text','image'] },
-  { id: 'telegram',           label: 'Telegram',  color: '#229ED9', maxText: 4096,  types: ['text','image','video','carousel'] },
-  { id: 'bale',               label: 'Bale',      color: '#00A884', maxText: 4096,  types: ['text','image','video','carousel'] },
-  { id: 'eitaa',              label: 'Eitaa',     color: '#F58220', maxText: 4096,  types: [] },
-  { id: 'aparat',             label: 'Aparat',    color: '#ED145B', maxText: 0,     types: [] },
-];
-
-const BOT_DESTINATION_PLATFORMS = ['telegram', 'bale'];
+import usePlatformConnections from '../../hooks/usePlatformConnections';
+import { connectedPlatforms, getPlatformRegistry } from '../../services/platforms';
 
 const MEDIA_TYPES = [
   { id: 'text',     label: 'Text only', icon: null },
@@ -52,6 +38,7 @@ export default function ComposerPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { status: connectionStatus } = usePlatformConnections(user?.client_id);
 
   const isEditing = !!id;
   const { data: existing, loading: loadingExisting, refetch } = useComposerPost(id);
@@ -61,10 +48,18 @@ export default function ComposerPage() {
   const [content, setContent] = useState('');
   const [mediaType, setMediaType] = useState('text');
   const [mediaAssets, setMediaAssets] = useState([]);   // [{id, file_url, thumbnail_url, mime_type}]
-  const [targetPlatforms, setTargetPlatforms] = useState(['facebook', 'instagram']);
-  const [destinationOverrides, setDestinationOverrides] = useState({ telegram: '', bale: '' });
+  const [targetPlatforms, setTargetPlatforms] = useState([]);
+  const [destinationOverrides, setDestinationOverrides] = useState({});
   const [scheduleMode, setScheduleMode] = useState('now'); // 'now' | 'schedule' | 'queue'
   const [scheduledAt, setScheduledAt] = useState('');
+  const allPlatforms = useMemo(() => getPlatformRegistry(), []);
+  const availablePlatforms = useMemo(
+    () => connectedPlatforms(allPlatforms, connectionStatus, mediaType),
+    [allPlatforms, connectionStatus, mediaType]
+  );
+  const destinationPlatforms = useMemo(() => allPlatforms.filter(platform =>
+    platform.authType === 'bot_token' && platform.connection.fields.some(item => item.key === 'destination_id')
+  ), [allPlatforms]);
 
   /* ── Pre-fill when editing ────────────────────────────────────────── */
   useEffect(() => {
@@ -73,16 +68,23 @@ export default function ComposerPage() {
       setContent(existing.content || '');
       setMediaType(existing.media_type || 'text');
       setTargetPlatforms(existing.target_platforms || []);
-      setDestinationOverrides({
-        telegram: existing.platform_overrides?.telegram?.destination_id || '',
-        bale: existing.platform_overrides?.bale?.destination_id || '',
-      });
+      setDestinationOverrides(Object.fromEntries(destinationPlatforms.map(platform => [
+        platform.key, existing.platform_overrides?.[platform.key]?.destination_id || '',
+      ])));
       if (existing.scheduled_at) {
         setScheduleMode('schedule');
         setScheduledAt(toLocalInput(existing.scheduled_at));
       }
     }
-  }, [existing, isEditing]);
+  }, [existing, isEditing]); // Registry metadata is stable during an editor session.
+
+  useEffect(() => {
+    const allowed = new Set(availablePlatforms.map(platform => platform.key));
+    setTargetPlatforms(current => {
+      const next = current.filter(key => allowed.has(key));
+      return next.length === current.length ? current : next;
+    });
+  }, [availablePlatforms]);
 
   /* ── State for save + preflight + AI strip ─────────────────────────── */
   const [saving, setSaving]       = useState(false);
@@ -99,11 +101,11 @@ export default function ComposerPage() {
 
   /* ── Per-platform character counts (live) ──────────────────────────── */
   const counts = useMemo(() => {
-    return PLATFORMS.reduce((acc, p) => {
-      acc[p.id] = { used: content.length, max: p.maxText, over: content.length > p.maxText };
+    return allPlatforms.reduce((acc, p) => {
+      acc[p.key] = { used: content.length, max: p.maxText, over: content.length > p.maxText };
       return acc;
     }, {});
-  }, [content]);
+  }, [content, allPlatforms]);
 
   /* ── Handlers ──────────────────────────────────────────────────────── */
   function togglePlatform(pid) {
@@ -137,7 +139,7 @@ export default function ComposerPage() {
   /* ── Save / publish flow ───────────────────────────────────────────── */
   function buildPayload() {
     const platformOverrides = { ...(existing?.platform_overrides || {}) };
-    BOT_DESTINATION_PLATFORMS.forEach((pid) => {
+    destinationPlatforms.forEach(({ key: pid }) => {
       const destinationId = (destinationOverrides[pid] || '').trim();
       const current = { ...(platformOverrides[pid] || {}) };
       if (destinationId) current.destination_id = destinationId;
@@ -297,7 +299,7 @@ export default function ComposerPage() {
     );
   }
 
-  const selectedBotPlatforms = BOT_DESTINATION_PLATFORMS.filter((pid) => targetPlatforms.includes(pid));
+  const selectedBotPlatforms = destinationPlatforms.filter(platform => targetPlatforms.includes(platform.key));
 
   /* ── Render ────────────────────────────────────────────────────────── */
   return (
@@ -341,36 +343,11 @@ export default function ComposerPage() {
               subtitle="Pick where this post should go live"
             />
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
-              {PLATFORMS.map((p) => {
-                const on = targetPlatforms.includes(p.id);
-                const capability = `publish_${mediaType}`;
-                const available = hasCapability(p.id, capability);
-                const planned = capabilityStatus(p.id, capability) === 'planned';
-                return (
-                  <button
-                    key={p.id}
-                    type="button"
-                    onClick={() => available && togglePlatform(p.id)}
-                    disabled={!available}
-                    aria-pressed={on}
-                    style={{
-                      padding: '8px 14px',
-                      borderRadius: 'var(--radius-pill)',
-                      border: `1px solid ${on ? 'transparent' : 'var(--border-default)'}`,
-                      background: on ? p.color : 'var(--surface-card)',
-                      color: on ? '#fff' : 'var(--text-primary)',
-                      fontSize: 13, fontWeight: 600,
-                      cursor: available ? 'pointer' : 'not-allowed',
-                      opacity: available ? 1 : 0.5,
-                      minHeight: 'unset', minWidth: 'unset',
-                      transition: 'var(--transition-fast)',
-                      boxShadow: on ? '0 2px 6px rgba(10,14,20,0.08)' : 'none',
-                    }}
-                  >
-                    {p.label}{planned ? ' · Coming soon' : ''}
-                  </button>
-                );
-              })}
+              <PlatformChoices
+                platforms={availablePlatforms}
+                selected={targetPlatforms}
+                onToggle={togglePlatform}
+              />
             </div>
           </Card>
 
@@ -381,11 +358,11 @@ export default function ComposerPage() {
                 subtitle="Optional per-post override. Leave blank to use the channel configured in Connected Accounts."
               />
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 10 }}>
-                {selectedBotPlatforms.map((pid) => {
-                  const meta = PLATFORMS.find((p) => p.id === pid);
+                {selectedBotPlatforms.map((meta) => {
+                  const pid = meta.key;
                   return (
                     <label key={pid} style={{ display: 'grid', gap: 5, fontSize: 12, fontWeight: 600 }}>
-                      {meta?.label || pid}
+                      {meta.labels.default}
                       <input
                         value={destinationOverrides[pid] || ''}
                         onChange={(e) => setDestinationOverrides((cur) => ({ ...cur, [pid]: e.target.value }))}
@@ -567,7 +544,7 @@ export default function ComposerPage() {
               overflowX: 'auto',
             }}>
               {(targetPlatforms.length ? targetPlatforms : ['facebook']).map((pid) => {
-                const p = PLATFORMS.find((x) => x.id === pid) || PLATFORMS[0];
+                const p = allPlatforms.find((x) => x.key === pid) || allPlatforms[0];
                 const active = pid === activePreview;
                 return (
                   <button
@@ -586,7 +563,7 @@ export default function ComposerPage() {
                       whiteSpace: 'nowrap',
                     }}
                   >
-                    {p.label}
+                    {p.labels.default}
                   </button>
                 );
               })}
@@ -615,6 +592,30 @@ export default function ComposerPage() {
 }
 
 /* ── Sub-components ────────────────────────────────────────────────── */
+export function PlatformChoices({ platforms, selected = [], onToggle = () => {} }) {
+  return platforms.map((platform) => {
+    const active = selected.includes(platform.key);
+    return (
+      <button
+        key={platform.key}
+        type="button"
+        onClick={() => onToggle(platform.key)}
+        aria-pressed={active}
+        style={{
+          padding: '8px 14px', borderRadius: 'var(--radius-pill)',
+          border: `1px solid ${active ? 'transparent' : 'var(--border-default)'}`,
+          background: active ? platform.color : 'var(--surface-card)',
+          color: active ? '#fff' : 'var(--text-primary)', fontSize: 13, fontWeight: 600,
+          cursor: 'pointer', minHeight: 'unset', minWidth: 'unset', transition: 'var(--transition-fast)',
+          boxShadow: active ? '0 2px 6px rgba(10,14,20,0.08)' : 'none',
+        }}
+      >
+        {platform.labels.default}
+      </button>
+    );
+  });
+}
+
 function MediaUploadButton({ onUpload }) {
   const ref = useRef();
   return (
@@ -695,7 +696,8 @@ function MediaGrid({ assets, onRemove }) {
 }
 
 function PlatformPreview({ platform, content, mediaAssets, mediaType, user }) {
-  const meta = PLATFORMS.find((p) => p.id === platform) || PLATFORMS[0];
+  const platforms = getPlatformRegistry();
+  const meta = platforms.find((item) => item.key === platform) || platforms[0];
   const handle = user?.first_name || user?.email?.split('@')[0] || 'You';
 
   return (
@@ -719,7 +721,7 @@ function PlatformPreview({ platform, content, mediaAssets, mediaType, user }) {
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 13, fontWeight: 700 }}>{handle}</div>
           <div style={{ fontSize: 11, color: '#667781' }}>
-            {meta.label} · just now
+            {meta.labels.default} · just now
           </div>
         </div>
       </div>
@@ -835,7 +837,7 @@ function PreflightPanel({ result, onClose }) {
       </div>
       <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
         {Object.entries(result.platforms || {}).map(([pid, status]) => {
-          const p = PLATFORMS.find((x) => x.id === pid);
+          const p = getPlatformRegistry().find((item) => item.key === pid);
           return (
             <div key={pid} style={{
               padding: 12, borderRadius: 'var(--radius-sm)',
@@ -843,7 +845,7 @@ function PreflightPanel({ result, onClose }) {
               background: status.ok ? 'var(--success-bg)' : 'var(--danger-bg)',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <strong style={{ fontSize: 13, color: p?.color }}>{p?.label || pid}</strong>
+                <strong style={{ fontSize: 13, color: p?.color }}>{p?.labels.default || pid}</strong>
                 {status.ok
                   ? <Badge variant="success" dot>OK</Badge>
                   : <Badge variant="danger" dot>Blocked</Badge>}

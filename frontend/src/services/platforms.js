@@ -8,62 +8,50 @@
  * ========================================================================== */
 import { useEffect, useState } from 'react';
 import platformCapabilities from './platformCapabilities.json';
+import { oauthAPI } from './api';
+import { botChannelsAPI } from './botChannels';
 
 export const PLATFORMS = {
   facebook: {
-    label: 'Facebook',
-    shortLabel: 'Facebook',
-    color: '#1877F2',
-    bg:    '#EBF3FF',
+    label: 'Facebook', shortLabel: 'Facebook', color: '#1877F2', bg: '#EBF3FF', maxText: 63206,
+    types: ['text','image','video','carousel','reel'],
     metrics: ['impressions','reach','clicks','likes','followers','profile_views'],
   },
   instagram: {
-    label: 'Instagram',
-    shortLabel: 'Instagram',
-    color: '#E1306C',
-    bg:    '#FDE8F0',
+    label: 'Instagram', shortLabel: 'Instagram', color: '#E1306C', bg: '#FDE8F0', maxText: 2200,
+    types: ['image','video','carousel','reel','story'],
     metrics: ['impressions','reach','clicks','likes','saves','video_views','followers'],
   },
   linkedin: {
-    label: 'LinkedIn',
-    shortLabel: 'LinkedIn',
-    color: '#0A66C2',
-    bg:    '#E8F0F9',
+    label: 'LinkedIn', shortLabel: 'LinkedIn', color: '#0A66C2', bg: '#E8F0F9', maxText: 3000,
+    types: ['text','image','video','carousel'],
     metrics: ['impressions','clicks','followers','engagement_rate'],
   },
   youtube: {
-    label: 'YouTube',
-    shortLabel: 'YouTube',
-    color: '#FF0000',
-    bg:    '#FFE9E9',
+    label: 'YouTube', shortLabel: 'YouTube', color: '#FF0000', bg: '#FFE9E9', maxText: 5000,
+    types: ['video','reel'],
     metrics: ['video_views','impressions','likes','comments','shares','followers','ctr'],
   },
   google_my_business: {
-    label: 'Google My Business',
-    shortLabel: 'GMB',
-    color: '#34A853',
-    bg:    '#E6F4EA',
+    label: 'Google Business Profile', shortLabel: 'GBP', color: '#34A853', bg: '#E6F4EA', maxText: 1500,
+    types: ['text','image'],
     metrics: ['impressions','website_clicks','phone_calls','direction_requests'],
   },
   telegram: {
-    label: 'Telegram',
-    shortLabel: 'Telegram',
-    color: '#229ED9',
-    bg:    '#E7F5FC',
-    metrics: [],
+    label: 'Telegram', shortLabel: 'Telegram', color: '#229ED9', bg: '#E7F5FC', maxText: 4096,
+    types: ['text','image','video','carousel'], metrics: [],
   },
   bale: {
-    label: 'Bale',
-    shortLabel: 'Bale',
-    color: '#00A884',
-    bg:    '#E7F8F3',
-    metrics: [],
+    label: 'Bale', shortLabel: 'Bale', color: '#00A884', bg: '#E7F8F3', maxText: 4096,
+    types: ['text','image','video','carousel'], metrics: [],
   },
   eitaa: {
-    label: 'Eitaa', shortLabel: 'Eitaa', color: '#F58220', bg: '#FFF3E8', metrics: [],
+    label: 'Eitaa', shortLabel: 'Eitaa', color: '#F58220', bg: '#FFF3E8', maxText: 4096,
+    types: ['text','image','video'], metrics: [],
   },
   aparat: {
-    label: 'Aparat', shortLabel: 'Aparat', color: '#ED145B', bg: '#FDE8EF', metrics: [],
+    label: 'Aparat', shortLabel: 'Aparat', color: '#ED145B', bg: '#FDE8EF', maxText: 5000,
+    types: ['video'], metrics: [],
   },
 };
 
@@ -112,12 +100,26 @@ const FALLBACK_PLATFORM_METADATA = [
 
 const STORAGE_KEY = 'platform-registry-v2';
 const listeners = new Set();
+const OAUTH_PROVIDER = {
+  facebook: 'facebook',
+  instagram: 'facebook',
+  youtube: 'google',
+  google_my_business: 'google',
+  linkedin: 'linkedin',
+};
+const MEDIA_CAPABILITY = {
+  text: 'publish_text',
+  image: 'publish_image',
+  carousel: 'publish_image',
+  story: 'publish_image',
+  video: 'publish_video',
+  reel: 'publish_video',
+  short: 'publish_video',
+  article: 'publish_text',
+};
 
 function fallbackRegistry() {
-  return {
-    categories: FALLBACK_CATEGORIES,
-    platforms: FALLBACK_PLATFORM_METADATA,
-  };
+  return { categories: FALLBACK_CATEGORIES, platforms: FALLBACK_PLATFORM_METADATA };
 }
 
 function readCachedRegistry() {
@@ -146,7 +148,7 @@ function publishRegistry(next) {
   }
 }
 
-export function getPlatformRegistry() {
+export function getPlatformMetadataRegistry() {
   return runtimeRegistry;
 }
 
@@ -180,13 +182,189 @@ function enabledStatus(value) {
 }
 
 export function platformHasCapability(metadata, capability) {
-  const capabilities = metadata?.capabilities || {};
+  const capabilities = metadata?.capabilityStatuses || metadata?.capabilities || {};
+  if (Array.isArray(capabilities)) return false;
   if (capability === 'connect') return enabledStatus(capabilities.connection);
   if (capability === 'publish') {
     return ['publish_text', 'publish_image', 'publish_video']
       .some(key => enabledStatus(capabilities[key]));
   }
   return enabledStatus(capabilities[capability]);
+}
+
+function authTypeFor(value) {
+  if (value === 'oauth2') return 'oauth';
+  if (value === 'api_key') return 'api_credentials';
+  return value || 'unknown';
+}
+
+function connectionSchema(metadata) {
+  const authType = authTypeFor(metadata.auth_type);
+  if (authType === 'bot_token') {
+    return {
+      help: `Add the ${metadata.titles?.en || metadata.key} bot token and destination channel/chat ID.`,
+      fields: [
+        { key: 'token', label: 'Bot token', placeholder: 'Bot token', required: true, type: 'password', autoComplete: 'off' },
+        { key: 'destination_id', label: 'Channel / chat ID', placeholder: '@channel or numeric chat_id', required: true },
+      ],
+    };
+  }
+  if (authType === 'api_credentials') {
+    return {
+      help: 'This provider uses API credentials. Connection remains disabled until backend support is marked supported or beta.',
+      fields: [
+        { key: 'api_key', label: 'API key', placeholder: 'API key', required: true, type: 'password', autoComplete: 'off' },
+      ],
+    };
+  }
+  return {
+    oauthProvider: OAUTH_PROVIDER[metadata.key] || null,
+    help: 'Authorize this account with the provider.',
+    fields: [],
+  };
+}
+
+function uiPlatform(metadata) {
+  const legacy = PLATFORMS[metadata.key] || {};
+  const declaredTypes = legacy.types || Object.keys(MEDIA_CAPABILITY);
+  const supportedTypes = declaredTypes.filter(type => {
+    const capability = MEDIA_CAPABILITY[type];
+    return capability && platformHasCapability(metadata, capability);
+  });
+  const label = metadata.titles?.en || legacy.label || metadata.key;
+  return {
+    ...metadata,
+    labels: {
+      default: label,
+      short: legacy.shortLabel || label,
+      fa: metadata.titles?.fa || label,
+      en: label,
+    },
+    authType: authTypeFor(metadata.auth_type),
+    capabilityStatuses: metadata.capabilities || {},
+    capabilities: supportedTypes,
+    color: legacy.color || '#64748B',
+    bg: legacy.bg || '#F1F5F9',
+    metrics: legacy.metrics || [],
+    maxText: legacy.maxText || 5000,
+    connection: connectionSchema(metadata),
+  };
+}
+
+function categoryOrderMap(categories = runtimeRegistry.categories) {
+  return Object.fromEntries(categories.map(item => [item.key, item.order ?? 999]));
+}
+
+export function getPlatformRegistry() {
+  const order = categoryOrderMap();
+  return runtimeRegistry.platforms
+    .map(uiPlatform)
+    .sort((a, b) => (order[a.category] ?? 999) - (order[b.category] ?? 999) || (a.order ?? 999) - (b.order ?? 999) || a.key.localeCompare(b.key));
+}
+
+export function hydratePlatformRegistry(payload = []) {
+  if (Array.isArray(payload)) {
+    publishRegistry({ ...runtimeRegistry, platforms: payload });
+  } else if (Array.isArray(payload?.categories) && Array.isArray(payload?.platforms)) {
+    publishRegistry(payload);
+  }
+  return getPlatformRegistry();
+}
+
+function fixtureCapabilities(types = []) {
+  const values = {
+    connection: 'supported', disconnect: 'supported', scheduling: 'supported',
+    publish_text: 'not_available', publish_image: 'not_available', publish_video: 'not_available',
+  };
+  for (const type of types) {
+    const capability = MEDIA_CAPABILITY[type];
+    if (capability) values[capability] = 'supported';
+  }
+  return values;
+}
+
+export function registerPlatform(platform) {
+  const previousRegistry = runtimeRegistry;
+  const previousLegacy = PLATFORMS[platform.key];
+  const hadLegacy = Object.prototype.hasOwnProperty.call(PLATFORMS, platform.key);
+  const authType = platform.authType || authTypeFor(platform.auth_type);
+  const raw = platform.titles ? platform : {
+    key: platform.key,
+    titles: {
+      fa: platform.labels?.fa || platform.labels?.default || platform.key,
+      en: platform.labels?.en || platform.labels?.default || platform.key,
+    },
+    category: platform.category || 'general_social',
+    order: platform.order ?? 999,
+    auth_type: authType === 'oauth' ? 'oauth2' : authType === 'api_credentials' ? 'api_key' : authType,
+    rollout_status: platform.rollout_status || 'experimental',
+    capabilities: Array.isArray(platform.capabilities)
+      ? fixtureCapabilities(platform.capabilities)
+      : (platform.capabilities || {}),
+  };
+
+  PLATFORMS[platform.key] = {
+    ...(previousLegacy || {}),
+    label: platform.labels?.default || raw.titles?.en || platform.key,
+    shortLabel: platform.labels?.short || platform.labels?.default || raw.titles?.en || platform.key,
+    color: platform.color || previousLegacy?.color || '#64748B',
+    bg: platform.bg || previousLegacy?.bg || '#F1F5F9',
+    maxText: platform.maxText || previousLegacy?.maxText || 5000,
+    types: Array.isArray(platform.capabilities) ? platform.capabilities : (previousLegacy?.types || []),
+    metrics: platform.metrics || previousLegacy?.metrics || [],
+  };
+  if (!PLATFORM_LIST.includes(platform.key)) PLATFORM_LIST.push(platform.key);
+
+  const categories = previousRegistry.categories.some(item => item.key === raw.category)
+    ? previousRegistry.categories
+    : [...previousRegistry.categories, {
+        key: raw.category,
+        order: platform.categoryOrder ?? 999,
+        title_fa: platform.categoryTitleFa || raw.category,
+        title_en: platform.categoryTitle || raw.category,
+      }];
+  publishRegistry({
+    categories,
+    platforms: [...previousRegistry.platforms.filter(item => item.key !== raw.key), raw],
+  });
+
+  return () => {
+    if (hadLegacy) PLATFORMS[platform.key] = previousLegacy;
+    else delete PLATFORMS[platform.key];
+    const index = PLATFORM_LIST.indexOf(platform.key);
+    if (!hadLegacy && index >= 0) PLATFORM_LIST.splice(index, 1);
+    publishRegistry(previousRegistry);
+  };
+}
+
+export function supportsMedia(platform, mediaType) {
+  return Boolean(platform?.capabilities?.includes(mediaType));
+}
+
+export function connectedPlatforms(metadata, status, mediaType) {
+  return (metadata || []).filter(item =>
+    status?.[item.key]?.status === 'active' && (!mediaType || supportsMedia(item, mediaType))
+  );
+}
+
+export async function getConnectionStatus(clientId) {
+  if (!clientId) return {};
+  const settled = await Promise.allSettled([
+    oauthAPI.status(clientId),
+    botChannelsAPI.status(clientId),
+  ]);
+  return settled.reduce((combined, result) => (
+    result.status === 'fulfilled' ? { ...combined, ...(result.value.data || {}) } : combined
+  ), {});
+}
+
+export function getOAuthUrl(platform, clientId) {
+  switch (platform?.connection?.oauthProvider) {
+    case 'facebook': return oauthAPI.facebookUrl(clientId);
+    case 'google': return oauthAPI.googleUrl(clientId, platform.key);
+    case 'linkedin': return oauthAPI.linkedinUrl(clientId);
+    default: return null;
+  }
 }
 
 export function usePlatformRegistry(capability = null) {
@@ -203,6 +381,17 @@ export function usePlatformRegistry(capability = null) {
     : value.platforms;
 
   return { categories: value.categories, platforms };
+}
+
+export function usePlatformUiRegistry(capability = null) {
+  const { categories, platforms } = usePlatformRegistry(capability);
+  const order = categoryOrderMap(categories);
+  return {
+    categories,
+    platforms: platforms
+      .map(uiPlatform)
+      .sort((a, b) => (order[a.category] ?? 999) - (order[b.category] ?? 999) || (a.order ?? 999) - (b.order ?? 999) || a.key.localeCompare(b.key)),
+  };
 }
 
 export const METRIC_LABELS = {
@@ -235,6 +424,8 @@ export function fmt(num) {
 
 export function getPlatformLabel(platform, { short = false } = {}) {
   const meta = PLATFORMS[platform];
-  if (!meta) return platform;
-  return short ? meta.shortLabel || meta.label : meta.label;
+  if (meta) return short ? meta.shortLabel || meta.label : meta.label;
+  const runtime = runtimeRegistry.platforms.find(item => item.key === platform);
+  if (!runtime) return platform;
+  return runtime.titles?.en || platform;
 }
