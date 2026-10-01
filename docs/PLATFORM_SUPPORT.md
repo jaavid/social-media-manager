@@ -15,7 +15,7 @@ Statuses: **supported** (generally available), **beta** (usable with limitations
 | Instagram | supported | supported | not_available | supported | supported | supported | supported | supported | supported | not_available | supported |
 | YouTube | supported | supported | not_available | not_available | supported | supported | supported | not_available | supported | not_available | beta |
 | LinkedIn | supported | supported | supported | supported | supported | supported | beta | not_available | beta | not_available | not_available |
-| Google My Business | supported | supported | supported | supported | not_available | supported | supported | not_available | not_available | supported | not_available |
+| Google Business Profile | supported | supported | supported | supported | not_available | supported | supported | not_available | not_available | supported | not_available |
 | Telegram | supported | supported | supported | supported | supported | supported | not_available | planned | not_available | not_available | planned |
 | Bale | supported | supported | supported | supported | supported | supported | not_available | planned | not_available | not_available | planned |
 | Eitaa | planned | planned | planned | planned | planned | planned | not_available | planned | not_available | not_available | planned |
