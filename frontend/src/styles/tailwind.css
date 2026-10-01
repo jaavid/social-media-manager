@@ -2,11 +2,8 @@
 
 /*
  * Tailwind/shadcn bridge.
- *
- * Keep the existing design-token system authoritative while the UI migrates
- * incrementally. New utility-based and shadcn components consume semantic
- * names that resolve to the current tokens, so the visual refactor does not
- * require a flag-day rewrite.
+ * Existing product tokens remain authoritative while shell primitives migrate
+ * to utility classes. This keeps the surface portable to Next.js later.
  */
 @theme inline {
   --color-background: var(--surface-page);
@@ -37,5 +34,58 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  /*
+   * Shell bridge for legacy components that still carry inline layout styles.
+   * These selectors intentionally only shape shared chrome. Feature pages keep
+   * their current styling and can migrate independently in later PRs.
+   */
+  .ds-module-rail {
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 94%, var(--brand-primary) 6%), var(--surface-card)) !important;
+    border-inline-end-color: var(--border-default) !important;
+    box-shadow: 1px 0 0 rgba(0, 0, 0, 0.01);
+  }
+
+  .ds-feature-sidebar {
+    background: color-mix(in srgb, var(--surface-card) 96%, var(--surface-sunken) 4%) !important;
+    border-inline-end-color: var(--border-default) !important;
+  }
+
+  .ds-feature-sidebar nav a,
+  .ds-feature-sidebar nav button {
+    border-radius: 12px !important;
+  }
+
+  .ds-topbar,
+  .ds-mobile-topbar {
+    box-shadow: 0 1px 0 color-mix(in srgb, var(--border-default) 70%, transparent);
+  }
+
+  .ds-mobile-topbar {
+    background: color-mix(in srgb, var(--surface-card) 92%, transparent) !important;
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+  }
+
+  .main-content {
+    background:
+      radial-gradient(circle at top left, color-mix(in srgb, var(--brand-primary) 4%, transparent), transparent 28rem),
+      var(--surface-page);
+  }
+
+  .ds-mobile-nav {
+    bottom: max(12px, env(safe-area-inset-bottom)) !important;
+    inset-inline: 12px !important;
+    width: auto !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    padding-bottom: 92px !important;
   }
 }
