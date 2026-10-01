@@ -1,13 +1,15 @@
-"""Canonical platform capability and integration dependency registry.
+"""Platform capability support matrix and public platform metadata.
 
-All product surfaces must derive from, or be checked against, this module.  A
-capability status is deliberately more expressive than a boolean: ``beta`` is
-usable but not generally available, while ``planned`` and ``not_available``
-must never be exposed as working UI.
+``social_stats.platforms.registry`` owns platform identity, labels, category and
+authentication metadata. This module owns support status and implementation
+dependencies. The public metadata endpoint combines both without exposing
+provider URLs, credentials, or implementation paths.
 """
 from __future__ import annotations
 
 from dataclasses import dataclass
+
+from .platforms.registry import CATEGORY_REGISTRY, PLATFORM_REGISTRY, PLATFORMS_BY_KEY
 
 
 CAPABILITIES = (
@@ -38,57 +40,68 @@ def _caps(**overrides: str) -> dict[str, str]:
     return values
 
 
+def _definition(key, capabilities, publisher=None, egress_service=None, connection_handler=None):
+    return PlatformDefinition(
+        key,
+        PLATFORMS_BY_KEY[key].title_en,
+        capabilities,
+        publisher,
+        egress_service,
+        connection_handler,
+    )
+
+
 PLATFORMS: dict[str, PlatformDefinition] = {
-    'facebook': PlatformDefinition('facebook', 'Facebook', _caps(
+    'facebook': _definition('facebook', _caps(
         connection='supported', disconnect='supported', publish_text='supported',
         publish_image='supported', publish_video='supported', scheduling='supported',
         analytics='supported', inbox='supported', comments='supported',
         reviews='not_available', webhooks='supported'),
         'social_stats.publishers.facebook.FacebookPublisher', 'meta',
         'social_stats.oauth_views.oauth_disconnect'),
-    'instagram': PlatformDefinition('instagram', 'Instagram', _caps(
+    'instagram': _definition('instagram', _caps(
         connection='supported', disconnect='supported', publish_text='not_available',
         publish_image='supported', publish_video='supported', scheduling='supported',
         analytics='supported', inbox='supported', comments='supported',
         reviews='not_available', webhooks='supported'),
         'social_stats.publishers.instagram.InstagramPublisher', 'meta',
         'social_stats.oauth_views.oauth_disconnect'),
-    'youtube': PlatformDefinition('youtube', 'YouTube', _caps(
+    'youtube': _definition('youtube', _caps(
         connection='supported', disconnect='supported', publish_video='supported',
         scheduling='supported', analytics='supported', comments='supported',
         webhooks='beta'), 'social_stats.publishers.youtube.YouTubePublisher', 'google',
         'social_stats.oauth_views.oauth_disconnect'),
-    'linkedin': PlatformDefinition('linkedin', 'LinkedIn', _caps(
+    'linkedin': _definition('linkedin', _caps(
         connection='supported', disconnect='supported', publish_text='supported',
         publish_image='supported', publish_video='supported', scheduling='supported',
         analytics='beta', comments='beta'),
         'social_stats.publishers.linkedin.LinkedInPublisher', 'linkedin',
         'social_stats.oauth_views.oauth_disconnect'),
-    'google_my_business': PlatformDefinition('google_my_business', 'Google My Business', _caps(
+    'google_my_business': _definition('google_my_business', _caps(
         connection='supported', disconnect='supported', publish_text='supported',
         publish_image='supported', scheduling='supported', analytics='supported',
         reviews='supported'), 'social_stats.publishers.gmb.GMBPublisher', 'google',
         'social_stats.oauth_views.oauth_disconnect'),
-    'telegram': PlatformDefinition('telegram', 'Telegram', _caps(
+    'telegram': _definition('telegram', _caps(
         connection='supported', disconnect='supported', publish_text='supported',
         publish_image='supported', publish_video='supported', scheduling='supported',
         analytics='not_available', inbox='planned', comments='not_available',
         reviews='not_available', webhooks='planned'),
         'social_stats.publishers.telegram.TelegramPublisher', 'telegram',
         'social_stats.bot_channel_views.bot_channel_connection'),
-    'bale': PlatformDefinition('bale', 'Bale', _caps(
+    'bale': _definition('bale', _caps(
         connection='supported', disconnect='supported', publish_text='supported',
         publish_image='supported', publish_video='supported', scheduling='supported',
         analytics='not_available', inbox='planned', comments='not_available',
         reviews='not_available', webhooks='planned'),
         'social_stats.publishers.bale.BalePublisher', 'bale',
         'social_stats.bot_channel_views.bot_channel_connection'),
-    'eitaa': PlatformDefinition('eitaa', 'Eitaa', _caps(
+    'eitaa': _definition('eitaa', _caps(
         connection='planned', disconnect='planned', publish_text='planned',
         publish_image='planned', publish_video='planned', scheduling='planned',
         analytics='not_available', inbox='planned', comments='not_available',
         reviews='not_available', webhooks='planned')),
-    'aparat': PlatformDefinition('aparat', 'Aparat', _caps(
+    'aparat': _definition('aparat', _caps(
         connection='planned', disconnect='planned', publish_video='planned',
         scheduling='planned', analytics='planned', comments='planned',
         webhooks='planned')),
@@ -96,11 +109,42 @@ PLATFORMS: dict[str, PlatformDefinition] = {
 
 
 def frontend_metadata() -> dict[str, dict]:
-    """Serializable subset consumed by the web application."""
+    """Serializable support-status subset used by the legacy frontend guard."""
     return {
         key: {'label': item.label, 'capabilities': item.capabilities}
         for key, item in PLATFORMS.items()
     }
+
+
+def public_registry() -> dict[str, list[dict]]:
+    """Return ordered, JSON-safe platform metadata without implementation details."""
+    categories = [
+        {'key': key, **metadata}
+        for key, metadata in sorted(
+            CATEGORY_REGISTRY.items(),
+            key=lambda item: item[1]['order'],
+        )
+    ]
+
+    per_category_order: dict[str, int] = {}
+    platforms = []
+    for catalogue in PLATFORM_REGISTRY:
+        per_category_order[catalogue.category] = per_category_order.get(catalogue.category, 0) + 1
+        support = PLATFORMS.get(catalogue.key)
+        capabilities = support.capabilities if support else _caps()
+        platforms.append({
+            'key': catalogue.key,
+            'titles': {'fa': catalogue.title_fa, 'en': catalogue.title_en},
+            'category': catalogue.category,
+            'order': per_category_order[catalogue.category] * 10,
+            'auth_type': catalogue.auth_type,
+            'rollout_status': catalogue.status,
+            'capabilities': capabilities,
+        })
+
+    category_order = {item['key']: item['order'] for item in categories}
+    platforms.sort(key=lambda item: (category_order[item['category']], item['order']))
+    return {'categories': categories, 'platforms': platforms}
 
 
 def markdown_matrix() -> str:
