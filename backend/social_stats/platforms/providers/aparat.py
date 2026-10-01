@@ -15,6 +15,18 @@ from social_stats.publishers.base import (
 )
 
 
+def _response_data(payload: dict) -> dict:
+    """Return Aparat's nested object payload or normalize malformed data."""
+    data = payload.get('data') or payload
+    if not isinstance(data, dict):
+        raise ProviderError(
+            'Aparat returned an invalid response',
+            code='invalid_response',
+            raw=payload,
+        )
+    return data
+
+
 class AparatClient:
     API_ORIGIN = 'https://www.aparat.com'
 
@@ -87,8 +99,14 @@ class AparatPublisher(BasePublisher):
         payload = AparatClient(credential.access_token).upload_video(
             video_url=video_url, title=title, description=content,
         )
-        data = payload.get('data') or payload
+        data = _response_data(payload)
         video_id = str(data.get('id') or data.get('video_id') or data.get('uid') or '')
+        if not video_id:
+            raise ProviderError(
+                'Aparat upload did not return a video identifier',
+                code='invalid_response',
+                raw=payload,
+            )
         return PublishResult(success=True, platform_post_id=video_id,
                              platform_url=data.get('url') or '', raw_response=payload)
 
@@ -109,7 +127,7 @@ class AparatProvider(BasePlatformProvider):
     def validate_credentials(self, credentials):
         token = str(credentials.get('token') or '').strip()
         profile = AparatClient(token).profile()
-        data = profile.get('data') or profile
+        data = _response_data(profile)
         return ConnectionResult(
             account_id=str(data.get('id') or data.get('username') or ''),
             account_name=data.get('display_name') or data.get('username') or '',
@@ -119,14 +137,14 @@ class AparatProvider(BasePlatformProvider):
 
     def sync_stats(self, credential, *, remote_id=''):
         payload = AparatClient(credential.access_token).video_stats(remote_id)
-        data = payload.get('data') or payload
+        data = _response_data(payload)
         keys = ('view_count', 'like_count', 'comment_count', 'duration')
         return StatsResult(metrics={key: data[key] for key in keys if key in data},
                            raw_response=payload)
 
     def processing_status(self, credential, remote_id: str) -> ProviderResult:
         payload = AparatClient(credential.access_token).processing_status(remote_id)
-        return ProviderResult(data=payload.get('data') or payload, raw_response=payload)
+        return ProviderResult(data=_response_data(payload), raw_response=payload)
 
     def revoke(self, credential):
         return ProviderResult(data={'remote_revocation': False})
