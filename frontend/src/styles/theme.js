@@ -62,11 +62,11 @@ export const spacing = {
 };
 
 export const typography = {
-  fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-  h1: { fontSize: 28, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.2 },
-  h2: { fontSize: 22, fontWeight: 700, letterSpacing: '-0.01em', lineHeight: 1.3 },
-  h3: { fontSize: 17, fontWeight: 700, lineHeight: 1.4 },
-  body: { fontSize: 14, fontWeight: 400, lineHeight: 1.6 },
-  caption: { fontSize: 12, fontWeight: 500, lineHeight: 1.4 },
-  small: { fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' },
+  fontFamily: "'Vazirmatn', Tahoma, Arial, sans-serif",
+  h1: { fontSize: 28, fontWeight: 800, letterSpacing: 0, lineHeight: 1.35 },
+  h2: { fontSize: 22, fontWeight: 700, letterSpacing: 0, lineHeight: 1.4 },
+  h3: { fontSize: 17, fontWeight: 700, lineHeight: 1.5 },
+  body: { fontSize: 14, fontWeight: 400, lineHeight: 1.75 },
+  caption: { fontSize: 12, fontWeight: 500, lineHeight: 1.6 },
+  small: { fontSize: 11, fontWeight: 600, letterSpacing: 0, textTransform: 'none' },
 };
