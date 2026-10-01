@@ -1,0 +1,56 @@
+name: Frontend foundation bootstrap
+
+on:
+  push:
+    branches:
+      - chore/frontend-foundation-vite-tailwind
+    paths:
+      - .github/workflows/frontend-foundation-bootstrap.yml
+
+permissions:
+  contents: write
+
+jobs:
+  refresh-and-validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: chore/frontend-foundation-vite-tailwind
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Refresh dependency lockfile
+        working-directory: frontend
+        run: npm install --no-audit --no-fund
+
+      - name: Build with Vite
+        working-directory: frontend
+        env:
+          CI: 'true'
+          REACT_APP_API_URL: /api
+        run: npm run build
+
+      - name: Run existing Jest suite
+        working-directory: frontend
+        env:
+          CI: 'true'
+        run: npm test
+
+      - name: Commit refreshed lockfile
+        run: |
+          if git diff --quiet -- frontend/package-lock.json; then
+            echo 'package-lock.json already up to date'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add frontend/package-lock.json
+          git commit -m 'build(frontend): refresh npm lockfile for Vite foundation'
+          git push
