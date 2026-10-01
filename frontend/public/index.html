@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fa" dir="rtl">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -16,6 +16,16 @@
     <link rel="apple-touch-icon" sizes="180x180" href="%PUBLIC_URL%/apple-touch-icon.png" />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
 
+    <!-- Persian is the product default for first-time visitors. A user's
+         explicit language choice in localStorage is always preserved. -->
+    <script>
+      try {
+        if (!window.localStorage.getItem('socialstats.language')) {
+          window.localStorage.setItem('socialstats.language', 'fa');
+        }
+      } catch (_) {}
+    </script>
+
     <!-- Preconnect to font + analytics origins so the connection is warm
          when the requests fire. dns-prefetch is the legacy fallback. -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -23,20 +33,19 @@
     <link rel="preconnect" href="https://plausible.io" />
     <link rel="dns-prefetch" href="https://plausible.io" />
 
-    <!-- Inter loaded async to avoid blocking first paint. The print/all
-         media swap is the standard "non-blocking stylesheet" trick:
-         CSS isn't applied during render but downloads in parallel, then
-         the onload swaps it to all media. <noscript> covers JS-disabled. -->
+    <!-- Vazirmatn is the primary product typeface. Load the complete practical
+         weight range once so the design system can use clear hierarchy without
+         synthetic browser weights. -->
     <link rel="preload"
           as="style"
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" />
+          href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" />
     <link rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap"
           media="print"
           onload="this.media='all'" />
     <noscript>
       <link rel="stylesheet"
-            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" />
+            href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" />
     </noscript>
 
     <!-- iOS splash screens -->
