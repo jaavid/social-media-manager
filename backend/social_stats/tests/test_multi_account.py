@@ -1,7 +1,11 @@
+from datetime import date
+from unittest.mock import patch
+
 from django.test import TestCase
 
-from social_stats.models import Client, PlatformCredential, SocialAccount
+from social_stats.models import Client, DailyMetric, PlatformCredential, SocialAccount
 from social_stats.oauth_views import _save_credential
+from social_stats.tasks import sync_all
 
 
 class MultiAccountCredentialTests(TestCase):
@@ -45,3 +49,44 @@ class MultiAccountCredentialTests(TestCase):
         fields = {field.name for field in SocialAccount._meta.fields}
         self.assertNotIn('access_token', fields)
         self.assertNotIn('refresh_token', fields)
+
+    def test_metrics_for_two_accounts_do_not_overwrite_each_other(self):
+        first = SocialAccount.objects.create(
+            client=self.workspace, platform='youtube', external_id='channel-a',
+        )
+        second = SocialAccount.objects.create(
+            client=self.workspace, platform='youtube', external_id='channel-b',
+        )
+
+        DailyMetric.objects.create(
+            client=self.workspace, platform='youtube', social_account=first,
+            date=date(2026, 10, 1), video_views=10,
+        )
+        DailyMetric.objects.create(
+            client=self.workspace, platform='youtube', social_account=second,
+            date=date(2026, 10, 1), video_views=20,
+        )
+
+        self.assertEqual(DailyMetric.objects.count(), 2)
+
+    @patch('social_stats.tasks.sync_youtube.delay')
+    def test_batch_sync_targets_every_credential(self, delay):
+        for suffix in ('a', 'b'):
+            account = SocialAccount.objects.create(
+                client=self.workspace, platform='youtube', external_id=f'channel-{suffix}',
+            )
+            PlatformCredential.objects.create(
+                client=self.workspace, platform='youtube', social_account=account,
+                access_token=f'token-{suffix}',
+            )
+
+        sync_all('youtube')
+
+        calls = {
+            (call.args[0], call.kwargs['credential_id'])
+            for call in delay.call_args_list
+        }
+        self.assertEqual(
+            calls,
+            {(self.workspace.id, credential.id) for credential in PlatformCredential.objects.all()},
+        )

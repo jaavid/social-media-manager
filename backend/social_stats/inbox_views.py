@@ -79,6 +79,8 @@ class ConversationViewSet(TenantScopedMixin, viewsets.ReadOnlyModelViewSet):
         # Common list filters
         if params.get('platform'):
             qs = qs.filter(platform=params['platform'])
+        if params.get('social_account'):
+            qs = qs.filter(social_account_id=params['social_account'])
         if params.get('type'):
             qs = qs.filter(type=params['type'])
         if params.get('sentiment'):
@@ -199,7 +201,8 @@ class ConversationViewSet(TenantScopedMixin, viewsets.ReadOnlyModelViewSet):
 
         # Resolve credentials + the originating message we're replying to.
         cred = PlatformCredential.objects.filter(
-            client_id=conv.client_id, platform=conv.platform, is_active=True,
+            client_id=conv.client_id, platform=conv.platform,
+            social_account_id=conv.social_account_id, is_active=True,
         ).first()
         if not cred:
             return Response({'detail': f'No active {conv.platform} credential'}, status=400)
@@ -314,7 +317,8 @@ class UnifiedReviewViewSet(TenantScopedMixin, viewsets.ReadOnlyModelViewSet):
             return Response({'detail': 'text is required'}, status=400)
 
         cred = PlatformCredential.objects.filter(
-            client_id=review.client_id, platform=review.platform, is_active=True,
+            client_id=review.client_id, platform=review.platform,
+            social_account_id=review.social_account_id, is_active=True,
         ).first()
         if not cred:
             return Response({'detail': f'No active {review.platform} credential'}, status=400)

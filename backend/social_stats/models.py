@@ -406,6 +406,7 @@ class ManualCredentialExtras(models.Model):
 # ── Daily Aggregated Metrics ───────────────────────────────────────────────────
 class DailyMetric(models.Model):
     client    = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='metrics')
+    social_account = models.ForeignKey(SocialAccount, on_delete=models.CASCADE, related_name='metrics', null=True, blank=True)
     platform  = models.CharField(max_length=30, choices=PLATFORM_CHOICES)
     date      = models.DateField()
 
@@ -462,7 +463,7 @@ class DailyMetric(models.Model):
     synced_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ('client', 'platform', 'date')
+        unique_together = ('client', 'platform', 'social_account', 'date')
         ordering = ['-date']
         indexes = [
             models.Index(fields=['client', 'platform', 'date']),
@@ -475,6 +476,7 @@ class DailyMetric(models.Model):
 # ── Per-Post Metrics (Instagram / Facebook) ───────────────────────────────────
 class PostMetric(models.Model):
     client        = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='post_metrics')
+    social_account = models.ForeignKey(SocialAccount, on_delete=models.CASCADE, related_name='post_metrics', null=True, blank=True)
     platform      = models.CharField(max_length=30, choices=PLATFORM_CHOICES)
     post_id       = models.CharField(max_length=300)
     post_url      = models.TextField(blank=True)
@@ -495,7 +497,7 @@ class PostMetric(models.Model):
     synced_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ('client', 'platform', 'post_id')
+        unique_together = ('client', 'platform', 'social_account', 'post_id')
         ordering = ['-published_at']
 
 
@@ -855,6 +857,7 @@ class ROIReport(models.Model):
 # ── Sync Log ──────────────────────────────────────────────────────────────────
 class SyncLog(models.Model):
     client         = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='sync_logs', null=True)
+    social_account = models.ForeignKey(SocialAccount, on_delete=models.SET_NULL, related_name='sync_logs', null=True, blank=True)
     platform       = models.CharField(max_length=30, choices=PLATFORM_CHOICES)
     status         = models.CharField(max_length=20, choices=SYNC_STATUS, default='pending')
     records_synced = models.IntegerField(default=0)
@@ -1868,6 +1871,7 @@ class PlatformPublishLog(models.Model):
     """One row per (UnifiedPost × target platform) — tracks per-platform outcome."""
     unified_post       = models.ForeignKey(UnifiedPost, on_delete=models.CASCADE, related_name='publish_logs')
     platform           = models.CharField(max_length=30, choices=PLATFORM_CHOICES)
+    social_account     = models.ForeignKey(SocialAccount, on_delete=models.SET_NULL, related_name='publish_logs', null=True, blank=True)
     status             = models.CharField(max_length=20, choices=PUBLISH_LOG_STATUS_CHOICES, default='pending')
     platform_post_id   = models.CharField(max_length=300, blank=True, db_index=True)
     platform_url       = models.URLField(blank=True)
@@ -1952,6 +1956,7 @@ class Conversation(models.Model):
     """A thread on any platform — DM, comment thread, mention, or review."""
     client              = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='conversations')
     platform            = models.CharField(max_length=30, choices=PLATFORM_CHOICES)
+    social_account      = models.ForeignKey(SocialAccount, on_delete=models.SET_NULL, related_name='conversations', null=True, blank=True)
     platform_thread_id  = models.CharField(max_length=300, db_index=True)
     type                = models.CharField(max_length=20, choices=CONVERSATION_TYPE_CHOICES, default='comment')
     contact_name        = models.CharField(max_length=200, blank=True)
@@ -1973,7 +1978,7 @@ class Conversation(models.Model):
     updated_at          = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ('client', 'platform', 'platform_thread_id')
+        unique_together = ('client', 'platform', 'social_account', 'platform_thread_id')
         ordering = ['-last_message_at']
         indexes = [
             models.Index(fields=['client', '-last_message_at']),
@@ -2022,6 +2027,7 @@ class UnifiedReview(models.Model):
     """
     client              = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='unified_reviews')
     platform            = models.CharField(max_length=30, choices=PLATFORM_CHOICES, default='google_my_business')
+    social_account      = models.ForeignKey(SocialAccount, on_delete=models.SET_NULL, related_name='reviews', null=True, blank=True)
     platform_review_id  = models.CharField(max_length=300, db_index=True)
     reviewer_name       = models.CharField(max_length=200, blank=True)
     reviewer_avatar_url = models.URLField(blank=True)
@@ -2037,7 +2043,7 @@ class UnifiedReview(models.Model):
     synced_at           = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ('client', 'platform', 'platform_review_id')
+        unique_together = ('client', 'platform', 'social_account', 'platform_review_id')
         ordering = ['-created_at_platform']
         indexes = [
             models.Index(fields=['client', 'status']),

@@ -305,8 +305,11 @@ export const clientsAPI = {
   summary:     (id, params) => api.get(`/clients/${id}/summary/`, { params }),
   timeseries:  (id, params) => api.get(`/clients/${id}/timeseries/`, { params }),
   posts:       (id, params) => api.get(`/clients/${id}/posts/`, { params }),
-  triggerSync: (id, platforms) => api.post(`/clients/${id}/trigger_sync/`, { platforms }),
-  syncStatus:  (id)         => api.get(`/clients/${id}/sync_status/`),
+  triggerSync: (id, platforms, socialAccountIds) => api.post(`/clients/${id}/trigger_sync/`, {
+    platforms,
+    ...(socialAccountIds ? { social_account_ids: socialAccountIds } : {}),
+  }),
+  syncStatus:  (id, params) => api.get(`/clients/${id}/sync_status/`, { params }),
   syncAll:     ()           => api.post('/admin/sync-all/'),
 };
 

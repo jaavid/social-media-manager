@@ -350,6 +350,9 @@ class ClientViewSet(viewsets.ModelViewSet):
         qs = DailyMetric.objects.filter(client=client, date__range=(since, until))
         if platform and platform != 'all':
             qs = qs.filter(platform=platform)
+        social_account_id = request.query_params.get('social_account')
+        if social_account_id:
+            qs = qs.filter(social_account_id=social_account_id)
 
         agg = qs.aggregate(
             total_impressions=Sum('impressions'),
@@ -417,6 +420,9 @@ class ClientViewSet(viewsets.ModelViewSet):
         ).order_by('date')
         if platform and platform != 'all':
             qs = qs.filter(platform=platform)
+        social_account_id = request.query_params.get('social_account')
+        if social_account_id:
+            qs = qs.filter(social_account_id=social_account_id)
 
         return Response(DailyMetricSerializer(qs, many=True).data)
 
@@ -438,17 +444,12 @@ class ClientViewSet(viewsets.ModelViewSet):
         )
         if platform and platform != 'all':
             qs = qs.filter(platform=platform)
+        social_account_id = request.query_params.get('social_account')
+        if social_account_id:
+            qs = qs.filter(social_account_id=social_account_id)
 
         total = qs.count()
         posts = list(PostMetricSerializer(qs[offset:offset + limit], many=True).data)
-
-        # Attach account name from stored credentials
-        creds = {
-            c.platform: c.page_name or c.channel_name or c.organization_name
-            for c in PlatformCredential.objects.filter(client=client)
-        }
-        for post in posts:
-            post['account_name'] = creds.get(post['platform'], '')
 
         return Response({
             'results': posts,
@@ -469,14 +470,22 @@ class ClientViewSet(viewsets.ModelViewSet):
             'youtube': sync_youtube, 'linkedin': sync_linkedin,
             'google_my_business': sync_gmb,
         }
+        requested_accounts = request.data.get('social_account_ids')
+        credentials = PlatformCredential.objects.filter(
+            client=client, platform__in=platforms, is_active=True,
+        ).exclude(access_token='').select_related('social_account')
+        if requested_accounts is not None:
+            credentials = credentials.filter(social_account_id__in=requested_accounts)
+
         queued = []
-        for p in platforms:
-            has_cred = PlatformCredential.objects.filter(
-                client=client, platform=p, is_active=True
-            ).exclude(access_token='').exists()
-            if has_cred and p in task_map:
-                task_map[p].delay(client.id)
-                queued.append(p)
+        for credential in credentials:
+            task = task_map.get(credential.platform)
+            if task:
+                task.delay(client.id, credential_id=credential.id)
+                queued.append({
+                    'platform': credential.platform,
+                    'social_account_id': credential.social_account_id,
+                })
 
         return Response({'queued': queued})
 
@@ -485,7 +494,10 @@ class ClientViewSet(viewsets.ModelViewSet):
         if not check_client_access(request, pk):
             return Response({'error': 'Access denied'}, status=403)
 
-        logs = SyncLog.objects.filter(client_id=pk).order_by('-started_at')[:20]
+        logs = SyncLog.objects.filter(client_id=pk)
+        if request.query_params.get('social_account'):
+            logs = logs.filter(social_account_id=request.query_params['social_account'])
+        logs = logs.order_by('-started_at')[:20]
         return Response(SyncLogSerializer(logs, many=True).data)
 
 
@@ -566,6 +578,8 @@ class SyncLogViewSet(viewsets.ReadOnlyModelViewSet):
         qs = SyncLog.objects.select_related('client').filter(client_id__in=client_ids)
         if client_id:
             qs = qs.filter(client_id=client_id)
+        if self.request.query_params.get('social_account'):
+            qs = qs.filter(social_account_id=self.request.query_params['social_account'])
         return qs.order_by('-started_at')[:100]
 
 
@@ -1179,15 +1193,18 @@ def sync_all_clients(request):
 
     active_creds = PlatformCredential.objects.filter(
         is_active=True, client_id__in=client_ids
-    ).exclude(access_token='').values('client_id', 'platform').distinct()
+    ).exclude(access_token='').values('id', 'client_id', 'platform', 'social_account_id')
 
     queued = {}
     for row in active_creds:
         cid = row['client_id']
-        p   = row['platform']
+        p = row['platform']
         if p in task_map:
-            task_map[p].delay(cid)
-            queued.setdefault(cid, []).append(p)
+            task_map[p].delay(cid, credential_id=row['id'])
+            queued.setdefault(cid, []).append({
+                'platform': p,
+                'social_account_id': row['social_account_id'],
+            })
 
     return Response({'queued_clients': len(queued), 'detail': queued})
 
