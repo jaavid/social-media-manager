@@ -32,6 +32,7 @@ LINKEDIN_SCOPES = ['openid', 'profile', 'email']
 
 
 def _provider(required: dict[str, object], *, redirect_key: str, scopes: list[str], required_apis: list[str]):
+    """Build a secret-free readiness payload from required setting values."""
     missing = [name for name, value in required.items() if not str(value or '').strip()]
     return {
         'configured': not missing,
