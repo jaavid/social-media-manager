@@ -67,7 +67,10 @@ before outbound publishing. Posts without an attributable publishing actor or cr
 system producers should supply an authorized creator. Approved posts still need
 current action permission. The publication requester is persisted separately
 from the original author so an authorized owner can publish an editor draft.
-Scheduled delivery also requires current publish permission. Editors cannot approve their own requests; approving
+Scheduled delivery requires both current publish and schedule permissions.
+Queue items retain their requester when materialized into posts; legacy queue
+items without an attributable requester remain blocked until verified.
+Stale worker jobs skip drafts/cancelled publications after edit invalidation. Editors cannot approve their own requests; approving
 posts requires `approve_posts`, with the legacy `composer.approve` mapping.
 Changing a reviewed post clears review markers and the prior publication
 requester, and returns scheduled/queued/pending posts to draft. Delegated
@@ -106,7 +109,7 @@ Organization changes write audit entries to every active managed workspace.
 
 ## Validation and rollout
 
-Run migrations 0070–0072, then deploy backend and frontend together. Database
+Run migrations 0070–0073, then deploy backend and frontend together. Database
 schema changes are additive except nullable approval relation. Do not delete the
 legacy authorization tables. No presets are applied automatically. The seed
 migration uses an immutable snapshot and preserves referenced/customized

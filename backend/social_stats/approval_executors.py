@@ -67,12 +67,13 @@ def _exec_publish_post(approval) -> tuple[bool, str, dict]:
     if post.status not in ('draft', 'scheduled', 'failed', 'partial', 'pending_approval'):
         return (False, f'post is in status {post.status}; cannot publish', {'post_id': post.id})
 
+    post.publish_action = 'publish_posts'
     post.publish_requested_by = approval.requested_by
     post.approved_by = approval.decided_by
     post.approved_at = timezone.now()
     post.status = 'queued'
     post.scheduled_at = timezone.now()
-    post.save(update_fields=['status', 'scheduled_at', 'approved_by', 'approved_at', 'publish_requested_by'])
+    post.save(update_fields=['status', 'scheduled_at', 'approved_by', 'approved_at', 'publish_requested_by', 'publish_action'])
     publish_unified_post.delay(post.id)
     return (True, 'queued for publishing', {'post_id': post.id})
 
@@ -300,10 +301,11 @@ def _exec_schedule_post(approval):
         return False, 'post missing or schedule is no longer in the future', {}
     post.status = 'scheduled'
     post.scheduled_at = when
+    post.publish_action = 'schedule_posts'
     post.publish_requested_by = approval.requested_by
     post.approved_by = approval.decided_by
     post.approved_at = timezone.now()
-    post.save(update_fields=['status', 'scheduled_at', 'approved_by', 'approved_at', 'publish_requested_by'])
+    post.save(update_fields=['status', 'scheduled_at', 'approved_by', 'approved_at', 'publish_requested_by', 'publish_action'])
     return True, 'scheduled', {'post_id': post.pk}
 
 

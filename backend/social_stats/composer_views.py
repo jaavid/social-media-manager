@@ -216,7 +216,8 @@ class UnifiedPostViewSet(TenantScopedMixin, viewsets.ModelViewSet):
         if verdict == 'denied':
             return deny_response(ctx['reason'])
         post.publish_requested_by = request.user
-        post.save(update_fields=['publish_requested_by'])
+        post.publish_action = 'publish_posts'
+        post.save(update_fields=['publish_requested_by', 'publish_action'])
         if verdict == 'approval_required':
             post.status = 'pending_approval'
             post.save(update_fields=['status'])
@@ -276,7 +277,8 @@ class UnifiedPostViewSet(TenantScopedMixin, viewsets.ModelViewSet):
         if verdict == 'denied':
             return deny_response(ctx['reason'])
         post.publish_requested_by = request.user
-        post.save(update_fields=['publish_requested_by'])
+        post.publish_action = 'schedule_posts'
+        post.save(update_fields=['publish_requested_by', 'publish_action'])
         if verdict == 'approval_required':
             return approval_pending_response(ctx['approval'])
         post.scheduled_at = dt
@@ -347,8 +349,11 @@ class UnifiedPostViewSet(TenantScopedMixin, viewsets.ModelViewSet):
         queue = PostQueue.objects.filter(id=queue_id, client_id=post.client_id).first()
         if not queue:
             return Response({'detail': 'Queue not found in this tenant'}, status=404)
+        from .authorization import evaluate
+        if not evaluate(request.user, post.client, 'schedule_posts').allowed:
+            return deny_response('Permission denied: schedule_posts')
         item = QueuedItem.objects.create(
-            queue=queue,
+            queue=queue, requested_by=request.user,
             content=post.content,
             media_urls=list(post.media_urls or []),
             sort_order=(queue.items.count() + 1),
@@ -449,6 +454,9 @@ class PostQueueViewSet(TenantScopedMixin, viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def add_items(self, request, pk=None):
         queue = self.get_object()
+        from .authorization import evaluate
+        if not evaluate(request.user, queue.client, 'schedule_posts').allowed:
+            return deny_response('Permission denied: schedule_posts')
         items = request.data.get('items') or []
         if not isinstance(items, list) or not items:
             return Response({'detail': 'items must be a non-empty list of {content, media_urls?, hashtags?}'}, status=400)
@@ -457,7 +465,7 @@ class PostQueueViewSet(TenantScopedMixin, viewsets.ModelViewSet):
         created = []
         for entry in items:
             qi = QueuedItem.objects.create(
-                queue=queue,
+                queue=queue, requested_by=request.user,
                 content=(entry or {}).get('content', ''),
                 media_urls=(entry or {}).get('media_urls') or [],
                 hashtags=(entry or {}).get('hashtags') or [],

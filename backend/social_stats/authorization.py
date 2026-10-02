@@ -265,8 +265,13 @@ def post_decision(post, user=None, action="publish_posts"):
         return Decision(
             False, reason="target account is outside this workspace or platform"
         )
-    decisions = [evaluate(actor, post.client, action, account=a) for a in accounts] or [
-        evaluate(actor, post.client, action)
+    actions = [action]
+    if action == "publish_posts" and post.publish_action == "schedule_posts":
+        actions.append("schedule_posts")
+    decisions = [
+        evaluate(actor, post.client, key, account=account)
+        for key in actions
+        for account in (accounts or [None])
     ]
     return Decision(
         all(d.allowed for d in decisions),

@@ -1835,6 +1835,7 @@ class MediaAsset(models.Model):
 class UnifiedPost(models.Model):
     """A post composed in Social Stats, fanned out to one or more platforms."""
     client            = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='unified_posts')
+    publish_action = models.CharField(max_length=20, default='publish_posts', choices=[('publish_posts', 'Publish'), ('schedule_posts', 'Schedule')])
     publish_requested_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='requested_post_publications')
     created_by        = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='created_unified_posts')
     title             = models.CharField(max_length=200, blank=True, help_text='Optional internal label')
@@ -1934,6 +1935,7 @@ class PostQueue(models.Model):
 
 class QueuedItem(models.Model):
     """A pre-written post sitting in a PostQueue waiting to be dispatched."""
+    requested_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='requested_queue_items')
     queue        = models.ForeignKey(PostQueue, on_delete=models.CASCADE, related_name='items')
     content      = models.TextField(blank=True)
     media_urls   = models.JSONField(default=list, blank=True)

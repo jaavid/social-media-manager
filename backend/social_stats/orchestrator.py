@@ -57,7 +57,7 @@ def publish_unified_post(self, unified_post_id: int):
         logger.warning('publish_unified_post: post %s not found', unified_post_id)
         return
 
-    if post.status not in ('draft', 'scheduled', 'queued', 'pending_approval', 'partial', 'failed'):
+    if post.status not in ('scheduled', 'queued', 'pending_approval', 'partial', 'failed'):
         logger.info('publish_unified_post: post %s already in status %s — skipping',
                     unified_post_id, post.status)
         return
@@ -101,6 +101,13 @@ def publish_to_platform(self, unified_post_id: int, platform: str):
     try:
         post = UnifiedPost.objects.select_related('client').get(id=unified_post_id)
     except UnifiedPost.DoesNotExist:
+        return
+
+    if post.status in ('draft', 'scheduled', 'queued', 'pending_approval', 'cancelled', 'published'):
+        if post.status != 'published':
+            stale_log = PlatformPublishLog.objects.filter(unified_post=post, platform=platform, status__in=['pending', 'publishing']).first()
+            if stale_log:
+                _mark_failed(stale_log, code='publication_invalidated', message='Publication intent is no longer active')
         return
 
     log, _ = PlatformPublishLog.objects.get_or_create(unified_post=post, platform=platform, defaults={'status': 'pending'})

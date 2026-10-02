@@ -589,3 +589,72 @@ class RBACPolicyTests(TestCase):
         self.assertNotIn(
             outsider.pk, [args.args[0].pk for args in resolve.call_args_list]
         )
+
+    @patch("social_stats.orchestrator.publish_to_platform.delay")
+    def test_stale_fanout_task_does_not_publish_invalidated_draft(self, fanout):
+        from social_stats.orchestrator import publish_unified_post
+
+        post = UnifiedPost.objects.create(
+            client=self.workspace,
+            created_by=self.owner,
+            status="draft",
+            target_platforms=["facebook"],
+        )
+        publish_unified_post(post.pk)
+        fanout.assert_not_called()
+        post.refresh_from_db()
+        self.assertEqual(post.status, "draft")
+
+    def test_stale_platform_task_closes_pending_log_without_publishing_draft(self):
+        from social_stats.models import PlatformPublishLog
+        from social_stats.orchestrator import publish_to_platform
+
+        post = UnifiedPost.objects.create(
+            client=self.workspace,
+            created_by=self.owner,
+            status="draft",
+            target_platforms=["facebook"],
+        )
+        log = PlatformPublishLog.objects.create(
+            unified_post=post, platform="facebook", status="pending"
+        )
+        publish_to_platform(post.pk, "facebook")
+        log.refresh_from_db()
+        post.refresh_from_db()
+        self.assertEqual(log.error_code, "publication_invalidated")
+        self.assertEqual(post.status, "draft")
+
+    @patch("social_stats.scheduler.publish_unified_post.delay")
+    def test_queue_materialization_preserves_requester_and_schedule_policy(
+        self, enqueue
+    ):
+        from social_stats.models import PostQueue, QueuedItem
+        from social_stats.scheduler import _dispatch_queued_item
+        from social_stats.authorization import post_decision
+
+        queue = PostQueue.objects.create(
+            client=self.workspace, name="Queue", platforms=["facebook"]
+        )
+        item = QueuedItem.objects.create(
+            queue=queue, content="Queued content", requested_by=self.actor
+        )
+        _dispatch_queued_item(queue, item)
+        item.refresh_from_db()
+        self.assertEqual(item.unified_post.publish_requested_by, self.actor)
+        self.assertEqual(item.unified_post.publish_action, "schedule_posts")
+        self.policy(permissions={"publish_posts": True, "schedule_posts": False})
+        self.assertFalse(post_decision(item.unified_post).allowed)
+
+    def test_queue_add_items_records_authorized_requester(self):
+        from social_stats.models import PostQueue
+
+        queue = PostQueue.objects.create(
+            client=self.workspace, name="Queue", platforms=["facebook"]
+        )
+        response = self.api.post(
+            f"/api/composer/queues/{queue.pk}/add_items/",
+            {"items": [{"content": "Queued content"}]},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(queue.items.get().requested_by, self.owner)

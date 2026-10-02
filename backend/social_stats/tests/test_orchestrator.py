@@ -50,7 +50,7 @@ class OrchestratorTests(TestCase):
             content='hello world',
             media_type='text',
             target_platforms=['facebook', 'instagram'],
-            status='draft',
+            status='queued',
         )
         defaults.update(kwargs)
         return UnifiedPost.objects.create(**defaults)
