@@ -25,7 +25,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 
-from .models import PlatformCredential, Client
+from .models import PlatformCredential, Client, SyncLog
 from django.contrib.auth.models import User
 from .marketplace_permissions import (
     resolve_acting_context, check_action, deny_response, approval_pending_response,
@@ -724,6 +724,15 @@ def oauth_status(request, client_id):
         ('google_my_business', 'Google My Business'),
     ]:
         cred = credentials.filter(platform=platform).first()
+        last_sync = SyncLog.objects.filter(
+            client_id=client_id,
+            platform=platform,
+            status='success',
+        ).order_by('-finished_at', '-started_at').first()
+        last_successful_sync = (
+            (last_sync.finished_at or last_sync.started_at).isoformat()
+            if last_sync else None
+        )
         if cred and cred.access_token:
             # Auto-refresh expired Google tokens silently
             if cred.is_expired and cred.refresh_token:
@@ -736,9 +745,13 @@ def oauth_status(request, client_id):
                 'connected_at': cred.connected_at.isoformat(),
                 'expires_at':   cred.expires_at.isoformat() if cred.expires_at else None,
                 'account_name': cred.page_name or cred.channel_name or cred.organization_name or '',
+                'last_successful_sync': last_successful_sync,
             }
         else:
-            result[platform] = {'status': 'not_connected'}
+            result[platform] = {
+                'status': 'not_connected',
+                'last_successful_sync': last_successful_sync,
+            }
 
     return Response(result)
 

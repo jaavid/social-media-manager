@@ -7,6 +7,7 @@
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { invalidateSession, refreshAccessToken } from '../lib/auth/session';
 
 /**
  * Real-time event bus over WebSocket.
@@ -117,14 +118,27 @@ export function RealtimeProvider({ children }) {
       } catch {}
     };
 
-    ws.onclose = (e) => {
-      if (pingTimer.current) { clearInterval(pingTimer.current); pingTimer.current = null; }
-      wsRef.current = null;
-      setStatus('closed');
-      // 4401 = auth required (token missing/invalid). Don't auto-retry.
-      if (e.code === 4401 || e.code === 4403) return;
-      scheduleReconnect();
-    };
+    ws.onclose = async (e) => {
+    if (pingTimer.current) { clearInterval(pingTimer.current); pingTimer.current = null; }
+    wsRef.current = null;
+    setStatus('closed');
+
+    // 4401 means the access token is missing or expired. Coordinate the
+    // refresh with HTTP callers/tabs, then reconnect with the new JWT.
+    if (e.code === 4401) {
+      try {
+        await refreshAccessToken();
+        attempt.current = 0;
+        connect();
+      } catch {
+        invalidateSession();
+      }
+      return;
+    }
+    // 4403 is authorization failure, not an expired session.
+    if (e.code === 4403) return;
+    scheduleReconnect();
+  };
 
     ws.onerror = () => {
       // onclose will follow; reconnect logic lives there.

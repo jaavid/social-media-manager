@@ -7,26 +7,14 @@
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
 import axios from 'axios';
+import { invalidateSession, onSessionInvalidated, refreshAccessToken } from '../lib/auth/session';
+
+export { invalidateSession, onSessionInvalidated };
 
 const api = axios.create({
   baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8000/api',
   headers: { 'Content-Type': 'application/json' },
 });
-
-// Authentication is process-wide, so refresh coordination must be process-wide too.
-// Consumers use this signal to stop pollers before navigation can render again.
-const sessionInvalidationListeners = new Set();
-let refreshPromise = null;
-
-export function onSessionInvalidated(listener) {
-  sessionInvalidationListeners.add(listener);
-  return () => sessionInvalidationListeners.delete(listener);
-}
-
-export function invalidateSession() {
-  try { localStorage.clear(); } catch {}
-  sessionInvalidationListeners.forEach((listener) => listener());
-}
 
 // Attach JWT token to every request
 api.interceptors.request.use((config) => {
@@ -75,16 +63,7 @@ api.interceptors.response.use(
     }
 
     try {
-      if (!refreshPromise) {
-        refreshPromise = axios.post(
-          `${process.env.REACT_APP_API_URL || 'http://localhost:8000/api'}/auth/refresh/`,
-          { refresh }
-        ).then((res) => {
-          localStorage.setItem('access_token', res.data.access);
-          return res.data.access;
-        }).finally(() => { refreshPromise = null; });
-      }
-      const access = await refreshPromise;
+      const access = await refreshAccessToken();
       original.headers.Authorization = `Bearer ${access}`;
       return api(original);
     } catch {

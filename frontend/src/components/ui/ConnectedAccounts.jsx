@@ -168,7 +168,7 @@ export default function ConnectedAccounts({ clientId, status, onRefresh }) {
   };
 
   const copyCallback = async (value) => {
-    if (!value || !navigator?.clipboard) return;
+    if (!value || typeof navigator === 'undefined' || !navigator.clipboard) return;
     await navigator.clipboard.writeText(value);
   };
 
