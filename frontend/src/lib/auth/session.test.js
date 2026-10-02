@@ -3,6 +3,8 @@ import { invalidateSession, refreshAccessToken } from './session';
 
 jest.mock('axios');
 
+const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
 describe('auth session coordinator', () => {
   beforeEach(() => {
     localStorage.clear();
@@ -22,6 +24,8 @@ describe('auth session coordinator', () => {
 
     const first = refreshAccessToken('access-old');
     const second = refreshAccessToken('access-old');
+
+    await wait(60);
     expect(axios.post).toHaveBeenCalledTimes(1);
 
     resolveRefresh({ data: { access: 'access-new', refresh: 'refresh-new' } });
@@ -49,7 +53,6 @@ describe('auth session coordinator', () => {
     expect(axios.post).not.toHaveBeenCalled();
   });
 
-  // Regression coverage for browsers that do not implement navigator.locks.
   test('reuses a token refreshed by another tab when Web Locks are unavailable', async () => {
     localStorage.setItem('access_token', 'access-old');
     localStorage.setItem('refresh_token', 'refresh-old');
@@ -79,6 +82,21 @@ describe('auth session coordinator', () => {
 
     await expect(refreshAccessToken('access-old')).resolves.toBe('access-newer');
     expect(localStorage.getItem('refresh_token')).toBe('refresh-newer');
+  });
+
+  test('waits for a competing fallback refresh before treating rejection as terminal', async () => {
+    localStorage.setItem('access_token', 'access-old');
+    localStorage.setItem('refresh_token', 'refresh-old');
+    axios.post.mockImplementation(async () => {
+      setTimeout(() => {
+        localStorage.setItem('access_token', 'access-winner');
+        localStorage.setItem('refresh_token', 'refresh-winner');
+      }, 30);
+      throw new Error('rotated token rejected');
+    });
+
+    await expect(refreshAccessToken('access-old')).resolves.toBe('access-winner');
+    expect(localStorage.getItem('refresh_token')).toBe('refresh-winner');
   });
 
   test('rejects when refresh fails and no newer session exists', async () => {
