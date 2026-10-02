@@ -1,0 +1,241 @@
+name: Batch B one-shot patch v2
+
+on:
+  push:
+    branches:
+      - feat/connected-accounts-batch-b
+    paths:
+      - .github/workflows/batch-b-one-shot-v2.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/connected-accounts-batch-b
+          fetch-depth: 0
+
+      - name: Apply source patches
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          # HTTP auth: replace the api.js-local refresh coordinator with the shared
+          # session coordinator. This also persists rotated refresh tokens.
+          path = Path('frontend/src/services/api.js')
+          text = path.read_text()
+          text = text.replace(
+              "import axios from 'axios';\n",
+              "import axios from 'axios';\n"
+              "import { invalidateSession, onSessionInvalidated, refreshAccessToken } from '../lib/auth/session';\n\n"
+              "export { invalidateSession, onSessionInvalidated };\n",
+              1,
+          )
+          text, n = re.subn(
+              r"// Authentication is process-wide, so refresh coordination must be process-wide too\.\n"
+              r"// Consumers use this signal to stop pollers before navigation can render again\.\n"
+              r"const sessionInvalidationListeners = new Set\(\);\n"
+              r"let refreshPromise = null;\n\n"
+              r"export function onSessionInvalidated\(listener\) \{.*?\n\}\n\n"
+              r"export function invalidateSession\(\) \{.*?\n\}\n\n",
+              "",
+              text,
+              count=1,
+              flags=re.S,
+          )
+          if n != 1:
+              raise SystemExit('api.js: legacy auth coordinator block not found')
+          text, n = re.subn(
+              r"    try \{\n"
+              r"      if \(!refreshPromise\) \{.*?\n"
+              r"      \}\n"
+              r"      const access = await refreshPromise;",
+              "    try {\n      const access = await refreshAccessToken();",
+              text,
+              count=1,
+              flags=re.S,
+          )
+          if n != 1:
+              raise SystemExit('api.js: legacy refresh block not found')
+          path.write_text(text)
+
+          # WebSocket auth: 4401 now goes through the same refresh coordinator as
+          # HTTP, while 4403 stays a permission failure and is never retried.
+          path = Path('frontend/src/hooks/useRealtime.js')
+          text = path.read_text()
+          text = text.replace(
+              "import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';\n",
+              "import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';\n"
+              "import { invalidateSession, refreshAccessToken } from '../lib/auth/session';\n",
+              1,
+          )
+          replacement = '''    ws.onclose = async (e) => {
+              if (pingTimer.current) { clearInterval(pingTimer.current); pingTimer.current = null; }
+              wsRef.current = null;
+              setStatus('closed');
+
+              // 4401 means the access token is missing or expired. Coordinate the
+              // refresh with HTTP callers/tabs, then reconnect with the new JWT.
+              if (e.code === 4401) {
+                try {
+                  await refreshAccessToken();
+                  attempt.current = 0;
+                  connect();
+                } catch {
+                  invalidateSession();
+                }
+                return;
+              }
+              // 4403 is authorization failure, not an expired session.
+              if (e.code === 4403) return;
+              scheduleReconnect();
+            };'''
+          text, n = re.subn(
+              r"    ws\.onclose = \(e\) => \{.*?\n    \};(?=\n\n    ws\.onerror)",
+              replacement,
+              text,
+              count=1,
+              flags=re.S,
+          )
+          if n != 1:
+              raise SystemExit('useRealtime.js: WebSocket close handler not found')
+          path.write_text(text)
+
+          # Include last successful provider sync in the authoritative OAuth status
+          # payload so Connected Accounts can show operational health.
+          path = Path('backend/social_stats/oauth_views.py')
+          text = path.read_text()
+          text = text.replace(
+              'from .models import PlatformCredential, Client\n',
+              'from .models import PlatformCredential, Client, SyncLog\n',
+              1,
+          )
+          needle = "        cred = credentials.filter(platform=platform).first()\n        if cred and cred.access_token:"
+          replacement = "        cred = credentials.filter(platform=platform).first()\n        last_sync = SyncLog.objects.filter(\n            client_id=client_id,\n            platform=platform,\n            status='success',\n        ).order_by('-finished_at', '-started_at').first()\n        last_successful_sync = (\n            (last_sync.finished_at or last_sync.started_at).isoformat()\n            if last_sync else None\n        )\n        if cred and cred.access_token:"
+          if needle not in text:
+              raise SystemExit('oauth_views.py: oauth status credential lookup not found')
+          text = text.replace(needle, replacement, 1)
+          needle = "                'account_name': cred.page_name or cred.channel_name or cred.organization_name or '',\n"
+          if needle not in text:
+              raise SystemExit('oauth_views.py: connected status payload not found')
+          text = text.replace(
+              needle,
+              needle + "                'last_successful_sync': last_successful_sync,\n",
+              1,
+          )
+          needle = "            result[platform] = {'status': 'not_connected'}\n"
+          if needle not in text:
+              raise SystemExit('oauth_views.py: disconnected status payload not found')
+          text = text.replace(
+              needle,
+              "            result[platform] = {\n"
+              "                'status': 'not_connected',\n"
+              "                'last_successful_sync': last_successful_sync,\n"
+              "            }\n",
+              1,
+          )
+          path.write_text(text)
+
+          # Browser-safe clipboard feature check.
+          path = Path('frontend/src/components/ui/ConnectedAccounts.jsx')
+          text = path.read_text().replace(
+              "    if (!value || !navigator?.clipboard) return;",
+              "    if (!value || typeof navigator === 'undefined' || !navigator.clipboard) return;",
+              1,
+          )
+          path.write_text(text)
+          PY
+
+      - name: Add auth session regression tests
+        shell: bash
+        run: |
+          cat > frontend/src/lib/auth/session.test.js <<'EOF'
+          import axios from 'axios';
+          import { invalidateSession, refreshAccessToken } from './session';
+
+          jest.mock('axios');
+
+          describe('auth session coordinator', () => {
+            beforeEach(() => {
+              localStorage.clear();
+              axios.post.mockReset();
+              Object.defineProperty(navigator, 'locks', {
+                configurable: true,
+                value: undefined,
+              });
+            });
+
+            test('serializes concurrent refreshes and persists rotated refresh tokens', async () => {
+              localStorage.setItem('access_token', 'access-old');
+              localStorage.setItem('refresh_token', 'refresh-old');
+
+              let resolveRefresh;
+              axios.post.mockReturnValue(new Promise((resolve) => { resolveRefresh = resolve; }));
+
+              const first = refreshAccessToken();
+              const second = refreshAccessToken();
+              expect(axios.post).toHaveBeenCalledTimes(1);
+
+              resolveRefresh({ data: { access: 'access-new', refresh: 'refresh-new' } });
+              await expect(first).resolves.toBe('access-new');
+              await expect(second).resolves.toBe('access-new');
+              expect(localStorage.getItem('access_token')).toBe('access-new');
+              expect(localStorage.getItem('refresh_token')).toBe('refresh-new');
+            });
+
+            test('reuses a token refreshed by another tab after acquiring the browser lock', async () => {
+              localStorage.setItem('access_token', 'access-old');
+              localStorage.setItem('refresh_token', 'refresh-old');
+              const request = jest.fn(async (_name, callback) => {
+                localStorage.setItem('access_token', 'access-from-other-tab');
+                return callback();
+              });
+              Object.defineProperty(navigator, 'locks', {
+                configurable: true,
+                value: { request },
+              });
+
+              await expect(refreshAccessToken()).resolves.toBe('access-from-other-tab');
+              expect(request).toHaveBeenCalledTimes(1);
+              expect(axios.post).not.toHaveBeenCalled();
+            });
+
+            test('invalidates auth tokens without clearing unrelated preferences', () => {
+              localStorage.setItem('access_token', 'access');
+              localStorage.setItem('refresh_token', 'refresh');
+              localStorage.setItem('language', 'fa');
+
+              invalidateSession();
+
+              expect(localStorage.getItem('access_token')).toBeNull();
+              expect(localStorage.getItem('refresh_token')).toBeNull();
+              expect(localStorage.getItem('language')).toBe('fa');
+            });
+          });
+          EOF
+
+      - name: Run focused frontend tests
+        working-directory: frontend
+        env:
+          CI: 'true'
+        run: |
+          npm ci
+          npm test -- --watchAll=false --runInBand src/lib/auth/session.test.js
+
+      - name: Commit patch and remove one-shot workflow
+        shell: bash
+        run: |
+          rm .github/workflows/batch-b-one-shot-v2.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git diff --cached --check
+          git commit -m 'feat: coordinate auth refresh and connection health [skip batch-b-patch]'
+          git push origin HEAD:feat/connected-accounts-batch-b
