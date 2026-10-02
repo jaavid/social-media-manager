@@ -26,23 +26,35 @@ import Button from './Button';
 import Card from './Card';
 import SocialPlatformIcon from './SocialPlatformIcon';
 
+const ACCOUNT_STATES = Object.freeze({
+  SETUP_REQUIRED: 'setup_required',
+  READY: 'ready',
+  CONNECTED: 'connected',
+  EXPIRED: 'expired',
+  ERROR: 'error',
+  UNAVAILABLE: 'unavailable',
+  UNKNOWN: 'unknown',
+});
+
 const STATE_META = {
-  setup_required: { variant: 'warning', icon: Settings2, label: 'Setup required' },
-  ready: { variant: 'info', icon: CheckCircle2, label: 'Ready to connect' },
-  connected: { variant: 'success', icon: CheckCircle2, label: 'Connected' },
-  expired: { variant: 'warning', icon: AlertTriangle, label: 'Expired' },
-  error: { variant: 'danger', icon: AlertTriangle, label: 'Error' },
-  unavailable: { variant: 'default', icon: null, label: 'Unavailable' },
+  [ACCOUNT_STATES.SETUP_REQUIRED]: { variant: 'warning', icon: Settings2, label: 'Setup required' },
+  [ACCOUNT_STATES.READY]: { variant: 'info', icon: CheckCircle2, label: 'Ready to connect' },
+  [ACCOUNT_STATES.CONNECTED]: { variant: 'success', icon: CheckCircle2, label: 'Connected' },
+  [ACCOUNT_STATES.EXPIRED]: { variant: 'warning', icon: AlertTriangle, label: 'Expired' },
+  [ACCOUNT_STATES.ERROR]: { variant: 'danger', icon: AlertTriangle, label: 'Error' },
+  [ACCOUNT_STATES.UNAVAILABLE]: { variant: 'default', icon: null, label: 'Unavailable' },
+  [ACCOUNT_STATES.UNKNOWN]: { variant: 'default', icon: null, label: 'Readiness unknown' },
 };
 
 function readinessState(connectionState, readiness, canConnect, connectionCapability) {
-  if (connectionState?.status === 'active') return 'connected';
-  if (connectionState?.status === 'expired') return 'expired';
-  if (connectionState?.status === 'error') return 'error';
-  if (readiness && readiness.configured === false) return 'setup_required';
-  if (canConnect && (!readiness || readiness.configured)) return 'ready';
-  if (connectionCapability === 'planned') return 'unavailable';
-  return 'unavailable';
+  if (connectionState?.status === 'active') return ACCOUNT_STATES.CONNECTED;
+  if (connectionState?.status === 'expired') return ACCOUNT_STATES.EXPIRED;
+  if (connectionState?.status === 'error') return ACCOUNT_STATES.ERROR;
+  if (readiness && readiness.configured === false) return ACCOUNT_STATES.SETUP_REQUIRED;
+  if (canConnect && readiness?.configured === true) return ACCOUNT_STATES.READY;
+  if (canConnect && !readiness) return ACCOUNT_STATES.UNKNOWN;
+  if (connectionCapability === 'planned') return ACCOUNT_STATES.UNAVAILABLE;
+  return ACCOUNT_STATES.UNAVAILABLE;
 }
 
 function DetailList({ readiness }) {
@@ -95,8 +107,6 @@ export default function ConnectedAccounts({ clientId, status, onRefresh }) {
       const response = await egressAPI.oauthReadiness();
       setOauthReadiness(response.data?.oauth || {});
     } catch (error) {
-      // Normal client/end-user roles intentionally receive 403 here. Readiness
-      // is operational metadata; connection controls must still work for them.
       if (error?.response?.status !== 403) setOauthReadiness({});
     }
   };
@@ -204,7 +214,7 @@ export default function ConnectedAccounts({ clientId, status, onRefresh }) {
                   const connectionCapability = platform.capabilityStatuses?.connection || 'not_available';
                   const state = readinessState(connectionState, readiness, canConnect, connectionCapability);
                   const stateMeta = STATE_META[state];
-                  const connected = state === 'connected' || state === 'expired';
+                  const connected = state === ACCOUNT_STATES.CONNECTED;
                   const fbConnected = (combinedStatus.facebook || {}).status === 'active';
                   const viaFacebook = key === 'instagram' && fbConnected && connected;
                   const lastSync = connectionState.last_successful_sync || connectionState.last_sync_at;
@@ -251,13 +261,17 @@ export default function ConnectedAccounts({ clientId, status, onRefresh }) {
                             <Zap size={13} /> {t('accounts.connectedViaFacebook')}
                           </div>
                         )}
-                        {state === 'setup_required' && readiness?.missing?.length > 0 && (
+                        {state === ACCOUNT_STATES.SETUP_REQUIRED && readiness?.missing?.length > 0 && (
                           <div className="text-[var(--warning)]">Missing: {readiness.missing.join(', ')}</div>
                         )}
                       </div>
 
                       <div className="mt-4 flex flex-wrap gap-2">
-                        {connected && !viaFacebook ? (
+                        {state === ACCOUNT_STATES.EXPIRED ? (
+                          <Button size="sm" icon={RefreshCw} onClick={() => handleConnect(platform)}>
+                            Reconnect
+                          </Button>
+                        ) : connected && !viaFacebook ? (
                           <Button
                             variant="danger"
                             size="sm"
@@ -266,17 +280,13 @@ export default function ConnectedAccounts({ clientId, status, onRefresh }) {
                           >
                             {t('accounts.disconnect')}
                           </Button>
-                        ) : state === 'ready' ? (
+                        ) : state === ACCOUNT_STATES.READY || state === ACCOUNT_STATES.UNKNOWN ? (
                           <Button
                             size="sm"
                             onClick={() => handleConnect(platform)}
                             style={{ background: platform.color }}
                           >
                             {t('accounts.connect', undefined, { platform: platformLabel })}
-                          </Button>
-                        ) : state === 'expired' ? (
-                          <Button size="sm" icon={RefreshCw} onClick={() => handleConnect(platform)}>
-                            Reconnect
                           </Button>
                         ) : null}
 
