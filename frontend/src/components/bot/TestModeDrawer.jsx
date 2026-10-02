@@ -6,6 +6,8 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
+import { persistentStorage } from '../../lib/runtime/storage';
+
 /**
  * TestModeDrawer — slide-in panel that lets the editor fire a test run of
  * the current flow against a tester phone number.
@@ -32,7 +34,7 @@ const POLL_INTERVAL_MS = 1500;
 const ABANDON_AFTER_MS = 5 * 60 * 1000;  // stop polling after 5min idle
 
 export default function TestModeDrawer({ flow, onClose }) {
-  const [phone, setPhone]           = useState(localStorage.getItem('bot_test_phone') || '');
+  const [phone, setPhone]           = useState(persistentStorage.getItem('bot_test_phone') || '');
   const [conv,  setConv]            = useState(null);
   const [steps, setSteps]           = useState([]);
   const [running, setRunning]       = useState(false);
@@ -82,7 +84,7 @@ export default function TestModeDrawer({ flow, onClose }) {
 
   async function start() {
     if (!phone.trim()) return toast.error('Enter a phone number');
-    localStorage.setItem('bot_test_phone', phone.trim());
+    persistentStorage.setItem('bot_test_phone', phone.trim());
     setBusy(true); setSteps([]);
     stopPolling();
     try {

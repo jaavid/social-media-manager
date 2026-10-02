@@ -6,6 +6,9 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
+import { apiBaseUrl } from '../lib/runtime/config';
+import { persistentStorage } from '../lib/runtime/storage';
+
 import axios from 'axios';
 import { workspaceRequest } from './workspaceVocabulary';
 import { invalidateSession, onSessionInvalidated, refreshAccessToken } from '../lib/auth/session';
@@ -13,7 +16,7 @@ import { invalidateSession, onSessionInvalidated, refreshAccessToken } from '../
 export { invalidateSession, onSessionInvalidated };
 
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8000/api',
+  baseURL: apiBaseUrl(),
   headers: { 'Content-Type': 'application/json' },
 });
 
@@ -21,7 +24,7 @@ const api = axios.create({
 api.interceptors.request.use((config) => {
   config.params = workspaceRequest(config.params);
   config.data = workspaceRequest(config.data);
-  const token = localStorage.getItem('access_token');
+  const token = persistentStorage.getItem('access_token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
@@ -55,7 +58,7 @@ api.interceptors.response.use(
     }
     original._retry = true;
 
-    const refresh = localStorage.getItem('refresh_token');
+    const refresh = persistentStorage.getItem('refresh_token');
     if (!refresh) {
       // No session in storage — the user was never signed in. Let the
       // page handle the 401 itself: marketing pages ignore it and render
@@ -66,7 +69,7 @@ api.interceptors.response.use(
     }
 
     const authorization = original?.headers?.get?.('Authorization') || original?.headers?.Authorization || original?.headers?.authorization || '';
-    const failedAccessToken = typeof authorization === 'string' && authorization.startsWith('Bearer ') ? authorization.slice(7) : localStorage.getItem('access_token');
+    const failedAccessToken = typeof authorization === 'string' && authorization.startsWith('Bearer ') ? authorization.slice(7) : persistentStorage.getItem('access_token');
 
     try {
       const access = await refreshAccessToken(failedAccessToken);
@@ -190,7 +193,7 @@ export const leadAPI = {
   importCsv:   (formData)      => api.post  (`/leads/import_csv/`, formData,
                                               { headers: { 'Content-Type': 'multipart/form-data' } }),
   exportCsvUrl: (params={}) => {
-    const base = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+    const base = apiBaseUrl();
     const qs = new URLSearchParams(params).toString();
     return `${base}/leads/export.csv/${qs ? '?' + qs : ''}`;
   },
@@ -243,7 +246,7 @@ export const activityAPI = {
   revert:  (id)         => api.post(`/activity/${id}/revert/`, {}),
   // CSV download URL (token attached via the same axios baseURL pattern)
   exportCsvUrl: (params = {}) => {
-    const base = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+    const base = apiBaseUrl();
     const qs = new URLSearchParams(params).toString();
     return `${base}/activity/export.csv${qs ? '?' + qs : ''}`;
   },
@@ -324,9 +327,9 @@ export const oauthAPI = {
   status:     (clientId)           => api.get(`/oauth/status/${clientId}/`),
   disconnect: (clientId, platform) => api.delete(`/oauth/disconnect/${clientId}/${platform}/`),
   // Connect URLs (redirect browser directly)
-  facebookUrl: (clientId)           => `${process.env.REACT_APP_API_URL || 'http://localhost:8000/api'}/oauth/facebook/start/${clientId}/`,
-  googleUrl:   (clientId, platform) => `${process.env.REACT_APP_API_URL || 'http://localhost:8000/api'}/oauth/google/start/${clientId}/?platform=${platform || 'all'}`,
-  linkedinUrl: (clientId)           => `${process.env.REACT_APP_API_URL || 'http://localhost:8000/api'}/oauth/linkedin/start/${clientId}/`,
+  facebookUrl: (clientId)           => `${apiBaseUrl()}/oauth/facebook/start/${clientId}/`,
+  googleUrl:   (clientId, platform) => `${apiBaseUrl()}/oauth/google/start/${clientId}/?platform=${platform || 'all'}`,
+  linkedinUrl: (clientId)           => `${apiBaseUrl()}/oauth/linkedin/start/${clientId}/`,
 };
 
 // ── Overview ──────────────────────────────────────────
@@ -424,7 +427,7 @@ export const sharedReportsAPI = {
 
 // ── Public Report (no auth — separate axios instance) ─
 const publicApi = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8000/api',
+  baseURL: apiBaseUrl(),
   headers: { 'Content-Type': 'application/json' },
 });
 
@@ -443,9 +446,9 @@ export const contentAPI = {
 
 // ── Social Auth URLs ──────────────────────────────────────────────────────────
 export const socialAuthAPI = {
-  googleUrl:    () => `${process.env.REACT_APP_API_URL || 'http://localhost:8000/api'}/auth/social/google/start/`,
-  facebookUrl:  () => `${process.env.REACT_APP_API_URL || 'http://localhost:8000/api'}/auth/social/facebook/start/`,
-  microsoftUrl: () => `${process.env.REACT_APP_API_URL || 'http://localhost:8000/api'}/auth/social/microsoft/start/`,
+  googleUrl:    () => `${apiBaseUrl()}/auth/social/google/start/`,
+  facebookUrl:  () => `${apiBaseUrl()}/auth/social/facebook/start/`,
+  microsoftUrl: () => `${apiBaseUrl()}/auth/social/microsoft/start/`,
 };
 
 // ── Invitations ───────────────────────────────────────────────────────────────

@@ -7,7 +7,7 @@
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
 import { useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useAppLocation as useLocation } from '../app/navigation';
 
 import { init, pageview } from '../services/analytics';
 

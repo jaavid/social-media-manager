@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./primitives.css";
 
 /*
  * Tailwind/shadcn bridge.

@@ -6,7 +6,7 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
-import { Link, useNavigate } from 'react-router-dom';
+import { AppLink as Link, useAppNavigate as useNavigate } from '../app/navigation';
 import { motion } from 'framer-motion';
 import { Search, ArrowRight, Home, BookOpen } from 'lucide-react';
 

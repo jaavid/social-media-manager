@@ -25,7 +25,7 @@ import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
 import EmptyState from '../../components/ui/EmptyState';
 import { aiV2API } from '../../services/api';
-import { useAuth } from '../../hooks/useAuth';
+import { useSession as useAuth } from '../../app/session';
 import toast from '../../components/ui/toast';
 
 const SEVERITY_VARIANT = {

@@ -14,14 +14,14 @@
  * are not yet built (later marketplace stages) are listed with `comingSoon`.
  */
 import { useEffect, useState } from 'react';
-import { Outlet, NavLink, useLocation } from 'react-router-dom';
+import { AppOutlet as Outlet, AppNavLink as NavLink, useAppLocation as useLocation } from '../../app/navigation';
 import {
   LayoutDashboard, FileType, PenSquare, CalendarDays, Inbox, LineChart,
   Building2, Plug, ShieldCheck, ClipboardCheck, Search,
   Settings, CreditCard, Sparkles, Bell, Menu, X,
 } from 'lucide-react';
 
-import { useAuth } from '../../hooks/useAuth';
+import { useSession as useAuth } from '../../app/session';
 import { approvalAPI } from '../../services/api';
 
 const SECTIONS = [

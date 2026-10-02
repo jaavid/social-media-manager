@@ -12,7 +12,7 @@ import {
   MessageSquare, AtSign, MessageCircle, Loader2, Filter,
   Smile, Frown, Meh, Sparkles,
 } from 'lucide-react';
-import toast from 'react-hot-toast';
+import toast from '../../components/ui/toast';
 
 import PageHeader from '../../components/layout/PageHeader';
 import Card from '../../components/ui/Card';
@@ -22,7 +22,7 @@ import EmptyState from '../../components/ui/EmptyState';
 import AIReplySuggestions from '../../components/ai/AIReplySuggestions';
 import { useConversations, useConversation } from '../../hooks/useInbox';
 import { inboxAPI } from '../../services/api';
-import { useAuth } from '../../hooks/useAuth';
+import { useSession as useAuth } from '../../app/session';
 
 const TYPE_FILTERS = [
   { id: '',         label: 'All',      icon: Inbox },

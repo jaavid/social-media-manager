@@ -6,7 +6,7 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
-import { Link } from 'react-router-dom';
+import { AppLink as Link } from '../../app/navigation';
 import { ArrowRight } from 'lucide-react';
 
 import Button from '../ui/Button';

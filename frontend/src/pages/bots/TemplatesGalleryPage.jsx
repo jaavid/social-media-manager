@@ -16,7 +16,7 @@
  *   - Click card → preview modal (node summary + use-count + Clone button)
  */
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useAppNavigate as useNavigate } from '../../app/navigation';
 import {
   Sparkles, Copy, RefreshCw, X, ArrowRight, Bot, Filter,
 } from 'lucide-react';

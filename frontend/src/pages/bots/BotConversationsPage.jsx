@@ -12,7 +12,7 @@
  * Filters: status, flow, has-lead. Click a row → detail page.
  */
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { AppLink as Link } from '../../app/navigation';
 import {
   MessageSquare, Search, RefreshCw, ChevronRight, Bot, Sparkles,
   CheckCircle2, AlertTriangle, UserCheck, Clock,

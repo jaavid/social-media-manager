@@ -6,6 +6,8 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
+import { apiBaseUrl } from '../lib/runtime/config';
+
 import { useEffect, useMemo, useState } from 'react';
 import { CheckCircle2, AlertTriangle, XCircle, RefreshCw } from 'lucide-react';
 import MarketingLayout from '../components/marketing/MarketingLayout';
@@ -24,7 +26,7 @@ import Meta from '../components/Meta';
  * disagrees with reality during an active incident.
  */
 
-const API = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+const API = apiBaseUrl();
 const HEALTH_URL = `${API}/health/services/`;
 const POLL_MS = 30_000;
 

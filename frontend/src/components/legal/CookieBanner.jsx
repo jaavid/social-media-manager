@@ -6,6 +6,8 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
+import { persistentStorage } from '../../lib/runtime/storage';
+
 /**
  *
  * • Shows on first load until the user picks ANY option.
@@ -27,7 +29,7 @@ import { useEffect, useState } from 'react';
 import { Cookie, ChevronDown, ChevronUp } from 'lucide-react';
 
 import { privacyAPI } from '../../services/api';
-import { useAuth } from '../../hooks/useAuth';
+import { useSession as useAuth } from '../../app/session';
 
 
 export const COOKIE_POLICY_VERSION = '2024-11-01';
@@ -36,7 +38,7 @@ const STORAGE_KEY = 'socialstats_cookie_choice';
 
 export function readCookieChoice() {
   try {
-    const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+    const raw = JSON.parse(persistentStorage.getItem(STORAGE_KEY) || 'null');
     if (!raw || raw.version !== COOKIE_POLICY_VERSION) return null;
     return raw.choices || null;
   } catch { return null; }
@@ -64,7 +66,7 @@ export default function CookieBanner() {
 
   function persist(c) {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      persistentStorage.setItem(STORAGE_KEY, JSON.stringify({
         version: COOKIE_POLICY_VERSION,
         choices: c,
         decided_at: new Date().toISOString(),

@@ -62,35 +62,27 @@
   position: sticky;
   top: 0;
   z-index: 10;
-  margin-left: -36px;
-  margin-right: -36px;
-  padding-left: 36px !important;
-  padding-right: 36px !important;
+  margin-inline: 0;
+  padding: 20px 24px 16px;
   border-bottom: 1px solid transparent;
   transition: border-color 0.18s ease, box-shadow 0.18s ease;
 }
 
 .page-header-sticky.is-pinned {
-  border-bottom-color: #e2e8f0;
+  border-bottom-color: var(--border-default);
   box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
 }
 
 @media (max-width: 768px) {
   .page-header-sticky {
     top: 56px;
-    margin-left: -16px;
-    margin-right: -16px;
-    padding-left: 16px !important;
-    padding-right: 16px !important;
+    padding-inline: 16px;
   }
 }
 
 @media (max-width: 480px) {
   .page-header-sticky {
-    margin-left: -12px;
-    margin-right: -12px;
-    padding-left: 12px !important;
-    padding-right: 12px !important;
+    padding-inline: 12px;
   }
 }
 

@@ -118,3 +118,7 @@ staticfiles/
 .pytest_cache/
 .mypy_cache/
 *.sqlite3
+
+# Local browser review artifacts
+.playwright-cli/
+output/playwright/

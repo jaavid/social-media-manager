@@ -8,7 +8,7 @@
  * ========================================================================== */
 import { useRef, useState, useCallback } from 'react';
 import { Image as ImageIcon, Video, Trash2, Upload, Search, Loader2, Folder } from 'lucide-react';
-import toast from 'react-hot-toast';
+import toast from '../../components/ui/toast';
 
 import PageHeader from '../../components/layout/PageHeader';
 import Button from '../../components/ui/Button';

@@ -6,6 +6,8 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
+import { persistentStorage } from '../lib/runtime/storage';
+
 import { useState } from 'react';
 import LegalPageLayout from '../components/marketing/LegalPageLayout';
 import Switch from '../components/ui/Switch';
@@ -58,7 +60,7 @@ export default function CookiePolicyPage() {
 
   function savePrefs() {
     try {
-      localStorage.setItem('socialstats_cookie_prefs', JSON.stringify(prefs));
+      persistentStorage.setItem('socialstats_cookie_prefs', JSON.stringify(prefs));
       toast.success('Cookie preferences saved');
     } catch {
       toast.error('Could not save preferences. Try again.');

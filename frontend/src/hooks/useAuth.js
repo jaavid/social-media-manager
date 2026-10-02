@@ -6,6 +6,8 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
+import { persistentStorage } from '../lib/runtime/storage';
+
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { authAPI, mfaAPI, invalidateSession, onSessionInvalidated } from '../services/api';
 
@@ -25,7 +27,7 @@ export function AuthProvider({ children }) {
   useEffect(() => onSessionInvalidated(becomeAnonymous), [becomeAnonymous]);
 
   useEffect(() => {
-    const token = localStorage.getItem('access_token');
+    const token = persistentStorage.getItem('access_token');
     if (token) {
       authAPI.me()
         .then(res => { setUser(res.data); setStatus('authenticated'); })
@@ -43,8 +45,8 @@ export function AuthProvider({ children }) {
     if (res.data?.mfa_required) {
       return { mfa_required: true, mfa_token: res.data.mfa_token };
     }
-    localStorage.setItem('access_token',  res.data.access);
-    localStorage.setItem('refresh_token', res.data.refresh);
+    persistentStorage.setItem('access_token',  res.data.access);
+    persistentStorage.setItem('refresh_token', res.data.refresh);
     const me = await authAPI.me();
     setUser(me.data);
     setStatus('authenticated');
@@ -59,8 +61,8 @@ export function AuthProvider({ children }) {
       ...(backupCode ? { backup_code: backupCode } : {}),
       terms_accepted: true,
     });
-    localStorage.setItem('access_token',  res.data.access);
-    localStorage.setItem('refresh_token', res.data.refresh);
+    persistentStorage.setItem('access_token',  res.data.access);
+    persistentStorage.setItem('refresh_token', res.data.refresh);
     const me = await authAPI.me();
     setUser(me.data);
     setStatus('authenticated');
@@ -80,8 +82,8 @@ export function AuthProvider({ children }) {
 
   // Called after invitation acceptance or solo setup returns new tokens.
   const refreshAuth = useCallback(async (newAccessToken, newRefreshToken) => {
-    if (newAccessToken) localStorage.setItem('access_token', newAccessToken);
-    if (newRefreshToken) localStorage.setItem('refresh_token', newRefreshToken);
+    if (newAccessToken) persistentStorage.setItem('access_token', newAccessToken);
+    if (newRefreshToken) persistentStorage.setItem('refresh_token', newRefreshToken);
     const me = await authAPI.me();
     setUser(me.data);
     setStatus('authenticated');

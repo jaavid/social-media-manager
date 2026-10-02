@@ -27,7 +27,7 @@ import EmptyState from '../../components/ui/EmptyState';
 import AIBadge from '../../components/ai/AIBadge';
 import AILoading from '../../components/ai/AILoading';
 import { aiV2API } from '../../services/api';
-import { useAuth } from '../../hooks/useAuth';
+import { useSession as useAuth } from '../../app/session';
 import toast from '../../components/ui/toast';
 
 const STATUS_VARIANT = {

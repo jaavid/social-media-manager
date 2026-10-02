@@ -7,7 +7,7 @@
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useAppNavigate as useNavigate } from '../app/navigation';
 import { workspacesAPI } from '../services/api';
 import { ArrowLeft } from 'lucide-react';
 import PageHeader from '../components/layout/PageHeader';

@@ -37,9 +37,9 @@
   /* ── Text — light mode ────────────────────────────────────────────────── */
   --text-primary:    #0a0e14;
   --text-secondary:  #475569;
-  --text-tertiary:   #94a3b8;
+  --text-tertiary:   #64748b;
   --text-quaternary: #cbd5e1;
-  --text-on-brand:   #ffffff;
+  --text-on-brand:   #0f172a;
   --text-link:       #00A8D8;
 
   /* ── Borders — light mode ─────────────────────────────────────────────── */
@@ -207,4 +207,15 @@ textarea:focus-visible,
     transition-duration:   0.01ms !important;
     scroll-behavior:       auto !important;
   }
+}
+
+/* Compatibility aliases for older feature CSS; values stay canonical. */
+:root {
+  --bg: var(--surface-page); --surface: var(--surface-card); --surface-2: var(--surface-sunken);
+  --border: var(--border-default); --border-light: var(--border-subtle); --text-muted: var(--text-tertiary);
+  --blue: var(--brand-primary); --blue-hover: var(--brand-primary-hover); --blue-light: var(--brand-primary-soft); --blue-glow: var(--brand-primary-glow);
+  --brand-cyan: var(--brand-primary); --brand-black: var(--text-primary);
+  --radius: var(--radius-md); --ease: cubic-bezier(0.4, 0, 0.2, 1); --transition: var(--transition-default);
+  --sidebar-bg: var(--surface-card); --sidebar-surface: var(--surface-sunken); --sidebar-border: var(--border-default);
+  --sidebar-text: var(--text-secondary); --sidebar-muted: var(--text-tertiary); --sidebar-active-bg: var(--brand-primary-soft); --sidebar-active-border: var(--brand-primary);
 }

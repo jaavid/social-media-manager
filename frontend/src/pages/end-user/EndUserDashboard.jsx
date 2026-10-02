@@ -13,13 +13,13 @@
  * once the analytics module is wired into this side in a later stage).
  */
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { AppLink as Link } from '../../app/navigation';
 import {
   Sparkles, Plug, Users2, ArrowRight, BarChart3, MessageSquare, Calendar,
 } from 'lucide-react';
 
 import { endUserAPI } from '../../services/api';
-import { useAuth } from '../../hooks/useAuth';
+import { useSession as useAuth } from '../../app/session';
 
 export default function EndUserDashboard() {
   const { user } = useAuth();

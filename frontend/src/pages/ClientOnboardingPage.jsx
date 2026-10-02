@@ -6,9 +6,12 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
+import { transientStorage } from '../lib/runtime/storage';
+import { apiBaseUrl } from '../lib/runtime/config';
+
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import { useAppNavigate as useNavigate } from '../app/navigation';
+import { useSession as useAuth } from '../app/session';
 import { workspacesAPI } from '../services/api';
 import PageHeader from '../components/layout/PageHeader';
 import ConnectedAccounts from '../components/ui/ConnectedAccounts';
@@ -19,7 +22,7 @@ import {
   MapPin, MessageCircle, Palette, Phone, PlugZap, Upload, Users, X,
 } from 'lucide-react';
 
-const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+const API_BASE = apiBaseUrl();
 const CYAN = '#00d7ff';
 const CYAN_SOFT = 'rgba(31, 182, 207, 0.16)';
 
@@ -133,7 +136,7 @@ export default function ClientOnboardingPage() {
         })),
       }));
       // Resume from last saved step
-      const savedStep = parseInt(sessionStorage.getItem(STEP_STORAGE_KEY) || '0', 10);
+      const savedStep = parseInt(transientStorage.getItem(STEP_STORAGE_KEY) || '0', 10);
       if (savedStep > 0) setCurrentStep(Math.min(savedStep, 5));
       setDataLoaded(true);
     }).catch(() => setDataLoaded(true));
@@ -395,7 +398,7 @@ export default function ClientOnboardingPage() {
     await saveProgress();
     const nextStep = Math.min(currentStep + 1, steps.length - 1);
     setCurrentStep(nextStep);
-    sessionStorage.setItem(STEP_STORAGE_KEY, String(nextStep));
+    transientStorage.setItem(STEP_STORAGE_KEY, String(nextStep));
     if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -426,7 +429,7 @@ export default function ClientOnboardingPage() {
         await workspacesAPI.create(submitData);
         await refreshUser();
       }
-      sessionStorage.removeItem(STEP_STORAGE_KEY);
+      transientStorage.removeItem(STEP_STORAGE_KEY);
       navigate('/dashboard');
     } catch (error) {
       console.error('Onboarding submission failed:', error);

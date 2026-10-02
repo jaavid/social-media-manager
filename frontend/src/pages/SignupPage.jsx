@@ -6,13 +6,16 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
+import { apiBaseUrl } from '../lib/runtime/config';
+import { persistentStorage } from '../lib/runtime/storage';
+
 /**
  * SignupPage — /signup?invite=TOKEN
  * Email/password signup for clients. Also supports Google/Facebook social signup.
  * After submit → "check your email" success state with resend.
  */
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { AppLink as Link, useAppNavigate as useNavigate } from '../app/navigation';
 import { ArrowRight, AlertCircle, CheckCircle, Mail, RefreshCw, Building2 } from 'lucide-react';
 
 import AuthLayout from '../components/auth/AuthLayout';
@@ -22,10 +25,10 @@ import Input from '../components/ui/Input';
 import Checkbox from '../components/ui/Checkbox';
 import Confetti from '../components/ui/Confetti';
 import SocialPlatformIcon from '../components/ui/SocialPlatformIcon';
-import { useAuth } from '../hooks/useAuth';
+import { useSession as useAuth } from '../app/session';
 import { authAPI, invitationAPI } from '../services/api';
 
-const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+const API_BASE = apiBaseUrl();
 
 export default function SignupPage() {
   const navigate = useNavigate();
@@ -55,7 +58,7 @@ export default function SignupPage() {
   useEffect(() => {
     if (!inviteToken) return;
     invitationAPI.getByToken(inviteToken).then((res) => setInv(res.data)).catch(() => {});
-    localStorage.setItem('pending_invite_token', inviteToken);
+    persistentStorage.setItem('pending_invite_token', inviteToken);
   }, [inviteToken]);
 
   function clearField(field) {
@@ -124,11 +127,11 @@ export default function SignupPage() {
   }
 
   function handleGoogle() {
-    if (inviteToken) localStorage.setItem('pending_invite_token', inviteToken);
+    if (inviteToken) persistentStorage.setItem('pending_invite_token', inviteToken);
     window.location.href = `${API_BASE}/auth/social/google/start/`;
   }
   function handleFacebook() {
-    if (inviteToken) localStorage.setItem('pending_invite_token', inviteToken);
+    if (inviteToken) persistentStorage.setItem('pending_invite_token', inviteToken);
     window.location.href = `${API_BASE}/auth/social/facebook/start/`;
   }
 

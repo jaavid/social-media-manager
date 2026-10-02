@@ -14,7 +14,7 @@
  * "Add note" / "Send WhatsApp" quick actions.
  */
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { AppLink as Link, useAppNavigate as useNavigate, useAppParams as useParams } from '../../app/navigation';
 import {
   ArrowLeft, Star, Sparkles, MessageSquare, CheckCircle2, Trash2,
   User, Bot, Clock, Phone, Mail, MapPin, Building2,

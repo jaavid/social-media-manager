@@ -6,7 +6,7 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
-import { Link } from 'react-router-dom';
+import { AppLink as Link } from '../app/navigation';
 import { AlertTriangle, RefreshCw, Activity, MessageCircle } from 'lucide-react';
 import MarketingLayout from '../components/marketing/MarketingLayout';
 import Button from '../components/ui/Button';

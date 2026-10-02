@@ -6,6 +6,8 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
+import { apiBaseUrl } from '../lib/runtime/config';
+
 import { useState } from 'react';
 import { CheckCircle2, AlertCircle, Copy, Loader2, Trash2 } from 'lucide-react';
 
@@ -19,7 +21,7 @@ const COLORS = {
   success: '#10b981', danger: '#dc2626',
 };
 
-const WEBHOOK_URL = `${process.env.REACT_APP_API_URL || 'http://localhost:8000/api'}/whatsapp/webhook/`;
+const WEBHOOK_URL = `${apiBaseUrl()}/whatsapp/webhook/`;
 
 export default function WhatsAppSettingsPage() {
   const { account, loading, refetch } = useWhatsAppAccount();

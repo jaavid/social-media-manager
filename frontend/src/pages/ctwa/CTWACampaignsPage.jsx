@@ -13,7 +13,7 @@
  * Click a row → CTWACampaignDetailPage.
  */
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { AppLink as Link } from '../../app/navigation';
 import {
   Megaphone, Plus, RefreshCw, ExternalLink, Sparkles, ChevronRight,
   CheckCircle2, AlertTriangle,

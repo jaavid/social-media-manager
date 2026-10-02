@@ -6,6 +6,9 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
+import { persistentStorage } from '../lib/runtime/storage';
+import { analyticsConfig } from '../lib/runtime/config';
+
 /**
  * analytics.js — privacy-first marketing analytics wrapper.
  *
@@ -33,8 +36,8 @@
  * `props` is a flat dict of strings/numbers — no nested objects.
  */
 
-const DOMAIN = process.env.REACT_APP_PLAUSIBLE_DOMAIN;
-const HOST   = process.env.REACT_APP_PLAUSIBLE_HOST || 'https://plausible.io';
+const DOMAIN = analyticsConfig().domain;
+const HOST   = analyticsConfig().host || 'https://plausible.io';
 const SCRIPT_ID = 'plausible-script';
 
 let scriptInjected = false;
@@ -51,7 +54,7 @@ function dntEnabled() {
 
 function consentGranted() {
   try {
-    const raw = window.localStorage.getItem('socialstats_cookie_prefs');
+    const raw = persistentStorage.getItem('socialstats_cookie_prefs');
     if (!raw) return false;
     const prefs = JSON.parse(raw);
     return prefs?.analytics === true;

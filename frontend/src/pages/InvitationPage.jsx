@@ -6,6 +6,8 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
+import { persistentStorage } from '../lib/runtime/storage';
+
 /**
  * InvitationPage — /invitation/:token
  * Public-readable invitation. If the user isn't logged in, we stash the token
@@ -13,14 +15,14 @@
  * If logged in, we show Accept / Reject UI.
  */
 import { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { AppLink as Link, useAppNavigate as useNavigate, useAppParams as useParams } from '../app/navigation';
 import { Building2, CheckCircle, XCircle, Clock } from 'lucide-react';
 
 import AuthLayout from '../components/auth/AuthLayout';
 import Button from '../components/ui/Button';
 import Spinner from '../components/ui/Spinner';
 import { invitationAPI } from '../services/api';
-import { useAuth } from '../hooks/useAuth';
+import { useSession as useAuth } from '../app/session';
 
 export default function InvitationPage() {
   const { token } = useParams();
@@ -43,7 +45,7 @@ export default function InvitationPage() {
   // Stash & redirect to login if not authenticated
   useEffect(() => {
     if (!loading && inv && !user) {
-      localStorage.setItem('pending_invite_token', token);
+      persistentStorage.setItem('pending_invite_token', token);
       navigate(`/login?next=/invitation/${token}`, { replace: true });
     }
   }, [loading, inv, user, token, navigate]);

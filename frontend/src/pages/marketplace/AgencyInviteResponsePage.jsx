@@ -19,7 +19,7 @@
  * SendManageRequest.)
  */
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { AppLink as Link, useAppNavigate as useNavigate, useAppParams as useParams } from '../../app/navigation';
 import {
   Sparkles, Building2, ChevronRight, Check, X, AlertTriangle,
   CalendarClock,
@@ -27,7 +27,7 @@ import {
 
 import PermissionMatrix from '../../components/marketplace/PermissionMatrix';
 import { agencyInviteAPI } from '../../services/api';
-import { useAuth } from '../../hooks/useAuth';
+import { useSession as useAuth } from '../../app/session';
 import toast from '../../components/ui/toast';
 
 

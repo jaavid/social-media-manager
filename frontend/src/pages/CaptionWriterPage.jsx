@@ -7,7 +7,7 @@
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
 import { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '../hooks/useAuth';
+import { useSession as useAuth } from '../app/session';
 import { useWorkspaces } from '../hooks/useData';
 import { captionAPI, hashtagAPI } from '../services/api';
 import {

@@ -16,14 +16,14 @@
  * pre-fill and auto-accept.
  */
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useAppNavigate as useNavigate, useAppParams as useParams, AppLink as Link } from '../../app/navigation';
 import {
   Sparkles, Building2, ShieldCheck, Check, X, AlertTriangle, ChevronRight,
   CalendarClock,
 } from 'lucide-react';
 
 import { manageRequestAPI } from '../../services/api';
-import { useAuth } from '../../hooks/useAuth';
+import { useSession as useAuth } from '../../app/session';
 import toast from '../../components/ui/toast';
 
 const RISK_COLOR = {

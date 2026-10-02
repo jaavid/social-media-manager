@@ -17,7 +17,7 @@
  * - Anyone can send a non-binding inquiry via the Contact panel.
  */
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { AppLink as Link, useAppParams as useParams } from '../../app/navigation';
 import {
   Building2, ShieldCheck, Star, MapPin, Globe, Send, Mail, Sparkles, ChevronLeft,
   ThumbsUp, MessageSquare, Trash2, Edit3,
@@ -26,7 +26,7 @@ import {
 import InviteAgencyModal from '../../components/marketplace/InviteAgencyModal';
 import WriteReviewModal  from '../../components/marketplace/WriteReviewModal';
 import { marketplaceAPI, reviewAPI } from '../../services/api';
-import { useAuth } from '../../hooks/useAuth';
+import { useSession as useAuth } from '../../app/session';
 import toast from '../../components/ui/toast';
 
 export default function AgencyProfilePage() {

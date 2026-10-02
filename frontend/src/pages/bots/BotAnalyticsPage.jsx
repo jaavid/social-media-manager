@@ -16,7 +16,7 @@
  *   - Drop-off table (top_drop_off_nodes)
  */
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom';
+import { useAppNavigate as useNavigate, useAppParams as useParams, useAppSearchParams as useSearchParams, AppLink as Link } from '../../app/navigation';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
 } from 'recharts';

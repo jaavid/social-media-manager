@@ -11,7 +11,7 @@
  * Verifies token → stores JWT → redirects to /pending.
  */
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { AppLink as Link, useAppNavigate as useNavigate } from '../app/navigation';
 import { CheckCircle, XCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -19,7 +19,7 @@ import AuthLayout from '../components/auth/AuthLayout';
 import Button from '../components/ui/Button';
 import Spinner from '../components/ui/Spinner';
 import { authAPI } from '../services/api';
-import { useAuth } from '../hooks/useAuth';
+import { useSession as useAuth } from '../app/session';
 
 export default function VerifyEmailPage() {
   const navigate = useNavigate();
