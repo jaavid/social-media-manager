@@ -6,49 +6,17 @@
 #  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
 #  Released under the MIT License — see LICENSE. Keep this notice.
 # ============================================================================
-"""
-Permission enforcement layer for the two-sided marketplace.
+"""Compatibility adapter for the authoritative authorization evaluator.
 
-This module provides two helpers that mutating views call BEFORE executing
-the mutation:
-
-    resolve_acting_context(request, client) -> ('owner'|'superadmin'|'agency'|'forbidden', relation_or_None)
-
-    check_action(request, client, action_key, *, action_type=None,
-                 payload=None, target_object_type='', target_object_id=None,
-                 preview='') -> ('allowed'|'denied'|'approval_required', extra)
-
-Semantics:
-    - Superadmin bypasses everything.
-    - Owner (UserProfile.role='client' AND profile.client_id == client.id, OR
-      Client.owner_user == request.user) is always allowed for any action on
-      their own workspace.
-    - Otherwise the user must be an active member of an agency that has an
-      *active* AgencyClientRelation against this client, and that relation
-      must grant the action_key in its `permissions` dict.
-    - If the relation grants the action BUT lists it under
-      `requires_approval_for`, the helper creates an ApprovalRequest and
-      returns ('approval_required', approval_request). The caller MUST NOT
-      proceed with the mutation in that case — it should return 202 with
-      {'requires_approval': True, 'approval_id': ar.id}.
-
-Rule-of-thumb: legacy data stays unchanged. The backfill set every
-permission to True for every legacy relation, so existing agency staff still
-get through this gate untouched.
-
-Note on Rule #9 of the marketplace spec: end-users can ALWAYS disconnect
-their platforms even when agency-managed. Callers handling
-`disconnect_platforms` should call `check_action` only when the actor is
-agency-side; the owner branch passes through naturally.
+All callers receive allowed / denied / approval_required. Only this adapter
+creates approval rows; authorization.evaluate remains side-effect free.
 """
 from __future__ import annotations
 
 from typing import Optional
 
 from .models import (
-    AGENCY_CLIENT_PERMISSIONS,
     AgencyClientRelation,
-    AgencyMembership,
     ApprovalRequest,
     Client,
 )
@@ -80,32 +48,8 @@ def _is_superadmin(user) -> bool:
 
 
 def _resolve_relation(user, client: Client) -> Optional[AgencyClientRelation]:
-    """Find the active AgencyClientRelation that lets `user` act on `client`.
-
-    A user can act on behalf of any agency they are an active member of.
-    We pick the relation for the agency they are most likely "currently
-    representing" — for now: the one matching `profile.primary_agency` if set,
-    else the first active relation found.
-    """
-    prof = _profile(user)
-    if not prof:
-        return None
-
-    agency_ids = list(
-        AgencyMembership.objects.filter(user=user, is_active=True)
-        .values_list('agency_id', flat=True)
-    )
-    if not agency_ids:
-        return None
-
-    qs = AgencyClientRelation.objects.filter(
-        client=client, agency_id__in=agency_ids, status='active',
-    )
-    if prof.primary_agency_id:
-        primary = qs.filter(agency_id=prof.primary_agency_id).first()
-        if primary:
-            return primary
-    return qs.first()
+    from .authorization import acting_context
+    return acting_context(user, client)[1]
 
 
 def resolve_acting_context(request, client: Client):
@@ -113,17 +57,8 @@ def resolve_acting_context(request, client: Client):
 
     role is one of 'superadmin', 'owner', 'agency', 'forbidden'.
     """
-    user = getattr(request, 'user', None)
-    if not user or not user.is_authenticated:
-        return ('forbidden', None)
-    if _is_superadmin(user):
-        return ('superadmin', None)
-    if _is_owner(user, client):
-        return ('owner', None)
-    relation = _resolve_relation(user, client)
-    if relation:
-        return ('agency', relation)
-    return ('forbidden', None)
+    from .authorization import acting_context
+    return acting_context(getattr(request, 'user', None), client)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -139,6 +74,7 @@ def check_action(
     target_object_type: str = '',
     target_object_id: Optional[int] = None,
     preview: str = '',
+    social_account=None,
 ):
     """Check whether the request may perform `action_key` on `client`.
 
@@ -153,30 +89,54 @@ def check_action(
     is recorded on the ApprovalRequest when one is created. If omitted,
     the action_key is used.
     """
-    if action_key not in AGENCY_CLIENT_PERMISSIONS:
-        return ('denied', {'reason': f'unknown action: {action_key}'})
-
-    role, relation = resolve_acting_context(request, client)
-
-    if role in ('superadmin', 'owner'):
-        return ('allowed', {'role': role, 'relation': None})
-
-    if role == 'forbidden':
-        return ('denied', {'reason': 'no active agency relation for this workspace'})
-
-    # role == 'agency'
-    if not relation.can(action_key):
-        return ('denied', {
-            'reason': f'agency does not have permission "{action_key}" on this workspace',
-        })
-
-    if relation.needs_approval(action_key):
+    from .authorization import evaluate
+    from .models import SocialAccount
+    account_id = ((payload or {}).get('social_account_id') or
+                  getattr(request, 'query_params', {}).get('social_account_id') or
+                  getattr(request, 'data', {}).get('social_account_id') or
+                  getattr(request, 'query_params', {}).get('account_id'))
+    if account_id and social_account is None:
+        try:
+            social_account = SocialAccount.objects.get(pk=account_id, client=client)
+        except (SocialAccount.DoesNotExist, ValueError, TypeError):
+            return ('denied', {'reason': 'account is outside this workspace'})
+    if target_object_type in ('Conversation', 'PlatformReview') and target_object_id:
+        from . import models
+        target = getattr(models, target_object_type).objects.filter(pk=target_object_id, client=client).first()
+        if target is None:
+            return ('denied', {'reason': 'target is outside this workspace'})
+        social_account = target.social_account
+    decision = evaluate(request.user, client, action_key, account=social_account)
+    if target_object_type == 'UnifiedPost' and target_object_id:
+        from .models import UnifiedPost
+        from .authorization import post_decision
+        post = UnifiedPost.objects.filter(pk=target_object_id, client=client).first()
+        if post is None:
+            return ('denied', {'reason': 'post is outside this workspace'})
+        post_policy = post_decision(post, request.user, action_key)
+        if not post_policy.allowed:
+            return ('denied', {'reason': post_policy.reason})
+        from dataclasses import replace
+        decision = replace(decision, requires_approval=decision.requires_approval or post_policy.requires_approval)
+    platforms = (payload or {}).get('platforms') or ([(payload or {}).get('platform')] if (payload or {}).get('platform') else None)
+    if platforms and social_account is None and not (target_object_type == 'UnifiedPost' and target_object_id):
+        decisions = [evaluate(request.user, client, action_key, account=a)
+                     for a in SocialAccount.objects.filter(client=client, platform__in=platforms)]
+        if any(not d.allowed for d in decisions):
+            return ('denied', {'reason': 'account permission denied'})
+        if any(d.requires_approval for d in decisions):
+            from dataclasses import replace
+            decision = replace(decision, requires_approval=True)
+    role, relation = decision.role, decision.relation
+    if not decision.allowed:
+        return ('denied', {'reason': decision.reason})
+    if decision.requires_approval:
         ar = ApprovalRequest.objects.create(
             relation=relation,
             client=client,
             requested_by=request.user,
             action_type=(action_type or action_key),
-            payload=payload or {},
+            payload={**(payload or {}), '_permission_action': action_key, **({'social_account_id': social_account.pk} if social_account else {})},
             preview=preview,
             target_object_type=target_object_type,
             target_object_id=target_object_id,
@@ -188,21 +148,21 @@ def check_action(
             dispatch_notification(
                 client.owner_user,
                 event_type='approval_requested',
-                title=f'{relation.agency.name} needs your approval',
+                title=f'{request.user.get_username()} needs your approval',
                 body=(preview or f'They want to: {action_type or action_key}')[:300],
                 cta_url=f'{frontend}/u/approvals',
                 cta_label='Review approval',
                 data={
                     'kind':         'approval_requested',
                     'approval_id':  ar.id,
-                    'agency_name':  relation.agency.name,
+                    'agency_name':  relation.agency.name if relation else '',
                     'action_type':  action_type or action_key,
                     'expires_at':   ar.expires_at.isoformat() if ar.expires_at else None,
                 },
             )
         return ('approval_required', {'approval': ar, 'relation': relation})
 
-    return ('allowed', {'role': 'agency', 'relation': relation})
+    return ('allowed', {'role': role, 'relation': relation})
 
 
 # ─────────────────────────────────────────────────────────────────────────────

@@ -62,7 +62,14 @@ def publish_unified_post(self, unified_post_id: int):
                     unified_post_id, post.status)
         return
 
-    if post.client.requires_approval and post.status != 'scheduled' and not post.approved_by_id:
+    from .authorization import post_decision
+    decision = post_decision(post)
+    if not decision.allowed:
+        post.status = 'failed'
+        post.save(update_fields=['status'])
+        log_action(post.created_by, post.client, 'composer.publish', result='denied', error=decision.reason)
+        return
+    if decision.requires_approval and not post.approved_by_id:
         post.status = 'pending_approval'
         post.save(update_fields=['status'])
         from .notification_watchers import notify_approver_for_post
@@ -94,6 +101,13 @@ def publish_to_platform(self, unified_post_id: int, platform: str):
     try:
         post = UnifiedPost.objects.select_related('client').get(id=unified_post_id)
     except UnifiedPost.DoesNotExist:
+        return
+
+    from .authorization import post_decision
+    decision = post_decision(post)
+    if not decision.allowed or (decision.requires_approval and not post.approved_by_id):
+        post.status = 'pending_approval' if decision.allowed else 'failed'
+        post.save(update_fields=['status'])
         return
 
     log = PlatformPublishLog.objects.filter(unified_post=post, platform=platform).first()

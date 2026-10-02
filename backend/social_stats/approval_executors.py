@@ -54,7 +54,7 @@ def _exec_publish_post(approval) -> tuple[bool, str, dict]:
     payload = _payload(approval)
     post_id = payload.get('post_id') or approval.target_object_id
     try:
-        post = UnifiedPost.objects.get(pk=post_id)
+        post = UnifiedPost.objects.get(pk=post_id, client=approval.client)
     except UnifiedPost.DoesNotExist:
         return (False, 'post no longer exists', {})
 
@@ -67,9 +67,12 @@ def _exec_publish_post(approval) -> tuple[bool, str, dict]:
     if post.status not in ('draft', 'scheduled', 'failed', 'partial', 'pending_approval'):
         return (False, f'post is in status {post.status}; cannot publish', {'post_id': post.id})
 
+    post.publish_requested_by = approval.requested_by
+    post.approved_by = approval.decided_by
+    post.approved_at = timezone.now()
     post.status = 'queued'
     post.scheduled_at = timezone.now()
-    post.save(update_fields=['status', 'scheduled_at'])
+    post.save(update_fields=['status', 'scheduled_at', 'approved_by', 'approved_at', 'publish_requested_by'])
     publish_unified_post.delay(post.id)
     return (True, 'queued for publishing', {'post_id': post.id})
 
@@ -83,7 +86,7 @@ def _exec_send_campaign(approval) -> tuple[bool, str, dict]:
     payload = _payload(approval)
     campaign_id = payload.get('campaign_id') or approval.target_object_id
     try:
-        campaign = WhatsAppCampaign.objects.get(pk=campaign_id)
+        campaign = WhatsAppCampaign.objects.get(pk=campaign_id, client=approval.client)
     except WhatsAppCampaign.DoesNotExist:
         return (False, 'campaign no longer exists', {})
     if campaign.status not in ('draft', 'scheduled'):
@@ -111,12 +114,12 @@ def _exec_reply(approval) -> tuple[bool, str, dict]:
         return (False, 'missing conversation_id or text', {})
 
     try:
-        conv = Conversation.objects.get(pk=conv_id)
+        conv = Conversation.objects.get(pk=conv_id, client=approval.client)
     except Conversation.DoesNotExist:
         return (False, 'conversation no longer exists', {})
 
     cred = PlatformCredential.objects.filter(
-        client_id=conv.client_id, platform=conv.platform, is_active=True,
+        client_id=conv.client_id, platform=conv.platform, social_account_id=conv.social_account_id, is_active=True,
     ).first()
     if not cred:
         return (False, f'no active {conv.platform} credential', {})
@@ -176,9 +179,10 @@ def _exec_disconnect_platform(approval) -> tuple[bool, str, dict]:
     platform = payload.get('platform')
     if not platform:
         return (False, 'no platform in payload', {})
-    PlatformCredential.objects.filter(
-        client=approval.client, platform=platform,
-    ).update(access_token='', refresh_token='', is_active=False)
+    credentials = PlatformCredential.objects.filter(client=approval.client, platform=platform)
+    if payload.get('social_account_id'):
+        credentials = credentials.filter(social_account_id=payload['social_account_id'])
+    credentials.update(access_token='', refresh_token='', is_active=False)
     return (True, f'{platform} disconnected', {'platform': platform})
 
 
@@ -222,7 +226,7 @@ def _exec_delete_post(approval) -> tuple[bool, str, dict]:
     if target_type == 'CalendarPost':
         from .models import CalendarPost
         try:
-            post = CalendarPost.objects.get(pk=post_id)
+            post = CalendarPost.objects.get(pk=post_id, client=approval.client)
         except CalendarPost.DoesNotExist:
             return (False, 'calendar post no longer exists', {'post_id': post_id})
         if getattr(post, 'status', None) == 'published':
@@ -231,7 +235,7 @@ def _exec_delete_post(approval) -> tuple[bool, str, dict]:
         return (True, 'calendar post deleted', {'post_id': post_id})
 
     try:
-        post = UnifiedPost.objects.get(pk=post_id)
+        post = UnifiedPost.objects.get(pk=post_id, client=approval.client)
     except UnifiedPost.DoesNotExist:
         return (False, 'post no longer exists', {'post_id': post_id})
     post.delete()
@@ -246,7 +250,7 @@ def _exec_publish_bot(approval) -> tuple[bool, str, dict]:
     if not flow_id:
         return (False, 'no flow_id in payload', {})
     try:
-        flow = BotFlow.objects.get(pk=flow_id)
+        flow = BotFlow.objects.get(pk=flow_id, client=approval.client)
     except BotFlow.DoesNotExist:
         return (False, 'bot flow no longer exists', {'flow_id': flow_id})
     flow.is_active = True
@@ -264,7 +268,7 @@ def _exec_unpublish_bot(approval) -> tuple[bool, str, dict]:
     if not flow_id:
         return (False, 'no flow_id in payload', {})
     try:
-        flow = BotFlow.objects.get(pk=flow_id)
+        flow = BotFlow.objects.get(pk=flow_id, client=approval.client)
     except BotFlow.DoesNotExist:
         return (False, 'bot flow no longer exists', {'flow_id': flow_id})
     flow.is_active = False
@@ -272,11 +276,41 @@ def _exec_unpublish_bot(approval) -> tuple[bool, str, dict]:
     return (True, 'bot flow unpublished', {'flow_id': flow.id})
 
 
+def _exec_edit_post(approval):
+    payload = _payload(approval)
+    post = UnifiedPost.objects.filter(pk=payload.get('post_id'), client=approval.client).first()
+    if not post:
+        return False, 'post no longer exists', {}
+    from .composer_serializers import UnifiedPostSerializer
+    serializer = UnifiedPostSerializer(post, data=payload, partial=True)
+    serializer.is_valid(raise_exception=True)
+    serializer.save(approved_by=None, approved_at=None)
+    return True, 'post edited', {'post_id': post.pk}
+
+
+def _exec_schedule_post(approval):
+    from django.utils.dateparse import parse_datetime
+    payload = _payload(approval)
+    post = UnifiedPost.objects.filter(pk=payload.get('post_id'), client=approval.client).first()
+    when = parse_datetime(payload.get('scheduled_at', ''))
+    if not post or not when or when <= timezone.now():
+        return False, 'post missing or schedule is no longer in the future', {}
+    post.status = 'scheduled'
+    post.scheduled_at = when
+    post.publish_requested_by = approval.requested_by
+    post.approved_by = approval.decided_by
+    post.approved_at = timezone.now()
+    post.save(update_fields=['status', 'scheduled_at', 'approved_by', 'approved_at', 'publish_requested_by'])
+    return True, 'scheduled', {'post_id': post.pk}
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Dispatch table
 # ─────────────────────────────────────────────────────────────────────────────
 EXECUTORS: dict[str, Callable] = {
     'publish_post':        _exec_publish_post,
+    'schedule_post':       _exec_schedule_post,
+    'edit_post':           _exec_edit_post,
     'send_campaign':       _exec_send_campaign,
     'reply_comment':       _exec_reply,
     'reply_dm':            _exec_reply,
@@ -293,6 +327,28 @@ def execute_approval(approval) -> tuple[bool, str, dict]:
     """Dispatch by action_type. Failures are recoverable — the approval is
     still marked approved, but execution_result records the error and the
     UI shows it so the agency can resubmit / fix the underlying issue."""
+    from .authorization import evaluate
+    from .models import SocialAccount
+    payload = _payload(approval)
+    action = (approval.payload or {}).get('_permission_action')
+    if action:
+        account = None
+        if payload.get('social_account_id'):
+            account = SocialAccount.objects.filter(pk=payload['social_account_id'], client=approval.client).first()
+            if account is None:
+                return False, 'account is outside this workspace', {}
+        decision = evaluate(approval.requested_by, approval.client, action, account=account)
+        if not decision.allowed:
+            return False, decision.reason, {}
+        post_id = payload.get('post_id')
+        if post_id and approval.target_object_type == 'UnifiedPost':
+            from .authorization import post_decision
+            post = UnifiedPost.objects.filter(pk=post_id, client=approval.client).first()
+            if not post:
+                return False, 'post is outside this workspace', {}
+            decision = post_decision(post, approval.requested_by, action)
+            if not decision.allowed:
+                return False, decision.reason, {}
     handler = EXECUTORS.get(approval.action_type)
     if not handler:
         return (False, f'no executor for action_type={approval.action_type}', {})

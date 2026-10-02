@@ -88,15 +88,14 @@ class UnifiedPostViewSet(TenantScopedMixin, viewsets.ModelViewSet):
     def _gate_or_pending(self, action_key: str, *, action_type: str, payload: dict | None = None,
                          target_object_id: int | None = None, preview: str = ''):
         """Run check_action; return None on allowed, or a Response to short-circuit."""
-        client_id = self.request.data.get('client') or self.request.data.get('client_id')
-        if not client_id and target_object_id:
+        client_id = self.resolved_client_id()
+        if target_object_id:
             try:
                 client_id = UnifiedPost.objects.values_list('client_id', flat=True).get(id=target_object_id)
             except UnifiedPost.DoesNotExist:
                 return None
         if not client_id:
-            # The view's own validation will surface a clearer error.
-            return None
+            return deny_response('No authorized workspace context')
         from .models import Client
         client = Client.objects.filter(id=client_id).first()
         if not client:
@@ -125,11 +124,16 @@ class UnifiedPostViewSet(TenantScopedMixin, viewsets.ModelViewSet):
             )
         return None
 
+    def _review_payload(self, request):
+        fields = ('title', 'content', 'media_urls', 'media_type', 'target_platforms',
+                  'platform_overrides', 'is_recurring', 'recurrence_rule', 'ai_generated', 'ai_prompt')
+        return {key: request.data[key] for key in fields if key in request.data}
+
     def create(self, request, *args, **kwargs):
         denial = self._gate_or_pending(
             'draft_posts',
             action_type='draft_post',
-            payload={'platforms': list(request.data.get('target_platforms') or [])},
+            payload={**self._review_payload(request), 'platforms': list(request.data.get('target_platforms') or [])},
             preview=(request.data.get('content') or '')[:300],
         )
         if denial is not None:
@@ -141,6 +145,24 @@ class UnifiedPostViewSet(TenantScopedMixin, viewsets.ModelViewSet):
             if paused is not None:
                 return paused
         return super().create(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        post = self.get_object()
+        serializer = self.get_serializer(post, data=request.data, partial=kwargs.get('partial', False))
+        serializer.is_valid(raise_exception=True)
+        denial = self._gate_or_pending(
+            'edit_published' if post.status == 'published' else 'draft_posts',
+            action_type='edit_post', target_object_id=post.pk,
+            payload={**self._review_payload(request), 'post_id': post.pk, 'content': request.data.get('content', post.content),
+                     'platforms': list(request.data.get('target_platforms', post.target_platforms) or [])},
+        )
+        if denial is not None:
+            return denial
+        return super().update(request, *args, **kwargs)
+
+    def perform_update(self, serializer):
+        # Changing a reviewed draft invalidates its previous approval.
+        serializer.save(approved_by=None, approved_at=None)
 
     def destroy(self, request, *args, **kwargs):
         # Resolve the target post to evaluate its client. TenantScopedMixin
@@ -190,7 +212,13 @@ class UnifiedPostViewSet(TenantScopedMixin, viewsets.ModelViewSet):
         )
         if verdict == 'denied':
             return deny_response(ctx['reason'])
+        post.publish_requested_by = request.user
+        post.save(update_fields=['publish_requested_by'])
         if verdict == 'approval_required':
+            post.status = 'pending_approval'
+            post.save(update_fields=['status'])
+            from .notification_watchers import notify_approver_for_post
+            notify_approver_for_post.delay(post.id)
             return approval_pending_response(ctx['approval'])
 
         if post.client.requires_approval and not post.approved_by_id:
@@ -237,6 +265,17 @@ class UnifiedPostViewSet(TenantScopedMixin, viewsets.ModelViewSet):
             return Response({'detail': 'Invalid scheduled_at — expected ISO 8601 datetime'}, status=400)
         if dt < timezone.now():
             return Response({'detail': 'scheduled_at must be in the future'}, status=400)
+        verdict, ctx = check_action(
+            request, post.client, 'schedule_posts', action_type='schedule_post',
+            payload={'post_id': post.pk, 'scheduled_at': dt.isoformat(), 'platforms': list(post.target_platforms or [])},
+            target_object_type='UnifiedPost', target_object_id=post.pk,
+        )
+        if verdict == 'denied':
+            return deny_response(ctx['reason'])
+        post.publish_requested_by = request.user
+        post.save(update_fields=['publish_requested_by'])
+        if verdict == 'approval_required':
+            return approval_pending_response(ctx['approval'])
         post.scheduled_at = dt
         post.status = 'scheduled'
         post.save(update_fields=['scheduled_at', 'status'])
@@ -272,6 +311,11 @@ class UnifiedPostViewSet(TenantScopedMixin, viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def approve(self, request, pk=None):
         post = self.get_object()
+        from .authorization import evaluate
+        if not evaluate(request.user, post.client, 'approve_posts').allowed:
+            return deny_response('Permission denied: approve_posts')
+        if post.created_by_id == request.user.pk and evaluate(request.user, post.client, 'approve_posts').role not in ('owner', 'superadmin'):
+            return deny_response('Cannot approve your own post')
         if post.status != 'pending_approval':
             return Response({'detail': f'Post is not pending approval (status={post.status})'}, status=400)
         post.approved_by = request.user

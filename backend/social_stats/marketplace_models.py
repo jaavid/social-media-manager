@@ -178,6 +178,7 @@ class AgencyMembership(models.Model):
     agency      = models.ForeignKey(Agency, on_delete=models.CASCADE)
     user        = models.ForeignKey(User,   on_delete=models.CASCADE)
     role        = models.CharField(max_length=20, choices=ROLE_CHOICES, default='member')
+    preset = models.ForeignKey('social_stats.RolePreset', null=True, blank=True, on_delete=models.PROTECT)
     invited_by  = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
     joined_at   = models.DateTimeField(auto_now_add=True)
     is_active   = models.BooleanField(default=True)
@@ -286,7 +287,7 @@ class ApprovalRequest(models.Model):
         ('cancelled',     'Cancelled'),
     ]
 
-    relation     = models.ForeignKey(AgencyClientRelation, on_delete=models.CASCADE)
+    relation     = models.ForeignKey(AgencyClientRelation, null=True, blank=True, on_delete=models.CASCADE)
     client       = models.ForeignKey('social_stats.Client', on_delete=models.CASCADE, related_name='pending_approvals')
     requested_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='requested_approvals')
 

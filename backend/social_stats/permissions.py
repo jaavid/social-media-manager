@@ -13,50 +13,18 @@ class PermissionChecker:
     """Central place to check if a user has a permission."""
 
     @staticmethod
-    def has_permission(user_profile, permission_code):
-        if user_profile is None:
-            return False
-        if user_profile.role == 'superadmin':
-            return True
-        from .models import UserPermission, RolePermission, Permission
-        try:
-            override = UserPermission.objects.get(
-                user_profile=user_profile,
-                permission__code=permission_code,
-            )
-            return override.is_granted
-        except UserPermission.DoesNotExist:
-            pass
-        try:
-            role_perm = RolePermission.objects.get(
-                role=user_profile.role,
-                permission__code=permission_code,
-            )
-            return role_perm.is_granted
-        except RolePermission.DoesNotExist:
-            pass
-        return False
+    def has_permission(user_profile, permission_code, workspace=None, account=None):
+        from .authorization import legacy_permissions, LEGACY_ACTIONS, evaluate
+        if workspace is not None:
+            action = next((key for key, value in LEGACY_ACTIONS.items() if value == permission_code), None)
+            if action:
+                return evaluate(user_profile.user if user_profile else None, workspace, action, account=account).allowed
+        return legacy_permissions(user_profile).get(permission_code, False)
 
     @staticmethod
     def get_user_permissions(user_profile):
-        from .models import Permission, UserPermission, RolePermission
-        if user_profile is None:
-            return {}
-        if user_profile.role == 'superadmin':
-            return {p.code: True for p in Permission.objects.all()}
-
-        result = {}
-        # Start with role defaults
-        for rp in RolePermission.objects.filter(role=user_profile.role).select_related('permission'):
-            result[rp.permission.code] = rp.is_granted
-        # Apply user overrides
-        for up in UserPermission.objects.filter(user_profile=user_profile).select_related('permission'):
-            result[up.permission.code] = up.is_granted
-        # Ensure all permissions are present
-        for p in Permission.objects.all():
-            if p.code not in result:
-                result[p.code] = False
-        return result
+        from .authorization import legacy_permissions
+        return legacy_permissions(user_profile)
 
     @staticmethod
     def grant_permission(user_profile, permission_code, granted_by, note=""):
@@ -98,19 +66,8 @@ class PermissionChecker:
 
     @staticmethod
     def get_assigned_clients(user_profile):
-        from .models import Client, StaffClientAssignment
-        if user_profile is None:
-            return Client.objects.none()
-        if user_profile.role == 'superadmin':
-            return Client.objects.filter(is_active=True)
-        if user_profile.role == 'staff':
-            assigned_ids = StaffClientAssignment.objects.filter(
-                staff_profile=user_profile
-            ).values_list('client_id', flat=True)
-            return Client.objects.filter(id__in=assigned_ids, is_active=True)
-        if user_profile.role == 'client' and user_profile.client:
-            return Client.objects.filter(id=user_profile.client_id)
-        return Client.objects.none()
+        from .authorization import accessible_workspaces
+        return accessible_workspaces(user_profile.user if user_profile else None)
 
     @staticmethod
     def get_permissions_grouped(user_profile):

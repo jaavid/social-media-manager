@@ -104,6 +104,8 @@ class UnifiedPostSerializer(serializers.ModelSerializer):
         return [str(p).lower() for p in value if p]
 
     def validate(self, attrs):
+        if self.instance and 'client' in attrs and attrs['client'].pk != self.instance.client_id:
+            raise serializers.ValidationError({'client': 'Workspace cannot be changed'})
         media_type = attrs.get('media_type', 'text')
         media_urls = attrs.get('media_urls') or []
         if media_type != 'text' and not media_urls:

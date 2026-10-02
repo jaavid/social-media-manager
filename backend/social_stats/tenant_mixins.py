@@ -6,30 +6,11 @@
 #  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
 #  Released under the MIT License — see LICENSE. Keep this notice.
 # ============================================================================
-"""
-Shared tenant-isolation mixin for DRF ViewSets.
+"""Tenant-scoped viewsets backed by authorization.accessible_workspaces.
 
-Centralises the "filter queryset by the user's tenant" logic so individual
-viewsets don't reinvent it. Five branches in priority order:
-  1. anonymous / no profile → empty queryset
-  2. superadmin             → unconditional access (optionally narrowed by ?client_id=)
-  3. staff                  → assigned_clients M2M (legacy admin-side)
-  4. agency member          → union of clients managed by the user's primary
-                              agency (— closes the audit gap surfaced
-                              in where agency members got an empty
-                              queryset because their profile.client_id is null;
-                              agency identity lives in AgencyMembership, not
-                              UserProfile.client). The mixin walks
-                              AgencyClientRelation status='active' rows.
-  5. end-user with profile.client_id set → that single workspace
-  6. fallback               → empty queryset
-
-Never trusts client_id from the request body — always derives it from the
-authenticated user's profile / membership.
-
-Note: a near-duplicate copy of this class lives in `whatsapp_views.py` for
-historical reasons. Both were updated together here; consolidating
-them is a future cleanup.
+Request workspace selectors only narrow authorized querysets. Account-attributed
+reads additionally apply the shared account policy. perform_create stamps the
+authorized workspace instead of trusting serializer input.
 """
 from typing import Optional
 
@@ -84,55 +65,38 @@ class TenantScopedMixin:
 
     def resolved_client_id(self) -> Optional[int]:
         """Returns the client_id the current user is *allowed* to operate on."""
+        from .authorization import accessible_workspaces
+        workspaces = accessible_workspaces(self.request.user)
+        params = self.request.query_params
+        data = self.request.data
+        cid = params.get('workspace_id') or params.get('client_id') or data.get('workspace') or data.get('client')
+        if cid:
+            try:
+                return int(cid) if workspaces.filter(pk=int(cid)).exists() else None
+            except (TypeError, ValueError):
+                return None
         profile = self._profile()
-        if not profile:
-            return None
-        if profile.role == 'superadmin':
-            cid = self.request.query_params.get('client_id') or self.request.data.get('client')
-            try:
-                return int(cid) if cid else None
-            except (TypeError, ValueError):
-                return None
-        if profile.role == 'staff':
-            cid = self.request.query_params.get('client_id') or self.request.data.get('client')
-            try:
-                cid = int(cid) if cid else None
-            except (TypeError, ValueError):
-                return None
-            if cid and profile.assigned_clients.filter(id=cid).exists():
-                return cid
-            return None
-        agency_ids = self._agency_client_ids(profile)
-        if agency_ids:
-            cid = self.request.query_params.get('client_id') or self.request.data.get('client')
-            try:
-                cid = int(cid) if cid else None
-            except (TypeError, ValueError):
-                cid = None
-            if cid and cid in agency_ids:
-                return cid
-            return None
-        return profile.client_id
+        if profile and profile.client_id and workspaces.filter(pk=profile.client_id).exists():
+            return profile.client_id
+        return None
 
-    # ── DRF hooks ────────────────────────────────────────────────────────
     def get_queryset(self):
+        from .authorization import accessible_workspaces
         qs = super().get_queryset()
-        profile = self._profile()
-        if not profile:
-            return qs.none()
-
-        f = self.client_field_name
-        if profile.role == 'superadmin':
-            cid = self.request.query_params.get('client_id')
-            return qs.filter(**{f'{f}_id': cid}) if cid else qs
-        if profile.role == 'staff':
-            return qs.filter(**{f'{f}__in': profile.assigned_clients.all()})
-        agency_ids = self._agency_client_ids(profile)
-        if agency_ids:
-            return qs.filter(**{f'{f}_id__in': agency_ids})
-        if profile.client_id:
-            return qs.filter(**{f'{f}_id': profile.client_id})
-        return qs.none()
+        workspaces = accessible_workspaces(self.request.user)
+        cid = self.request.query_params.get('workspace_id') or self.request.query_params.get('client_id')
+        if cid:
+            try:
+                workspaces = workspaces.filter(pk=int(cid))
+            except (TypeError, ValueError):
+                return qs.none()
+        qs = qs.filter(**{f'{self.client_field_name}__in': workspaces})
+        read_action = {'Conversation': 'view_inbox', 'PlatformReview': 'view_inbox',
+                       'DailyMetric': 'view_analytics', 'PostMetric': 'view_posts'}.get(qs.model.__name__)
+        if read_action and self.client_field_name == 'client':
+            from .authorization import scope_account_queryset
+            qs = scope_account_queryset(qs, self.request.user, read_action)
+        return qs
 
     def perform_create(self, serializer):
         client_id = self.resolved_client_id()
