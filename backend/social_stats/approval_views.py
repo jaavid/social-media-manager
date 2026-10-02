@@ -46,10 +46,16 @@ from .models import (
 # ─────────────────────────────────────────────────────────────────────────────
 # Helpers
 # ─────────────────────────────────────────────────────────────────────────────
+POST_APPROVAL_TYPES = {'publish_post', 'schedule_post', 'edit_post', 'draft_post'}
+
+
 def _user_owns_approval(user, approval: ApprovalRequest) -> bool:
     from .authorization import evaluate
     decision = evaluate(user, approval.client, 'approve_posts')
-    return decision.allowed and (user.pk != approval.requested_by_id or decision.role in ('owner', 'superadmin'))
+    privileged = decision.role in ('owner', 'superadmin')
+    if not privileged and (approval.relation_id or approval.action_type not in POST_APPROVAL_TYPES):
+        return False
+    return decision.allowed and (user.pk != approval.requested_by_id or privileged)
 
 
 def _user_can_view(user, approval: ApprovalRequest) -> bool:
@@ -106,8 +112,10 @@ def _accessible_qs(user):
         qs = qs | ApprovalRequest.objects.filter(relation__agency_id__in=agency_ids)
     qs = qs | ApprovalRequest.objects.filter(requested_by=user)
     from .authorization import accessible_workspaces, evaluate
-    ids = [w.pk for w in accessible_workspaces(user) if evaluate(user, w, 'approve_posts').allowed]
-    return (qs | ApprovalRequest.objects.filter(client_id__in=ids)).distinct()
+    candidate_ids = ApprovalRequest.objects.values_list('client_id', flat=True)
+    ids = [w.pk for w in accessible_workspaces(user).filter(pk__in=candidate_ids) if evaluate(user, w, 'approve_posts').allowed]
+    delegated = ApprovalRequest.objects.filter(client_id__in=ids, relation__isnull=True, action_type__in=POST_APPROVAL_TYPES)
+    return (qs | delegated).distinct()
 
 
 def _perspective(user, approval: ApprovalRequest) -> str:

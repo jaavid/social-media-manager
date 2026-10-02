@@ -463,3 +463,129 @@ class RBACPolicyTests(TestCase):
         self.assertEqual(post.publish_requested_by, self.owner)
         self.assertTrue(post_decision(post).allowed)
         enqueue.assert_called_once_with(post.pk)
+
+    def test_delegated_post_approver_cannot_approve_non_post_or_agency_request(self):
+        from social_stats.approval_views import _user_owns_approval
+
+        approver = User.objects.create_user(username="senior-editor")
+        WorkspaceMemberPolicy.objects.create(
+            user=approver,
+            workspace=self.workspace,
+            preset=RolePreset.objects.get(key="senior-editor"),
+        )
+        approval = ApprovalRequest.objects.create(
+            client=self.workspace, requested_by=self.actor, action_type="send_campaign"
+        )
+        self.assertFalse(_user_owns_approval(approver, approval))
+        self.assertTrue(_user_owns_approval(self.owner, approval))
+        approval.action_type = "publish_post"
+        self.assertTrue(_user_owns_approval(approver, approval))
+        agency = Agency.objects.create(
+            name="Agency", slug="review-agency", owner_user=self.owner
+        )
+        approval.relation = AgencyClientRelation.objects.create(
+            agency=agency, client=self.workspace, initiated_by="agency", status="active"
+        )
+        self.assertFalse(_user_owns_approval(approver, approval))
+
+    @patch("social_stats.orchestrator.publish_unified_post.delay")
+    def test_delegated_approver_cannot_approve_own_publication_of_someone_elses_draft(
+        self, enqueue
+    ):
+        self.policy(preset=RolePreset.objects.get(key="senior-editor"))
+        self.workspace.requires_approval = True
+        self.workspace.save()
+        post = UnifiedPost.objects.create(
+            client=self.workspace,
+            created_by=self.owner,
+            content="Owner draft",
+            target_platforms=["facebook"],
+        )
+        self.api.force_authenticate(self.actor)
+        self.assertEqual(
+            self.api.post(f"/api/composer/posts/{post.pk}/publish_now/").status_code,
+            202,
+        )
+        self.assertEqual(
+            self.api.post(f"/api/composer/posts/{post.pk}/approve/").status_code, 403
+        )
+        enqueue.assert_not_called()
+
+    def test_edit_clears_prior_requester_and_returns_scheduled_post_to_draft(self):
+        post = UnifiedPost.objects.create(
+            client=self.workspace,
+            created_by=self.owner,
+            content="Reviewed",
+            status="scheduled",
+            approved_by=self.owner,
+            publish_requested_by=self.owner,
+        )
+        self.api.force_authenticate(self.actor)
+        res = self.api.patch(
+            f"/api/composer/posts/{post.pk}/", {"content": "New content"}, format="json"
+        )
+        self.assertEqual(res.status_code, 200)
+        post.refresh_from_db()
+        self.assertIsNone(post.publish_requested_by)
+        self.assertIsNone(post.approved_by)
+        self.assertEqual(post.status, "draft")
+
+    def test_approved_edit_clears_prior_requester_and_schedule(self):
+        post = UnifiedPost.objects.create(
+            client=self.workspace,
+            created_by=self.owner,
+            content="Reviewed",
+            status="scheduled",
+            approved_by=self.owner,
+            publish_requested_by=self.owner,
+        )
+        approval = ApprovalRequest.objects.create(
+            client=self.workspace,
+            requested_by=self.actor,
+            action_type="edit_post",
+            payload={"post_id": post.pk, "content": "New content"},
+        )
+        self.assertTrue(execute_approval(approval)[0])
+        post.refresh_from_db()
+        self.assertIsNone(post.publish_requested_by)
+        self.assertIsNone(post.approved_by)
+        self.assertEqual(post.status, "draft")
+
+    def test_platform_recheck_records_failure_and_preserves_partial_success(self):
+        from social_stats.models import PlatformPublishLog
+        from social_stats.orchestrator import publish_to_platform
+
+        self.policy(permissions={"publish_posts": False})
+        post = UnifiedPost.objects.create(
+            client=self.workspace,
+            created_by=self.actor,
+            target_platforms=["facebook", "instagram"],
+            status="publishing",
+        )
+        PlatformPublishLog.objects.create(
+            unified_post=post, platform="instagram", status="success"
+        )
+        log = PlatformPublishLog.objects.create(
+            unified_post=post, platform="facebook", status="pending"
+        )
+        publish_to_platform(post.pk, "facebook")
+        log.refresh_from_db()
+        post.refresh_from_db()
+        self.assertEqual(log.status, "failed")
+        self.assertEqual(log.error_code, "permission_denied")
+        self.assertEqual(post.status, "partial")
+
+    def test_team_evaluation_ignores_unrelated_users(self):
+        outsider = User.objects.create_user(username="not-in-team")
+        from social_stats.authorization import acting_context
+
+        with patch(
+            "social_stats.rbac_views.acting_context", wraps=acting_context
+        ) as resolve:
+            res = self.api.get(
+                f"/api/management/workspaces/{self.workspace.pk}/team-policy/"
+            )
+        self.assertEqual(res.status_code, 200)
+        self.assertNotIn(
+            outsider.pk, [args.args[0].pk for args in resolve.call_args_list]
+        )

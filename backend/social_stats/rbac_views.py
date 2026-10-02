@@ -97,7 +97,28 @@ def presets(request):
 def team(request, workspace_id):
     workspace = _workspace(request, workspace_id)
     # Include compatibility members, even before an explicit policy is assigned.
-    users = User.objects.filter(is_active=True).order_by("pk")
+    from django.db.models import Q
+    from .models import AgencyClientRelation
+
+    agency_ids = AgencyClientRelation.objects.filter(
+        client=workspace, status="active"
+    ).values_list("agency_id", flat=True)
+    users = (
+        User.objects.filter(is_active=True)
+        .filter(
+            Q(pk=workspace.owner_user_id)
+            | Q(profile__client=workspace, profile__role="client")
+            | Q(profile__client_assignments__client=workspace)
+            | Q(profile__assigned_clients=workspace)
+            | Q(workspacememberpolicy__workspace=workspace)
+            | Q(
+                agencymembership__agency_id__in=agency_ids,
+                agencymembership__is_active=True,
+            )
+        )
+        .distinct()
+        .order_by("pk")
+    )
     members = []
     for user in users:
         role, _ = acting_context(user, workspace)

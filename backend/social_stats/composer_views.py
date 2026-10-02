@@ -162,7 +162,10 @@ class UnifiedPostViewSet(TenantScopedMixin, viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         # Changing a reviewed draft invalidates its previous approval.
-        serializer.save(approved_by=None, approved_at=None)
+        extra = {'approved_by': None, 'approved_at': None, 'publish_requested_by': None}
+        if serializer.instance.status in ('scheduled', 'queued', 'pending_approval'):
+            extra['status'] = 'draft'
+        serializer.save(**extra)
 
     def destroy(self, request, *args, **kwargs):
         # Resolve the target post to evaluate its client. TenantScopedMixin
@@ -314,8 +317,16 @@ class UnifiedPostViewSet(TenantScopedMixin, viewsets.ModelViewSet):
         from .authorization import evaluate
         if not evaluate(request.user, post.client, 'approve_posts').allowed:
             return deny_response('Permission denied: approve_posts')
-        if post.created_by_id == request.user.pk and evaluate(request.user, post.client, 'approve_posts').role not in ('owner', 'superadmin'):
+        decision = evaluate(request.user, post.client, 'approve_posts')
+        privileged = decision.role in ('owner', 'superadmin')
+        if request.user.pk in (post.created_by_id, post.publish_requested_by_id) and not privileged:
             return deny_response('Cannot approve your own post')
+        from .models import ApprovalRequest
+        if not privileged and ApprovalRequest.objects.filter(
+            client=post.client, target_object_type='UnifiedPost', target_object_id=post.pk,
+            relation__isnull=False, status='pending',
+        ).exists():
+            return deny_response('Agency requests require workspace owner approval')
         if post.status != 'pending_approval':
             return Response({'detail': f'Post is not pending approval (status={post.status})'}, status=400)
         post.approved_by = request.user

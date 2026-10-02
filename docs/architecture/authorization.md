@@ -69,7 +69,12 @@ current action permission. The publication requester is persisted separately
 from the original author so an authorized owner can publish an editor draft.
 Scheduled delivery also requires current publish permission. Editors cannot approve their own requests; approving
 posts requires `approve_posts`, with the legacy `composer.approve` mapping.
-Changing a reviewed post invalidates its review markers.
+Changing a reviewed post clears review markers and the prior publication
+requester, and returns scheduled/queued/pending posts to draft. Delegated
+`approve_posts` authority covers direct post approval requests only; agency
+relationship requests and non-post actions still require the workspace owner.
+Self-review checks both the draft author and publication requester. Platform
+policy failures close the affected publish log and preserve partial successes.
 
 ApprovalRequest.relation is now nullable for direct workspace/staff requests.
 Existing agency approval rows remain unchanged. Executors constrain object

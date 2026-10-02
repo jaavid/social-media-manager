@@ -103,18 +103,17 @@ def publish_to_platform(self, unified_post_id: int, platform: str):
     except UnifiedPost.DoesNotExist:
         return
 
+    log, _ = PlatformPublishLog.objects.get_or_create(unified_post=post, platform=platform, defaults={'status': 'pending'})
     from .authorization import post_decision
     decision = post_decision(post)
     if not decision.allowed or (decision.requires_approval and not post.approved_by_id):
-        post.status = 'pending_approval' if decision.allowed else 'failed'
-        post.save(update_fields=['status'])
+        _mark_failed(log, code='approval_required' if decision.allowed else 'permission_denied',
+                     message='Current policy requires review' if decision.allowed else decision.reason)
+        update_unified_post_status(post.id)
+        if decision.allowed and not post.publish_logs.filter(status='success').exists():
+            post.status = 'pending_approval'
+            post.save(update_fields=['status'])
         return
-
-    log = PlatformPublishLog.objects.filter(unified_post=post, platform=platform).first()
-    if not log:
-        log = PlatformPublishLog.objects.create(
-            unified_post=post, platform=platform, status='pending',
-        )
 
     log.status = 'publishing'
     log.attempted_at = timezone.now()

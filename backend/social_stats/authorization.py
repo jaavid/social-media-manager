@@ -334,7 +334,11 @@ def scope_account_queryset(queryset, user, action):
     from .models import SocialAccount
 
     workspace_ids = [
-        w.pk for w in accessible_workspaces(user) if evaluate(user, w, action).allowed
+        w.pk
+        for w in accessible_workspaces(user).filter(
+            pk__in=queryset.order_by().values("client_id")
+        )
+        if evaluate(user, w, action).allowed
     ]
     accounts = SocialAccount.objects.filter(client_id__in=workspace_ids).select_related(
         "client"

@@ -284,7 +284,10 @@ def _exec_edit_post(approval):
     from .composer_serializers import UnifiedPostSerializer
     serializer = UnifiedPostSerializer(post, data=payload, partial=True)
     serializer.is_valid(raise_exception=True)
-    serializer.save(approved_by=None, approved_at=None)
+    extra = {'approved_by': None, 'approved_at': None, 'publish_requested_by': None}
+    if post.status in ('scheduled', 'queued', 'pending_approval'):
+        extra['status'] = 'draft'
+    serializer.save(**extra)
     return True, 'post edited', {'post_id': post.pk}
 
 
