@@ -9,10 +9,11 @@ from rest_framework.throttling import UserRateThrottle
 
 from .egress.health import probe_all_services, probe_gateway_health, probe_service
 from .egress.registry import SERVICES
+from .oauth_readiness import oauth_readiness_report
 
 
 class EgressDiagnosticsThrottle(UserRateThrottle):
-    # Each request performs real network probes. Keep the button useful without
+    # Each request may perform real network probes. Keep the button useful without
     # allowing an authenticated browser to hammer third-party APIs continuously.
     rate = '20/hour'
 
@@ -28,14 +29,26 @@ def _is_operator(request) -> bool:
 @permission_classes([IsAuthenticated])
 @throttle_classes([EgressDiagnosticsThrottle])
 def egress_connectivity(request):
-    """Run direct + gateway reachability checks without using user credentials.
+    """Run outbound diagnostics or return safe OAuth readiness metadata.
 
-    Query parameter ``service`` limits the check to one allowlisted service.
-    This endpoint intentionally does not expose API_GATEWAY_KEY or credential
-    material in the response.
+    ``mode=oauth`` is intentionally side-effect free: it only reports whether
+    required server settings are present plus callback/scopes/API metadata. It
+    never returns credential values and skips network probes entirely.
+
+    Query parameter ``service`` limits connectivity checks to one allowlisted
+    service. The endpoint is restricted to operators in both modes.
     """
     if not _is_operator(request):
         return Response({'detail': 'Operator access required'}, status=403)
+
+    mode = (request.query_params.get('mode') or '').strip().lower()
+    if mode:
+        if mode != 'oauth':
+            return Response({'detail': 'Unknown diagnostics mode'}, status=400)
+        return Response({
+            'checked_at': timezone.now().isoformat(),
+            'oauth': oauth_readiness_report(),
+        })
 
     service = (request.query_params.get('service') or '').strip()
     if service and service not in SERVICES:

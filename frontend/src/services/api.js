@@ -7,26 +7,14 @@
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
 import axios from 'axios';
+import { invalidateSession, onSessionInvalidated, refreshAccessToken } from '../lib/auth/session';
+
+export { invalidateSession, onSessionInvalidated };
 
 const api = axios.create({
   baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8000/api',
   headers: { 'Content-Type': 'application/json' },
 });
-
-// Authentication is process-wide, so refresh coordination must be process-wide too.
-// Consumers use this signal to stop pollers before navigation can render again.
-const sessionInvalidationListeners = new Set();
-let refreshPromise = null;
-
-export function onSessionInvalidated(listener) {
-  sessionInvalidationListeners.add(listener);
-  return () => sessionInvalidationListeners.delete(listener);
-}
-
-export function invalidateSession() {
-  try { localStorage.clear(); } catch {}
-  sessionInvalidationListeners.forEach((listener) => listener());
-}
 
 // Attach JWT token to every request
 api.interceptors.request.use((config) => {
@@ -44,9 +32,9 @@ const PUBLIC_PATH_PREFIXES = [
   '/agency-invite/', '/invitation/', '/report/',
 ];
 
-function _redirectToLogin() {
-  invalidateSession();
-  if (typeof window === 'undefined') return;
+function _redirectToLogin(expectedAccessToken) {
+  const invalidated = invalidateSession({ expectedAccessToken });
+  if (!invalidated || typeof window === 'undefined') return;
   const path = window.location.pathname || '';
   if (PUBLIC_PATH_PREFIXES.some((p) => path.startsWith(p))) return;
   window.location.href = '/login';
@@ -74,21 +62,15 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
+    const authorization = original?.headers?.get?.('Authorization') || original?.headers?.Authorization || original?.headers?.authorization || '';
+    const failedAccessToken = typeof authorization === 'string' && authorization.startsWith('Bearer ') ? authorization.slice(7) : localStorage.getItem('access_token');
+
     try {
-      if (!refreshPromise) {
-        refreshPromise = axios.post(
-          `${process.env.REACT_APP_API_URL || 'http://localhost:8000/api'}/auth/refresh/`,
-          { refresh }
-        ).then((res) => {
-          localStorage.setItem('access_token', res.data.access);
-          return res.data.access;
-        }).finally(() => { refreshPromise = null; });
-      }
-      const access = await refreshPromise;
+      const access = await refreshAccessToken(failedAccessToken);
       original.headers.Authorization = `Bearer ${access}`;
       return api(original);
     } catch {
-      _redirectToLogin();
+      _redirectToLogin(failedAccessToken);
       return Promise.reject(error);
     }
   }

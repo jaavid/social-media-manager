@@ -7,19 +7,78 @@
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
 import { useEffect, useMemo, useState } from 'react';
+import { AlertTriangle, CheckCircle2, Copy, Lightbulb, RefreshCw, Settings2, Zap } from 'lucide-react';
+
 import { oauthAPI } from '../../services/api';
 import { botChannelsAPI } from '../../services/botChannels';
+import { egressAPI } from '../../services/egress';
 import {
   getOAuthUrl,
   platformHasCapability,
   usePlatformUiRegistry,
 } from '../../services/platforms';
 import { useLanguage } from '../../i18n';
-import { Lightbulb, Zap } from 'lucide-react';
-import SocialPlatformIcon from './SocialPlatformIcon';
+import ApiConnectivityPanel from '../ApiConnectivityPanel';
 import FacebookConnectModal from '../FacebookConnectModal';
 import PlatformConnectModal from '../PlatformConnectModal';
-import ApiConnectivityPanel from '../ApiConnectivityPanel';
+import Badge from './Badge';
+import Button from './Button';
+import Card from './Card';
+import SocialPlatformIcon from './SocialPlatformIcon';
+
+const ACCOUNT_STATES = Object.freeze({
+  SETUP_REQUIRED: 'setup_required',
+  READY: 'ready',
+  CONNECTED: 'connected',
+  EXPIRED: 'expired',
+  ERROR: 'error',
+  UNAVAILABLE: 'unavailable',
+  UNKNOWN: 'unknown',
+});
+
+const STATE_META = {
+  [ACCOUNT_STATES.SETUP_REQUIRED]: { variant: 'warning', icon: Settings2, label: 'Setup required' },
+  [ACCOUNT_STATES.READY]: { variant: 'info', icon: CheckCircle2, label: 'Ready to connect' },
+  [ACCOUNT_STATES.CONNECTED]: { variant: 'success', icon: CheckCircle2, label: 'Connected' },
+  [ACCOUNT_STATES.EXPIRED]: { variant: 'warning', icon: AlertTriangle, label: 'Expired' },
+  [ACCOUNT_STATES.ERROR]: { variant: 'danger', icon: AlertTriangle, label: 'Error' },
+  [ACCOUNT_STATES.UNAVAILABLE]: { variant: 'default', icon: null, label: 'Unavailable' },
+  [ACCOUNT_STATES.UNKNOWN]: { variant: 'default', icon: null, label: 'Readiness unknown' },
+};
+
+function readinessState(connectionState, readiness, canConnect, connectionCapability, authType) {
+  if (connectionState?.status === 'active') return ACCOUNT_STATES.CONNECTED;
+  if (connectionState?.status === 'expired') return ACCOUNT_STATES.EXPIRED;
+  if (connectionState?.status === 'error') return ACCOUNT_STATES.ERROR;
+  if (readiness && readiness.configured === false) return ACCOUNT_STATES.SETUP_REQUIRED;
+  if (canConnect && authType !== 'oauth') return ACCOUNT_STATES.READY;
+  if (canConnect && readiness?.configured === true) return ACCOUNT_STATES.READY;
+  if (canConnect && authType === 'oauth' && !readiness) return ACCOUNT_STATES.UNKNOWN;
+  if (connectionCapability === 'planned') return ACCOUNT_STATES.UNAVAILABLE;
+  return ACCOUNT_STATES.UNAVAILABLE;
+}
+
+function DetailList({ readiness }) {
+  if (!readiness) return null;
+  const details = [
+    readiness.redirect_uri && ['Callback URI', readiness.redirect_uri],
+    readiness.required_apis?.length && ['Required APIs', readiness.required_apis.join(' · ')],
+    readiness.scopes?.length && ['Scopes', readiness.scopes.join(' · ')],
+    readiness.missing?.length && ['Missing settings', readiness.missing.join(' · ')],
+  ].filter(Boolean);
+
+  if (!details.length) return null;
+  return (
+    <dl className="mt-4 grid gap-2 border-t border-[var(--border-subtle)] pt-4 text-xs">
+      {details.map(([label, value]) => (
+        <div key={label} className="grid gap-1 sm:grid-cols-[110px_minmax(0,1fr)] sm:gap-3">
+          <dt className="font-medium text-[var(--text-tertiary)]">{label}</dt>
+          <dd dir="ltr" className="m-0 break-all text-start text-[var(--text-secondary)]">{value}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
 
 export default function ConnectedAccounts({ clientId, status, onRefresh }) {
   const { t, formatDate, isPersian } = useLanguage();
@@ -27,6 +86,8 @@ export default function ConnectedAccounts({ clientId, status, onRefresh }) {
   const [fbConsentOpen, setFbConsentOpen] = useState(false);
   const [connectionModal, setConnectionModal] = useState(null);
   const [credentialStatus, setCredentialStatus] = useState({});
+  const [oauthReadiness, setOauthReadiness] = useState({});
+  const [showTechnical, setShowTechnical] = useState({});
   const { categories, platforms } = usePlatformUiRegistry();
 
   const refreshCredentialStatus = async () => {
@@ -42,7 +103,17 @@ export default function ConnectedAccounts({ clientId, status, onRefresh }) {
     }
   };
 
+  const refreshOauthReadiness = async () => {
+    try {
+      const response = await egressAPI.oauthReadiness();
+      setOauthReadiness(response.data?.oauth || {});
+    } catch (error) {
+      if (error?.response?.status !== 403) setOauthReadiness({});
+    }
+  };
+
   useEffect(() => { refreshCredentialStatus(); }, [clientId]);
+  useEffect(() => { refreshOauthReadiness(); }, []);
 
   const combinedStatus = useMemo(
     () => ({ ...(status || {}), ...credentialStatus }),
@@ -107,99 +178,155 @@ export default function ConnectedAccounts({ clientId, status, onRefresh }) {
     }
   };
 
+  const copyCallback = async (value) => {
+    if (!value || typeof navigator === 'undefined' || !navigator.clipboard) return;
+    await navigator.clipboard.writeText(value);
+  };
+
   return (
-    <div>
-      <h2 style={styles.heading}>{t('accounts.title')}</h2>
-      <p style={styles.sub}>{t('accounts.subtitle')}</p>
+    <div className="min-w-0">
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="m-0 text-xl font-extrabold tracking-[-0.02em] text-foreground">{t('accounts.title')}</h2>
+          <p className="mb-0 mt-1 text-sm text-[var(--text-tertiary)]">{t('accounts.subtitle')}</p>
+        </div>
+        {Object.keys(oauthReadiness).length > 0 && (
+          <Button variant="secondary" size="sm" icon={RefreshCw} onClick={refreshOauthReadiness}>
+            Refresh readiness
+          </Button>
+        )}
+      </div>
 
-      {grouped.map(({ category, platforms: groupPlatforms }) => {
-        const categoryLabel = localizedCategoryLabel(category);
-        return (
-          <section key={category.key} aria-label={categoryLabel} style={styles.category}>
-            <h3 style={styles.categoryTitle}>{categoryLabel}</h3>
-            <div className="oauth-platform-grid" style={styles.grid}>
-              {groupPlatforms.map(platform => {
-                const key = platform.key;
-                const platformLabel = localizedPlatformLabel(platform);
-                const connectionState = combinedStatus[key] || {};
-                const active = connectionState.status === 'active';
-                const expired = connectionState.status === 'expired';
-                const connected = active || expired;
-                const canConnect = platformHasCapability(platform, 'connect');
-                const connectionCapability = platform.capabilityStatuses?.connection || 'not_available';
-                const fbConnected = (combinedStatus.facebook || {}).status === 'active';
-                const groupNote = key === 'instagram' && fbConnected && connected
-                  ? <span style={styles.groupNoteInner}><Zap size={13} /> {t('accounts.connectedViaFacebook')}</span>
-                  : null;
+      <div className="space-y-7">
+        {grouped.map(({ category, platforms: groupPlatforms }) => {
+          const categoryLabel = localizedCategoryLabel(category);
+          return (
+            <section key={category.key} aria-label={categoryLabel}>
+              <div className="mb-2 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--text-tertiary)]">
+                {categoryLabel}
+              </div>
+              <div className="grid min-w-0 grid-cols-1 gap-3 lg:grid-cols-2">
+                {groupPlatforms.map(platform => {
+                  const key = platform.key;
+                  const platformLabel = localizedPlatformLabel(platform);
+                  const connectionState = combinedStatus[key] || {};
+                  const readiness = oauthReadiness[key];
+                  const canConnect = platformHasCapability(platform, 'connect');
+                  const connectionCapability = platform.capabilityStatuses?.connection || 'not_available';
+                  const state = readinessState(
+                    connectionState,
+                    readiness,
+                    canConnect,
+                    connectionCapability,
+                    platform.authType,
+                  );
+                  const stateMeta = STATE_META[state];
+                  const connected = state === ACCOUNT_STATES.CONNECTED;
+                  const fbConnected = (combinedStatus.facebook || {}).status === 'active';
+                  const viaFacebook = key === 'instagram' && fbConnected && connected;
+                  const lastSync = connectionState.last_successful_sync || connectionState.last_sync_at;
 
-                return (
-                  <div key={key} className="oauth-platform-card" style={styles.card}>
-                    <div style={styles.cardTop}>
-                      <div style={styles.platformInfo}>
-                        <span style={styles.platformIcon}>
-                          <SocialPlatformIcon
-                            platform={key}
-                            size={28}
-                            label={platformLabel}
-                            color={platform.color}
-                          />
-                        </span>
-                        <div>
-                          <div style={styles.platformName}>{platformLabel}</div>
-                          {connectionState.account_name && <div dir="ltr" style={styles.accountName}>@{connectionState.account_name}</div>}
-                          {connectionState.destination_id && <div dir="ltr" style={styles.accountName}>→ {connectionState.destination_id}</div>}
+                  return (
+                    <Card key={key} padding="md" className="min-w-0 overflow-hidden">
+                      <div className="flex min-w-0 items-start justify-between gap-3">
+                        <div className="flex min-w-0 items-center gap-3">
+                          <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-muted">
+                            <SocialPlatformIcon
+                              platform={key}
+                              size={25}
+                              label={platformLabel}
+                              color={platform.color}
+                            />
+                          </span>
+                          <div className="min-w-0">
+                            <div className="truncate text-[15px] font-bold text-foreground">{platformLabel}</div>
+                            {connectionState.account_name && (
+                              <div dir="ltr" className="mt-0.5 truncate text-start text-xs text-[var(--text-tertiary)]">
+                                @{connectionState.account_name}
+                              </div>
+                            )}
+                            {connectionState.destination_id && (
+                              <div dir="ltr" className="mt-0.5 truncate text-start text-xs text-[var(--text-tertiary)]">
+                                {connectionState.destination_id}
+                              </div>
+                            )}
+                          </div>
                         </div>
+                        <Badge variant={stateMeta.variant} icon={stateMeta.icon}>{stateMeta.label}</Badge>
                       </div>
-                      <div style={styles.statusBadge(active, expired)}>
-                        {active
-                          ? `● ${t('accounts.status.active')}`
-                          : expired
-                            ? `⚠ ${t('accounts.status.expired')}`
-                            : `○ ${t('accounts.status.disconnected')}`}
-                      </div>
-                    </div>
 
-                    {connectionState.expires_at && (
-                      <div style={styles.expiry}>
-                        {t('accounts.tokenExpires', undefined, { date: formatDate(connectionState.expires_at) })}
+                      <div className="mt-4 space-y-1 text-xs text-[var(--text-tertiary)]">
+                        {connectionState.connected_at && (
+                          <div>{t('accounts.connectedAt', 'Connected')} · {formatDate(connectionState.connected_at)}</div>
+                        )}
+                        {lastSync && <div>Last successful sync · {formatDate(lastSync)}</div>}
+                        {connectionState.expires_at && (
+                          <div>{t('accounts.tokenExpires', undefined, { date: formatDate(connectionState.expires_at) })}</div>
+                        )}
+                        {viaFacebook && (
+                          <div className="flex items-center gap-1 text-[var(--info)]">
+                            <Zap size={13} /> {t('accounts.connectedViaFacebook')}
+                          </div>
+                        )}
+                        {state === ACCOUNT_STATES.SETUP_REQUIRED && readiness?.missing?.length > 0 && (
+                          <div className="text-[var(--warning)]">Missing: {readiness.missing.join(', ')}</div>
+                        )}
                       </div>
-                    )}
 
-                    {groupNote ? (
-                      <div style={styles.groupNote}>{groupNote}</div>
-                    ) : connected ? (
-                      <button
-                        className="oauth-btn-row"
-                        onClick={() => handleDisconnect(platform)}
-                        disabled={loading[key]}
-                        style={styles.disconnectBtn}
-                      >
-                        {loading[key] ? t('accounts.disconnecting') : t('accounts.disconnect')}
-                      </button>
-                    ) : canConnect ? (
-                      <button
-                        className="oauth-btn-row"
-                        onClick={() => handleConnect(platform)}
-                        style={{ ...styles.connectBtn, background: platform.color }}
-                      >
-                        {t('accounts.connect', undefined, { platform: platformLabel })} →
-                      </button>
-                    ) : connectionCapability === 'planned' ? (
-                      <button
-                        className="oauth-btn-row"
-                        disabled
-                        style={{ ...styles.connectBtn, opacity: 0.55, cursor: 'not-allowed', background: platform.color }}
-                      >
-                        {t('common.soon', 'Coming soon')}
-                      </button>
-                    ) : null}
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-        );
-      })}
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        {state === ACCOUNT_STATES.EXPIRED || (state === ACCOUNT_STATES.ERROR && canConnect) ? (
+                          <Button size="sm" icon={RefreshCw} onClick={() => handleConnect(platform)}>
+                            Reconnect
+                          </Button>
+                        ) : connected && !viaFacebook ? (
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            loading={Boolean(loading[key])}
+                            onClick={() => handleDisconnect(platform)}
+                          >
+                            {t('accounts.disconnect')}
+                          </Button>
+                        ) : state === ACCOUNT_STATES.READY || state === ACCOUNT_STATES.UNKNOWN ? (
+                          <Button
+                            size="sm"
+                            onClick={() => handleConnect(platform)}
+                            style={{ background: platform.color }}
+                          >
+                            {t('accounts.connect', undefined, { platform: platformLabel })}
+                          </Button>
+                        ) : null}
+
+                        {readiness && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setShowTechnical(current => ({ ...current, [key]: !current[key] }))}
+                          >
+                            {showTechnical[key] ? 'Hide setup details' : 'Setup details'}
+                          </Button>
+                        )}
+                        {readiness?.redirect_uri && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            icon={Copy}
+                            onClick={() => copyCallback(readiness.redirect_uri)}
+                          >
+                            Copy callback
+                          </Button>
+                        )}
+                      </div>
+
+                      {showTechnical[key] && <DetailList readiness={readiness} />}
+                    </Card>
+                  );
+                })}
+              </div>
+            </section>
+          );
+        })}
+      </div>
 
       <FacebookConnectModal
         appName="Social Stats"
@@ -215,38 +342,20 @@ export default function ConnectedAccounts({ clientId, status, onRefresh }) {
         onConnected={refreshCredentialStatus}
       />
 
-      <div style={styles.helpBox}>
-        <strong style={styles.helpTitle}><Lightbulb size={14} /> {t('accounts.help.title')}</strong>
-        <ul style={{ margin: '8px 0 0', paddingInlineStart: 20, fontSize: 13, color: 'var(--text-tertiary)' }}>
+      <Card padding="md" className="mt-7 border-[var(--info-border)] bg-[var(--info-bg)] shadow-none">
+        <strong className="flex items-center gap-1.5 text-sm text-[var(--info)]">
+          <Lightbulb size={15} /> {t('accounts.help.title')}
+        </strong>
+        <ul className="mb-0 mt-2 space-y-1 ps-5 text-xs leading-5 text-[var(--text-secondary)]">
           <li>{t('accounts.help.oauth')}</li>
           <li>{t('accounts.help.bot')}</li>
           <li>{t('accounts.help.shared')}</li>
         </ul>
-      </div>
+      </Card>
 
-      <ApiConnectivityPanel />
+      <div className="mt-5">
+        <ApiConnectivityPanel />
+      </div>
     </div>
   );
 }
-
-const styles = {
-  heading: { margin: '0 0 6px', fontSize: 20, fontWeight: 800, color: 'var(--text-primary)' },
-  sub: { margin: '0 0 24px', color: 'var(--text-tertiary)', fontSize: 14 },
-  category: { marginBottom: 20 },
-  categoryTitle: { margin: '0 0 8px', fontSize: 12, textTransform: 'capitalize', color: 'var(--text-tertiary)' },
-  grid: { display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 12, marginBottom: 24 },
-  card: { background: 'var(--surface-card)', borderRadius: 16, padding: '16px 18px', boxShadow: '0 2px 12px rgba(0,0,0,.06)', border: '1px solid var(--border-subtle)', overflow: 'hidden', position: 'relative' },
-  cardTop: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 },
-  platformInfo: { display: 'flex', alignItems: 'center', gap: 10 },
-  platformIcon: { fontSize: 28 },
-  platformName: { fontWeight: 700, fontSize: 15, color: 'var(--text-primary)' },
-  accountName: { fontSize: 12, color: 'var(--text-tertiary)', marginTop: 2 },
-  statusBadge: (active, expired) => ({ fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 20, background: active ? '#dcfce7' : expired ? '#fef3c7' : '#f1f5f9', color: active ? '#16a34a' : expired ? '#d97706' : '#64748b' }),
-  expiry: { fontSize: 12, color: 'var(--text-tertiary)', marginBottom: 10 },
-  groupNote: { fontSize: 12, color: '#2563eb', fontStyle: 'italic', marginTop: 4 },
-  groupNoteInner: { display: 'flex', alignItems: 'center', gap: 4 },
-  connectBtn: { width: '100%', padding: '12px', borderRadius: 12, border: 'none', color: '#fff', cursor: 'pointer', fontWeight: 700, fontSize: 14 },
-  disconnectBtn: { width: '100%', padding: '11px', borderRadius: 12, border: '1.5px solid #fee2e2', background: '#fff5f5', color: '#dc2626', cursor: 'pointer', fontWeight: 600, fontSize: 14 },
-  helpBox: { background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 16, padding: '16px 18px', fontSize: 13, color: '#1e40af' },
-  helpTitle: { display: 'flex', alignItems: 'center', gap: 4 },
-};
