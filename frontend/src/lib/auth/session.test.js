@@ -49,6 +49,7 @@ describe('auth session coordinator', () => {
     expect(axios.post).not.toHaveBeenCalled();
   });
 
+  // Regression coverage for browsers that do not implement navigator.locks.
   test('reuses a token refreshed by another tab when Web Locks are unavailable', async () => {
     localStorage.setItem('access_token', 'access-old');
     localStorage.setItem('refresh_token', 'refresh-old');
