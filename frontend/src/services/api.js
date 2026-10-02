@@ -680,6 +680,10 @@ export const composerAPI = {
   preflight:     (data)     => api.post('/composer/preflight/', data),
 };
 
+export const socialAccountsAPI = {
+  list: (params) => api.get('/social-accounts/', { params }),
+};
+
 // ── Unified Inbox ──────────────────────────────────────
 export const inboxAPI = {
   conversations: {

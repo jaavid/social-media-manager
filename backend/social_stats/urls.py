@@ -11,7 +11,7 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from .views import (
-    LoginView, me, ClientViewSet, CredentialViewSet,
+    LoginView, me, ClientViewSet, SocialAccountViewSet, CredentialViewSet,
     SyncLogViewSet, GoalViewSet, AlertViewSet, AIInsightViewSet, WeeklyTopPostViewSet,
     SharedReportViewSet, public_report, public_report_verify,
     OnboardingViewSet,
@@ -222,6 +222,7 @@ from .dashboard_views import dashboard_counts, unified_search, dashboard_today
 router = DefaultRouter()
 router.register(r'clients',     ClientViewSet,    basename='client')
 router.register(r'credentials', CredentialViewSet,basename='credential')
+router.register(r'social-accounts', SocialAccountViewSet, basename='social-account')
 router.register(r'synclogs',    SyncLogViewSet,   basename='synclog')
 router.register(r'goals',       GoalViewSet,      basename='goal')
 router.register(r'alerts',      AlertViewSet,     basename='alert')

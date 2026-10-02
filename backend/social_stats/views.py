@@ -21,9 +21,9 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.db.models import F
 from django.utils import timezone
 
-from .models import Client, UserProfile, PlatformCredential, DailyMetric, PostMetric, SyncLog, ClientGoal, Alert, AIInsight, WeeklyTopPost, SharedReport, OnboardingStep, SiteContent, LookupCollection, ensure_client_profile, GMBBusinessInfo, GMBReview
+from .models import Client, UserProfile, SocialAccount, PlatformCredential, DailyMetric, PostMetric, SyncLog, ClientGoal, Alert, AIInsight, WeeklyTopPost, SharedReport, OnboardingStep, SiteContent, LookupCollection, ensure_client_profile, GMBBusinessInfo, GMBReview
 from .serializers import (
-    ClientSerializer, PlatformCredentialSerializer,
+    ClientSerializer, SocialAccountSerializer, PlatformCredentialSerializer,
     DailyMetricSerializer, PostMetricSerializer, SyncLogSerializer, UserSerializer, ClientGoalSerializer,
     AlertSerializer, AIInsightSerializer, WeeklyTopPostSerializer, SharedReportSerializer,
     OnboardingStepSerializer, SiteContentSerializer, LookupCollectionSerializer,
@@ -537,6 +537,23 @@ class CredentialViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         self._assert_client_allowed(serializer)
         serializer.save()
+
+
+class SocialAccountViewSet(viewsets.ReadOnlyModelViewSet):
+    """Tenant-scoped, token-free identities for account pickers and filters."""
+    serializer_class = SocialAccountSerializer
+
+    def get_queryset(self):
+        queryset = SocialAccount.objects.filter(
+            client_id__in=_agency_client_ids(self.request),
+        ).select_related('credential')
+        client_id = self.request.query_params.get('client')
+        platform = self.request.query_params.get('platform')
+        if client_id:
+            queryset = queryset.filter(client_id=client_id)
+        if platform:
+            queryset = queryset.filter(platform=platform)
+        return queryset
 
 
 # ── Sync Logs ─────────────────────────────────────────────────────────────────

@@ -8,7 +8,7 @@
 # ============================================================================
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import Client, UserProfile, PlatformCredential, DailyMetric, PostMetric, SyncLog, ClientGoal, Alert, AIInsight, WeeklyTopPost, SharedReport, OnboardingStep, Competitor, ONBOARDING_STEP_DESCRIPTIONS, ROISettings, ROIReport, SiteContent, LookupCollection, LookupItem, GMBBusinessInfo, GMBReview
+from .models import Client, UserProfile, SocialAccount, PlatformCredential, DailyMetric, PostMetric, SyncLog, ClientGoal, Alert, AIInsight, WeeklyTopPost, SharedReport, OnboardingStep, Competitor, ONBOARDING_STEP_DESCRIPTIONS, ROISettings, ROIReport, SiteContent, LookupCollection, LookupItem, GMBBusinessInfo, GMBReview
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -48,7 +48,7 @@ class PlatformCredentialSerializer(serializers.ModelSerializer):
     class Meta:
         model  = PlatformCredential
         fields = [
-            'id', 'client', 'platform', 'status',
+            'id', 'client', 'platform', 'social_account', 'status',
             'access_token', 'refresh_token', 'expires_at', 'scope',
             'page_id', 'page_name', 'instagram_account_id',
             'channel_id', 'channel_name',
@@ -56,6 +56,18 @@ class PlatformCredentialSerializer(serializers.ModelSerializer):
             'gmb_account_id', 'gmb_location_id',
             'is_active', 'connected_at', 'updated_at',
         ]
+
+
+class SocialAccountSerializer(serializers.ModelSerializer):
+    status = serializers.CharField(source='credential.status', read_only=True, default='not_connected')
+
+    class Meta:
+        model = SocialAccount
+        fields = [
+            'id', 'client', 'platform', 'external_id', 'display_name', 'username',
+            'avatar_url', 'metadata', 'is_active', 'status', 'created_at', 'updated_at',
+        ]
+        read_only_fields = ['created_at', 'updated_at']
 
 
 class DailyMetricSerializer(serializers.ModelSerializer):

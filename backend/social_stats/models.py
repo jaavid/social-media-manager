@@ -294,9 +294,39 @@ def ensure_client_profile(profile):
 
 
 # ── OAuth Credentials per client per platform ─────────────────────────────────
+class SocialAccount(models.Model):
+    """Public provider identity, intentionally separated from secret tokens."""
+    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='social_accounts')
+    platform = models.CharField(max_length=30, choices=PLATFORM_CHOICES)
+    external_id = models.CharField(max_length=200)
+    display_name = models.CharField(max_length=200, blank=True)
+    username = models.CharField(max_length=200, blank=True)
+    avatar_url = models.URLField(max_length=500, blank=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['platform', 'display_name', 'id']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['client', 'platform', 'external_id'],
+                name='unique_social_account_identity',
+            ),
+        ]
+
+    def __str__(self):
+        return self.display_name or f'{self.get_platform_display()} ({self.external_id})'
+
+
 class PlatformCredential(models.Model):
     client        = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='credentials')
     platform      = models.CharField(max_length=30, choices=PLATFORM_CHOICES)
+    social_account = models.OneToOneField(
+        SocialAccount, on_delete=models.CASCADE, related_name='credential',
+        null=True, blank=True,
+    )
 
     # OAuth tokens (AES-encrypted at rest)
     access_token  = EncryptedTextField(blank=True)
@@ -332,7 +362,6 @@ class PlatformCredential(models.Model):
     )
 
     class Meta:
-        unique_together = ('client', 'platform')
         ordering = ['platform']
 
     def __str__(self):

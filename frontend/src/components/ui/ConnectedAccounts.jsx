@@ -245,6 +245,15 @@ export default function ConnectedAccounts({ clientId, status, onRefresh }) {
                                 @{connectionState.account_name}
                               </div>
                             )}
+                            {connectionState.accounts?.length > 1 && (
+                              <div className="mt-2 flex flex-wrap gap-1" aria-label={`${platformLabel} accounts`}>
+                                {connectionState.accounts.map((account) => (
+                                  <Badge key={account.id || account.external_id} variant={account.status === 'active' ? 'success' : 'neutral'}>
+                                    {account.account_name || account.external_id}
+                                  </Badge>
+                                ))}
+                              </div>
+                            )}
                             {connectionState.destination_id && (
                               <div dir="ltr" className="mt-0.5 truncate text-start text-xs text-[var(--text-tertiary)]">
                                 {connectionState.destination_id}
