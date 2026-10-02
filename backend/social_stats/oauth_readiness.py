@@ -3,7 +3,6 @@ from __future__ import annotations
 
 from django.conf import settings
 
-
 META_SCOPES = [
     'pages_show_list',
     'pages_read_engagement',
@@ -17,6 +16,13 @@ META_SCOPES = [
 GOOGLE_SCOPES = [
     'https://www.googleapis.com/auth/youtube.force-ssl',
     'https://www.googleapis.com/auth/yt-analytics.readonly',
+    'openid',
+    'email',
+    'profile',
+]
+
+GOOGLE_MY_BUSINESS_SCOPES = [
+    'https://www.googleapis.com/auth/business.manage',
     'openid',
     'email',
     'profile',
@@ -58,6 +64,19 @@ def oauth_readiness_report() -> dict[str, dict]:
         scopes=GOOGLE_SCOPES,
         required_apis=['YouTube Data API v3', 'YouTube Analytics API'],
     )
+    google_business = _provider(
+        {
+            'GOOGLE_CLIENT_ID': getattr(settings, 'GOOGLE_CLIENT_ID', ''),
+            'GOOGLE_CLIENT_SECRET': getattr(settings, 'GOOGLE_CLIENT_SECRET', ''),
+            'GOOGLE_REDIRECT_URI': getattr(settings, 'GOOGLE_REDIRECT_URI', ''),
+        },
+        redirect_key='GOOGLE_REDIRECT_URI',
+        scopes=GOOGLE_MY_BUSINESS_SCOPES,
+        required_apis=[
+            'Google Business Profile Account Management API',
+            'Google Business Profile Business Information API',
+        ],
+    )
     linkedin = _provider(
         {
             'LINKEDIN_CLIENT_ID': getattr(settings, 'LINKEDIN_CLIENT_ID', ''),
@@ -69,18 +88,10 @@ def oauth_readiness_report() -> dict[str, dict]:
         required_apis=['Sign In with LinkedIn using OpenID Connect'],
     )
 
-    # Copy each payload so future callers can enrich one platform without
-    # accidentally mutating the sibling that shares the same OAuth app.
     return {
         'facebook': dict(meta),
         'instagram': dict(meta),
         'youtube': dict(google),
-        'google_my_business': {
-            **google,
-            'required_apis': [
-                'Google Business Profile Account Management API',
-                'Google Business Profile Business Information API',
-            ],
-        },
+        'google_my_business': dict(google_business),
         'linkedin': dict(linkedin),
     }
