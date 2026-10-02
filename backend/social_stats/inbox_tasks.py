@@ -608,6 +608,7 @@ def _active_cred(client_id: int, platform: str, credential_id: Optional[int] = N
     """Resolve the requested account; reject ambiguous legacy dispatches."""
     query = PlatformCredential.objects.filter(
         client_id=client_id, platform=platform, is_active=True,
+        social_account_id__isnull=False,
     ).select_related('social_account')
     if credential_id is not None:
         query = query.filter(id=credential_id)

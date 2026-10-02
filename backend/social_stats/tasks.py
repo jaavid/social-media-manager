@@ -28,6 +28,7 @@ def _active_credential(client_id, platform, credential_id=None):
     from .models import PlatformCredential
     query = PlatformCredential.objects.filter(
         client_id=client_id, platform=platform, is_active=True,
+        social_account_id__isnull=False,
     ).select_related('social_account')
     if credential_id is not None:
         return query.get(id=credential_id)
@@ -58,9 +59,12 @@ def _refresh_google_token(cred):
 def sync_facebook(self, client_id, days=30, credential_id=None):
     """Sync daily Facebook metrics for the selected credential."""
     from .models import Client, PlatformCredential, DailyMetric, SyncLog
-    log = SyncLog.objects.create(platform='facebook', client_id=client_id, status='running')
     try:
         cred = _active_credential(client_id, 'facebook', credential_id)
+    except PlatformCredential.DoesNotExist:
+        return
+    log = SyncLog.objects.create(platform='facebook', client_id=client_id, status='running')
+    try:
         log.social_account = cred.social_account
         log.save(update_fields=['social_account'])
         since, until = _date_range(days)
@@ -209,9 +213,12 @@ def sync_facebook(self, client_id, days=30, credential_id=None):
 def sync_instagram(self, client_id, days=30, credential_id=None):
     """Sync daily Instagram metrics for the selected credential."""
     from .models import PlatformCredential, DailyMetric, PostMetric, SyncLog
-    log = SyncLog.objects.create(platform='instagram', client_id=client_id, status='running')
     try:
         cred = _active_credential(client_id, 'instagram', credential_id)
+    except PlatformCredential.DoesNotExist:
+        return
+    log = SyncLog.objects.create(platform='instagram', client_id=client_id, status='running')
+    try:
         log.social_account = cred.social_account
         log.save(update_fields=['social_account'])
         since, until = _date_range(days)
@@ -371,9 +378,12 @@ def sync_instagram(self, client_id, days=30, credential_id=None):
 def sync_youtube(self, client_id, days=30, credential_id=None):
     """Sync daily YouTube metrics for the selected credential."""
     from .models import PlatformCredential, DailyMetric, SyncLog
-    log = SyncLog.objects.create(platform='youtube', client_id=client_id, status='running')
     try:
         cred = _active_credential(client_id, 'youtube', credential_id)
+    except PlatformCredential.DoesNotExist:
+        return
+    log = SyncLog.objects.create(platform='youtube', client_id=client_id, status='running')
+    try:
         log.social_account = cred.social_account
         log.save(update_fields=['social_account'])
         if cred.is_expired:
@@ -433,9 +443,12 @@ def sync_linkedin(self, client_id, days=30, credential_id=None):
     """Sync daily LinkedIn metrics for the selected credential."""
     from .models import PlatformCredential, DailyMetric, SyncLog
     import time
-    log = SyncLog.objects.create(platform='linkedin', client_id=client_id, status='running')
     try:
         cred = _active_credential(client_id, 'linkedin', credential_id)
+    except PlatformCredential.DoesNotExist:
+        return
+    log = SyncLog.objects.create(platform='linkedin', client_id=client_id, status='running')
+    try:
         log.social_account = cred.social_account
         log.save(update_fields=['social_account'])
         since, until = _date_range(days)
@@ -485,10 +498,13 @@ def sync_linkedin(self, client_id, days=30, credential_id=None):
 @shared_task(bind=True, max_retries=3, default_retry_delay=300)
 def sync_gmb(self, client_id, days=30, credential_id=None):
     """Sync Business Profile metrics for the selected credential."""
-    from .models import PlatformCredential, DailyMetric, SyncLog, GMBBusinessInfo, GMBReview
-    log = SyncLog.objects.create(platform='google_my_business', client_id=client_id, status='running')
+    from .models import PlatformCredential, DailyMetric, SyncLog, GMBBusinessInfo, GMBReview, SocialAccount
     try:
         cred = _active_credential(client_id, 'google_my_business', credential_id)
+    except PlatformCredential.DoesNotExist:
+        return
+    log = SyncLog.objects.create(platform='google_my_business', client_id=client_id, status='running')
+    try:
         log.social_account = cred.social_account
         log.save(update_fields=['social_account'])
         if cred.is_expired:
@@ -498,9 +514,15 @@ def sync_gmb(self, client_id, days=30, credential_id=None):
         headers = {'Authorization': f'Bearer {token}'}
         count   = 0
 
+        # Legacy business details have no account key; never overwrite them
+        # when a workspace has multiple known locations (including disconnected ones).
+        legacy_profile_safe = SocialAccount.objects.filter(
+            client_id=client_id, platform='google_my_business',
+        ).count() == 1
+
         # ── 1. Business Information API ───────────────────────────────────────
         # Fetch full business details (hours, categories, address, photos)
-        if cred.gmb_location_id:
+        if legacy_profile_safe and cred.gmb_location_id:
             biz_resp = requests.get(
                 f'https://mybusinessbusinessinformation.googleapis.com/v1/{cred.gmb_location_id}',
                 params={'readMask': 'name,title,storefrontAddress,websiteUri,phoneNumbers,categories,regularHours,specialHours,profile,openInfo,metadata,relationship'},
@@ -559,7 +581,7 @@ def sync_gmb(self, client_id, days=30, credential_id=None):
                 )
 
         # ── 2. Account Management API — fetch account verification status ─────
-        if cred.gmb_account_id:
+        if legacy_profile_safe and cred.gmb_account_id:
             acc_resp = requests.get(
                 f'https://mybusinessaccountmanagement.googleapis.com/v1/{cred.gmb_account_id}',
                 headers=headers, timeout=10
@@ -570,7 +592,7 @@ def sync_gmb(self, client_id, days=30, credential_id=None):
                 GMBBusinessInfo.objects.filter(client_id=client_id).update(is_verified=is_verified)
 
         # ── 3. Reviews (via Account Management API) ───────────────────────────
-        if cred.gmb_location_id:
+        if legacy_profile_safe and cred.gmb_location_id:
             reviews_resp = requests.get(
                 f'https://mybusinessaccountmanagement.googleapis.com/v1/{cred.gmb_location_id}/reviews',
                 params={'pageSize': 50},

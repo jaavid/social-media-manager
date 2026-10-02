@@ -147,7 +147,7 @@ class LegacyAccountIdentityTests(TestCase):
         with self.assertRaises(IrreversibleError):
             migration.prevent_unsafe_reverse(None, None)
 
-    def test_summary_and_timeseries_do_not_double_count_unassigned_history(self):
+    def test_summary_and_timeseries_keep_unassigned_history_separate(self):
         DailyMetric.objects.create(
             client=self.workspace, platform="facebook", date=date(2026, 10, 1), likes=90
         )
@@ -168,10 +168,15 @@ class LegacyAccountIdentityTests(TestCase):
         base = f"/api/clients/{self.workspace.pk}"
         summary = self.api.get(f"{base}/summary/", params)
         self.assertEqual(summary.status_code, 200, summary.content)
-        self.assertEqual(summary.data["totals"]["total_likes"], 19)
+        self.assertEqual(summary.data["totals"]["total_likes"], 12)
         series = self.api.get(f"{base}/timeseries/", params)
         self.assertEqual(series.status_code, 200, series.content)
-        self.assertEqual(len(series.data), 3)
+        self.assertEqual(len(series.data), 1)
+        self.assertEqual(len(summary.data["unassigned_history"]), 3)
+        legacy = self.api.get(
+            f"{base}/timeseries/", {**params, "attribution": "unassigned"}
+        )
+        self.assertEqual(len(legacy.data), 3)
         scoped = self.api.get(
             f"{base}/summary/", {**params, "social_account": self.account.pk}
         )
@@ -419,3 +424,74 @@ class LegacyAccountIdentityTests(TestCase):
         self.assertEqual(UnifiedReview.objects.count(), 1)
         legacy.refresh_from_db()
         self.assertIsNone(legacy.social_account_id)
+
+    def test_accountless_credentials_cannot_write_sync_or_inbox_records(self):
+        from social_stats.tasks import _active_credential, sync_youtube
+        from social_stats.inbox_tasks import _active_cred, sync_youtube_inbox
+        from social_stats.models import SyncLog, Conversation
+
+        credential = PlatformCredential.objects.create(
+            client=self.workspace,
+            platform="youtube",
+            access_token="legacy",
+        )
+        self.assertIsNone(_active_cred(self.workspace.pk, "youtube", credential.pk))
+        with self.assertRaises(PlatformCredential.DoesNotExist):
+            _active_credential(self.workspace.pk, "youtube", credential.pk)
+        with (
+            patch("social_stats.tasks.requests.get") as metrics,
+            patch("social_stats.inbox_tasks.requests.get") as inbox,
+        ):
+            sync_youtube(self.workspace.pk, credential_id=credential.pk)
+            sync_youtube_inbox(self.workspace.pk, credential_id=credential.pk)
+        metrics.assert_not_called()
+        inbox.assert_not_called()
+        self.assertEqual(SyncLog.objects.count(), 0)
+        self.assertEqual(Conversation.objects.count(), 0)
+
+    @patch("social_stats.tasks.requests.post")
+    @patch("social_stats.tasks.requests.get")
+    def test_multi_location_gmb_sync_does_not_overwrite_legacy_business_details(
+        self, get, post
+    ):
+        from social_stats.tasks import sync_gmb
+        from social_stats.models import GMBBusinessInfo, GMBReview
+        from django.utils import timezone
+        from datetime import timedelta
+
+        legacy = GMBBusinessInfo.objects.create(
+            client=self.workspace, business_name="Unresolved", avg_rating=3
+        )
+        credentials = []
+        for suffix in ("a", "b"):
+            account = SocialAccount.objects.create(
+                client=self.workspace,
+                platform="google_my_business",
+                external_id=f"location-{suffix}",
+            )
+            credentials.append(
+                PlatformCredential.objects.create(
+                    client=self.workspace,
+                    platform="google_my_business",
+                    social_account=account,
+                    access_token="test",
+                    gmb_location_id=account.external_id,
+                    expires_at=timezone.now() + timedelta(hours=1),
+                )
+            )
+        post.return_value.json.return_value = {}
+        for credential in credentials:
+            sync_gmb(self.workspace.pk, credential_id=credential.pk)
+        get.assert_not_called()
+        self.assertEqual(post.call_count, 2)
+        legacy.refresh_from_db()
+        self.assertEqual(legacy.business_name, "Unresolved")
+        self.assertEqual(legacy.avg_rating, 3)
+        self.assertEqual(GMBReview.objects.count(), 0)
+        for endpoint in ('info', 'reviews'):
+            response = self.api.get(f'/api/gmb/{endpoint}/{self.workspace.pk}/')
+            self.assertEqual(response.status_code, 409)
+            history = self.api.get(
+                f'/api/gmb/{endpoint}/{self.workspace.pk}/', {'attribution': 'unassigned'},
+            )
+            self.assertEqual(history.status_code, 200)

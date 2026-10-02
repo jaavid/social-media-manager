@@ -7,10 +7,20 @@ metrics, conversations, reviews and logs unassigned. A currently unique
 credential is not proof of historical ownership: credentials may have been
 replaced or deleted. Never attach these records to the next account to sync.
 
-New syncs write only to their selected account. Unfiltered summary and timeseries
-prefer account-attributed metrics over unassigned rows for the same workspace,
-platform and day. Legacy-only days remain visible; account filters exclude legacy
-history. This preserves historical rows without counting overlapping data twice.
+New syncs require an account-linked credential and write only to that account.
+Default summary/timeseries use attributed metrics when available in the selected
+period, or legacy metrics when no attributed data exists. Unknown historical
+ownership is never inferred from matching dates. Summary returns all unresolved
+rows separately in `unassigned_history`; `?attribution=unassigned` retrieves
+that separate history through summary/timeseries. Account filters exclude it.
+This avoids mixing potentially overlapping data without deleting history.
+
+The legacy GMBBusinessInfo and GMBReview tables still have no account key.
+For workspaces with multiple known GMB accounts, account syncs skip these legacy
+business-detail/review writes while continuing account-scoped performance metrics
+and unified inbox reviews. Legacy GMB endpoints return `account_identity_required`
+(409) for such workspaces unless `?attribution=unassigned` is explicitly requested.
+Full account-scoped business-profile storage remains a separate follow-up.
 
 Existing unassigned Facebook, Instagram and YouTube threads, and Google Business
 reviews, are quarantined when sync encounters the same external identifier.

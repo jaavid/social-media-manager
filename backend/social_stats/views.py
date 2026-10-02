@@ -7,7 +7,7 @@
 #  Released under the MIT License — see LICENSE. Keep this notice.
 # ============================================================================
 from datetime import date, timedelta
-from django.db.models import Sum, Avg, Exists, OuterRef, Q
+from django.db.models import Sum, Avg
 from django.contrib.auth.models import User
 from rest_framework import viewsets, status
 from rest_framework.decorators import action, api_view, permission_classes
@@ -31,15 +31,13 @@ from .serializers import (
 )
 
 
-def _without_overlapping_legacy_metrics(queryset):
-    """Prefer attributed metrics when unresolved history overlaps a platform/day."""
-    attributed = DailyMetric.objects.filter(
-        client_id=OuterRef('client_id'), platform=OuterRef('platform'),
-        date=OuterRef('date'), social_account_id__isnull=False,
-    )
-    return queryset.alias(has_attributed=Exists(attributed)).filter(
-        Q(social_account_id__isnull=False) | Q(has_attributed=False)
-    )
+def _select_metric_attribution(queryset, attribution=None):
+    """Keep unknown ownership separate from attributed account metrics."""
+    if attribution == 'unassigned':
+        return queryset.filter(social_account_id__isnull=True)
+    if queryset.filter(social_account_id__isnull=False).exists():
+        return queryset.filter(social_account_id__isnull=False)
+    return queryset
 
 
 # ── Custom JWT: include role + client_id in token ─────────────────────────────
@@ -366,7 +364,9 @@ class ClientViewSet(viewsets.ModelViewSet):
         if social_account_id:
             qs = qs.filter(social_account_id=social_account_id)
 
-        qs = _without_overlapping_legacy_metrics(qs)
+        unassigned = qs.filter(social_account_id__isnull=True)
+        unassigned_history = DailyMetricSerializer(unassigned, many=True).data
+        qs = _select_metric_attribution(qs, request.query_params.get('attribution'))
         agg = qs.aggregate(
             total_impressions=Sum('impressions'),
             total_reach=Sum('reach'),
@@ -417,6 +417,7 @@ class ClientViewSet(viewsets.ModelViewSet):
             'period':      {'since': since.isoformat(), 'until': until.isoformat()},
             'totals':      agg,
             'by_platform': by_platform,
+            'unassigned_history': unassigned_history,
         })
 
     @action(detail=True, methods=['get'])
@@ -438,7 +439,7 @@ class ClientViewSet(viewsets.ModelViewSet):
         if social_account_id:
             qs = qs.filter(social_account_id=social_account_id)
 
-        qs = _without_overlapping_legacy_metrics(qs)
+        qs = _select_metric_attribution(qs, request.query_params.get('attribution'))
         return Response(DailyMetricSerializer(qs, many=True).data)
 
     @action(detail=True, methods=['get'])
@@ -1257,6 +1258,13 @@ class PublicLookupView(APIView):
 def gmb_info(request, client_id):
     if not check_client_access(request, client_id):
         return Response({'error': 'Forbidden'}, status=403)
+    if (SocialAccount.objects.filter(
+        client_id=client_id, platform='google_my_business',
+    ).count() > 1 and request.query_params.get('attribution') != 'unassigned'):
+        return Response({
+            'detail': 'Legacy business data has no verified location identity',
+            'code': 'account_identity_required',
+        }, status=409)
     try:
         info = GMBBusinessInfo.objects.get(client_id=client_id)
         return Response(GMBBusinessInfoSerializer(info).data)
@@ -1270,6 +1278,13 @@ def gmb_info(request, client_id):
 def gmb_reviews(request, client_id):
     if not check_client_access(request, client_id):
         return Response({'error': 'Forbidden'}, status=403)
+    if (SocialAccount.objects.filter(
+        client_id=client_id, platform='google_my_business',
+    ).count() > 1 and request.query_params.get('attribution') != 'unassigned'):
+        return Response({
+            'detail': 'Legacy business data has no verified location identity',
+            'code': 'account_identity_required',
+        }, status=409)
     qs = GMBReview.objects.filter(client_id=client_id).order_by('-published_at')
     # Optional pagination via ?page=1&page_size=20
     try:
