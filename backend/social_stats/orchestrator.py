@@ -120,6 +120,10 @@ def publish_to_platform(self, unified_post_id: int, platform: str):
         update_unified_post_status(post.id)
         return
 
+    if log.social_account_id != cred.social_account_id:
+        log.social_account = cred.social_account
+        log.save(update_fields=['social_account'])
+
     content = overrides.get('content', post.content) or ''
     media_urls = overrides.get('media_urls', post.media_urls) or []
     media_type = overrides.get('media_type', post.media_type) or 'text'

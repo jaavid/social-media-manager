@@ -71,18 +71,21 @@ class SocialAccountSerializer(serializers.ModelSerializer):
 
 
 class DailyMetricSerializer(serializers.ModelSerializer):
+    account_name = serializers.CharField(source='social_account.display_name', read_only=True, default='')
     class Meta:
         model  = DailyMetric
         fields = '__all__'
 
 
 class PostMetricSerializer(serializers.ModelSerializer):
+    account_name = serializers.CharField(source='social_account.display_name', read_only=True, default='')
     class Meta:
         model  = PostMetric
         fields = '__all__'
 
 
 class SyncLogSerializer(serializers.ModelSerializer):
+    account_name = serializers.CharField(source='social_account.display_name', read_only=True, default='')
     client_name      = serializers.CharField(source='client.company', read_only=True)
     duration_seconds = serializers.SerializerMethodField()
 

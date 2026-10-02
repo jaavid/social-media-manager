@@ -23,6 +23,21 @@ def _date_range(days=30):
     return today - timedelta(days=days), today - timedelta(days=1)
 
 
+def _active_credential(client_id, platform, credential_id=None):
+    """Resolve one explicitly targeted credential, preserving legacy callers."""
+    from .models import PlatformCredential
+    query = PlatformCredential.objects.filter(
+        client_id=client_id, platform=platform, is_active=True,
+        social_account_id__isnull=False,
+    ).select_related('social_account')
+    if credential_id is not None:
+        return query.get(id=credential_id)
+    credential = query.first() if query.count() == 1 else None
+    if credential is None:
+        raise PlatformCredential.DoesNotExist
+    return credential
+
+
 def _refresh_google_token(cred):
     """Use refresh_token to get a new Google access_token."""
     from django.conf import settings
@@ -41,11 +56,17 @@ def _refresh_google_token(cred):
 
 # ── Facebook ──────────────────────────────────────────────────────────────────
 @shared_task(bind=True, max_retries=3, default_retry_delay=300)
-def sync_facebook(self, client_id, days=30):
+def sync_facebook(self, client_id, days=30, credential_id=None):
+    """Sync daily Facebook metrics for the selected credential."""
     from .models import Client, PlatformCredential, DailyMetric, SyncLog
+    try:
+        cred = _active_credential(client_id, 'facebook', credential_id)
+    except PlatformCredential.DoesNotExist:
+        return
     log = SyncLog.objects.create(platform='facebook', client_id=client_id, status='running')
     try:
-        cred  = PlatformCredential.objects.get(client_id=client_id, platform='facebook', is_active=True)
+        log.social_account = cred.social_account
+        log.save(update_fields=['social_account'])
         since, until = _date_range(days)
 
         # page_impressions, page_fan_adds/removes, page_consumptions,
@@ -119,7 +140,7 @@ def sync_facebook(self, client_id, days=30):
         count = 0
         for day_str, vals in daily.items():
             DailyMetric.objects.update_or_create(
-                client_id=client_id, platform='facebook', date=day_str,
+                client_id=client_id, platform='facebook', social_account=cred.social_account, date=day_str,
                 defaults=vals
             )
             count += 1
@@ -161,7 +182,7 @@ def sync_facebook(self, client_id, days=30):
 
                 caption = (post.get('message') or post.get('story') or '')[:500]
                 PostMetric.objects.update_or_create(
-                    client_id=client_id, platform='facebook', post_id=post['id'],
+                    client_id=client_id, platform='facebook', social_account=cred.social_account, post_id=post['id'],
                     defaults={
                         'post_url':      post.get('permalink_url', ''),
                         'post_type':     'post',
@@ -189,11 +210,17 @@ def sync_facebook(self, client_id, days=30):
 
 # ── Instagram ─────────────────────────────────────────────────────────────────
 @shared_task(bind=True, max_retries=3, default_retry_delay=300)
-def sync_instagram(self, client_id, days=30):
+def sync_instagram(self, client_id, days=30, credential_id=None):
+    """Sync daily Instagram metrics for the selected credential."""
     from .models import PlatformCredential, DailyMetric, PostMetric, SyncLog
+    try:
+        cred = _active_credential(client_id, 'instagram', credential_id)
+    except PlatformCredential.DoesNotExist:
+        return
     log = SyncLog.objects.create(platform='instagram', client_id=client_id, status='running')
     try:
-        cred  = PlatformCredential.objects.get(client_id=client_id, platform='instagram', is_active=True)
+        log.social_account = cred.social_account
+        log.save(update_fields=['social_account'])
         since, until = _date_range(days)
 
         # In API v18+, metrics are split into two groups:
@@ -253,7 +280,7 @@ def sync_instagram(self, client_id, days=30):
         count = 0
         for day_str, vals in daily.items():
             DailyMetric.objects.update_or_create(
-                client_id=client_id, platform='instagram', date=day_str,
+                client_id=client_id, platform='instagram', social_account=cred.social_account, date=day_str,
                 defaults={
                     'impressions':        vals.get('total_interactions', 0),
                     'reach':              vals.get('reach', 0),
@@ -319,7 +346,7 @@ def sync_instagram(self, client_id, days=30):
                 ).json()
 
                 PostMetric.objects.update_or_create(
-                    client_id=client_id, platform='instagram', post_id=post['id'],
+                    client_id=client_id, platform='instagram', social_account=cred.social_account, post_id=post['id'],
                     defaults={
                         'post_url':      post.get('permalink', ''),
                         'post_type':     media_type.lower(),
@@ -348,11 +375,17 @@ def sync_instagram(self, client_id, days=30):
 
 # ── YouTube ───────────────────────────────────────────────────────────────────
 @shared_task(bind=True, max_retries=3, default_retry_delay=300)
-def sync_youtube(self, client_id, days=30):
+def sync_youtube(self, client_id, days=30, credential_id=None):
+    """Sync daily YouTube metrics for the selected credential."""
     from .models import PlatformCredential, DailyMetric, SyncLog
+    try:
+        cred = _active_credential(client_id, 'youtube', credential_id)
+    except PlatformCredential.DoesNotExist:
+        return
     log = SyncLog.objects.create(platform='youtube', client_id=client_id, status='running')
     try:
-        cred  = PlatformCredential.objects.get(client_id=client_id, platform='youtube', is_active=True)
+        log.social_account = cred.social_account
+        log.save(update_fields=['social_account'])
         if cred.is_expired:
             _refresh_google_token(cred)
 
@@ -382,7 +415,7 @@ def sync_youtube(self, client_id, days=30):
         for row in rows:
             data = dict(zip(headers, row))
             DailyMetric.objects.update_or_create(
-                client_id=client_id, platform='youtube', date=data['day'],
+                client_id=client_id, platform='youtube', social_account=cred.social_account, date=data['day'],
                 defaults={
                     'video_views':        int(data.get('views', 0)),
                     'watch_time_minutes': int(data.get('estimatedMinutesWatched', 0)),
@@ -406,12 +439,18 @@ def sync_youtube(self, client_id, days=30):
 
 # ── LinkedIn ──────────────────────────────────────────────────────────────────
 @shared_task(bind=True, max_retries=3, default_retry_delay=300)
-def sync_linkedin(self, client_id, days=30):
+def sync_linkedin(self, client_id, days=30, credential_id=None):
+    """Sync daily LinkedIn metrics for the selected credential."""
     from .models import PlatformCredential, DailyMetric, SyncLog
     import time
+    try:
+        cred = _active_credential(client_id, 'linkedin', credential_id)
+    except PlatformCredential.DoesNotExist:
+        return
     log = SyncLog.objects.create(platform='linkedin', client_id=client_id, status='running')
     try:
-        cred  = PlatformCredential.objects.get(client_id=client_id, platform='linkedin', is_active=True)
+        log.social_account = cred.social_account
+        log.save(update_fields=['social_account'])
         since, until = _date_range(days)
         org_urn = f"urn:li:organization:{cred.organization_id}"
 
@@ -437,7 +476,7 @@ def sync_linkedin(self, client_id, days=30):
             day   = date.fromtimestamp(ts / 1000).isoformat()
             views = el.get('totalPageStatistics', {})
             DailyMetric.objects.update_or_create(
-                client_id=client_id, platform='linkedin', date=day,
+                client_id=client_id, platform='linkedin', social_account=cred.social_account, date=day,
                 defaults={
                     'impressions':    views.get('views', {}).get('allPageViews', {}).get('pageViews', 0),
                     'clicks':         views.get('clicks', {}).get('allClicks', {}).get('totalClicks', 0),
@@ -457,11 +496,17 @@ def sync_linkedin(self, client_id, days=30):
 
 # ── Google My Business ────────────────────────────────────────────────────────
 @shared_task(bind=True, max_retries=3, default_retry_delay=300)
-def sync_gmb(self, client_id, days=30):
-    from .models import PlatformCredential, DailyMetric, SyncLog, GMBBusinessInfo, GMBReview
+def sync_gmb(self, client_id, days=30, credential_id=None):
+    """Sync Business Profile metrics for the selected credential."""
+    from .models import PlatformCredential, DailyMetric, SyncLog, GMBBusinessInfo, GMBReview, SocialAccount
+    try:
+        cred = _active_credential(client_id, 'google_my_business', credential_id)
+    except PlatformCredential.DoesNotExist:
+        return
     log = SyncLog.objects.create(platform='google_my_business', client_id=client_id, status='running')
     try:
-        cred = PlatformCredential.objects.get(client_id=client_id, platform='google_my_business', is_active=True)
+        log.social_account = cred.social_account
+        log.save(update_fields=['social_account'])
         if cred.is_expired:
             _refresh_google_token(cred)
 
@@ -469,9 +514,15 @@ def sync_gmb(self, client_id, days=30):
         headers = {'Authorization': f'Bearer {token}'}
         count   = 0
 
+        # Legacy business details have no account key; never overwrite them
+        # when a workspace has multiple known locations (including disconnected ones).
+        legacy_profile_safe = SocialAccount.objects.filter(
+            client_id=client_id, platform='google_my_business',
+        ).count() == 1
+
         # ── 1. Business Information API ───────────────────────────────────────
         # Fetch full business details (hours, categories, address, photos)
-        if cred.gmb_location_id:
+        if legacy_profile_safe and cred.gmb_location_id:
             biz_resp = requests.get(
                 f'https://mybusinessbusinessinformation.googleapis.com/v1/{cred.gmb_location_id}',
                 params={'readMask': 'name,title,storefrontAddress,websiteUri,phoneNumbers,categories,regularHours,specialHours,profile,openInfo,metadata,relationship'},
@@ -530,7 +581,7 @@ def sync_gmb(self, client_id, days=30):
                 )
 
         # ── 2. Account Management API — fetch account verification status ─────
-        if cred.gmb_account_id:
+        if legacy_profile_safe and cred.gmb_account_id:
             acc_resp = requests.get(
                 f'https://mybusinessaccountmanagement.googleapis.com/v1/{cred.gmb_account_id}',
                 headers=headers, timeout=10
@@ -541,7 +592,7 @@ def sync_gmb(self, client_id, days=30):
                 GMBBusinessInfo.objects.filter(client_id=client_id).update(is_verified=is_verified)
 
         # ── 3. Reviews (via Account Management API) ───────────────────────────
-        if cred.gmb_location_id:
+        if legacy_profile_safe and cred.gmb_location_id:
             reviews_resp = requests.get(
                 f'https://mybusinessaccountmanagement.googleapis.com/v1/{cred.gmb_location_id}/reviews',
                 params={'pageSize': 50},
@@ -645,7 +696,7 @@ def sync_gmb(self, client_id, days=30):
 
             for day_str, vals in daily.items():
                 DailyMetric.objects.update_or_create(
-                    client_id=client_id, platform='google_my_business', date=day_str,
+                    client_id=client_id, platform='google_my_business', social_account=cred.social_account, date=day_str,
                     defaults=vals
                 )
                 count += 1
@@ -796,11 +847,12 @@ def check_alerts():
 # ── Batch tasks (all clients) ─────────────────────────────────────────────────
 @shared_task
 def sync_all(platform):
+    """Queue one analytics sync per eligible credential."""
     from .models import PlatformCredential
     ids = PlatformCredential.objects.filter(
         platform=platform, is_active=True, client__is_active=True,
         client__is_processing_paused=False,
-    ).values_list('client_id', flat=True)
+    ).values_list('id', 'client_id')
     task_map = {
         'facebook':           sync_facebook,
         'instagram':          sync_instagram,
@@ -810,8 +862,8 @@ def sync_all(platform):
     }
     task = task_map.get(platform)
     if task:
-        for cid in ids:
-            task.delay(cid)
+        for credential_id, client_id in ids:
+            task.delay(client_id, credential_id=credential_id)
 
 
 # ── Best Post of the Week ─────────────────────────────────────────────────────

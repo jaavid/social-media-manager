@@ -42,7 +42,7 @@ class ConversationListSerializer(serializers.ModelSerializer):
         model = Conversation
         fields = [
             'id', 'client',
-            'platform', 'platform_thread_id', 'type',
+            'platform', 'social_account', 'platform_thread_id', 'type',
             'contact_name', 'contact_handle', 'contact_avatar_url',
             'last_message_preview', 'last_message_at',
             'unread_count', 'is_starred', 'is_archived', 'is_resolved',
@@ -60,7 +60,7 @@ class ConversationDetailSerializer(serializers.ModelSerializer):
         model = Conversation
         fields = [
             'id', 'client',
-            'platform', 'platform_thread_id', 'type',
+            'platform', 'social_account', 'platform_thread_id', 'type',
             'contact_name', 'contact_handle', 'contact_avatar_url',
             'last_message_preview', 'last_message_at',
             'unread_count', 'is_starred', 'is_archived', 'is_resolved',
@@ -70,7 +70,7 @@ class ConversationDetailSerializer(serializers.ModelSerializer):
             'messages',
         ]
         read_only_fields = [
-            'platform', 'platform_thread_id', 'type',
+            'platform', 'social_account', 'platform_thread_id', 'type',
             'contact_name', 'contact_handle', 'contact_avatar_url',
             'last_message_preview', 'last_message_at',
             'unread_count',
@@ -86,7 +86,7 @@ class UnifiedReviewSerializer(serializers.ModelSerializer):
         model = UnifiedReview
         fields = [
             'id', 'client',
-            'platform', 'platform_review_id',
+            'platform', 'social_account', 'platform_review_id',
             'reviewer_name', 'reviewer_avatar_url',
             'rating', 'comment', 'language', 'sentiment',
             'status', 'reply_text', 'replied_at', 'replied_by', 'replied_by_name',

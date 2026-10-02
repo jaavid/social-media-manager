@@ -79,6 +79,8 @@ class ConversationViewSet(TenantScopedMixin, viewsets.ReadOnlyModelViewSet):
         # Common list filters
         if params.get('platform'):
             qs = qs.filter(platform=params['platform'])
+        if params.get('social_account'):
+            qs = qs.filter(social_account_id=params['social_account'])
         if params.get('type'):
             qs = qs.filter(type=params['type'])
         if params.get('sentiment'):
@@ -181,6 +183,12 @@ class ConversationViewSet(TenantScopedMixin, viewsets.ReadOnlyModelViewSet):
         if not text:
             return Response({'detail': 'text is required'}, status=400)
 
+        if conv.social_account_id is None:
+            return Response({
+                'detail': 'Original social account must be verified before replying',
+                'code': 'account_identity_required',
+            }, status=400)
+
         # Marketplace gate (): pick the permission key by conversation type.
         perm_key = _REPLY_PERMISSION_BY_TYPE.get(conv.type)
         if perm_key:
@@ -199,7 +207,8 @@ class ConversationViewSet(TenantScopedMixin, viewsets.ReadOnlyModelViewSet):
 
         # Resolve credentials + the originating message we're replying to.
         cred = PlatformCredential.objects.filter(
-            client_id=conv.client_id, platform=conv.platform, is_active=True,
+            client_id=conv.client_id, platform=conv.platform,
+            social_account_id=conv.social_account_id, is_active=True,
         ).first()
         if not cred:
             return Response({'detail': f'No active {conv.platform} credential'}, status=400)
@@ -313,8 +322,15 @@ class UnifiedReviewViewSet(TenantScopedMixin, viewsets.ReadOnlyModelViewSet):
         if not text:
             return Response({'detail': 'text is required'}, status=400)
 
+        if review.social_account_id is None:
+            return Response({
+                'detail': 'Original social account must be verified before replying',
+                'code': 'account_identity_required',
+            }, status=400)
+
         cred = PlatformCredential.objects.filter(
-            client_id=review.client_id, platform=review.platform, is_active=True,
+            client_id=review.client_id, platform=review.platform,
+            social_account_id=review.social_account_id, is_active=True,
         ).first()
         if not cred:
             return Response({'detail': f'No active {review.platform} credential'}, status=400)

@@ -69,7 +69,7 @@ def sync_inbox_for_all_clients(self):
     for c in creds:
         task = by_platform.get(c.platform)
         if task is not None:
-            task.delay(c.client_id)
+            task.delay(c.client_id, credential_id=c.id)
             queued += 1
     if queued:
         logger.info('sync_inbox_for_all_clients queued %s syncs', queued)
@@ -78,13 +78,13 @@ def sync_inbox_for_all_clients(self):
 
 # ── Facebook ─────────────────────────────────────────────────────────────────
 @shared_task(bind=True, max_retries=3, default_retry_delay=300)
-def sync_facebook_inbox(self, client_id: int):
+def sync_facebook_inbox(self, client_id: int, credential_id: Optional[int] = None):
     """Pull comments on Page posts (Page Inbox DMs require pages_messaging — skipped)."""
-    cred = _active_cred(client_id, 'facebook')
+    cred = _active_cred(client_id, 'facebook', credential_id)
     if not cred:
         return
 
-    since_iso = _last_seen_iso(client_id, 'facebook')
+    since_iso = _last_seen_iso(client_id, 'facebook', cred.social_account_id)
     try:
         feed = _graph_get(
             f'/{cred.page_id}/feed',
@@ -106,7 +106,7 @@ def sync_facebook_inbox(self, client_id: int):
         post_id = post.get('id')
         comments = (post.get('comments') or {}).get('data') or []
         for cmt in comments:
-            if _upsert_fb_ig_comment(cred.client_id, 'facebook', post_id, cmt):
+            if _upsert_fb_ig_comment(cred.client_id, 'facebook', post_id, cmt, social_account_id=cred.social_account_id):
                 new_msgs += 1
     logger.info('sync_facebook_inbox client=%s new_messages=%s', client_id, new_msgs)
     return new_msgs
@@ -114,9 +114,9 @@ def sync_facebook_inbox(self, client_id: int):
 
 # ── Instagram ────────────────────────────────────────────────────────────────
 @shared_task(bind=True, max_retries=3, default_retry_delay=300)
-def sync_instagram_inbox(self, client_id: int):
+def sync_instagram_inbox(self, client_id: int, credential_id: Optional[int] = None):
     """Pull comments on the IG account's recent media."""
-    cred = _active_cred(client_id, 'instagram')
+    cred = _active_cred(client_id, 'instagram', credential_id)
     if not cred:
         return
 
@@ -140,13 +140,23 @@ def sync_instagram_inbox(self, client_id: int):
         media_id = m.get('id')
         comments = (m.get('comments') or {}).get('data') or []
         for cmt in comments:
-            if _upsert_fb_ig_comment(cred.client_id, 'instagram', media_id, cmt):
+            if _upsert_fb_ig_comment(cred.client_id, 'instagram', media_id, cmt, social_account_id=cred.social_account_id):
                 new_msgs += 1
     logger.info('sync_instagram_inbox client=%s new_messages=%s', client_id, new_msgs)
     return new_msgs
 
 
-def _upsert_fb_ig_comment(client_id: int, platform: str, post_id: str, cmt: dict) -> bool:
+def _has_unassigned_thread(client_id, platform, thread_id, social_account_id):
+    """Quarantine unresolved legacy threads instead of replaying their messages."""
+    if social_account_id is None:
+        return False
+    return Conversation.objects.filter(
+        client_id=client_id, platform=platform, platform_thread_id=thread_id,
+        social_account_id__isnull=True,
+    ).exists()
+
+
+def _upsert_fb_ig_comment(client_id: int, platform: str, post_id: str, cmt: dict, social_account_id: Optional[int] = None) -> bool:
     """Returns True when a NEW Message row was created (existing rows just touch updated_at)."""
     cmt_id = cmt.get('id')
     if not cmt_id or not post_id:
@@ -159,9 +169,12 @@ def _upsert_fb_ig_comment(client_id: int, platform: str, post_id: str, cmt: dict
     created_at    = _parse_iso(cmt.get('created_time') or cmt.get('timestamp'))
 
     with transaction.atomic():
+        if _has_unassigned_thread(client_id, platform, post_id, social_account_id):
+            return False
         conv, _ = Conversation.objects.get_or_create(
             client_id=client_id,
             platform=platform,
+            social_account_id=social_account_id,
             platform_thread_id=post_id,
             defaults={'type': 'comment'},
         )
@@ -206,9 +219,9 @@ def _upsert_fb_ig_comment(client_id: int, platform: str, post_id: str, cmt: dict
 
 # ── YouTube ──────────────────────────────────────────────────────────────────
 @shared_task(bind=True, max_retries=3, default_retry_delay=300)
-def sync_youtube_inbox(self, client_id: int):
+def sync_youtube_inbox(self, client_id: int, credential_id: Optional[int] = None):
     """Pull comment threads from the channel via commentThreads.list."""
-    cred = _active_cred(client_id, 'youtube')
+    cred = _active_cred(client_id, 'youtube', credential_id)
     if not cred:
         return
 
@@ -250,13 +263,13 @@ def sync_youtube_inbox(self, client_id: int):
             continue
 
         # The "thread" itself is the parent comment; treat as Conversation
-        if _upsert_yt_comment(cred.client_id, thread_id, snippet.get('topLevelComment', {}).get('id'), top_comment, is_top=True):
+        if _upsert_yt_comment(cred.client_id, thread_id, snippet.get('topLevelComment', {}).get('id'), top_comment, is_top=True, social_account_id=cred.social_account_id):
             new_msgs += 1
 
         # Replies
         for reply in (thread.get('replies') or {}).get('comments', []) or []:
             r_snippet = reply.get('snippet') or {}
-            if _upsert_yt_comment(cred.client_id, thread_id, reply.get('id'), r_snippet, is_top=False):
+            if _upsert_yt_comment(cred.client_id, thread_id, reply.get('id'), r_snippet, is_top=False, social_account_id=cred.social_account_id):
                 new_msgs += 1
 
     logger.info('sync_youtube_inbox client=%s new_messages=%s', client_id, new_msgs)
@@ -264,7 +277,8 @@ def sync_youtube_inbox(self, client_id: int):
 
 
 def _upsert_yt_comment(client_id: int, thread_id: str, comment_id: Optional[str],
-                       snippet: dict, *, is_top: bool) -> bool:
+                       snippet: dict, *, is_top: bool, social_account_id: Optional[int] = None) -> bool:
+    """Upsert an account-scoped comment without replaying unresolved history."""
     if not comment_id:
         return False
     body = snippet.get('textDisplay') or snippet.get('textOriginal') or ''
@@ -273,9 +287,12 @@ def _upsert_yt_comment(client_id: int, thread_id: str, comment_id: Optional[str]
     created_at = _parse_iso(snippet.get('publishedAt'))
 
     with transaction.atomic():
+        if _has_unassigned_thread(client_id, 'youtube', thread_id, social_account_id):
+            return False
         conv, _ = Conversation.objects.get_or_create(
             client_id=client_id,
             platform='youtube',
+            social_account_id=social_account_id,
             platform_thread_id=thread_id,
             defaults={'type': 'comment'},
         )
@@ -320,7 +337,7 @@ def _upsert_yt_comment(client_id: int, thread_id: str, comment_id: Optional[str]
 
 # ── LinkedIn ─────────────────────────────────────────────────────────────────
 @shared_task(bind=True, max_retries=3, default_retry_delay=300)
-def sync_linkedin_inbox(self, client_id: int):
+def sync_linkedin_inbox(self, client_id: int, credential_id: Optional[int] = None):
     """
     LinkedIn comments require iterating over each of the org's recent posts
     via /rest/socialActions/{post_urn}/comments. This is partner-API limited
@@ -333,7 +350,7 @@ def sync_linkedin_inbox(self, client_id: int):
     A future iteration can expand to /rest/posts?author={urn} to discover
     posts published outside of Social Stats.
     """
-    cred = _active_cred(client_id, 'linkedin')
+    cred = _active_cred(client_id, 'linkedin', credential_id)
     if not cred:
         return
 
@@ -342,6 +359,7 @@ def sync_linkedin_inbox(self, client_id: int):
     logs = PlatformPublishLog.objects.filter(
         unified_post__client_id=client_id,
         platform='linkedin',
+        social_account=cred.social_account,
         status='success',
         completed_at__gte=cutoff,
     ).only('platform_post_id')
@@ -358,6 +376,7 @@ def sync_linkedin_inbox(self, client_id: int):
 
 
 def _sync_linkedin_post_comments(cred: PlatformCredential, post_urn: str) -> int:
+    """Import comments from a post published by the selected account."""
     from urllib.parse import quote
     quoted = quote(post_urn, safe='')
     url = f'https://api.linkedin.com/rest/socialActions/{quoted}/comments'
@@ -394,6 +413,7 @@ def _sync_linkedin_post_comments(cred: PlatformCredential, post_urn: str) -> int
             conv, _ = Conversation.objects.get_or_create(
                 client_id=cred.client_id,
                 platform='linkedin',
+                social_account_id=cred.social_account_id,
                 platform_thread_id=post_urn,
                 defaults={'type': 'comment'},
             )
@@ -466,12 +486,12 @@ def _emit_message_received_event(client_id: int, msg, platform: str, *, is_new_t
 
 # ── GMB reviews → UnifiedReview ──────────────────────────────────────────────
 @shared_task(bind=True, max_retries=3, default_retry_delay=300)
-def sync_gmb_reviews_unified(self, client_id: int):
+def sync_gmb_reviews_unified(self, client_id: int, credential_id: Optional[int] = None):
     """
     Pull GMB reviews into UnifiedReview rows (separate from the legacy
     GMBReview model populated by tasks.sync_gmb — we don't disturb that).
     """
-    cred = _active_cred(client_id, 'google_my_business')
+    cred = _active_cred(client_id, 'google_my_business', credential_id)
     if not cred:
         return
 
@@ -509,9 +529,15 @@ def sync_gmb_reviews_unified(self, client_id: int):
         comment = r.get('comment') or ''
         reviewer = (r.get('reviewer') or {})
         with transaction.atomic():
+            if cred.social_account_id is not None and UnifiedReview.objects.filter(
+                client_id=client_id, platform='google_my_business',
+                platform_review_id=str(rid), social_account_id__isnull=True,
+            ).exists():
+                continue
             review, created = UnifiedReview.objects.get_or_create(
                 client_id=client_id,
                 platform='google_my_business',
+                social_account_id=cred.social_account_id,
                 platform_review_id=str(rid),
                 defaults={
                     'reviewer_name':       reviewer.get('displayName', ''),
@@ -578,18 +604,23 @@ def _graph_get(path: str, *, access_token: str, params: Optional[dict] = None) -
         return {}
 
 
-def _active_cred(client_id: int, platform: str) -> Optional[PlatformCredential]:
-    cred = PlatformCredential.objects.filter(
+def _active_cred(client_id: int, platform: str, credential_id: Optional[int] = None) -> Optional[PlatformCredential]:
+    """Resolve the requested account; reject ambiguous legacy dispatches."""
+    query = PlatformCredential.objects.filter(
         client_id=client_id, platform=platform, is_active=True,
-    ).first()
+        social_account_id__isnull=False,
+    ).select_related('social_account')
+    if credential_id is not None:
+        query = query.filter(id=credential_id)
+    cred = query.first() if query.count() == 1 else None
     if not cred:
         logger.debug('No active %s credential for client=%s', platform, client_id)
     return cred
 
 
-def _last_seen_iso(client_id: int, platform: str) -> str:
+def _last_seen_iso(client_id: int, platform: str, social_account_id: Optional[int] = None) -> str:
     last = (Conversation.objects
-            .filter(client_id=client_id, platform=platform)
+            .filter(client_id=client_id, platform=platform, social_account_id=social_account_id)
             .values_list('last_message_at', flat=True)
             .order_by('-last_message_at')
             .first())
