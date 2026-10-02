@@ -37,20 +37,15 @@ const RECONNECT_MAX_MS = 30_000;
 
 
 function wsBaseURL() {
-  // Point at REACT_APP_WS_URL when set; otherwise derive from REACT_APP_API_URL
-  // by swapping http/s → ws/s. Falls back to localhost in dev.
   const explicit = process.env.REACT_APP_WS_URL;
   if (explicit) return explicit.replace(/\/$/, '');
 
   const api = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
-  // api looks like http(s)://host[:port]/api → strip /api, swap proto
   try {
     const u = new URL(api);
     const proto = u.protocol === 'https:' ? 'wss:' : 'ws:';
     return `${proto}//${u.host}`;
   } catch {
-    // Relative REACT_APP_API_URL (e.g. "/api" behind a same-origin proxy):
-    // connect the socket to the current origin so /ws/ hits the same proxy.
     if (typeof window !== 'undefined' && window.location?.host) {
       const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
       return `${proto}//${window.location.host}`;
@@ -67,6 +62,7 @@ export function RealtimeProvider({ children }) {
   const reconnectTimer = useRef(null);
   const pingTimer = useRef(null);
   const attempt = useRef(0);
+  const connectionGeneration = useRef(0);
 
   const subscribe = useCallback((cb) => {
     subscribers.current.add(cb);
@@ -80,6 +76,8 @@ export function RealtimeProvider({ children }) {
   }, []);
 
   const close = useCallback(() => {
+    connectionGeneration.current += 1;
+    if (reconnectTimer.current) { clearTimeout(reconnectTimer.current); reconnectTimer.current = null; }
     if (pingTimer.current) { clearInterval(pingTimer.current); pingTimer.current = null; }
     if (wsRef.current) {
       try { wsRef.current.close(); } catch {}
@@ -90,8 +88,9 @@ export function RealtimeProvider({ children }) {
 
   const connect = useCallback(() => {
     const token = (typeof localStorage !== 'undefined') ? localStorage.getItem('access_token') : null;
-    if (!token) return; // wait until login finishes
+    if (!token) return;
 
+    const generation = ++connectionGeneration.current;
     setStatus('connecting');
     const url = `${wsBaseURL()}/ws/realtime/?token=${encodeURIComponent(token)}`;
     let ws;
@@ -104,6 +103,7 @@ export function RealtimeProvider({ children }) {
     wsRef.current = ws;
 
     ws.onopen = () => {
+      if (connectionGeneration.current !== generation || wsRef.current !== ws) return;
       attempt.current = 0;
       setStatus('open');
       pingTimer.current = setInterval(() => {
@@ -112,6 +112,7 @@ export function RealtimeProvider({ children }) {
     };
 
     ws.onmessage = (e) => {
+      if (connectionGeneration.current !== generation || wsRef.current !== ws) return;
       try {
         const event = JSON.parse(e.data);
         if (event && event.type) dispatch(event);
@@ -119,26 +120,28 @@ export function RealtimeProvider({ children }) {
     };
 
     ws.onclose = async (e) => {
-    if (pingTimer.current) { clearInterval(pingTimer.current); pingTimer.current = null; }
-    wsRef.current = null;
-    setStatus('closed');
+      if (connectionGeneration.current !== generation || wsRef.current !== ws) return;
 
-    // 4401 means the access token is missing or expired. Coordinate the
-    // refresh with HTTP callers/tabs, then reconnect with the new JWT.
-    if (e.code === 4401) {
-      try {
-        await refreshAccessToken();
-        attempt.current = 0;
-        connect();
-      } catch {
-        invalidateSession();
+      if (pingTimer.current) { clearInterval(pingTimer.current); pingTimer.current = null; }
+      wsRef.current = null;
+      setStatus('closed');
+
+      if (e.code === 4401) {
+        try {
+          await refreshAccessToken(token);
+          if (connectionGeneration.current !== generation) return;
+          attempt.current = 0;
+          connect();
+        } catch {
+          if (connectionGeneration.current === generation) {
+            invalidateSession({ expectedAccessToken: token });
+          }
+        }
+        return;
       }
-      return;
-    }
-    // 4403 is authorization failure, not an expired session.
-    if (e.code === 4403) return;
-    scheduleReconnect();
-  };
+      if (e.code === 4403) return;
+      if (connectionGeneration.current === generation) scheduleReconnect();
+    };
 
     ws.onerror = () => {
       // onclose will follow; reconnect logic lives there.
@@ -161,14 +164,10 @@ export function RealtimeProvider({ children }) {
 
   useEffect(() => {
     connect();
-    return () => {
-      if (reconnectTimer.current) { clearTimeout(reconnectTimer.current); reconnectTimer.current = null; }
-      close();
-    };
+    return () => close();
   // eslint-disable-next-line
   }, []);
 
-  // Reconnect when the JWT changes (login / re-auth)
   useEffect(() => {
     function onStorage(e) {
       if (e.key === 'access_token') {
