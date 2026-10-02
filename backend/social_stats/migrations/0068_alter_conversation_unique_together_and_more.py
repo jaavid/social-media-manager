@@ -5,34 +5,21 @@ from django.db import migrations, models
 
 
 def populate_social_accounts(apps, schema_editor):
-    PlatformCredential = apps.get_model("social_stats", "PlatformCredential")
-    account_by_scope = {}
-    ambiguous = set()
-    for client_id, platform, account_id in PlatformCredential.objects.exclude(
-        social_account_id=None
-    ).values_list("client_id", "platform", "social_account_id"):
-        key = (client_id, platform)
-        if key in account_by_scope and account_by_scope[key] != account_id:
-            ambiguous.add(key)
-        else:
-            account_by_scope[key] = account_id
+    """Keep history unassigned: current credentials cannot prove past ownership.
 
-    # Historical rows can only be attributed safely when the workspace had one
-    # account for that platform. Ambiguous rows deliberately remain unassigned.
-    for model_name in ("DailyMetric", "PostMetric", "SyncLog", "Conversation", "UnifiedReview"):
-        Model = apps.get_model("social_stats", model_name)
-        for (client_id, platform), account_id in account_by_scope.items():
-            if (client_id, platform) not in ambiguous:
-                Model.objects.filter(
-                    client_id=client_id, platform=platform, social_account_id=None,
-                ).update(social_account_id=account_id)
+    External identity must be independently reconciled before historical rows
+    can be attached to an account. This also covers removed credentials.
+    """
+    pass
 
-    PublishLog = apps.get_model("social_stats", "PlatformPublishLog")
-    for log in PublishLog.objects.filter(social_account_id=None).iterator():
-        key = (log.unified_post.client_id, log.platform)
-        if key in account_by_scope and key not in ambiguous:
-            log.social_account_id = account_by_scope[key]
-            log.save(update_fields=["social_account"])
+
+def prevent_unsafe_reverse(apps, schema_editor):
+    """Require data reconciliation before restoring platform-wide uniqueness."""
+    from django.db.migrations.exceptions import IrreversibleError
+    raise IrreversibleError(
+        "Account-scoped data requires reconciliation before rollback; "
+        "restore a pre-upgrade backup or roll forward instead."
+    )
 
 
 class Migration(migrations.Migration):
@@ -145,4 +132,5 @@ class Migration(migrations.Migration):
                 ("client", "platform", "social_account", "platform_review_id")
             },
         ),
+        migrations.RunPython(migrations.RunPython.noop, prevent_unsafe_reverse),
     ]

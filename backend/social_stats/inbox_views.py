@@ -183,6 +183,12 @@ class ConversationViewSet(TenantScopedMixin, viewsets.ReadOnlyModelViewSet):
         if not text:
             return Response({'detail': 'text is required'}, status=400)
 
+        if conv.social_account_id is None:
+            return Response({
+                'detail': 'Original social account must be verified before replying',
+                'code': 'account_identity_required',
+            }, status=400)
+
         # Marketplace gate (): pick the permission key by conversation type.
         perm_key = _REPLY_PERMISSION_BY_TYPE.get(conv.type)
         if perm_key:
@@ -315,6 +321,12 @@ class UnifiedReviewViewSet(TenantScopedMixin, viewsets.ReadOnlyModelViewSet):
         text = (request.data.get('text') or '').strip()
         if not text:
             return Response({'detail': 'text is required'}, status=400)
+
+        if review.social_account_id is None:
+            return Response({
+                'detail': 'Original social account must be verified before replying',
+                'code': 'account_identity_required',
+            }, status=400)
 
         cred = PlatformCredential.objects.filter(
             client_id=review.client_id, platform=review.platform,

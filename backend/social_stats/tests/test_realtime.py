@@ -206,14 +206,14 @@ class MetaWebhookTests(TestCase):
             )
         self.assertEqual(res.status_code, 200)
         self.assertEqual(res.data['fired_clients'], 1)
-        mock_fn.assert_called_once_with(self.client_obj.id)
+        mock_fn.assert_called_once_with(self.client_obj.id, credential_id=self.cred.id)
 
 
 class YouTubeWebhookTests(TestCase):
     def setUp(self):
         self.api = APIClient()
         self.client_obj = _client_factory('yt')
-        PlatformCredential.objects.create(
+        self.cred = PlatformCredential.objects.create(
             client=self.client_obj, platform='youtube',
             access_token='t', refresh_token='r',
             channel_id='UCabc', is_active=True,
@@ -241,4 +241,4 @@ class YouTubeWebhookTests(TestCase):
             )
         self.assertEqual(res.status_code, 200)
         self.assertEqual(res.data['fired_clients'], 1)
-        mock_fn.assert_called_once_with(self.client_obj.id)
+        mock_fn.assert_called_once_with(self.client_obj.id, credential_id=self.cred.id)

@@ -248,9 +248,13 @@ class ReplyActionTests(TestCase):
     def setUp(self):
         self.client_obj = Client.objects.create(name='Acme', company='Acme Inc',
                                                 email=f'acme-reply-{id(self)}@x.test')
+        from social_stats.models import SocialAccount
+        account = SocialAccount.objects.create(
+            client=self.client_obj, platform='facebook', external_id='100',
+        )
         PlatformCredential.objects.create(
             client=self.client_obj, platform='facebook',
-            access_token='tok', page_id='100', is_active=True,
+            access_token='tok', page_id='100', is_active=True, social_account=account,
         )
         self.user = User.objects.create_user(username=f'u-r-{id(self)}',
                                               email='u@x.test', password='x', is_active=True)
@@ -259,7 +263,7 @@ class ReplyActionTests(TestCase):
         self.api.force_authenticate(user=self.user)
 
         self.conv = Conversation.objects.create(
-            client=self.client_obj, platform='facebook',
+            client=self.client_obj, platform='facebook', social_account=account,
             platform_thread_id='post_42', type='comment',
             contact_name='Alice', last_message_preview='hi',
             unread_count=1, last_message_at=timezone.now(),

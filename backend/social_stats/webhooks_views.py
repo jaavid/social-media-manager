@@ -76,6 +76,7 @@ def _meta_event(request):
     obj = payload.get('object', '')   # 'page' or 'instagram'
     entries = payload.get('entry') or []
     fired_clients = set()
+    fired_credentials = set()
 
     for entry in entries:
         entry_id = str(entry.get('id') or '')
@@ -98,13 +99,14 @@ def _meta_event(request):
             logger.info('Meta webhook entry %s has no matching credential', entry_id)
             continue
 
-        if cred.client_id not in fired_clients:
+        if cred.id not in fired_credentials:
+            fired_credentials.add(cred.id)
             fired_clients.add(cred.client_id)
             from .inbox_tasks import sync_facebook_inbox, sync_instagram_inbox
             if obj == 'page':
-                sync_facebook_inbox.delay(cred.client_id)
+                sync_facebook_inbox.delay(cred.client_id, credential_id=cred.id)
             else:
-                sync_instagram_inbox.delay(cred.client_id)
+                sync_instagram_inbox.delay(cred.client_id, credential_id=cred.id)
 
     return Response({'ok': True, 'fired_clients': len(fired_clients)})
 
@@ -159,12 +161,12 @@ def youtube_webhook(request):
 
     creds = PlatformCredential.objects.filter(
         platform='youtube', channel_id=channel_id, is_active=True,
-    ).only('client_id')
+    ).only('id', 'client_id')
 
     fired = 0
     from .inbox_tasks import sync_youtube_inbox
     for c in creds:
-        sync_youtube_inbox.delay(c.client_id)
+        sync_youtube_inbox.delay(c.client_id, credential_id=c.id)
         fired += 1
     return Response({'ok': True, 'fired_clients': fired})
 

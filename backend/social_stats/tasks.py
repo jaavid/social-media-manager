@@ -31,7 +31,7 @@ def _active_credential(client_id, platform, credential_id=None):
     ).select_related('social_account')
     if credential_id is not None:
         return query.get(id=credential_id)
-    credential = query.first()
+    credential = query.first() if query.count() == 1 else None
     if credential is None:
         raise PlatformCredential.DoesNotExist
     return credential
@@ -56,6 +56,7 @@ def _refresh_google_token(cred):
 # ── Facebook ──────────────────────────────────────────────────────────────────
 @shared_task(bind=True, max_retries=3, default_retry_delay=300)
 def sync_facebook(self, client_id, days=30, credential_id=None):
+    """Sync daily Facebook metrics for the selected credential."""
     from .models import Client, PlatformCredential, DailyMetric, SyncLog
     log = SyncLog.objects.create(platform='facebook', client_id=client_id, status='running')
     try:
@@ -206,6 +207,7 @@ def sync_facebook(self, client_id, days=30, credential_id=None):
 # ── Instagram ─────────────────────────────────────────────────────────────────
 @shared_task(bind=True, max_retries=3, default_retry_delay=300)
 def sync_instagram(self, client_id, days=30, credential_id=None):
+    """Sync daily Instagram metrics for the selected credential."""
     from .models import PlatformCredential, DailyMetric, PostMetric, SyncLog
     log = SyncLog.objects.create(platform='instagram', client_id=client_id, status='running')
     try:
@@ -367,6 +369,7 @@ def sync_instagram(self, client_id, days=30, credential_id=None):
 # ── YouTube ───────────────────────────────────────────────────────────────────
 @shared_task(bind=True, max_retries=3, default_retry_delay=300)
 def sync_youtube(self, client_id, days=30, credential_id=None):
+    """Sync daily YouTube metrics for the selected credential."""
     from .models import PlatformCredential, DailyMetric, SyncLog
     log = SyncLog.objects.create(platform='youtube', client_id=client_id, status='running')
     try:
@@ -427,6 +430,7 @@ def sync_youtube(self, client_id, days=30, credential_id=None):
 # ── LinkedIn ──────────────────────────────────────────────────────────────────
 @shared_task(bind=True, max_retries=3, default_retry_delay=300)
 def sync_linkedin(self, client_id, days=30, credential_id=None):
+    """Sync daily LinkedIn metrics for the selected credential."""
     from .models import PlatformCredential, DailyMetric, SyncLog
     import time
     log = SyncLog.objects.create(platform='linkedin', client_id=client_id, status='running')
@@ -480,6 +484,7 @@ def sync_linkedin(self, client_id, days=30, credential_id=None):
 # ── Google My Business ────────────────────────────────────────────────────────
 @shared_task(bind=True, max_retries=3, default_retry_delay=300)
 def sync_gmb(self, client_id, days=30, credential_id=None):
+    """Sync Business Profile metrics for the selected credential."""
     from .models import PlatformCredential, DailyMetric, SyncLog, GMBBusinessInfo, GMBReview
     log = SyncLog.objects.create(platform='google_my_business', client_id=client_id, status='running')
     try:
@@ -820,6 +825,7 @@ def check_alerts():
 # ── Batch tasks (all clients) ─────────────────────────────────────────────────
 @shared_task
 def sync_all(platform):
+    """Queue one analytics sync per eligible credential."""
     from .models import PlatformCredential
     ids = PlatformCredential.objects.filter(
         platform=platform, is_active=True, client__is_active=True,

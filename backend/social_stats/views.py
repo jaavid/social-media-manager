@@ -7,7 +7,7 @@
 #  Released under the MIT License — see LICENSE. Keep this notice.
 # ============================================================================
 from datetime import date, timedelta
-from django.db.models import Sum, Avg
+from django.db.models import Sum, Avg, Exists, OuterRef, Q
 from django.contrib.auth.models import User
 from rest_framework import viewsets, status
 from rest_framework.decorators import action, api_view, permission_classes
@@ -29,6 +29,17 @@ from .serializers import (
     OnboardingStepSerializer, SiteContentSerializer, LookupCollectionSerializer,
     GMBBusinessInfoSerializer, GMBReviewSerializer,
 )
+
+
+def _without_overlapping_legacy_metrics(queryset):
+    """Prefer attributed metrics when unresolved history overlaps a platform/day."""
+    attributed = DailyMetric.objects.filter(
+        client_id=OuterRef('client_id'), platform=OuterRef('platform'),
+        date=OuterRef('date'), social_account_id__isnull=False,
+    )
+    return queryset.alias(has_attributed=Exists(attributed)).filter(
+        Q(social_account_id__isnull=False) | Q(has_attributed=False)
+    )
 
 
 # ── Custom JWT: include role + client_id in token ─────────────────────────────
@@ -340,6 +351,7 @@ class ClientViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'])
     def summary(self, request, pk=None):
+        """Aggregate workspace metrics without overlapping unassigned history."""
         if not check_client_access(request, pk):
             return Response({'error': 'Access denied'}, status=403)
 
@@ -354,6 +366,7 @@ class ClientViewSet(viewsets.ModelViewSet):
         if social_account_id:
             qs = qs.filter(social_account_id=social_account_id)
 
+        qs = _without_overlapping_legacy_metrics(qs)
         agg = qs.aggregate(
             total_impressions=Sum('impressions'),
             total_reach=Sum('reach'),
@@ -408,6 +421,7 @@ class ClientViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'])
     def timeseries(self, request, pk=None):
+        """Return dated metrics with optional social-account filtering."""
         if not check_client_access(request, pk):
             return Response({'error': 'Access denied'}, status=403)
 
@@ -424,10 +438,12 @@ class ClientViewSet(viewsets.ModelViewSet):
         if social_account_id:
             qs = qs.filter(social_account_id=social_account_id)
 
+        qs = _without_overlapping_legacy_metrics(qs)
         return Response(DailyMetricSerializer(qs, many=True).data)
 
     @action(detail=True, methods=['get'])
     def posts(self, request, pk=None):
+        """List workspace post metrics with optional account filtering."""
         if not check_client_access(request, pk):
             return Response({'error': 'Access denied'}, status=403)
 
@@ -459,6 +475,7 @@ class ClientViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def trigger_sync(self, request, pk=None):
+        """Queue analytics syncs for the requested eligible accounts."""
         if not check_client_access(request, pk):
             return Response({'error': 'Access denied'}, status=403)
 
@@ -491,6 +508,7 @@ class ClientViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'])
     def sync_status(self, request, pk=None):
+        """Return workspace sync status, optionally scoped to an account."""
         if not check_client_access(request, pk):
             return Response({'error': 'Access denied'}, status=403)
 
