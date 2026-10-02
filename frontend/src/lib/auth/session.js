@@ -5,6 +5,7 @@ const REFRESH_LEASE_KEY = 'social-stats.jwt-refresh-lease';
 const INVALIDATION_KEY = 'social-stats.session-invalidated';
 const LEASE_TTL_MS = 10000;
 const LEASE_POLL_MS = 40;
+const COMPETING_REFRESH_GRACE_MS = 400;
 const sessionInvalidationListeners = new Set();
 let refreshPromise = null;
 
@@ -78,7 +79,7 @@ function releaseStorageLease(store, owner) {
 }
 
 async function waitForCompetingRefresh(store, accessSnapshot, refreshSnapshot) {
-  const deadline = Date.now() + Math.min(LEASE_TTL_MS, 1200);
+  const deadline = Date.now() + COMPETING_REFRESH_GRACE_MS;
 
   while (Date.now() < deadline) {
     const updatedAccess = store.getItem('access_token');
@@ -87,15 +88,10 @@ async function waitForCompetingRefresh(store, accessSnapshot, refreshSnapshot) {
       return updatedAccess;
     }
     if (updatedRefresh && refreshSnapshot && updatedRefresh !== refreshSnapshot) {
-      // A competing tab rotated the refresh token. Its access-token write is
-      // adjacent, but allow one more poll in case storage events interleave.
       await sleep(LEASE_POLL_MS);
       const accessAfterRotation = store.getItem('access_token');
       if (accessAfterRotation && accessAfterRotation !== accessSnapshot) return accessAfterRotation;
     }
-
-    const lease = readLease(store);
-    if (!lease || lease.expiresAt <= Date.now()) break;
     await sleep(LEASE_POLL_MS);
   }
 
@@ -144,9 +140,10 @@ async function performRefresh(accessSnapshot) {
   try {
     response = await axios.post(`${apiBaseUrl()}/auth/refresh/`, { refresh });
   } catch (error) {
-    // A concurrent fallback refresh can win after this request has already
-    // been sent. Never treat the loser as terminal until we give the winner
-    // a chance to publish its rotated credentials.
+    // localStorage lease claiming is advisory, not an atomic mutex. If two tabs
+    // race, the losing refresh can fail because the winner rotated the token.
+    // Give that winner a bounded grace period to publish its new credentials
+    // before treating the rejection as terminal.
     const competingAccess = await waitForCompetingRefresh(store, accessSnapshot, refresh);
     if (competingAccess) return competingAccess;
     throw error;
