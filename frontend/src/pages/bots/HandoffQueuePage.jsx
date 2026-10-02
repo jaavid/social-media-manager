@@ -17,7 +17,7 @@
  * want to hammer the API.
  */
 import { useEffect, useState, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { AppLink as Link } from '../../app/navigation';
 import {
   UserPlus, RefreshCw, Inbox, ChevronRight, Sparkles, Bot,
 } from 'lucide-react';

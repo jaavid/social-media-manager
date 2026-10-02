@@ -6,6 +6,8 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
+import { persistentStorage } from '../../lib/runtime/storage';
+
 /**
  * LeadsPage — pipeline of every captured lead.
  *
@@ -18,7 +20,7 @@
  * selected, Import CSV / Export CSV buttons.
  */
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { AppLink as Link } from '../../app/navigation';
 import {
   Users2, Search, Filter, Layers, Table as TableIcon, Download, Upload,
   Sparkles, ChevronRight, Star, Trash2, RefreshCw, X,
@@ -38,7 +40,7 @@ const STATUSES = [
 export default function LeadsPage() {
   const [leads,    setLeads]    = useState([]);
   const [loading,  setLoading]  = useState(true);
-  const [view,     setView]     = useState(localStorage.getItem('leads_view') || 'table');
+  const [view,     setView]     = useState(persistentStorage.getItem('leads_view') || 'table');
   const [filters,  setFilters]  = useState({ status: '', q: '', source_flow: '' });
   const [selected, setSelected] = useState(new Set());
   const [importOpen, setImportOpen] = useState(false);
@@ -62,7 +64,7 @@ export default function LeadsPage() {
     return () => clearTimeout(t);
   }, [filters.q]); // eslint-disable-line
 
-  function setView2(v) { setView(v); localStorage.setItem('leads_view', v); }
+  function setView2(v) { setView(v); persistentStorage.setItem('leads_view', v); }
 
   function toggleRow(id) {
     setSelected((prev) => {
@@ -97,7 +99,7 @@ export default function LeadsPage() {
     const params = {};
     if (filters.status) params.status = filters.status;
     if (filters.q)      params.q = filters.q;
-    const tok = localStorage.getItem('access_token');
+    const tok = persistentStorage.getItem('access_token');
     fetch(leadAPI.exportCsvUrl(params), {
       headers: tok ? { Authorization: `Bearer ${tok}` } : {},
     })

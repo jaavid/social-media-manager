@@ -12,7 +12,7 @@
  *   /reset-password?token=UUID → confirm new password
  */
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { AppLink as Link, useAppNavigate as useNavigate } from '../app/navigation';
 import { ArrowRight, AlertCircle, CheckCircle, Mail } from 'lucide-react';
 
 import AuthLayout from '../components/auth/AuthLayout';

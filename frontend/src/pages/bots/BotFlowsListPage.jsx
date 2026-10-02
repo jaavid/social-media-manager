@@ -14,7 +14,7 @@
  * routes into the editor.
  */
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { AppLink as Link, useAppNavigate as useNavigate } from '../../app/navigation';
 import {
   Bot, Plus, Sparkles, Copy, Trash2, BarChart3, MoreHorizontal, X,
   Wand2, AlertTriangle,

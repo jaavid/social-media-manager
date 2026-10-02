@@ -7,8 +7,8 @@
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
 import { useState } from 'react';
-import { NavLink, useSearchParams } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import { AppNavLink as NavLink, useAppSearchParams as useSearchParams } from '../app/navigation';
+import { useSession as useAuth } from '../app/session';
 import { useWorkspaceSummary, useTimeseries, usePosts, useDateRange, useOAuthStatus, useLookups } from '../hooks/useData';
 import { PLATFORMS, fmt } from '../services/platforms';
 import { exportPDF } from '../services/exportPDF';

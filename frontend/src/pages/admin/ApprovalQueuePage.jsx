@@ -7,9 +7,9 @@
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { AppLink as Link } from '../../app/navigation';
 import { Loader2, CheckCircle2, X, FileEdit, Send } from 'lucide-react';
-import toast from 'react-hot-toast';
+import toast from '../../components/ui/toast';
 
 import PageHeader from '../../components/layout/PageHeader';
 import Card from '../../components/ui/Card';

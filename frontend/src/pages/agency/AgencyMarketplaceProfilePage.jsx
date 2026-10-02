@@ -14,7 +14,7 @@
  * mode and lets the owner update display fields plus the marketplace toggle.
  */
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { AppLink as Link } from '../../app/navigation';
 import {
   Save, ExternalLink, ShieldCheck, Globe, MapPin, Building2, Plus, X,
   FileText,

@@ -15,7 +15,7 @@ import {
   DollarSign, TrendingUp, TrendingDown, Target,
   Save, RefreshCw, Info,
 } from 'lucide-react';
-import { useSearchParams } from 'react-router-dom';
+import { useAppSearchParams as useSearchParams } from '../app/navigation';
 import { useROISettings, useROICalculator, useROIReports } from '../hooks/useROI';
 import ROIFunnel from '../components/ui/ROIFunnel';
 import { PLATFORMS } from '../services/platforms';

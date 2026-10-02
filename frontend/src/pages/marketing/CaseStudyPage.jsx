@@ -23,7 +23,7 @@
  *   8. Used products
  *   9. Final CTA + back link
  */
-import { useParams, Link } from 'react-router-dom';
+import { useAppParams as useParams, AppLink as Link } from '../../app/navigation';
 import { motion } from 'framer-motion';
 import {
   ArrowLeft,

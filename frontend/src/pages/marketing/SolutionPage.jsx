@@ -20,7 +20,7 @@
  *   5. Customer quote
  *   6. Final CTA
  */
-import { useParams, Link } from 'react-router-dom';
+import { useAppParams as useParams, AppLink as Link } from '../../app/navigation';
 import { motion } from 'framer-motion';
 import { ArrowRight, Check, Sparkles, AlertTriangle } from 'lucide-react';
 

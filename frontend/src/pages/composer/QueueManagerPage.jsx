@@ -10,7 +10,7 @@ import { useEffect, useState } from 'react';
 import {
   Plus, Layers, Pause, Play, Trash2, Clock, Edit2, X, GripVertical,
 } from 'lucide-react';
-import toast from 'react-hot-toast';
+import toast from '../../components/ui/toast';
 
 import PageHeader from '../../components/layout/PageHeader';
 import Button from '../../components/ui/Button';

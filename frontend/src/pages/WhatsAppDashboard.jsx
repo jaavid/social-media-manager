@@ -7,7 +7,7 @@
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
 import { useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { AppLink as Link } from '../app/navigation';
 import {
   ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid,
 } from 'recharts';
@@ -16,7 +16,7 @@ import { Send, CheckCheck, Eye, MessageCircle, Settings, ArrowRight } from 'luci
 import PageHeader from '../components/layout/PageHeader';
 import StatCard from '../components/ui/StatCard';
 import { useWhatsAppDashboard, useWhatsAppAccount, useWhatsAppCampaigns } from '../hooks/useWhatsApp';
-import { useAuth } from '../hooks/useAuth';
+import { useSession as useAuth } from '../app/session';
 
 const COLORS = {
   primary:   '#00CCF5',

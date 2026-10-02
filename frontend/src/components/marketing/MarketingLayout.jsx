@@ -7,7 +7,7 @@
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
 import { useEffect, useRef, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { AppLink as Link, useAppLocation as useLocation } from '../../app/navigation';
 import {
   Menu, X, ChevronDown,
   Github, Linkedin, Twitter, Youtube,

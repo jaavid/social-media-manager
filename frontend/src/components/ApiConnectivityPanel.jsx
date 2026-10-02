@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { CheckCircle2, AlertCircle, RefreshCw, Route, Server, XCircle } from 'lucide-react';
-import { useAuth } from '../hooks/useAuth';
+import { useSession as useAuth } from '../app/session';
 import { egressAPI } from '../services/egress';
 
 function Reachability({ value }) {

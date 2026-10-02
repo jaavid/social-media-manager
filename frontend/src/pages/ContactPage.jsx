@@ -7,7 +7,7 @@
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { AppLink as Link } from '../app/navigation';
 import {
   Mail, MessageSquare, Phone, MapPin, ArrowRight,
   BookOpen, Activity, ShieldCheck, CheckCircle, Send,

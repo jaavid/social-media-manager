@@ -6,68 +6,87 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
-  Bell, Settings, LogOut,
-  Briefcase, Store,
-} from 'lucide-react';
-
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from '../ui/DropdownMenu';
+import { cn } from '../../lib/utils';
+import { useEffect, useState } from 'react';
+import { useAppNavigate as useNavigate } from '../../app/navigation';
+import { Bell, Settings, LogOut, Briefcase, Store } from 'lucide-react';
 import { BrandMark } from '../ui/BrandLogo';
 import AccountTypeBadge from '../ui/AccountTypeBadge';
-import { useAuth } from '../../hooks/useAuth';
+import { useSession as useAuth } from '../../app/session';
 import { useLanguage } from '../../i18n';
 
 /**
  * 64px-wide module rail. Uses logical CSS properties so it mirrors correctly
  * when the document language switches to Persian/RTL.
  */
-export default function ModuleRail({ currentModule, basePath, modules, notifCount = 0 }) {
+export default function ModuleRail({
+  currentModule,
+  basePath,
+  modules,
+  notifCount = 0,
+}) {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { t, tr } = useLanguage();
   const [menuOpen, setMenuOpen] = useState(false);
-
   return (
     <aside
-      className="ds-module-rail"
       aria-label={t('common.moduleSwitcher', 'Module switcher')}
-      style={{
-        position: 'fixed',
-        top: 0, bottom: 0,
-        insetInlineStart: 0,
-        width: 'var(--module-rail-width)',
-        zIndex: 100,
-        background: 'var(--surface-card)',
-        borderInlineEnd: '1px solid var(--border-subtle)',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        padding: '14px 0',
-        gap: 6,
-      }}
+      className={cn(
+        'ds-module-rail',
+        '[position:fixed]',
+        '[top:0]',
+        '[bottom:0]',
+        '[inset-inline-start:0]',
+        '[width:var(--module-rail-width)]',
+        '[z-index:100]',
+        '[background:var(--surface-card)]',
+        '[border-inline-end:1px_solid_var(--border-subtle)]',
+        '[display:flex]',
+        '[flex-direction:column]',
+        '[align-items:center]',
+        '[padding:14px_0]',
+        '[gap:6px]',
+      )}
     >
       <button
         type="button"
         onClick={() => navigate(`${basePath}/${currentModule || 'analytics'}`)}
         aria-label="Social Stats home"
-        style={{
-          width: 36, height: 36,
-          borderRadius: 'var(--radius-md)',
-          border: 'none',
-          padding: 0,
-          background: 'var(--brand-gradient)',
-          boxShadow: 'var(--shadow-sm)',
-          cursor: 'pointer',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}
+        className={cn(
+          '[width:36px]',
+          '[height:36px]',
+          '[border-radius:var(--radius-md)]',
+          '[border:none]',
+          '[padding:0]',
+          '[background:var(--brand-gradient)]',
+          '[box-shadow:var(--shadow-sm)]',
+          '[cursor:pointer]',
+          '[display:flex]',
+          '[align-items:center]',
+          '[justify-content:center]',
+        )}
       >
         <BrandMark size={22} />
       </button>
 
       <Divider />
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'center', marginTop: 4 }}>
+      <div
+        className={cn(
+          '[display:flex]',
+          '[flex-direction:column]',
+          '[gap:4px]',
+          '[align-items:center]',
+          '[margin-top:4px]',
+        )}
+      >
         {modules.map((m) => (
           <ModuleButton
             key={m.id}
@@ -82,13 +101,22 @@ export default function ModuleRail({ currentModule, basePath, modules, notifCoun
         ))}
       </div>
 
-      <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+      <div
+        className={cn(
+          '[margin-top:auto]',
+          '[display:flex]',
+          '[flex-direction:column]',
+          '[align-items:center]',
+          '[gap:4px]',
+        )}
+      >
         <RailIconBtn
           icon={Bell}
           label={t('common.notifications', 'Notifications')}
           onClick={() => navigate(`${basePath}/analytics/alerts`)}
           dot={notifCount > 0}
         />
+
         <RailIconBtn
           icon={Settings}
           label={t('common.settings', 'Settings')}
@@ -101,74 +129,96 @@ export default function ModuleRail({ currentModule, basePath, modules, notifCoun
           onOpenChange={setMenuOpen}
           tr={tr}
           accountMenuLabel={t('common.accountMenu', 'Account menu')}
-          onLogout={() => { logout(); navigate('/login'); }}
+          onLogout={() => {
+            logout();
+            navigate('/login');
+          }}
         />
       </div>
     </aside>
   );
 }
-
 function ModuleButton({ module: m, active, onClick, soonLabel }) {
   const Icon = m.icon;
   const disabled = !m.enabled || m.comingSoon;
   const tooltip = m.comingSoon ? `${m.label} — ${soonLabel}` : m.label;
-
   return (
-    <div className="ds-rail-tip" data-tip={tooltip} style={{ position: 'relative' }}>
+    <div
+      data-tip={tooltip}
+      className={cn('ds-rail-tip', '[position:relative]')}
+    >
       <button
         type="button"
         onClick={onClick}
         disabled={disabled}
         aria-label={tooltip}
         aria-current={active ? 'page' : undefined}
-        style={{
-          width: 40, height: 40,
-          border: 'none',
-          padding: 0,
-          borderRadius: 'var(--radius-md)',
-          cursor: disabled ? 'not-allowed' : 'pointer',
-          opacity: disabled ? 0.45 : 1,
-          background: active ? 'var(--brand-gradient)' : 'transparent',
-          color: active ? 'var(--text-on-brand)' : 'var(--text-tertiary)',
-          boxShadow: active ? '0 4px 14px var(--brand-primary-glow)' : 'none',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          transition: 'var(--transition-fast)',
-          position: 'relative',
-        }}
-        onMouseEnter={(e) => {
-          if (active || disabled) return;
-          e.currentTarget.style.background = 'var(--surface-hover)';
-          e.currentTarget.style.color = 'var(--text-primary)';
-          e.currentTarget.style.transform = 'scale(1.05)';
-        }}
-        onMouseLeave={(e) => {
-          if (active || disabled) return;
-          e.currentTarget.style.background = 'transparent';
-          e.currentTarget.style.color = 'var(--text-tertiary)';
-          e.currentTarget.style.transform = 'none';
-        }}
+        className={cn(
+          cn(
+            '[width:40px]',
+            '[height:40px]',
+            '[border:none]',
+            '[padding:0]',
+            '[border-radius:var(--radius-md)]',
+            disabled ? '[cursor:not-allowed]' : '[cursor:pointer]',
+            disabled ? '[opacity:0.45]' : '[opacity:1]',
+            active
+              ? '[background:var(--brand-gradient)]'
+              : '[background:transparent]',
+            active
+              ? '[color:var(--text-on-brand)]'
+              : '[color:var(--text-tertiary)]',
+            active
+              ? '[box-shadow:0_4px_14px_var(--brand-primary-glow)]'
+              : '[box-shadow:none]',
+            '[display:flex]',
+            '[align-items:center]',
+            '[justify-content:center]',
+            '[transition:var(--transition-fast)]',
+            '[position:relative]',
+          ),
+          'hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring',
+        )}
       >
         <Icon size={18} strokeWidth={2} />
 
         {m.comingSoon && (
-          <span style={{
-            position: 'absolute', top: -2, insetInlineEnd: -2,
-            background: 'var(--warning)', color: '#fff',
-            fontSize: 8, fontWeight: 700, padding: '1px 4px',
-            borderRadius: 999, lineHeight: 1,
-          }}>
+          <span
+            className={cn(
+              '[position:absolute]',
+              '[top:-2px]',
+              '[inset-inline-end:-2px]',
+              '[background:var(--warning)]',
+              '[color:var(--text-on-brand)]',
+              '[font-size:8px]',
+              '[font-weight:700]',
+              '[padding:1px_4px]',
+              '[border-radius:999px]',
+              '[line-height:1]',
+            )}
+          >
             {soonLabel}
           </span>
         )}
 
         {!!m.badge && m.badge > 0 && (
-          <span style={{
-            position: 'absolute', top: 4, insetInlineEnd: 4,
-            minWidth: 16, height: 16, padding: '0 4px',
-            background: 'var(--brand-primary-hover)', color: '#fff',
-            fontSize: 9, fontWeight: 700, lineHeight: '16px',
-            borderRadius: 999, textAlign: 'center',
-          }}>
+          <span
+            className={cn(
+              '[position:absolute]',
+              '[top:4px]',
+              '[inset-inline-end:4px]',
+              '[min-width:16px]',
+              '[height:16px]',
+              '[padding:0_4px]',
+              '[background:var(--brand-primary-hover)]',
+              '[color:var(--text-on-brand)]',
+              '[font-size:9px]',
+              '[font-weight:700]',
+              '[line-height:16px]',
+              '[border-radius:999px]',
+              '[text-align:center]',
+            )}
+          >
             {m.badge > 99 ? '99+' : m.badge}
           </span>
         )}
@@ -176,176 +226,214 @@ function ModuleButton({ module: m, active, onClick, soonLabel }) {
     </div>
   );
 }
-
 function RailIconBtn({ icon: Icon, label, onClick, dot }) {
   return (
-    <div className="ds-rail-tip" data-tip={label} style={{ position: 'relative' }}>
+    <div data-tip={label} className={cn('ds-rail-tip', '[position:relative]')}>
       <button
         type="button"
         onClick={onClick}
         aria-label={label}
-        style={{
-          width: 36, height: 36,
-          padding: 0, border: 'none', borderRadius: 'var(--radius-md)',
-          background: 'transparent',
-          color: 'var(--text-tertiary)',
-          cursor: 'pointer',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          transition: 'var(--transition-fast)',
-          position: 'relative',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background = 'var(--surface-hover)';
-          e.currentTarget.style.color = 'var(--text-primary)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = 'transparent';
-          e.currentTarget.style.color = 'var(--text-tertiary)';
-        }}
+        className={cn(
+          cn(
+            '[width:36px]',
+            '[height:36px]',
+            '[padding:0]',
+            '[border:none]',
+            '[border-radius:var(--radius-md)]',
+            '[background:transparent]',
+            '[color:var(--text-tertiary)]',
+            '[cursor:pointer]',
+            '[display:flex]',
+            '[align-items:center]',
+            '[justify-content:center]',
+            '[transition:var(--transition-fast)]',
+            '[position:relative]',
+          ),
+          'hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring',
+        )}
       >
         <Icon size={16} strokeWidth={2} />
         {dot && (
-          <span aria-hidden style={{
-            position: 'absolute', top: 8, insetInlineEnd: 8,
-            width: 6, height: 6, background: 'var(--danger)',
-            borderRadius: '50%',
-          }} />
+          <span
+            aria-hidden
+            className={cn(
+              '[position:absolute]',
+              '[top:8px]',
+              '[inset-inline-end:8px]',
+              '[width:6px]',
+              '[height:6px]',
+              '[background:var(--danger)]',
+              '[border-radius:50%]',
+            )}
+          />
         )}
       </button>
     </div>
   );
 }
-
-function UserMenu({ user, open, onOpenChange, onLogout, tr, accountMenuLabel }) {
+function UserMenu({
+  user,
+  open,
+  onOpenChange,
+  onLogout,
+  tr,
+  accountMenuLabel,
+}) {
   const navigate = useNavigate();
   const isAgency = user?.account_type === 'agency_member';
   const isEndUser = user?.account_type === 'end_user';
-
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e) => { if (e.key === 'Escape') onOpenChange(false); };
-    const onClick = (e) => {
-      if (!e.target.closest('.ds-user-menu-anchor')) onOpenChange(false);
-    };
-    window.addEventListener('keydown', onKey);
-    window.addEventListener('mousedown', onClick);
-    return () => {
-      window.removeEventListener('keydown', onKey);
-      window.removeEventListener('mousedown', onClick);
-    };
-  }, [open, onOpenChange]);
-
-  const initial = ((user?.name || user?.email || 'U').trim()[0] || 'U').toUpperCase();
+  const initial = (
+    (user?.name || user?.email || 'U').trim()[0] || 'U'
+  ).toUpperCase();
   const hue = hashHue(user?.email || user?.name || '');
-
   return (
-    <div className="ds-user-menu-anchor" style={{ position: 'relative', marginTop: 4 }}>
-      <button
-        type="button"
-        onClick={() => onOpenChange(!open)}
-        aria-label={accountMenuLabel}
-        aria-haspopup="menu"
-        aria-expanded={open}
-        style={{
-          width: 36, height: 36, padding: 0,
-          borderRadius: 999, border: '1px solid var(--border-subtle)',
-          background: `linear-gradient(135deg, hsl(${hue},65%,55%), hsl(${(hue + 50) % 360},65%,45%))`,
-          color: '#fff', fontWeight: 700, fontSize: 13,
-          cursor: 'pointer',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          transition: 'var(--transition-fast)',
-        }}
-      >
-        {initial}
-      </button>
-
-      {open && (
-        <div
-          role="menu"
-          style={{
-            position: 'absolute',
-            insetInlineStart: 'calc(100% + 12px)',
-            bottom: 0,
-            background: 'var(--surface-elevated)',
-            border: '1px solid var(--border-default)',
-            borderRadius: 'var(--radius-md)',
-            boxShadow: 'var(--shadow-lg)',
-            minWidth: 200,
-            padding: 6,
-            zIndex: 200,
-          }}
+    <DropdownMenu open={open} onOpenChange={onOpenChange}>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          aria-label={accountMenuLabel}
+          className={cn(
+            '[width:36px]',
+            '[height:36px]',
+            '[padding:0]',
+            '[border-radius:999px]',
+            '[border:1px_solid_var(--border-subtle)]',
+            '[background:var(--brand-gradient)]',
+            '[color:var(--text-on-brand)]',
+            '[font-weight:700]',
+            '[font-size:13px]',
+            '[cursor:pointer]',
+            '[display:flex]',
+            '[align-items:center]',
+            '[justify-content:center]',
+            '[transition:var(--transition-fast)]',
+          )}
         >
-          <div style={{ padding: '8px 10px 10px', borderBottom: '1px solid var(--border-subtle)' }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>
-              {user?.name || user?.email}
-            </div>
-            <div style={{ marginTop: 6 }}>
-              <AccountTypeBadge type={user?.account_type} role={user?.role} size="sm" />
-            </div>
+          {initial}
+        </button>
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent side="right" align="start">
+        <div
+          className={cn(
+            '[padding:8px_10px_10px]',
+            '[border-bottom:1px_solid_var(--border-subtle)]',
+          )}
+        >
+          <div
+            className={cn(
+              '[font-size:13px]',
+              '[font-weight:600]',
+              '[color:var(--text-primary)]',
+            )}
+          >
+            {user?.name || user?.email}
           </div>
-          {isAgency && (
-            <>
-              <MenuRow icon={Briefcase} label={tr('Manage agency')} onClick={() => {
-                onOpenChange(false); navigate('/agency');
-              }} />
-              <MenuRow icon={Store} label={tr('Marketplace profile')} onClick={() => {
-                onOpenChange(false); navigate('/agency/marketplace-profile');
-              }} />
-            </>
-          )}
-          {isEndUser && (
-            <MenuRow icon={Briefcase} label={tr('My agency')} onClick={() => {
-              onOpenChange(false); navigate('/u/agency');
-            }} />
-          )}
-          <MenuRow icon={Settings} label={tr('Account settings')} onClick={() => {
-            onOpenChange(false);
-            navigate(user?.role === 'client' ? '/dashboard/account-settings' : '/admin/account-settings');
-          }} />
-          <MenuRow icon={LogOut} label={tr('Sign out')} danger onClick={onLogout} />
+          <div className={cn('[margin-top:6px]')}>
+            <AccountTypeBadge
+              type={user?.account_type}
+              role={user?.role}
+              size="sm"
+            />
+          </div>
         </div>
-      )}
-    </div>
+        {isAgency && (
+          <>
+            <MenuRow
+              icon={Briefcase}
+              label={tr('Manage agency')}
+              onClick={() => {
+                onOpenChange(false);
+                navigate('/agency');
+              }}
+            />
+            <MenuRow
+              icon={Store}
+              label={tr('Marketplace profile')}
+              onClick={() => {
+                onOpenChange(false);
+                navigate('/agency/marketplace-profile');
+              }}
+            />
+          </>
+        )}
+        {isEndUser && (
+          <MenuRow
+            icon={Briefcase}
+            label={tr('My agency')}
+            onClick={() => {
+              onOpenChange(false);
+              navigate('/u/agency');
+            }}
+          />
+        )}
+        <MenuRow
+          icon={Settings}
+          label={tr('Account settings')}
+          onClick={() => {
+            onOpenChange(false);
+            navigate(
+              user?.role === 'client'
+                ? '/dashboard/account-settings'
+                : '/admin/account-settings',
+            );
+          }}
+        />
+        <MenuRow
+          icon={LogOut}
+          label={tr('Sign out')}
+          danger
+          onClick={onLogout}
+        />
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
-
 function MenuRow({ icon: Icon, label, onClick, danger }) {
   return (
-    <button
+    <DropdownMenuItem
       type="button"
-      role="menuitem"
-      onClick={onClick}
-      style={{
-        display: 'flex', alignItems: 'center', gap: 10,
-        width: '100%', padding: '8px 10px',
-        background: 'transparent', border: 'none',
-        borderRadius: 'var(--radius-sm)',
-        color: danger ? 'var(--danger)' : 'var(--text-primary)',
-        fontSize: 13, fontWeight: 500,
-        cursor: 'pointer', textAlign: 'start',
-        transition: 'var(--transition-fast)',
-      }}
-      onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--surface-hover)'; }}
-      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+      onSelect={onClick}
+      className={cn(
+        cn(
+          '[display:flex]',
+          '[align-items:center]',
+          '[gap:10px]',
+          '[width:100%]',
+          '[padding:8px_10px]',
+          '[background:transparent]',
+          '[border:none]',
+          '[border-radius:var(--radius-sm)]',
+          danger ? '[color:var(--danger)]' : '[color:var(--text-primary)]',
+          '[font-size:13px]',
+          '[font-weight:500]',
+          '[cursor:pointer]',
+          '[text-align:start]',
+          '[transition:var(--transition-fast)]',
+        ),
+        'hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring',
+      )}
     >
       <Icon size={14} strokeWidth={2} />
       {label}
-    </button>
+    </DropdownMenuItem>
   );
 }
-
 function Divider() {
   return (
-    <div style={{
-      width: 32, height: 1,
-      background: 'var(--border-subtle)',
-      margin: '8px 0',
-    }} />
+    <div
+      className={cn(
+        '[width:32px]',
+        '[height:1px]',
+        '[background:var(--border-subtle)]',
+        '[margin:8px_0]',
+      )}
+    />
   );
 }
-
 function hashHue(s) {
   let h = 0;
-  for (let i = 0; i < (s || '').length; i++) h = s.charCodeAt(i) + ((h << 5) - h);
+  for (let i = 0; i < (s || '').length; i++)
+    h = s.charCodeAt(i) + ((h << 5) - h);
   return Math.abs(h) % 360;
 }

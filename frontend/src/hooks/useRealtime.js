@@ -6,6 +6,9 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
+import { apiBaseUrl, websocketUrl } from '../lib/runtime/config';
+import { persistentStorage } from '../lib/runtime/storage';
+
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { invalidateSession, refreshAccessToken } from '../lib/auth/session';
 
@@ -37,10 +40,10 @@ const RECONNECT_MAX_MS = 30_000;
 
 
 function wsBaseURL() {
-  const explicit = process.env.REACT_APP_WS_URL;
+  const explicit = websocketUrl();
   if (explicit) return explicit.replace(/\/$/, '');
 
-  const api = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+  const api = apiBaseUrl();
   try {
     const u = new URL(api);
     const proto = u.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -87,7 +90,7 @@ export function RealtimeProvider({ children }) {
   }, []);
 
   const connect = useCallback(() => {
-    const token = (typeof localStorage !== 'undefined') ? localStorage.getItem('access_token') : null;
+    const token = (typeof localStorage !== 'undefined') ? persistentStorage.getItem('access_token') : null;
     if (!token) return;
 
     const generation = ++connectionGeneration.current;

@@ -6,6 +6,8 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
+import { persistentStorage } from '../../lib/runtime/storage';
+
 /**
  * End-user (B2C) self-signup. Multi-step wizard:
  *   1. Account — full name + email + password
@@ -16,7 +18,7 @@
  * localStorage (matching the existing pattern in LoginPage) and route to /u.
  */
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { AppLink as Link, useAppNavigate as useNavigate } from '../../app/navigation';
 import { ArrowRight, ArrowLeft, Check, Sparkles } from 'lucide-react';
 
 import { endUserAPI } from '../../services/api';
@@ -73,9 +75,9 @@ export default function EndUserSignupPage() {
         terms_accepted: true,
       });
       const { access, refresh, user, workspace } = res.data;
-      localStorage.setItem('access_token',  access);
-      localStorage.setItem('refresh_token', refresh);
-      localStorage.setItem('end_user_signup_workspace', JSON.stringify(workspace || {}));
+      persistentStorage.setItem('access_token',  access);
+      persistentStorage.setItem('refresh_token', refresh);
+      persistentStorage.setItem('end_user_signup_workspace', JSON.stringify(workspace || {}));
       toast.success(`Welcome to Social Stats, ${user?.first_name || ''}!`);
       // Trigger a fresh /me bootstrap by routing through /auth-callback so the
       // existing useAuth hook picks up the new session.

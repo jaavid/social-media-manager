@@ -17,7 +17,7 @@
  * }
  */
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { AppLink as Link, useAppParams as useParams } from '../../app/navigation';
 import {
   ArrowLeft, Megaphone, RefreshCw, ExternalLink, ChevronRight, Sparkles, AlertTriangle,
 } from 'lucide-react';

@@ -13,7 +13,7 @@
  * 2-column body: timeline (left, big) + variables panel (right, sticky).
  */
 import { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { AppLink as Link, useAppNavigate as useNavigate, useAppParams as useParams } from '../../app/navigation';
 import {
   ArrowLeft, User, Bot, Clock, RefreshCw, UserPlus, StopCircle, Sparkles,
   CheckCircle2, AlertTriangle, Wand2, Copy,

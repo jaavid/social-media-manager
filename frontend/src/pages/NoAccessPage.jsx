@@ -6,7 +6,7 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
-import { useNavigate } from 'react-router-dom';
+import { useAppNavigate as useNavigate } from '../app/navigation';
 import { ShieldOff } from 'lucide-react';
 
 export default function NoAccessPage() {

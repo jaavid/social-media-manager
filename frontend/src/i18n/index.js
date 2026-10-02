@@ -1,3 +1,4 @@
+import { persistentStorage } from '../lib/runtime/storage';
 import { useEffect, useState } from 'react';
 import '../styles/i18n.css';
 import faExtra from './fa-extra';
@@ -411,7 +412,7 @@ const rawDictionaries = { en: {}, fa: { ...faRaw, ...faExtra } };
 
 function detectInitialLanguage() {
   if (typeof window === 'undefined') return 'en';
-  const stored = window.localStorage.getItem(STORAGE_KEY);
+  const stored = persistentStorage.getItem(STORAGE_KEY);
   if (SUPPORTED.has(stored)) return stored;
   return (window.navigator.language || '').toLowerCase().startsWith('fa') ? 'fa' : 'en';
 }
@@ -435,7 +436,7 @@ export function setLanguage(language) {
   if (!SUPPORTED.has(language)) return;
   currentLanguage = language;
   if (typeof window !== 'undefined') {
-    window.localStorage.setItem(STORAGE_KEY, language);
+    persistentStorage.setItem(STORAGE_KEY, language);
     window.dispatchEvent(new CustomEvent(LANGUAGE_EVENT, { detail: language }));
   }
   applyDocumentLanguage(language);

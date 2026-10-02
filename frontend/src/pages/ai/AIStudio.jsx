@@ -20,7 +20,7 @@
  *
  * Each card has a "Try" button + a one-line description.
  */
-import { Link } from 'react-router-dom';
+import { AppLink as Link } from '../../app/navigation';
 import {
   Sparkles, Mic, BarChart3, MessageSquare, Wand2, Lightbulb, Hash,
   Inbox, Activity, ArrowRight, Image, Video, AlertTriangle,
@@ -28,7 +28,7 @@ import {
 
 import PageHeader from '../../components/layout/PageHeader';
 import Card from '../../components/ui/Card';
-import { useAuth } from '../../hooks/useAuth';
+import { useSession as useAuth } from '../../app/session';
 
 const FEATURE_GROUPS = [
   {

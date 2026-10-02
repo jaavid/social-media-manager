@@ -7,8 +7,8 @@
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import { useAppSearchParams as useSearchParams } from '../app/navigation';
+import { useSession as useAuth } from '../app/session';
 import { useWorkspaces, useLookups } from '../hooks/useData';
 import { postIdeasAPI } from '../services/api';
 import SocialPlatformIcon from '../components/ui/SocialPlatformIcon';

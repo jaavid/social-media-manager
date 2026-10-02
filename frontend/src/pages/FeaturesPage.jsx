@@ -7,7 +7,7 @@
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { AppLink as Link } from '../app/navigation';
 import { motion } from 'framer-motion';
 import {
   BarChart3, PenSquare, Inbox, Sparkles, Zap, FileText, Users, ShieldCheck,

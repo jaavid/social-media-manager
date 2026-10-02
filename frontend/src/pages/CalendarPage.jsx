@@ -9,8 +9,8 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { addMonths, subMonths, format, parseISO, endOfMonth } from 'date-fns';
 import { ChevronLeft, ChevronRight, Plus, Calendar, List, BarChart2 } from 'lucide-react';
-import { useSearchParams } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import { useAppSearchParams as useSearchParams } from '../app/navigation';
+import { useSession as useAuth } from '../app/session';
 import { useWorkspaces } from '../hooks/useData';
 import {
   useCalendarPosts, useCalendarStats, useCalendarNotes,

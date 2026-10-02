@@ -12,7 +12,7 @@ import {
   MessageSquare, MessageCircle, Star, AtSign, AlertCircle,
   Send, Bell, UserPlus, Tag, Webhook, Loader2,
 } from 'lucide-react';
-import toast from 'react-hot-toast';
+import toast from '../../components/ui/toast';
 
 import PageHeader from '../../components/layout/PageHeader';
 import Card from '../../components/ui/Card';

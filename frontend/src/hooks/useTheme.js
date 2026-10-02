@@ -6,6 +6,8 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
+import { persistentStorage } from '../lib/runtime/storage';
+
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 /**
@@ -28,7 +30,7 @@ const VALID_PREFS = new Set(['light', 'dark', 'system']);
 
 function readPref() {
   if (typeof window === 'undefined') return DEFAULT_PREFERENCE;
-  const v = window.localStorage?.getItem(STORAGE_KEY);
+  const v = persistentStorage.getItem(STORAGE_KEY);
   return VALID_PREFS.has(v) ? v : DEFAULT_PREFERENCE;
 }
 
@@ -57,7 +59,7 @@ export function ThemeProvider({ children }) {
     const next = resolve(preference);
     setResolved(next);
     apply(next);
-    try { window.localStorage.setItem(STORAGE_KEY, preference); } catch {}
+    try { persistentStorage.setItem(STORAGE_KEY, preference); } catch {}
   }, [preference]);
 
   // Track OS theme changes when preference is "system"

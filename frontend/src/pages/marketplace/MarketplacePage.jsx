@@ -14,7 +14,7 @@
  * "Invite this agency" CTA on each profile.
  */
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { AppLink as Link, useAppSearchParams as useSearchParams } from '../../app/navigation';
 import {
   Search, ShieldCheck, Sparkles, Star, Filter, Building2, ChevronRight, MapPin,
 } from 'lucide-react';

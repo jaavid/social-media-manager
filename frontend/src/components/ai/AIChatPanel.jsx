@@ -14,7 +14,7 @@ import {
 
 import Button from '../ui/Button';
 import { aiV2API } from '../../services/api';
-import { useAuth } from '../../hooks/useAuth';
+import { useSession as useAuth } from '../../app/session';
 import toast from '../ui/toast';
 
 /**

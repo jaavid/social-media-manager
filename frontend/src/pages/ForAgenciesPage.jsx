@@ -12,7 +12,7 @@
  * Counterpart to /for-businesses. Hammers ROI + the marketplace exposure
  * benefit (the marketplace is the new hook agencies didn't have before).
  */
-import { Link } from 'react-router-dom';
+import { AppLink as Link } from '../app/navigation';
 import { motion } from 'framer-motion';
 import {
   ArrowRight, Sparkles, Building2, TrendingUp, Star, Inbox, Wand2,

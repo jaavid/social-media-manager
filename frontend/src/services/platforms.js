@@ -6,6 +6,8 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
+import { persistentStorage } from '../lib/runtime/storage';
+
 import { useEffect, useState } from 'react';
 import platformCapabilities from './platformCapabilities.json';
 import { oauthAPI } from './api';
@@ -125,7 +127,7 @@ function fallbackRegistry() {
 function readCachedRegistry() {
   if (typeof window === 'undefined') return null;
   try {
-    const parsed = JSON.parse(window.localStorage.getItem(STORAGE_KEY));
+    const parsed = JSON.parse(persistentStorage.getItem(STORAGE_KEY));
     if (!Array.isArray(parsed?.categories) || !Array.isArray(parsed?.platforms)) return null;
     return parsed;
   } catch {
@@ -144,7 +146,7 @@ function publishRegistry(next) {
   listeners.forEach(listener => listener(next));
   if (typeof window !== 'undefined') {
     try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      persistentStorage.setItem(STORAGE_KEY, JSON.stringify(next));
     } catch {
       // Storage can be disabled; the in-memory registry remains authoritative.
     }

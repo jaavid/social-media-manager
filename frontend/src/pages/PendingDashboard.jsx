@@ -11,8 +11,8 @@
  * Two paths: go solo (setup-solo endpoint) or wait for / accept an agency invitation.
  */
 import { useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import { useAppNavigate as useNavigate } from '../app/navigation';
+import { useSession as useAuth } from '../app/session';
 import { soloAPI, invitationAPI } from '../services/api';
 import { Building2, UserCheck, Clock, CheckCircle, XCircle, Bell, LogOut, ChevronRight, Loader2 } from 'lucide-react';
 import { BrandLogoHorizontal } from '../components/ui/BrandLogo';

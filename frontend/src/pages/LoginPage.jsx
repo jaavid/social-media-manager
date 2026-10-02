@@ -6,8 +6,10 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
+import { apiBaseUrl } from '../lib/runtime/config';
+
 import { useEffect, useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { AppLink as Link, useAppNavigate as useNavigate, useAppLocation as useLocation } from '../app/navigation';
 import { ArrowRight, AlertCircle, Shield } from 'lucide-react';
 
 import AuthLayout from '../components/auth/AuthLayout';
@@ -15,10 +17,10 @@ import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import Checkbox from '../components/ui/Checkbox';
 import SocialPlatformIcon from '../components/ui/SocialPlatformIcon';
-import { useAuth } from '../hooks/useAuth';
+import { useSession as useAuth } from '../app/session';
 import { useLanguage } from '../i18n';
 
-const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+const API_BASE = apiBaseUrl();
 
 export default function LoginPage() {
   const { login, loginMfa } = useAuth();

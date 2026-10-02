@@ -6,13 +6,24 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
+import { cn } from '../../lib/utils';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Sparkles, Wand2, Hash, RefreshCw, Languages, Clock, X, Copy, Check, Loader2,
-  Send, Image as ImageIcon, ArrowRight,
+  Sparkles,
+  Wand2,
+  Hash,
+  RefreshCw,
+  Languages,
+  Clock,
+  X,
+  Copy,
+  Check,
+  Loader2,
+  Send,
+  Image as ImageIcon,
+  ArrowRight,
 } from 'lucide-react';
-import toast from 'react-hot-toast';
-
+import toast from '../ui/toast';
 import Button from '../ui/Button';
 import { aiAPI } from '../../services/api';
 
@@ -31,14 +42,37 @@ import { aiAPI } from '../../services/api';
  * "Copy" button and a "Use this" button (just copies for now).
  */
 const TABS = [
-  { id: 'compose',   label: 'Compose',     icon: Wand2 },
-  { id: 'hashtags',  label: 'Hashtags',    icon: Hash },
-  { id: 'rewrite',   label: 'Rewrite',     icon: RefreshCw },
-  { id: 'translate', label: 'Translate',   icon: Languages },
-  { id: 'besttime',  label: 'Best Time',   icon: Clock },
-  { id: 'imgcap',    label: 'Image Caption', icon: ImageIcon },
+  {
+    id: 'compose',
+    label: 'Compose',
+    icon: Wand2,
+  },
+  {
+    id: 'hashtags',
+    label: 'Hashtags',
+    icon: Hash,
+  },
+  {
+    id: 'rewrite',
+    label: 'Rewrite',
+    icon: RefreshCw,
+  },
+  {
+    id: 'translate',
+    label: 'Translate',
+    icon: Languages,
+  },
+  {
+    id: 'besttime',
+    label: 'Best Time',
+    icon: Clock,
+  },
+  {
+    id: 'imgcap',
+    label: 'Image Caption',
+    icon: ImageIcon,
+  },
 ];
-
 export default function AIAssistantPanel() {
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState('compose');
@@ -56,15 +90,11 @@ export default function AIAssistantPanel() {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [open]);
-
   return (
     <>
       <FloatingLauncher onClick={() => setOpen(true)} active={open} />
       {open && (
-        <Panel
-          tab={tab} setTab={setTab}
-          onClose={() => setOpen(false)}
-        />
+        <Panel tab={tab} setTab={setTab} onClose={() => setOpen(false)} />
       )}
     </>
   );
@@ -73,25 +103,36 @@ export default function AIAssistantPanel() {
 /* ── Launcher button (always visible, bottom-right) ──────────────────── */
 function FloatingLauncher({ onClick, active }) {
   if (active) return null;
-  const isMac = typeof navigator !== 'undefined' && /mac/i.test(navigator.platform);
+  const isMac =
+    typeof navigator !== 'undefined' && /mac/i.test(navigator.platform);
   return (
     <button
       type="button"
       onClick={onClick}
       aria-label="Open AI Assistant (Cmd+J)"
       title={`AI Assistant · ${isMac ? '⌘J' : 'Ctrl+J'}`}
-      style={{
-        position: 'fixed', bottom: 24, right: 24, zIndex: 80,
-        width: 52, height: 52, borderRadius: 999,
-        border: 'none', cursor: 'pointer', padding: 0,
-        background: 'linear-gradient(135deg, #00CCF5, #00A8D8)',
-        color: '#fff',
-        boxShadow: '0 6px 18px rgba(0, 168, 216, 0.35), 0 2px 6px rgba(0,0,0,0.1)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        transition: 'transform 0.18s cubic-bezier(0.4,0,0.2,1)',
-      }}
-      onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px) scale(1.04)'; }}
-      onMouseLeave={(e) => { e.currentTarget.style.transform = 'none'; }}
+      className={cn(
+        cn(
+          '[position:fixed]',
+          '[bottom:24px]',
+          '[inset-inline-end:24px]',
+          '[z-index:80]',
+          '[width:52px]',
+          '[height:52px]',
+          '[border-radius:999px]',
+          '[border:none]',
+          '[cursor:pointer]',
+          '[padding:0]',
+          '[background:linear-gradient(135deg,_#00CCF5,_#00A8D8)]',
+          '[color:var(--text-on-brand)]',
+          '[box-shadow:0_6px_18px_rgba(0,_168,_216,_0.35),_0_2px_6px_rgba(0,0,0,0.1)]',
+          '[display:flex]',
+          '[align-items:center]',
+          '[justify-content:center]',
+          '[transition:transform_0.18s_cubic-bezier(0.4,0,0.2,1)]',
+        ),
+        'hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring',
+      )}
     >
       <Sparkles size={20} />
     </button>
@@ -105,70 +146,110 @@ function Panel({ tab, setTab, onClose }) {
       role="dialog"
       aria-label="AI Assistant"
       onClick={onClose}
-      style={{
-        position: 'fixed', inset: 0, zIndex: 200,
-        background: 'rgba(10,14,20,0.5)',
-        backdropFilter: 'blur(4px)',
-        display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end',
-        padding: 16,
-      }}
+      className={cn(
+        '[position:fixed]',
+        '[inset:0]',
+        '[z-index:200]',
+        '[background:rgba(10,14,20,0.5)]',
+        '[backdrop-filter:blur(4px)]',
+        '[display:flex]',
+        '[align-items:flex-end]',
+        '[justify-content:flex-end]',
+        '[padding:16px]',
+      )}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        style={{
-          width: 'min(560px, 100%)',
-          maxHeight: 'min(720px, calc(100vh - 32px))',
-          background: 'var(--surface-elevated)',
-          border: '1px solid var(--border-default)',
-          borderRadius: 'var(--radius-lg)',
-          boxShadow: 'var(--shadow-lg)',
-          display: 'flex', flexDirection: 'column',
-          color: 'var(--text-primary)',
-          overflow: 'hidden',
-        }}
+        className={cn(
+          '[width:min(560px,_100%)]',
+          '[max-height:min(720px,_calc(100vh_-_32px))]',
+          '[background:var(--surface-elevated)]',
+          '[border:1px_solid_var(--border-default)]',
+          '[border-radius:var(--radius-lg)]',
+          '[box-shadow:var(--shadow-lg)]',
+          '[display:flex]',
+          '[flex-direction:column]',
+          '[color:var(--text-primary)]',
+          '[overflow:hidden]',
+        )}
       >
         {/* Header */}
-        <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '14px 16px',
-          borderBottom: '1px solid var(--border-subtle)',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{
-              width: 28, height: 28, borderRadius: 'var(--radius-sm)',
-              background: 'linear-gradient(135deg, #00CCF5, #00A8D8)',
-              color: '#fff',
-              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            }}>
+        <div
+          className={cn(
+            '[display:flex]',
+            '[align-items:center]',
+            '[justify-content:space-between]',
+            '[padding:14px_16px]',
+            '[border-bottom:1px_solid_var(--border-subtle)]',
+          )}
+        >
+          <div
+            className={cn(
+              '[display:flex]',
+              '[align-items:center]',
+              '[gap:8px]',
+            )}
+          >
+            <span
+              className={cn(
+                '[width:28px]',
+                '[height:28px]',
+                '[border-radius:var(--radius-sm)]',
+                '[background:linear-gradient(135deg,_#00CCF5,_#00A8D8)]',
+                '[color:var(--text-on-brand)]',
+                '[display:inline-flex]',
+                '[align-items:center]',
+                '[justify-content:center]',
+              )}
+            >
               <Sparkles size={14} />
             </span>
             <div>
-              <div style={{ fontSize: 14, fontWeight: 600 }}>Social Stats</div>
-              <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
+              <div className={cn('[font-size:14px]', '[font-weight:600]')}>
+                Social Stats
+              </div>
+              <div
+                className={cn(
+                  '[font-size:11px]',
+                  '[color:var(--text-tertiary)]',
+                )}
+              >
                 Cmd/Ctrl + J
               </div>
             </div>
           </div>
           <button
-            type="button" onClick={onClose} aria-label="Close"
-            style={{
-              width: 28, height: 28, borderRadius: 'var(--radius-sm)',
-              background: 'transparent', border: 'none', cursor: 'pointer',
-              color: 'var(--text-tertiary)',
-              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-              minHeight: 'unset', minWidth: 'unset',
-            }}
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className={cn(
+              '[width:28px]',
+              '[height:28px]',
+              '[border-radius:var(--radius-sm)]',
+              '[background:transparent]',
+              '[border:none]',
+              '[cursor:pointer]',
+              '[color:var(--text-tertiary)]',
+              '[display:inline-flex]',
+              '[align-items:center]',
+              '[justify-content:center]',
+              '[min-height:unset]',
+              '[min-width:unset]',
+            )}
           >
             <X size={14} />
           </button>
         </div>
 
         {/* Tabs */}
-        <div style={{
-          display: 'flex', overflowX: 'auto',
-          borderBottom: '1px solid var(--border-subtle)',
-          background: 'var(--surface-sunken)',
-        }}>
+        <div
+          className={cn(
+            '[display:flex]',
+            '[overflow-x:auto]',
+            '[border-bottom:1px_solid_var(--border-subtle)]',
+            '[background:var(--surface-sunken)]',
+          )}
+        >
           {TABS.map((t) => {
             const active = t.id === tab;
             const Icon = t.icon;
@@ -177,19 +258,27 @@ function Panel({ tab, setTab, onClose }) {
                 key={t.id}
                 type="button"
                 onClick={() => setTab(t.id)}
-                style={{
-                  flex: '0 0 auto',
-                  padding: '10px 14px',
-                  background: 'transparent',
-                  border: 'none',
-                  borderBottom: active ? '2px solid var(--brand-primary)' : '2px solid transparent',
-                  color: active ? 'var(--text-primary)' : 'var(--text-tertiary)',
-                  fontSize: 13, fontWeight: 600,
-                  cursor: 'pointer',
-                  display: 'inline-flex', alignItems: 'center', gap: 6,
-                  whiteSpace: 'nowrap',
-                  minHeight: 'unset', minWidth: 'unset',
-                }}
+                className={cn(
+                  '[flex:0_0_auto]',
+                  '[padding:10px_14px]',
+                  '[background:transparent]',
+                  '[border:none]',
+                  active
+                    ? '[border-bottom:2px_solid_var(--brand-primary)]'
+                    : '[border-bottom:2px_solid_transparent]',
+                  active
+                    ? '[color:var(--text-primary)]'
+                    : '[color:var(--text-tertiary)]',
+                  '[font-size:13px]',
+                  '[font-weight:600]',
+                  '[cursor:pointer]',
+                  '[display:inline-flex]',
+                  '[align-items:center]',
+                  '[gap:6px]',
+                  '[white-space:nowrap]',
+                  '[min-height:unset]',
+                  '[min-width:unset]',
+                )}
               >
                 <Icon size={13} />
                 {t.label}
@@ -199,13 +288,13 @@ function Panel({ tab, setTab, onClose }) {
         </div>
 
         {/* Body */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: 16 }}>
-          {tab === 'compose'   && <ComposeTab />}
-          {tab === 'hashtags'  && <HashtagsTab />}
-          {tab === 'rewrite'   && <RewriteTab />}
+        <div className={cn('[flex:1]', '[overflow-y:auto]', '[padding:16px]')}>
+          {tab === 'compose' && <ComposeTab />}
+          {tab === 'hashtags' && <HashtagsTab />}
+          {tab === 'rewrite' && <RewriteTab />}
           {tab === 'translate' && <TranslateTab />}
-          {tab === 'besttime'  && <BestTimeTab />}
-          {tab === 'imgcap'    && <ImageCaptionTab />}
+          {tab === 'besttime' && <BestTimeTab />}
+          {tab === 'imgcap' && <ImageCaptionTab />}
         </div>
       </div>
     </div>
@@ -219,112 +308,285 @@ function ComposeTab() {
   const [tone, setTone] = useState('friendly');
   const [variants, setVariants] = useState(null);
   const [loading, setLoading] = useState(false);
-
   async function run() {
-    if (!topic.trim()) { toast.error('Topic is required'); return; }
-    setLoading(true); setVariants(null);
+    if (!topic.trim()) {
+      toast.error('Topic is required');
+      return;
+    }
+    setLoading(true);
+    setVariants(null);
     try {
-      const res = await aiAPI.composePost({ topic, platforms, tone });
+      const res = await aiAPI.composePost({
+        topic,
+        platforms,
+        tone,
+      });
       setVariants(res.data?.variants || {});
-    } catch (e) { toast.error(e.response?.data?.error || 'Compose failed'); }
-    finally     { setLoading(false); }
+    } catch (e) {
+      toast.error(e.response?.data?.error || 'Compose failed');
+    } finally {
+      setLoading(false);
+    }
   }
-
   return (
     <>
       <Field label="Topic">
-        <input value={topic} onChange={(e) => setTopic(e.target.value)}
-                placeholder="What's the post about?" style={inputStyle} autoFocus />
+        <input
+          value={topic}
+          onChange={(e) => setTopic(e.target.value)}
+          placeholder="What's the post about?"
+          autoFocus
+          className={cn(
+            '[width:100%]',
+            '[height:36px]',
+            '[padding:0_12px]',
+            '[background:var(--surface-card)]',
+            '[border:1px_solid_var(--border-default)]',
+            '[border-radius:var(--radius-md)]',
+            '[font-size:13px]',
+            '[color:var(--text-primary)]',
+            '[outline:none]',
+            '[box-sizing:border-box]',
+            '[min-height:unset]',
+          )}
+        />
       </Field>
       <Field label="Platforms">
         <PlatformPills value={platforms} onChange={setPlatforms} />
       </Field>
       <Field label="Tone">
-        <select value={tone} onChange={(e) => setTone(e.target.value)} style={inputStyle}>
-          {['friendly', 'professional', 'casual', 'inspirational', 'urgent'].map((t) =>
-            <option key={t} value={t}>{t}</option>)}
+        <select
+          value={tone}
+          onChange={(e) => setTone(e.target.value)}
+          className={cn(
+            '[width:100%]',
+            '[height:36px]',
+            '[padding:0_12px]',
+            '[background:var(--surface-card)]',
+            '[border:1px_solid_var(--border-default)]',
+            '[border-radius:var(--radius-md)]',
+            '[font-size:13px]',
+            '[color:var(--text-primary)]',
+            '[outline:none]',
+            '[box-sizing:border-box]',
+            '[min-height:unset]',
+          )}
+        >
+          {[
+            'friendly',
+            'professional',
+            'casual',
+            'inspirational',
+            'urgent',
+          ].map((t) => (
+            <option key={t} value={t}>
+              {t}
+            </option>
+          ))}
         </select>
       </Field>
       <RunButton loading={loading} onClick={run} label="Compose 3 variants" />
 
-      {variants && Object.entries(variants).map(([p, list]) => (
-        <div key={p} style={{ marginTop: 12 }}>
-          <div style={sectionLabel}>{p}</div>
-          {list.map((v, i) => <ResultBlock key={i} text={v} />)}
-        </div>
-      ))}
+      {variants &&
+        Object.entries(variants).map(([p, list]) => (
+          <div key={p} className={cn('[margin-top:12px]')}>
+            <div
+              className={cn(
+                '[font-size:11px]',
+                '[font-weight:600]',
+                '[color:var(--text-tertiary)]',
+                '[text-transform:uppercase]',
+                '[letter-spacing:0.4px]',
+                '[margin-bottom:6px]',
+                '[margin-top:4px]',
+              )}
+            >
+              {p}
+            </div>
+            {list.map((v, i) => (
+              <ResultBlock key={i} text={v} />
+            ))}
+          </div>
+        ))}
     </>
   );
 }
-
 function HashtagsTab() {
   const [content, setContent] = useState('');
   const [platform, setPlatform] = useState('instagram');
   const [count, setCount] = useState(12);
   const [tags, setTags] = useState(null);
   const [loading, setLoading] = useState(false);
-
   async function run() {
-    if (!content.trim()) { toast.error('Content is required'); return; }
-    setLoading(true); setTags(null);
+    if (!content.trim()) {
+      toast.error('Content is required');
+      return;
+    }
+    setLoading(true);
+    setTags(null);
     try {
-      const res = await aiAPI.suggestHashtags({ content, platform, count });
+      const res = await aiAPI.suggestHashtags({
+        content,
+        platform,
+        count,
+      });
       setTags(res.data?.hashtags || []);
-    } catch (e) { toast.error(e.response?.data?.error || 'Hashtags failed'); }
-    finally     { setLoading(false); }
+    } catch (e) {
+      toast.error(e.response?.data?.error || 'Hashtags failed');
+    } finally {
+      setLoading(false);
+    }
   }
-
   return (
     <>
       <Field label="Post content">
-        <textarea value={content} onChange={(e) => setContent(e.target.value)}
-                   rows={4} placeholder="Paste your post text…"
-                   style={{ ...inputStyle, height: 'auto', resize: 'vertical' }} />
+        <textarea
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          rows={4}
+          placeholder="Paste your post text…"
+          className={cn(
+            '[width:100%]',
+            '[height:36px]',
+            '[padding:0_12px]',
+            '[background:var(--surface-card)]',
+            '[border:1px_solid_var(--border-default)]',
+            '[border-radius:var(--radius-md)]',
+            '[font-size:13px]',
+            '[color:var(--text-primary)]',
+            '[outline:none]',
+            '[box-sizing:border-box]',
+            '[min-height:unset]',
+            '[height:auto]',
+            '[resize:vertical]',
+          )}
+        />
       </Field>
       <Field label="Platform">
-        <select value={platform} onChange={(e) => setPlatform(e.target.value)} style={inputStyle}>
-          {['instagram', 'facebook', 'linkedin', 'youtube'].map((p) =>
-            <option key={p} value={p}>{p}</option>)}
+        <select
+          value={platform}
+          onChange={(e) => setPlatform(e.target.value)}
+          className={cn(
+            '[width:100%]',
+            '[height:36px]',
+            '[padding:0_12px]',
+            '[background:var(--surface-card)]',
+            '[border:1px_solid_var(--border-default)]',
+            '[border-radius:var(--radius-md)]',
+            '[font-size:13px]',
+            '[color:var(--text-primary)]',
+            '[outline:none]',
+            '[box-sizing:border-box]',
+            '[min-height:unset]',
+          )}
+        >
+          {['instagram', 'facebook', 'linkedin', 'youtube'].map((p) => (
+            <option key={p} value={p}>
+              {p}
+            </option>
+          ))}
         </select>
       </Field>
       <Field label="How many">
-        <input type="number" min={3} max={30} value={count}
-                onChange={(e) => setCount(Number(e.target.value || 12))} style={inputStyle} />
+        <input
+          type="number"
+          min={3}
+          max={30}
+          value={count}
+          onChange={(e) => setCount(Number(e.target.value || 12))}
+          className={cn(
+            '[width:100%]',
+            '[height:36px]',
+            '[padding:0_12px]',
+            '[background:var(--surface-card)]',
+            '[border:1px_solid_var(--border-default)]',
+            '[border-radius:var(--radius-md)]',
+            '[font-size:13px]',
+            '[color:var(--text-primary)]',
+            '[outline:none]',
+            '[box-sizing:border-box]',
+            '[min-height:unset]',
+          )}
+        />
       </Field>
       <RunButton loading={loading} onClick={run} label="Suggest hashtags" />
 
       {tags && (
-        <ResultBlock text={tags.join(' ')} subText={`${tags.length} hashtag${tags.length === 1 ? '' : 's'}`} />
+        <ResultBlock
+          text={tags.join(' ')}
+          subText={`${tags.length} hashtag${tags.length === 1 ? '' : 's'}`}
+        />
       )}
     </>
   );
 }
-
 function RewriteTab() {
   const [text, setText] = useState('');
   const [instr, setInstr] = useState('shorter');
   const [out, setOut] = useState(null);
   const [loading, setLoading] = useState(false);
-
   async function run() {
-    if (!text.trim()) { toast.error('Text is required'); return; }
-    setLoading(true); setOut(null);
+    if (!text.trim()) {
+      toast.error('Text is required');
+      return;
+    }
+    setLoading(true);
+    setOut(null);
     try {
-      const res = await aiAPI.rewrite({ text, instruction: instr });
+      const res = await aiAPI.rewrite({
+        text,
+        instruction: instr,
+      });
       setOut(res.data?.text || '');
-    } catch (e) { toast.error(e.response?.data?.error || 'Rewrite failed'); }
-    finally     { setLoading(false); }
+    } catch (e) {
+      toast.error(e.response?.data?.error || 'Rewrite failed');
+    } finally {
+      setLoading(false);
+    }
   }
-
   return (
     <>
       <Field label="Original text">
-        <textarea value={text} onChange={(e) => setText(e.target.value)}
-                   rows={5} placeholder="Paste the text you want to rewrite…"
-                   style={{ ...inputStyle, height: 'auto', resize: 'vertical' }} />
+        <textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          rows={5}
+          placeholder="Paste the text you want to rewrite…"
+          className={cn(
+            '[width:100%]',
+            '[height:36px]',
+            '[padding:0_12px]',
+            '[background:var(--surface-card)]',
+            '[border:1px_solid_var(--border-default)]',
+            '[border-radius:var(--radius-md)]',
+            '[font-size:13px]',
+            '[color:var(--text-primary)]',
+            '[outline:none]',
+            '[box-sizing:border-box]',
+            '[min-height:unset]',
+            '[height:auto]',
+            '[resize:vertical]',
+          )}
+        />
       </Field>
       <Field label="Transformation">
-        <select value={instr} onChange={(e) => setInstr(e.target.value)} style={inputStyle}>
+        <select
+          value={instr}
+          onChange={(e) => setInstr(e.target.value)}
+          className={cn(
+            '[width:100%]',
+            '[height:36px]',
+            '[padding:0_12px]',
+            '[background:var(--surface-card)]',
+            '[border:1px_solid_var(--border-default)]',
+            '[border-radius:var(--radius-md)]',
+            '[font-size:13px]',
+            '[color:var(--text-primary)]',
+            '[outline:none]',
+            '[box-sizing:border-box]',
+            '[min-height:unset]',
+          )}
+        >
           <option value="shorter">Make shorter</option>
           <option value="longer">Make longer</option>
           <option value="more casual">More casual</option>
@@ -338,76 +600,175 @@ function RewriteTab() {
     </>
   );
 }
-
 function TranslateTab() {
   const [text, setText] = useState('');
   const [lang, setLang] = useState('Spanish');
   const [out, setOut] = useState(null);
   const [loading, setLoading] = useState(false);
-
   async function run() {
-    if (!text.trim()) { toast.error('Text is required'); return; }
-    setLoading(true); setOut(null);
+    if (!text.trim()) {
+      toast.error('Text is required');
+      return;
+    }
+    setLoading(true);
+    setOut(null);
     try {
-      const res = await aiAPI.translate({ text, target_language: lang });
+      const res = await aiAPI.translate({
+        text,
+        target_language: lang,
+      });
       setOut(res.data?.text || '');
-    } catch (e) { toast.error(e.response?.data?.error || 'Translate failed'); }
-    finally     { setLoading(false); }
+    } catch (e) {
+      toast.error(e.response?.data?.error || 'Translate failed');
+    } finally {
+      setLoading(false);
+    }
   }
-
   return (
     <>
       <Field label="Source text">
-        <textarea value={text} onChange={(e) => setText(e.target.value)}
-                   rows={5} placeholder="Text to translate…"
-                   style={{ ...inputStyle, height: 'auto', resize: 'vertical' }} />
+        <textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          rows={5}
+          placeholder="Text to translate…"
+          className={cn(
+            '[width:100%]',
+            '[height:36px]',
+            '[padding:0_12px]',
+            '[background:var(--surface-card)]',
+            '[border:1px_solid_var(--border-default)]',
+            '[border-radius:var(--radius-md)]',
+            '[font-size:13px]',
+            '[color:var(--text-primary)]',
+            '[outline:none]',
+            '[box-sizing:border-box]',
+            '[min-height:unset]',
+            '[height:auto]',
+            '[resize:vertical]',
+          )}
+        />
       </Field>
       <Field label="Target language">
-        <input value={lang} onChange={(e) => setLang(e.target.value)}
-                placeholder="e.g. Spanish, French, Japanese" style={inputStyle} />
+        <input
+          value={lang}
+          onChange={(e) => setLang(e.target.value)}
+          placeholder="e.g. Spanish, French, Japanese"
+          className={cn(
+            '[width:100%]',
+            '[height:36px]',
+            '[padding:0_12px]',
+            '[background:var(--surface-card)]',
+            '[border:1px_solid_var(--border-default)]',
+            '[border-radius:var(--radius-md)]',
+            '[font-size:13px]',
+            '[color:var(--text-primary)]',
+            '[outline:none]',
+            '[box-sizing:border-box]',
+            '[min-height:unset]',
+          )}
+        />
       </Field>
       <RunButton loading={loading} onClick={run} label="Translate" />
       {out && <ResultBlock text={out} />}
     </>
   );
 }
-
 function BestTimeTab() {
   const [platform, setPlatform] = useState('instagram');
   const [slots, setSlots] = useState(null);
   const [source, setSource] = useState(null);
   const [loading, setLoading] = useState(false);
-
   async function run() {
-    setLoading(true); setSlots(null);
+    setLoading(true);
+    setSlots(null);
     try {
-      const res = await aiAPI.bestTimeToPost({ platform });
+      const res = await aiAPI.bestTimeToPost({
+        platform,
+      });
       setSlots(res.data?.slots || []);
       setSource(res.data?.source || '');
-    } catch (e) { toast.error(e.response?.data?.error || 'Best-time failed'); }
-    finally     { setLoading(false); }
+    } catch (e) {
+      toast.error(e.response?.data?.error || 'Best-time failed');
+    } finally {
+      setLoading(false);
+    }
   }
-
   return (
     <>
       <Field label="Platform">
-        <select value={platform} onChange={(e) => setPlatform(e.target.value)} style={inputStyle}>
-          {['instagram', 'facebook', 'linkedin', 'youtube', 'google_my_business'].map((p) =>
-            <option key={p} value={p}>{p}</option>)}
+        <select
+          value={platform}
+          onChange={(e) => setPlatform(e.target.value)}
+          className={cn(
+            '[width:100%]',
+            '[height:36px]',
+            '[padding:0_12px]',
+            '[background:var(--surface-card)]',
+            '[border:1px_solid_var(--border-default)]',
+            '[border-radius:var(--radius-md)]',
+            '[font-size:13px]',
+            '[color:var(--text-primary)]',
+            '[outline:none]',
+            '[box-sizing:border-box]',
+            '[min-height:unset]',
+          )}
+        >
+          {[
+            'instagram',
+            'facebook',
+            'linkedin',
+            'youtube',
+            'google_my_business',
+          ].map((p) => (
+            <option key={p} value={p}>
+              {p}
+            </option>
+          ))}
         </select>
       </Field>
       <RunButton loading={loading} onClick={run} label="Find best times" />
       {slots && (
-        <div style={{ marginTop: 12 }}>
-          <div style={sectionLabel}>
+        <div className={cn('[margin-top:12px]')}>
+          <div
+            className={cn(
+              '[font-size:11px]',
+              '[font-weight:600]',
+              '[color:var(--text-tertiary)]',
+              '[text-transform:uppercase]',
+              '[letter-spacing:0.4px]',
+              '[margin-bottom:6px]',
+              '[margin-top:4px]',
+            )}
+          >
             Top 3 slots {source ? `· ${source.replace('_', ' ')}` : ''}
           </div>
           {slots.map((s, i) => (
-            <div key={i} style={resultBlockStyle}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontWeight: 600 }}>{s.label}</span>
+            <div
+              key={i}
+              className={cn(
+                '[padding:10px_12px]',
+                '[background:var(--surface-sunken)]',
+                '[border:1px_solid_var(--border-subtle)]',
+                '[border-radius:var(--radius-md)]',
+                '[margin-top:8px]',
+              )}
+            >
+              <div
+                className={cn(
+                  '[display:flex]',
+                  '[align-items:center]',
+                  '[justify-content:space-between]',
+                )}
+              >
+                <span className={cn('[font-weight:600]')}>{s.label}</span>
                 {s.score != null && (
-                  <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
+                  <span
+                    className={cn(
+                      '[font-size:11px]',
+                      '[color:var(--text-tertiary)]',
+                    )}
+                  >
                     score {s.score} {s.samples ? `· ${s.samples} samples` : ''}
                   </span>
                 )}
@@ -419,33 +780,75 @@ function BestTimeTab() {
     </>
   );
 }
-
 function ImageCaptionTab() {
   const [imageUrl, setImageUrl] = useState('');
   const [platform, setPlatform] = useState('instagram');
   const [out, setOut] = useState(null);
   const [loading, setLoading] = useState(false);
-
   async function run() {
-    if (!imageUrl.trim()) { toast.error('Image URL is required'); return; }
-    setLoading(true); setOut(null);
+    if (!imageUrl.trim()) {
+      toast.error('Image URL is required');
+      return;
+    }
+    setLoading(true);
+    setOut(null);
     try {
-      const res = await aiAPI.generateImageCaption({ image_url: imageUrl, platform });
+      const res = await aiAPI.generateImageCaption({
+        image_url: imageUrl,
+        platform,
+      });
       setOut(res.data?.caption || '');
-    } catch (e) { toast.error(e.response?.data?.error || 'Caption failed'); }
-    finally     { setLoading(false); }
+    } catch (e) {
+      toast.error(e.response?.data?.error || 'Caption failed');
+    } finally {
+      setLoading(false);
+    }
   }
-
   return (
     <>
       <Field label="Image URL">
-        <input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)}
-                placeholder="https://…/photo.jpg" style={inputStyle} />
+        <input
+          value={imageUrl}
+          onChange={(e) => setImageUrl(e.target.value)}
+          placeholder="https://…/photo.jpg"
+          className={cn(
+            '[width:100%]',
+            '[height:36px]',
+            '[padding:0_12px]',
+            '[background:var(--surface-card)]',
+            '[border:1px_solid_var(--border-default)]',
+            '[border-radius:var(--radius-md)]',
+            '[font-size:13px]',
+            '[color:var(--text-primary)]',
+            '[outline:none]',
+            '[box-sizing:border-box]',
+            '[min-height:unset]',
+          )}
+        />
       </Field>
       <Field label="Platform">
-        <select value={platform} onChange={(e) => setPlatform(e.target.value)} style={inputStyle}>
-          {['instagram', 'facebook', 'linkedin', 'youtube'].map((p) =>
-            <option key={p} value={p}>{p}</option>)}
+        <select
+          value={platform}
+          onChange={(e) => setPlatform(e.target.value)}
+          className={cn(
+            '[width:100%]',
+            '[height:36px]',
+            '[padding:0_12px]',
+            '[background:var(--surface-card)]',
+            '[border:1px_solid_var(--border-default)]',
+            '[border-radius:var(--radius-md)]',
+            '[font-size:13px]',
+            '[color:var(--text-primary)]',
+            '[outline:none]',
+            '[box-sizing:border-box]',
+            '[min-height:unset]',
+          )}
+        >
+          {['instagram', 'facebook', 'linkedin', 'youtube'].map((p) => (
+            <option key={p} value={p}>
+              {p}
+            </option>
+          ))}
         </select>
       </Field>
       <RunButton loading={loading} onClick={run} label="Generate caption" />
@@ -457,38 +860,62 @@ function ImageCaptionTab() {
 /* ── Shared bits ─────────────────────────────────────────────────────── */
 function Field({ label, children }) {
   return (
-    <label style={{ display: 'block', marginBottom: 12 }}>
-      <span style={{
-        display: 'block', fontSize: 11, fontWeight: 600,
-        color: 'var(--text-tertiary)',
-        textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 6,
-      }}>
+    <label className={cn('[display:block]', '[margin-bottom:12px]')}>
+      <span
+        className={cn(
+          '[display:block]',
+          '[font-size:11px]',
+          '[font-weight:600]',
+          '[color:var(--text-tertiary)]',
+          '[text-transform:uppercase]',
+          '[letter-spacing:0.4px]',
+          '[margin-bottom:6px]',
+        )}
+      >
         {label}
       </span>
       {children}
     </label>
   );
 }
-
 function PlatformPills({ value, onChange }) {
-  const all = ['facebook', 'instagram', 'youtube', 'linkedin', 'google_my_business'];
+  const all = [
+    'facebook',
+    'instagram',
+    'youtube',
+    'linkedin',
+    'google_my_business',
+  ];
   return (
-    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+    <div className={cn('[display:flex]', '[gap:6px]', '[flex-wrap:wrap]')}>
       {all.map((p) => {
         const on = value.includes(p);
         return (
           <button
-            key={p} type="button"
-            onClick={() => onChange(on ? value.filter((x) => x !== p) : [...value, p])}
-            style={{
-              padding: '6px 12px', borderRadius: 'var(--radius-pill)',
-              border: `1px solid ${on ? 'transparent' : 'var(--border-subtle)'}`,
-              background: on ? 'var(--brand-primary-glow)' : 'var(--surface-card)',
-              color: on ? 'var(--brand-primary-hover)' : 'var(--text-secondary)',
-              fontSize: 12, fontWeight: 600, cursor: 'pointer',
-              minHeight: 'unset', minWidth: 'unset',
-              transition: 'var(--transition-fast)',
-            }}
+            key={p}
+            type="button"
+            onClick={() =>
+              onChange(on ? value.filter((x) => x !== p) : [...value, p])
+            }
+            className={cn(
+              '[padding:6px_12px]',
+              '[border-radius:var(--radius-pill)]',
+              on
+                ? '[border:1px_solid_transparent]'
+                : '[border:1px_solid_var(--border-subtle)]',
+              on
+                ? '[background:var(--brand-primary-glow)]'
+                : '[background:var(--surface-card)]',
+              on
+                ? '[color:var(--brand-primary-hover)]'
+                : '[color:var(--text-secondary)]',
+              '[font-size:12px]',
+              '[font-weight:600]',
+              '[cursor:pointer]',
+              '[min-height:unset]',
+              '[min-width:unset]',
+              '[transition:var(--transition-fast)]',
+            )}
           >
             {p}
           </button>
@@ -497,16 +924,19 @@ function PlatformPills({ value, onChange }) {
     </div>
   );
 }
-
 function RunButton({ loading, onClick, label }) {
   return (
-    <Button onClick={onClick} loading={loading} icon={Send}
-            fullWidth style={{ marginTop: 4 }}>
+    <Button
+      onClick={onClick}
+      loading={loading}
+      icon={Send}
+      fullWidth
+      className={cn('[margin-top:4px]')}
+    >
       {label}
     </Button>
   );
 }
-
 function ResultBlock({ text, subText }) {
   const [copied, setCopied] = useState(false);
   async function copy() {
@@ -517,57 +947,72 @@ function ResultBlock({ text, subText }) {
     } catch {}
   }
   return (
-    <div style={resultBlockStyle}>
-      <div style={{
-        display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8,
-      }}>
-        <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', flex: 1, fontSize: 13, lineHeight: 1.5 }}>
+    <div
+      className={cn(
+        '[padding:10px_12px]',
+        '[background:var(--surface-sunken)]',
+        '[border:1px_solid_var(--border-subtle)]',
+        '[border-radius:var(--radius-md)]',
+        '[margin-top:8px]',
+      )}
+    >
+      <div
+        className={cn(
+          '[display:flex]',
+          '[align-items:flex-start]',
+          '[justify-content:space-between]',
+          '[gap:8px]',
+        )}
+      >
+        <div
+          className={cn(
+            '[white-space:pre-wrap]',
+            '[word-break:break-word]',
+            '[flex:1]',
+            '[font-size:13px]',
+            '[line-height:1.5]',
+          )}
+        >
           {text}
         </div>
         <button
-          type="button" onClick={copy}
+          type="button"
+          onClick={copy}
           aria-label="Copy"
-          style={{
-            flexShrink: 0,
-            width: 28, height: 28, borderRadius: 'var(--radius-sm)',
-            background: 'transparent', border: '1px solid var(--border-subtle)',
-            color: 'var(--text-tertiary)',
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer',
-            minHeight: 'unset', minWidth: 'unset',
-          }}
+          className={cn(
+            '[flex-shrink:0]',
+            '[width:28px]',
+            '[height:28px]',
+            '[border-radius:var(--radius-sm)]',
+            '[background:transparent]',
+            '[border:1px_solid_var(--border-subtle)]',
+            '[color:var(--text-tertiary)]',
+            '[display:inline-flex]',
+            '[align-items:center]',
+            '[justify-content:center]',
+            '[cursor:pointer]',
+            '[min-height:unset]',
+            '[min-width:unset]',
+          )}
         >
-          {copied ? <Check size={12} color="var(--success)" /> : <Copy size={12} />}
+          {copied ? (
+            <Check size={12} color="var(--success)" />
+          ) : (
+            <Copy size={12} />
+          )}
         </button>
       </div>
       {subText && (
-        <div style={{ marginTop: 6, fontSize: 11, color: 'var(--text-tertiary)' }}>{subText}</div>
+        <div
+          className={cn(
+            '[margin-top:6px]',
+            '[font-size:11px]',
+            '[color:var(--text-tertiary)]',
+          )}
+        >
+          {subText}
+        </div>
       )}
     </div>
   );
 }
-
-const inputStyle = {
-  width: '100%', height: 36, padding: '0 12px',
-  background: 'var(--surface-card)',
-  border: '1px solid var(--border-default)',
-  borderRadius: 'var(--radius-md)',
-  fontSize: 13, color: 'var(--text-primary)',
-  outline: 'none', boxSizing: 'border-box',
-  minHeight: 'unset',
-};
-
-const sectionLabel = {
-  fontSize: 11, fontWeight: 600,
-  color: 'var(--text-tertiary)',
-  textTransform: 'uppercase', letterSpacing: 0.4,
-  marginBottom: 6, marginTop: 4,
-};
-
-const resultBlockStyle = {
-  padding: '10px 12px',
-  background: 'var(--surface-sunken)',
-  border: '1px solid var(--border-subtle)',
-  borderRadius: 'var(--radius-md)',
-  marginTop: 8,
-};

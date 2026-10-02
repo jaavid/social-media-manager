@@ -13,7 +13,7 @@
  * Notifications tab handles inline Accept/Reject for invitation_received.
  */
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useAppNavigate as useNavigate } from '../../app/navigation';
 import {
   Bell, CheckCheck, X,
   AlertCircle, TrendingDown, Zap, Target, Users,
@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import { useAlerts } from '../../hooks/useData';
 import { notificationAPI, invitationAPI } from '../../services/api';
-import { useAuth } from '../../hooks/useAuth';
+import { useSession as useAuth } from '../../app/session';
 import { formatTimeAgo } from '../../services/formatters';
 
 const CYAN = '#00d7ff';

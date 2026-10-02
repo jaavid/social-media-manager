@@ -6,6 +6,8 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
+import { persistentStorage } from '../../lib/runtime/storage';
+
 /**
  * ActivityLogPage — end-user trust feed.
  *
@@ -91,7 +93,7 @@ export default function ActivityLogPage() {
     activityAPI.list({ ...params, limit: 1 })  // touch the API to ensure token is fresh
       .then(() => {
         const url = activityAPI.exportCsvUrl(params);
-        const tok = localStorage.getItem('access_token');
+        const tok = persistentStorage.getItem('access_token');
         // Use fetch so the Authorization header travels with the download
         fetch(url, { headers: tok ? { Authorization: `Bearer ${tok}` } : {} })
           .then((res) => res.blob())

@@ -12,7 +12,7 @@ import PageHeader from '../components/layout/PageHeader';
 import DateRangePicker from '../components/ui/DateRangePicker';
 import PlatformTabs from '../components/ui/PlatformTabs';
 import SocialPlatformIcon from '../components/ui/SocialPlatformIcon';
-import { useAuth } from '../hooks/useAuth';
+import { useSession as useAuth } from '../app/session';
 import { useDateRange, useOAuthStatus, usePosts, useLookups } from '../hooks/useData';
 import { PLATFORMS, fmt } from '../services/platforms';
 

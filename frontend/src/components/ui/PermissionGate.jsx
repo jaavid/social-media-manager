@@ -6,7 +6,7 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
-import { useAuth } from '../../hooks/useAuth';
+import { useSession as useAuth } from '../../app/session';
 
 /**
  * Renders children only if the current user has the given permission code.

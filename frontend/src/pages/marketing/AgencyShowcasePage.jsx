@@ -6,7 +6,7 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
-import { Link, useParams } from 'react-router-dom';
+import { AppLink as Link, useAppParams as useParams } from '../../app/navigation';
 import { motion } from 'framer-motion';
 import {
   ArrowLeft, ArrowRight, Star, MapPin, Calendar, Users, Globe,

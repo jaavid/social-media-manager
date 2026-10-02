@@ -1,3 +1,5 @@
+import { apiBaseUrl } from '../runtime/config';
+import { getBrowserStorage } from '../runtime/storage';
 import axios from 'axios';
 
 const REFRESH_LOCK = 'social-stats.jwt-refresh';
@@ -9,12 +11,10 @@ const COMPETING_REFRESH_GRACE_MS = 400;
 const sessionInvalidationListeners = new Set();
 let refreshPromise = null;
 
-function apiBaseUrl() {
-  return process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
-}
+
 
 function storage() {
-  return typeof localStorage === 'undefined' ? null : localStorage;
+  return getBrowserStorage();
 }
 
 function notifyInvalidated() {

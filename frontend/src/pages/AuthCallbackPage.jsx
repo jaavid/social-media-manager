@@ -6,13 +6,15 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
+import { persistentStorage } from '../lib/runtime/storage';
+
 /**
  * AuthCallbackPage — handles the redirect from social login (Google / Microsoft).
  * The backend redirects here with ?access=...&refresh=... in the URL.
  * We store the tokens, fetch /me, then send the user to the right place.
  */
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useAppNavigate as useNavigate } from '../app/navigation';
 import { authAPI } from '../services/api';
 
 export default function AuthCallbackPage() {
@@ -46,8 +48,8 @@ export default function AuthCallbackPage() {
       return;
     }
 
-    localStorage.setItem('access_token',  access);
-    localStorage.setItem('refresh_token', refresh);
+    persistentStorage.setItem('access_token',  access);
+    persistentStorage.setItem('refresh_token', refresh);
 
     const state = params.get('state');
 
@@ -67,7 +69,7 @@ export default function AuthCallbackPage() {
         }
       })
       .catch(() => {
-        localStorage.clear();
+        persistentStorage.clear();
         setError('Authentication failed. Redirecting to login…');
         setTimeout(() => navigate('/login'), 2000);
       });

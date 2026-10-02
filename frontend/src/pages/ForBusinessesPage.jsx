@@ -13,7 +13,7 @@
  * data stays yours" trust story. Reuses the existing MarketingLayout so
  * nav + footer match the rest of the marketing site.
  */
-import { Link } from 'react-router-dom';
+import { AppLink as Link } from '../app/navigation';
 import { motion } from 'framer-motion';
 import {
   ArrowRight, Sparkles, ShieldCheck, Plug, BarChart3, Users2,

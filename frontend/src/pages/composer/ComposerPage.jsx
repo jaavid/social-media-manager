@@ -7,12 +7,12 @@
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useAppNavigate as useNavigate, useAppParams as useParams } from '../../app/navigation';
 import {
   Image as ImageIcon, Video, Calendar, Send, Save, AlertCircle, CheckCircle2,
   X, Wand2, Hash, Clock, Layers, Loader2, Upload, Eye, Trash2,
 } from 'lucide-react';
-import toast from 'react-hot-toast';
+import toast from '../../components/ui/toast';
 
 import PageHeader from '../../components/layout/PageHeader';
 import Button from '../../components/ui/Button';
@@ -20,7 +20,7 @@ import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
 import AIWriteButton from '../../components/ai/AIWriteButton';
 import { composerAPI, captionAPI, hashtagAPI, socialAccountsAPI } from '../../services/api';
-import { useAuth } from '../../hooks/useAuth';
+import { useSession as useAuth } from '../../app/session';
 import { useComposerPost } from '../../hooks/useComposer';
 import usePlatformConnections from '../../hooks/usePlatformConnections';
 import { connectedPlatforms, getPlatformRegistry } from '../../services/platforms';

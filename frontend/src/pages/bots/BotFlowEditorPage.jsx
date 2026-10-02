@@ -16,7 +16,7 @@
  * - Auto-save: every 5 seconds while dirty, plus on explicit Save click.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useAppNavigate as useNavigate, useAppParams as useParams } from '../../app/navigation';
 import ReactFlow, {
   ReactFlowProvider, Background, Controls, MiniMap,
   addEdge, applyEdgeChanges, applyNodeChanges, useReactFlow,

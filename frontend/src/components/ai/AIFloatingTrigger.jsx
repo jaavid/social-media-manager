@@ -10,7 +10,7 @@ import { useEffect, useState } from 'react';
 import { Sparkles } from 'lucide-react';
 
 import AIChatPanel from './AIChatPanel';
-import { useAuth } from '../../hooks/useAuth';
+import { useSession as useAuth } from '../../app/session';
 
 /**
  * AIFloatingTrigger — bottom-right brand-gradient bubble + Cmd+J shortcut.

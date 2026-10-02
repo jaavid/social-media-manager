@@ -1,5 +1,5 @@
 import { fileURLToPath, URL } from 'node:url';
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig, loadEnv, transformWithEsbuild } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 
@@ -24,7 +24,16 @@ export default defineConfig(({ mode }) => {
   };
 
   return {
-    plugins: [react(), tailwindcss()],
+    plugins: [
+      {
+        name: 'legacy-jsx',
+        enforce: 'pre',
+        async transform(code, id) {
+          if (/src\/.*\.js$/.test(id)) return transformWithEsbuild(code, id, { loader: 'jsx', jsx: 'automatic' });
+        },
+      },
+      react(), tailwindcss(),
+    ],
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)),
@@ -33,11 +42,6 @@ export default defineConfig(({ mode }) => {
     // The current codebase contains JSX in both .js and .jsx files. Keep that
     // source layout intact for this migration; the later TypeScript/Next.js
     // pass can rename files incrementally without coupling it to the bundler swap.
-    esbuild: {
-      loader: 'jsx',
-      include: /src\/.*\.[jt]sx?$/,
-      exclude: [],
-    },
     optimizeDeps: {
       esbuildOptions: {
         loader: {

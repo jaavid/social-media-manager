@@ -11,7 +11,7 @@ import {
   Upload, Scissors, Crop, Camera, Captions, Youtube,
   Loader2, Play, X, Link as LinkIcon, FileVideo, Wand2,
 } from 'lucide-react';
-import toast from 'react-hot-toast';
+import toast from '../../components/ui/toast';
 
 import PageHeader from '../../components/layout/PageHeader';
 import Card from '../../components/ui/Card';

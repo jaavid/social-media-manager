@@ -16,8 +16,8 @@
  * page passing the result via React Router state so SettingsPage shows a banner.
  */
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import { useAppNavigate as useNavigate } from '../app/navigation';
+import { useSession as useAuth } from '../app/session';
 
 export default function OAuthCallbackPage() {
   const navigate = useNavigate();

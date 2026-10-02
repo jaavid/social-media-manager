@@ -7,7 +7,7 @@
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useAppNavigate as useNavigate } from '../app/navigation';
 import { useOverview, useDateRange, useWorkspaces, useGoals, useAlerts, useLookups } from '../hooks/useData';
 import DateRangePicker from '../components/ui/DateRangePicker';
 import StatCard from '../components/ui/StatCard';
