@@ -163,3 +163,12 @@ class LookupCollectionAdmin(WorkspaceLabelsMixin, admin.ModelAdmin):
     search_fields = ['key', 'title']
     list_filter = ['is_public']
     inlines = [LookupItemInline]
+
+# Data-driven role defaults; existing organization memberships can opt in.
+from .rbac_models import RolePreset
+
+
+@admin.register(RolePreset)
+class RolePresetAdmin(admin.ModelAdmin):
+    list_display = ('key', 'label')
+    search_fields = ('key', 'label')

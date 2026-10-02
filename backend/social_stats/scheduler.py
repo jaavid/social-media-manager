@@ -153,6 +153,7 @@ def _dispatch_queued_item(queue: PostQueue, item: QueuedItem):
     with transaction.atomic():
         post = UnifiedPost.objects.create(
             client_id=queue.client_id,
+            created_by=item.requested_by, publish_requested_by=item.requested_by, publish_action='schedule_posts',
             content=item.content or '',
             media_urls=item.media_urls or [],
             media_type=_guess_media_type(item),

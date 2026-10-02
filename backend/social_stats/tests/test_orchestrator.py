@@ -13,6 +13,7 @@ the publisher methods so we can assert the orchestrator:
 from datetime import timedelta
 from unittest.mock import patch
 
+from django.contrib.auth.models import User
 from django.test import TestCase, override_settings
 from django.utils import timezone
 
@@ -30,6 +31,9 @@ class OrchestratorTests(TestCase):
         self.client_obj = Client.objects.create(
             name='Acme', company='Acme Inc', email=f'acme-{id(self)}@x.test',
         )
+        self.actor = User.objects.create_user(username='publisher')
+        self.client_obj.owner_user = self.actor
+        self.client_obj.save(update_fields=['owner_user'])
         # Need active credentials for fb + ig
         for p in ('facebook', 'instagram'):
             PlatformCredential.objects.create(
@@ -42,10 +46,11 @@ class OrchestratorTests(TestCase):
     def _make_post(self, **kwargs):
         defaults = dict(
             client=self.client_obj,
+            created_by=self.actor,
             content='hello world',
             media_type='text',
             target_platforms=['facebook', 'instagram'],
-            status='draft',
+            status='queued',
         )
         defaults.update(kwargs)
         return UnifiedPost.objects.create(**defaults)
@@ -172,6 +177,9 @@ class SchedulerTests(TestCase):
         self.client_obj = Client.objects.create(
             name='Acme', company='Acme Inc', email=f'acme-{id(self)}@x.test',
         )
+        self.actor = User.objects.create_user(username='publisher')
+        self.client_obj.owner_user = self.actor
+        self.client_obj.save(update_fields=['owner_user'])
         PlatformCredential.objects.create(
             client=self.client_obj, platform='facebook',
             access_token='tok', page_id='100', is_active=True,
@@ -180,6 +188,7 @@ class SchedulerTests(TestCase):
     def test_process_scheduled_posts_picks_up_due_posts(self):
         post = UnifiedPost.objects.create(
             client=self.client_obj,
+            created_by=self.actor,
             content='hi', media_type='text',
             target_platforms=['facebook'],
             status='scheduled',
@@ -198,6 +207,7 @@ class SchedulerTests(TestCase):
     def test_process_scheduled_posts_skips_future_posts(self):
         UnifiedPost.objects.create(
             client=self.client_obj,
+            created_by=self.actor,
             content='later', media_type='text',
             target_platforms=['facebook'],
             status='scheduled',

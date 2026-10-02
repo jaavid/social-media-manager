@@ -226,10 +226,10 @@ def parse_dates(request):
 
 def check_client_access(request, client_id):
     """Returns True if user is allowed to access this client's data."""
+    from .authorization import accessible_workspaces
     try:
-        profile = request.user.profile
-        return profile.can_access_client(client_id)
-    except Exception:
+        return accessible_workspaces(request.user).filter(pk=int(client_id)).exists()
+    except (TypeError, ValueError):
         return False
 
 
@@ -307,12 +307,9 @@ class ClientViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         from django.db.models import Q
-        try:
-            profile = self.request.user.profile
-        except Exception:
-            return Client.objects.none()
+        profile = getattr(self.request.user, 'profile', None)
 
-        if profile.role == 'superadmin':
+        if profile and profile.role == 'superadmin':
             if self.action == 'list':
                 # AllClientsPage: only show properly onboarded clients
                 # (admin-created OR accepted invitation from this agency)
@@ -324,11 +321,8 @@ class ClientViewSet(viewsets.ModelViewSet):
             # All other actions (trigger_sync, dashboard, settings, etc.)
             # allow full access to every client
             return Client.objects.all().order_by('company')
-        if profile.role == 'staff':
-            return profile.assigned_clients.all()
-        if profile.role == 'client' and profile.client:
-            return Client.objects.filter(id=profile.client_id)
-        return Client.objects.none()
+        from .authorization import accessible_workspaces
+        return accessible_workspaces(self.request.user).order_by('company')
 
     def get_permissions(self):
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
@@ -364,6 +358,8 @@ class ClientViewSet(viewsets.ModelViewSet):
         qs = DailyMetric.objects.filter(client=client, date__range=(since, until))
         if platform and platform != 'all':
             qs = qs.filter(platform=platform)
+        from .authorization import scope_account_queryset
+        qs = scope_account_queryset(qs, request.user, 'view_analytics')
         social_account_id = request.query_params.get('social_account')
         if social_account_id:
             qs = qs.filter(social_account_id=social_account_id)
@@ -439,6 +435,8 @@ class ClientViewSet(viewsets.ModelViewSet):
         ).order_by('date')
         if platform and platform != 'all':
             qs = qs.filter(platform=platform)
+        from .authorization import scope_account_queryset
+        qs = scope_account_queryset(qs, request.user, 'view_analytics')
         social_account_id = request.query_params.get('social_account')
         if social_account_id:
             qs = qs.filter(social_account_id=social_account_id)
@@ -465,6 +463,8 @@ class ClientViewSet(viewsets.ModelViewSet):
         )
         if platform and platform != 'all':
             qs = qs.filter(platform=platform)
+        from .authorization import scope_account_queryset
+        qs = scope_account_queryset(qs, request.user, 'view_posts')
         social_account_id = request.query_params.get('social_account')
         if social_account_id:
             qs = qs.filter(social_account_id=social_account_id)

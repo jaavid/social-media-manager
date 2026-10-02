@@ -37,7 +37,7 @@ from rest_framework.response import Response
 
 from .activity_logger import log_activity
 from .approval_executors import execute_approval
-from .marketplace_permissions import _is_owner, _is_superadmin
+from .marketplace_permissions import _is_superadmin
 from .models import (
     AgencyMembership, ApprovalRequest,
 )
@@ -46,16 +46,26 @@ from .models import (
 # ─────────────────────────────────────────────────────────────────────────────
 # Helpers
 # ─────────────────────────────────────────────────────────────────────────────
+POST_APPROVAL_TYPES = {'publish_post', 'schedule_post', 'edit_post', 'draft_post'}
+
+
 def _user_owns_approval(user, approval: ApprovalRequest) -> bool:
-    return _is_superadmin(user) or _is_owner(user, approval.client)
+    from .authorization import evaluate
+    decision = evaluate(user, approval.client, 'approve_posts')
+    privileged = decision.role in ('owner', 'superadmin')
+    if not privileged and (approval.relation_id or approval.action_type not in POST_APPROVAL_TYPES):
+        return False
+    return decision.allowed and (user.pk != approval.requested_by_id or privileged)
 
 
 def _user_can_view(user, approval: ApprovalRequest) -> bool:
     if _user_owns_approval(user, approval):
         return True
-    return AgencyMembership.objects.filter(
+    if approval.requested_by_id == user.pk:
+        return True
+    return bool(approval.relation_id and AgencyMembership.objects.filter(
         user=user, agency_id=approval.relation.agency_id, is_active=True,
-    ).exists()
+    ).exists())
 
 
 def _serialize_approval(a: ApprovalRequest, *, perspective: str = 'owner') -> dict:
@@ -64,8 +74,8 @@ def _serialize_approval(a: ApprovalRequest, *, perspective: str = 'owner') -> di
         'relation_id':        a.relation_id,
         'client_id':          a.client_id,
         'client_name':        a.client.company,
-        'agency_id':          a.relation.agency_id,
-        'agency_name':        a.relation.agency.name,
+        'agency_id':          (a.relation.agency_id if a.relation_id else None),
+        'agency_name':        (a.relation.agency.name if a.relation_id else a.requested_by.username),
         'requested_by_id':    a.requested_by_id,
         'requested_by_email': a.requested_by.email,
         'requested_by_name':  (a.requested_by.get_full_name() or '').strip() or a.requested_by.email,
@@ -100,7 +110,12 @@ def _accessible_qs(user):
     )
     if agency_ids:
         qs = qs | ApprovalRequest.objects.filter(relation__agency_id__in=agency_ids)
-    return qs.distinct()
+    qs = qs | ApprovalRequest.objects.filter(requested_by=user)
+    from .authorization import accessible_workspaces, evaluate
+    candidate_ids = ApprovalRequest.objects.values_list('client_id', flat=True)
+    ids = [w.pk for w in accessible_workspaces(user).filter(pk__in=candidate_ids) if evaluate(user, w, 'approve_posts').allowed]
+    delegated = ApprovalRequest.objects.filter(client_id__in=ids, relation__isnull=True, action_type__in=POST_APPROVAL_TYPES)
+    return (qs | delegated).distinct()
 
 
 def _perspective(user, approval: ApprovalRequest) -> str:
@@ -200,13 +215,13 @@ def approve_approval(request, approval_id):
         actor_user=request.user, actor_type='end_user',
         action_type='approval_approved',
         description=(
-            f'Approved {a.action_type} requested by {a.relation.agency.name}'
+            f'Approved {a.action_type} requested by {(a.relation.agency.name if a.relation_id else a.requested_by.username)}'
             + ('' if success else f' — execution failed: {msg}')
         ),
         severity='warning' if not success else 'notice',
         target_object_type='ApprovalRequest',
         target_object_id=a.id,
-        metadata={'agency_id': a.relation.agency_id, 'success': success, 'message': msg, 'action_type': a.action_type},
+        metadata={'agency_id': (a.relation.agency_id if a.relation_id else None), 'success': success, 'message': msg, 'action_type': a.action_type},
     )
 
     from .notification_dispatcher import dispatch as _dispatch
@@ -255,11 +270,11 @@ def reject_approval(request, approval_id):
         a.client,
         actor_user=request.user, actor_type='end_user',
         action_type='approval_rejected',
-        description=f'Rejected {a.action_type} from {a.relation.agency.name}' + (f' — {reason}' if reason else ''),
+        description=f'Rejected {a.action_type} from {(a.relation.agency.name if a.relation_id else a.requested_by.username)}' + (f' — {reason}' if reason else ''),
         severity='notice',
         target_object_type='ApprovalRequest',
         target_object_id=a.id,
-        metadata={'agency_id': a.relation.agency_id, 'reason': reason, 'action_type': a.action_type},
+        metadata={'agency_id': (a.relation.agency_id if a.relation_id else None), 'reason': reason, 'action_type': a.action_type},
     )
 
     from .notification_dispatcher import dispatch as _dispatch

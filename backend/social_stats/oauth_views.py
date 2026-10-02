@@ -809,18 +809,15 @@ def oauth_disconnect(request, client_id, platform):
     role, relation = resolve_acting_context(request, client)
     if role == 'forbidden':
         return Response({'error': 'forbidden'}, status=403)
-    if role == 'agency':
-        verdict, ctx = check_action(
-            request, client, 'disconnect_platforms',
-            action_type='disconnect_platform',
-            payload={'platform': platform},
-            target_object_type='PlatformCredential',
-            preview=f'Disconnect {platform}',
-        )
-        if verdict == 'denied':
-            return deny_response(ctx['reason'])
-        if verdict == 'approval_required':
-            return approval_pending_response(ctx['approval'])
+    verdict, ctx = check_action(
+        request, client, 'disconnect_platforms', action_type='disconnect_platform',
+        payload={'platform': platform, 'social_account_id': request.query_params.get('account_id')},
+        target_object_type='PlatformCredential', preview=f'Disconnect {platform}',
+    )
+    if verdict == 'denied':
+        return deny_response(ctx['reason'])
+    if verdict == 'approval_required':
+        return approval_pending_response(ctx['approval'])
 
     credentials = PlatformCredential.objects.filter(client_id=client_id, platform=platform)
     account_id = request.query_params.get('account_id')

@@ -8,6 +8,7 @@
  * ========================================================================== */
 import { useState, useEffect, useCallback } from 'react';
 import { managementAPI } from '../services/api';
+import WorkspaceTeamPolicy from '../components/WorkspaceTeamPolicy';
 import {
   Users, UserCog, Shield, ChevronDown, ChevronRight,
   Plus, Trash2, X, RefreshCw, Eye,
@@ -872,6 +873,7 @@ const splitStyles = {
 // ─── Main ManagementPage ─────────────────────────────────────────────────────
 
 const TABS = [
+  { id: 'team-policy', label: 'Workspace Team', icon: Users },
   { id: 'staff',    label: 'Staff Members', icon: UserCog },
   { id: 'clients',  label: 'User Access', icon: Users },
   { id: 'defaults', label: 'Role Defaults', icon: Shield },
@@ -900,6 +902,7 @@ export default function ManagementPage() {
       />
 
       <div style={pageStyles.body}>
+        {activeTab === 'team-policy' && <WorkspaceTeamPolicy />}
         {activeTab === 'staff'    && <StaffTab />}
         {activeTab === 'clients'  && <ClientsTab />}
         {activeTab === 'defaults' && <RoleDefaultsTab />}

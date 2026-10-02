@@ -211,13 +211,11 @@ class UserProfile(models.Model):
         return f"{self.user.email} ({self.role})"
 
     def can_access_client(self, client_id):
-        if self.role == 'superadmin':
-            return True
-        if self.role == 'client':
-            return self.client_id == int(client_id)
-        if self.role == 'staff':
-            return self.assigned_clients.filter(id=client_id).exists()
-        return False
+        from .authorization import accessible_workspaces
+        try:
+            return accessible_workspaces(self.user).filter(pk=int(client_id)).exists()
+        except (TypeError, ValueError):
+            return False
 
 
 class EmailVerificationToken(models.Model):
@@ -1837,6 +1835,8 @@ class MediaAsset(models.Model):
 class UnifiedPost(models.Model):
     """A post composed in Social Stats, fanned out to one or more platforms."""
     client            = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='unified_posts')
+    publish_action = models.CharField(max_length=20, default='publish_posts', choices=[('publish_posts', 'Publish'), ('schedule_posts', 'Schedule')])
+    publish_requested_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='requested_post_publications')
     created_by        = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='created_unified_posts')
     title             = models.CharField(max_length=200, blank=True, help_text='Optional internal label')
     content           = models.TextField(blank=True)
@@ -1935,6 +1935,7 @@ class PostQueue(models.Model):
 
 class QueuedItem(models.Model):
     """A pre-written post sitting in a PostQueue waiting to be dispatched."""
+    requested_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='requested_queue_items')
     queue        = models.ForeignKey(PostQueue, on_delete=models.CASCADE, related_name='items')
     content      = models.TextField(blank=True)
     media_urls   = models.JSONField(default=list, blank=True)
@@ -2526,3 +2527,7 @@ from .security.platform_compliance import PlatformDataDeletionRequest  # noqa: E
 
 # ── central event bus ──────────────────────────────────
 from .events.models import EventLog  # noqa: E402,F401
+
+from .rbac_models import (  # noqa: E402,F401
+    RolePreset, WorkspaceMemberPolicy, SocialAccountPermissionOverride,
+)

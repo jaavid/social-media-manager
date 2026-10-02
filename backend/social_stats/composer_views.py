@@ -88,15 +88,14 @@ class UnifiedPostViewSet(TenantScopedMixin, viewsets.ModelViewSet):
     def _gate_or_pending(self, action_key: str, *, action_type: str, payload: dict | None = None,
                          target_object_id: int | None = None, preview: str = ''):
         """Run check_action; return None on allowed, or a Response to short-circuit."""
-        client_id = self.request.data.get('client') or self.request.data.get('client_id')
-        if not client_id and target_object_id:
+        client_id = self.resolved_client_id()
+        if target_object_id:
             try:
                 client_id = UnifiedPost.objects.values_list('client_id', flat=True).get(id=target_object_id)
             except UnifiedPost.DoesNotExist:
                 return None
         if not client_id:
-            # The view's own validation will surface a clearer error.
-            return None
+            return deny_response('No authorized workspace context')
         from .models import Client
         client = Client.objects.filter(id=client_id).first()
         if not client:
@@ -125,11 +124,16 @@ class UnifiedPostViewSet(TenantScopedMixin, viewsets.ModelViewSet):
             )
         return None
 
+    def _review_payload(self, request):
+        fields = ('title', 'content', 'media_urls', 'media_type', 'target_platforms',
+                  'platform_overrides', 'is_recurring', 'recurrence_rule', 'ai_generated', 'ai_prompt')
+        return {key: request.data[key] for key in fields if key in request.data}
+
     def create(self, request, *args, **kwargs):
         denial = self._gate_or_pending(
             'draft_posts',
             action_type='draft_post',
-            payload={'platforms': list(request.data.get('target_platforms') or [])},
+            payload={**self._review_payload(request), 'platforms': list(request.data.get('target_platforms') or [])},
             preview=(request.data.get('content') or '')[:300],
         )
         if denial is not None:
@@ -141,6 +145,27 @@ class UnifiedPostViewSet(TenantScopedMixin, viewsets.ModelViewSet):
             if paused is not None:
                 return paused
         return super().create(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        post = self.get_object()
+        serializer = self.get_serializer(post, data=request.data, partial=kwargs.get('partial', False))
+        serializer.is_valid(raise_exception=True)
+        denial = self._gate_or_pending(
+            'edit_published' if post.status == 'published' else 'draft_posts',
+            action_type='edit_post', target_object_id=post.pk,
+            payload={**self._review_payload(request), 'post_id': post.pk, 'content': request.data.get('content', post.content),
+                     'platforms': list(request.data.get('target_platforms', post.target_platforms) or [])},
+        )
+        if denial is not None:
+            return denial
+        return super().update(request, *args, **kwargs)
+
+    def perform_update(self, serializer):
+        # Changing a reviewed draft invalidates its previous approval.
+        extra = {'approved_by': None, 'approved_at': None, 'publish_requested_by': None}
+        if serializer.instance.status in ('scheduled', 'queued', 'pending_approval'):
+            extra['status'] = 'draft'
+        serializer.save(**extra)
 
     def destroy(self, request, *args, **kwargs):
         # Resolve the target post to evaluate its client. TenantScopedMixin
@@ -190,7 +215,14 @@ class UnifiedPostViewSet(TenantScopedMixin, viewsets.ModelViewSet):
         )
         if verdict == 'denied':
             return deny_response(ctx['reason'])
+        post.publish_requested_by = request.user
+        post.publish_action = 'publish_posts'
+        post.save(update_fields=['publish_requested_by', 'publish_action'])
         if verdict == 'approval_required':
+            post.status = 'pending_approval'
+            post.save(update_fields=['status'])
+            from .notification_watchers import notify_approver_for_post
+            notify_approver_for_post.delay(post.id)
             return approval_pending_response(ctx['approval'])
 
         if post.client.requires_approval and not post.approved_by_id:
@@ -237,6 +269,18 @@ class UnifiedPostViewSet(TenantScopedMixin, viewsets.ModelViewSet):
             return Response({'detail': 'Invalid scheduled_at — expected ISO 8601 datetime'}, status=400)
         if dt < timezone.now():
             return Response({'detail': 'scheduled_at must be in the future'}, status=400)
+        verdict, ctx = check_action(
+            request, post.client, 'schedule_posts', action_type='schedule_post',
+            payload={'post_id': post.pk, 'scheduled_at': dt.isoformat(), 'platforms': list(post.target_platforms or [])},
+            target_object_type='UnifiedPost', target_object_id=post.pk,
+        )
+        if verdict == 'denied':
+            return deny_response(ctx['reason'])
+        post.publish_requested_by = request.user
+        post.publish_action = 'schedule_posts'
+        post.save(update_fields=['publish_requested_by', 'publish_action'])
+        if verdict == 'approval_required':
+            return approval_pending_response(ctx['approval'])
         post.scheduled_at = dt
         post.status = 'scheduled'
         post.save(update_fields=['scheduled_at', 'status'])
@@ -272,6 +316,19 @@ class UnifiedPostViewSet(TenantScopedMixin, viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def approve(self, request, pk=None):
         post = self.get_object()
+        from .authorization import evaluate
+        if not evaluate(request.user, post.client, 'approve_posts').allowed:
+            return deny_response('Permission denied: approve_posts')
+        decision = evaluate(request.user, post.client, 'approve_posts')
+        privileged = decision.role in ('owner', 'superadmin')
+        if request.user.pk in (post.created_by_id, post.publish_requested_by_id) and not privileged:
+            return deny_response('Cannot approve your own post')
+        from .models import ApprovalRequest
+        if not privileged and ApprovalRequest.objects.filter(
+            client=post.client, target_object_type='UnifiedPost', target_object_id=post.pk,
+            relation__isnull=False, status='pending',
+        ).exists():
+            return deny_response('Agency requests require workspace owner approval')
         if post.status != 'pending_approval':
             return Response({'detail': f'Post is not pending approval (status={post.status})'}, status=400)
         post.approved_by = request.user
@@ -292,8 +349,11 @@ class UnifiedPostViewSet(TenantScopedMixin, viewsets.ModelViewSet):
         queue = PostQueue.objects.filter(id=queue_id, client_id=post.client_id).first()
         if not queue:
             return Response({'detail': 'Queue not found in this tenant'}, status=404)
+        from .authorization import evaluate
+        if not evaluate(request.user, post.client, 'schedule_posts').allowed:
+            return deny_response('Permission denied: schedule_posts')
         item = QueuedItem.objects.create(
-            queue=queue,
+            queue=queue, requested_by=request.user,
             content=post.content,
             media_urls=list(post.media_urls or []),
             sort_order=(queue.items.count() + 1),
@@ -394,6 +454,9 @@ class PostQueueViewSet(TenantScopedMixin, viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def add_items(self, request, pk=None):
         queue = self.get_object()
+        from .authorization import evaluate
+        if not evaluate(request.user, queue.client, 'schedule_posts').allowed:
+            return deny_response('Permission denied: schedule_posts')
         items = request.data.get('items') or []
         if not isinstance(items, list) or not items:
             return Response({'detail': 'items must be a non-empty list of {content, media_urls?, hashtags?}'}, status=400)
@@ -402,7 +465,7 @@ class PostQueueViewSet(TenantScopedMixin, viewsets.ModelViewSet):
         created = []
         for entry in items:
             qi = QueuedItem.objects.create(
-                queue=queue,
+                queue=queue, requested_by=request.user,
                 content=(entry or {}).get('content', ''),
                 media_urls=(entry or {}).get('media_urls') or [],
                 hashtags=(entry or {}).get('hashtags') or [],

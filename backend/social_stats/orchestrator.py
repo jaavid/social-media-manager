@@ -57,12 +57,19 @@ def publish_unified_post(self, unified_post_id: int):
         logger.warning('publish_unified_post: post %s not found', unified_post_id)
         return
 
-    if post.status not in ('draft', 'scheduled', 'queued', 'pending_approval', 'partial', 'failed'):
+    if post.status not in ('scheduled', 'queued', 'pending_approval', 'partial', 'failed'):
         logger.info('publish_unified_post: post %s already in status %s — skipping',
                     unified_post_id, post.status)
         return
 
-    if post.client.requires_approval and post.status != 'scheduled' and not post.approved_by_id:
+    from .authorization import post_decision
+    decision = post_decision(post)
+    if not decision.allowed:
+        post.status = 'failed'
+        post.save(update_fields=['status'])
+        log_action(post.created_by, post.client, 'composer.publish', result='denied', error=decision.reason)
+        return
+    if decision.requires_approval and not post.approved_by_id:
         post.status = 'pending_approval'
         post.save(update_fields=['status'])
         from .notification_watchers import notify_approver_for_post
@@ -96,11 +103,24 @@ def publish_to_platform(self, unified_post_id: int, platform: str):
     except UnifiedPost.DoesNotExist:
         return
 
-    log = PlatformPublishLog.objects.filter(unified_post=post, platform=platform).first()
-    if not log:
-        log = PlatformPublishLog.objects.create(
-            unified_post=post, platform=platform, status='pending',
-        )
+    if post.status in ('draft', 'scheduled', 'queued', 'pending_approval', 'cancelled', 'published'):
+        if post.status != 'published':
+            stale_log = PlatformPublishLog.objects.filter(unified_post=post, platform=platform, status__in=['pending', 'publishing']).first()
+            if stale_log:
+                _mark_failed(stale_log, code='publication_invalidated', message='Publication intent is no longer active')
+        return
+
+    log, _ = PlatformPublishLog.objects.get_or_create(unified_post=post, platform=platform, defaults={'status': 'pending'})
+    from .authorization import post_decision
+    decision = post_decision(post)
+    if not decision.allowed or (decision.requires_approval and not post.approved_by_id):
+        _mark_failed(log, code='approval_required' if decision.allowed else 'permission_denied',
+                     message='Current policy requires review' if decision.allowed else decision.reason)
+        update_unified_post_status(post.id)
+        if decision.allowed and not post.publish_logs.filter(status='success').exists():
+            post.status = 'pending_approval'
+            post.save(update_fields=['status'])
+        return
 
     log.status = 'publishing'
     log.attempted_at = timezone.now()

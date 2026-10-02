@@ -1,3 +1,4 @@
+from . import rbac_views
 # ============================================================================
 #  Social Stats — Social Media Management & Marketing Platform
 #  Author    : Chandrabhan Shekhawat
@@ -263,6 +264,11 @@ router.register(r'ctwa-campaigns',    CTWACampaignViewSet,    basename='ctwa-cam
 router.register(r'leads',             LeadViewSet,            basename='lead')
 
 urlpatterns = [
+    path('management/role-presets/', rbac_views.presets),
+    path('management/organizations/<int:agency_id>/members/<int:user_id>/preset/', rbac_views.organization_member_preset),
+    path('management/workspaces/<int:workspace_id>/team-policy/', rbac_views.team),
+    path('management/workspaces/<int:workspace_id>/team-policy/<int:user_id>/', rbac_views.member_policy),
+    path('management/workspaces/<int:workspace_id>/accounts/<int:account_id>/policy/<int:user_id>/', rbac_views.account_policy),
     # Auth
     path('auth/login/',                   LoginView.as_view(),           name='login'),
     path('auth/refresh/',                 TokenRefreshView.as_view(),    name='token_refresh'),
