@@ -19,7 +19,7 @@ import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
 import AIWriteButton from '../../components/ai/AIWriteButton';
-import { composerAPI, captionAPI, hashtagAPI } from '../../services/api';
+import { composerAPI, captionAPI, hashtagAPI, socialAccountsAPI } from '../../services/api';
 import { useAuth } from '../../hooks/useAuth';
 import { useComposerPost } from '../../hooks/useComposer';
 import usePlatformConnections from '../../hooks/usePlatformConnections';
@@ -50,6 +50,8 @@ export default function ComposerPage() {
   const [mediaAssets, setMediaAssets] = useState([]);   // [{id, file_url, thumbnail_url, mime_type}]
   const [targetPlatforms, setTargetPlatforms] = useState([]);
   const [destinationOverrides, setDestinationOverrides] = useState({});
+  const [socialAccounts, setSocialAccounts] = useState([]);
+  const [accountTargets, setAccountTargets] = useState({});
   const [scheduleMode, setScheduleMode] = useState('now'); // 'now' | 'schedule' | 'queue'
   const [scheduledAt, setScheduledAt] = useState('');
   const allPlatforms = useMemo(() => getPlatformRegistry(), []);
@@ -61,6 +63,14 @@ export default function ComposerPage() {
     platform.authType === 'bot_token' && platform.connection.fields.some(item => item.key === 'destination_id')
   ), [allPlatforms]);
 
+  useEffect(() => {
+    if (!user?.client_id) return;
+    socialAccountsAPI.list({ client: user.client_id }).then(({ data }) => {
+      const rows = data?.results || data || [];
+      setSocialAccounts(rows.filter(account => account.is_active));
+    }).catch(() => setSocialAccounts([]));
+  }, [user?.client_id]);
+
   /* ── Pre-fill when editing ────────────────────────────────────────── */
   useEffect(() => {
     if (existing && isEditing) {
@@ -71,6 +81,9 @@ export default function ComposerPage() {
       setDestinationOverrides(Object.fromEntries(destinationPlatforms.map(platform => [
         platform.key, existing.platform_overrides?.[platform.key]?.destination_id || '',
       ])));
+      setAccountTargets(Object.fromEntries(Object.entries(existing.platform_overrides || {})
+        .filter(([, value]) => value?.social_account_id)
+        .map(([platform, value]) => [platform, String(value.social_account_id)])));
       if (existing.scheduled_at) {
         setScheduleMode('schedule');
         setScheduledAt(toLocalInput(existing.scheduled_at));
@@ -146,6 +159,13 @@ export default function ComposerPage() {
       else delete current.destination_id;
       if (Object.keys(current).length) platformOverrides[pid] = current;
       else delete platformOverrides[pid];
+    });
+    targetPlatforms.forEach((pid) => {
+      const accountId = accountTargets[pid];
+      if (!accountId) return;
+      platformOverrides[pid] = {
+        ...(platformOverrides[pid] || {}), social_account_id: Number(accountId),
+      };
     });
 
     return {
@@ -350,6 +370,32 @@ export default function ComposerPage() {
               />
             </div>
           </Card>
+
+          {targetPlatforms.some((platform) => socialAccounts.filter((account) => account.platform === platform).length > 1) && (
+            <Card padding="md">
+              <Card.Header title="Accounts" subtitle="Choose the identity used for each selected platform" />
+              <div className="mt-3 grid gap-3">
+                {targetPlatforms.map((platform) => {
+                  const accounts = socialAccounts.filter((account) => account.platform === platform);
+                  if (accounts.length < 2) return null;
+                  return (
+                    <label key={platform} className="grid gap-1 text-xs font-semibold">
+                      {allPlatforms.find((item) => item.key === platform)?.labels?.default || platform}
+                      <select
+                        className="rounded-md border border-border bg-background px-3 py-2 text-sm"
+                        value={accountTargets[platform] || accounts[0].id}
+                        onChange={(event) => setAccountTargets((current) => ({ ...current, [platform]: event.target.value }))}
+                      >
+                        {accounts.map((account) => (
+                          <option key={account.id} value={account.id}>{account.display_name || account.username || account.external_id}</option>
+                        ))}
+                      </select>
+                    </label>
+                  );
+                })}
+              </div>
+            </Card>
+          )}
 
           {selectedBotPlatforms.length > 0 && (
             <Card padding="md">

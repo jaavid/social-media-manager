@@ -25,10 +25,10 @@ This is the temporary source of truth while GitHub Issues are disabled for the r
 
 ## Batch C — multi-account foundation
 
-- [ ] **ACC-001** Introduce `SocialAccount` as the public platform-account identity separate from secrets.
-- [ ] **ACC-002** Change `PlatformCredential` to belong to `SocialAccount` and remove the current one-account-per-platform-per-workspace constraint.
-- [ ] **ACC-003** Migrate existing credentials losslessly into SocialAccount rows.
-- [ ] **ACC-004** Update OAuth callbacks to upsert by `(workspace, platform, external_id)` instead of overwriting `(workspace, platform)`.
+- [x] **ACC-001** Introduce `SocialAccount` as the public platform-account identity separate from secrets.
+- [x] **ACC-002** Change `PlatformCredential` to belong to `SocialAccount` and remove the current one-account-per-platform-per-workspace constraint.
+- [x] **ACC-003** Migrate existing credentials losslessly into SocialAccount rows.
+- [x] **ACC-004** Update OAuth callbacks to upsert by `(workspace, platform, external_id)` instead of overwriting `(workspace, platform)`.
 - [ ] **ACC-005** Update publishers, sync jobs, inbox, analytics and status endpoints for multiple accounts.
 - [ ] **UX-ACC-001** Add account selector/multi-select to composer, inbox, analytics and scheduling surfaces.
 

@@ -26,7 +26,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 
-from .models import PlatformCredential, Client, SyncLog
+from .models import SocialAccount, PlatformCredential, Client, SyncLog
 from django.contrib.auth.models import User
 from .marketplace_permissions import (
     resolve_acting_context, check_action, deny_response, approval_pending_response,
@@ -59,9 +59,30 @@ def _oauth_state_valid(request) -> bool:
 
 
 def _save_credential(client_id, platform, defaults):
-    # Connected-platform count is unlimited (free / open source) — no cap.
+    """Upsert a provider identity without overwriting another account's tokens."""
+    external_id = str(
+        defaults.get('instagram_account_id') or defaults.get('channel_id')
+        or defaults.get('organization_id') or defaults.get('gmb_location_id')
+        or defaults.get('page_id') or defaults.get('platform_user_id') or ''
+    )
+    # Some providers may not return an ID for a restricted account. Keep those
+    # reconnectable while ensuring that a later, identified account is distinct.
+    if not external_id:
+        external_id = f'unidentified-{platform}'
+    display_name = (
+        defaults.get('channel_name') or defaults.get('organization_name')
+        or defaults.get('page_name') or external_id
+    )
+    account, _ = SocialAccount.objects.update_or_create(
+        client_id=client_id, platform=platform, external_id=external_id,
+        defaults={'display_name': display_name, 'is_active': True},
+    )
     PlatformCredential.objects.update_or_create(
-        client_id=client_id, platform=platform, defaults={**defaults, 'is_active': True}
+        social_account=account,
+        defaults={
+            **defaults, 'client_id': client_id, 'platform': platform,
+            'is_active': True,
+        },
     )
 
 
@@ -715,7 +736,7 @@ def oauth_status(request, client_id):
     from .views import check_client_access
     if not check_client_access(request, client_id):
         return Response({'error': 'Access denied'}, status=403)
-    credentials = PlatformCredential.objects.filter(client_id=client_id)
+    credentials = PlatformCredential.objects.filter(client_id=client_id).select_related('social_account')
     result = {}
     for platform, label in [
         ('facebook', 'Facebook'),
@@ -724,7 +745,8 @@ def oauth_status(request, client_id):
         ('linkedin', 'LinkedIn'),
         ('google_my_business', 'Google My Business'),
     ]:
-        cred = credentials.filter(platform=platform).first()
+        platform_credentials = credentials.filter(platform=platform)
+        cred = platform_credentials.filter(is_active=True).first() or platform_credentials.first()
         last_sync = SyncLog.objects.filter(
             client_id=client_id,
             platform=platform,
@@ -749,11 +771,22 @@ def oauth_status(request, client_id):
                 'expires_at':   cred.expires_at.isoformat() if cred.expires_at else None,
                 'account_name': cred.page_name or cred.channel_name or cred.organization_name or '',
                 'last_successful_sync': last_successful_sync,
+                'accounts': [
+                    {
+                        'id': item.social_account_id,
+                        'external_id': item.social_account.external_id,
+                        'account_name': item.social_account.display_name,
+                        'status': item.status,
+                        'is_active': item.is_active,
+                    }
+                    for item in platform_credentials if item.social_account_id
+                ],
             }
         else:
             result[platform] = {
                 'status': 'not_connected',
                 'last_successful_sync': last_successful_sync,
+                'accounts': [],
             }
 
     return Response(result)
@@ -789,9 +822,16 @@ def oauth_disconnect(request, client_id, platform):
         if verdict == 'approval_required':
             return approval_pending_response(ctx['approval'])
 
-    PlatformCredential.objects.filter(
-        client_id=client_id, platform=platform
-    ).update(access_token='', refresh_token='', is_active=False)
+    credentials = PlatformCredential.objects.filter(client_id=client_id, platform=platform)
+    account_id = request.query_params.get('account_id')
+    if account_id:
+        credentials = credentials.filter(social_account_id=account_id)
+    credentials.update(access_token='', refresh_token='', is_active=False)
+    SocialAccount.objects.filter(
+        credential__client_id=client_id,
+        credential__platform=platform,
+        **({'id': account_id} if account_id else {}),
+    ).update(is_active=False)
 
     log_activity_for_request(
         request, client,

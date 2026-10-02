@@ -106,16 +106,20 @@ def publish_to_platform(self, unified_post_id: int, platform: str):
     log.attempted_at = timezone.now()
     log.save(update_fields=['status', 'attempted_at'])
 
-    cred = PlatformCredential.objects.filter(
+    overrides = (post.platform_overrides or {}).get(platform, {}) or {}
+    credential_query = PlatformCredential.objects.filter(
         client=post.client, platform=platform, is_active=True,
-    ).first()
+    )
+    social_account_id = overrides.get('social_account_id')
+    if social_account_id:
+        credential_query = credential_query.filter(social_account_id=social_account_id)
+    cred = credential_query.first()
     if not cred:
         _mark_failed(log, code='no_credential',
                      message=f'No active {platform} credential — connect first')
         update_unified_post_status(post.id)
         return
 
-    overrides = (post.platform_overrides or {}).get(platform, {}) or {}
     content = overrides.get('content', post.content) or ''
     media_urls = overrides.get('media_urls', post.media_urls) or []
     media_type = overrides.get('media_type', post.media_type) or 'text'

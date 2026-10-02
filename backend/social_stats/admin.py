@@ -9,7 +9,7 @@
 from django import forms
 from django.contrib import admin
 from .models import (
-    Client, UserProfile, PlatformCredential, DailyMetric, PostMetric, SyncLog,
+    Client, UserProfile, SocialAccount, PlatformCredential, DailyMetric, PostMetric, SyncLog,
     ROISettings, ROIReport,
     CalendarPost, CalendarNote, PostingSchedule, SiteContent, LookupCollection, LookupItem,
 )
@@ -68,6 +68,14 @@ class CredentialAdmin(admin.ModelAdmin):
     def platform_category(self, obj):
         platform = PLATFORMS_BY_KEY.get(obj.platform)
         return platform.category_title_fa if platform else '—'
+
+
+@admin.register(SocialAccount)
+class SocialAccountAdmin(admin.ModelAdmin):
+    list_display = ['display_name', 'client', 'platform', 'external_id', 'is_active', 'updated_at']
+    list_filter = [PlatformCategoryFilter, 'platform', 'is_active']
+    search_fields = ['display_name', 'username', 'external_id', 'client__company']
+    readonly_fields = ['created_at', 'updated_at']
 
 @admin.register(DailyMetric)
 class DailyMetricAdmin(admin.ModelAdmin):
