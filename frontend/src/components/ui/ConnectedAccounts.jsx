@@ -46,13 +46,14 @@ const STATE_META = {
   [ACCOUNT_STATES.UNKNOWN]: { variant: 'default', icon: null, label: 'Readiness unknown' },
 };
 
-function readinessState(connectionState, readiness, canConnect, connectionCapability) {
+function readinessState(connectionState, readiness, canConnect, connectionCapability, authType) {
   if (connectionState?.status === 'active') return ACCOUNT_STATES.CONNECTED;
   if (connectionState?.status === 'expired') return ACCOUNT_STATES.EXPIRED;
   if (connectionState?.status === 'error') return ACCOUNT_STATES.ERROR;
   if (readiness && readiness.configured === false) return ACCOUNT_STATES.SETUP_REQUIRED;
+  if (canConnect && authType !== 'oauth') return ACCOUNT_STATES.READY;
   if (canConnect && readiness?.configured === true) return ACCOUNT_STATES.READY;
-  if (canConnect && !readiness) return ACCOUNT_STATES.UNKNOWN;
+  if (canConnect && authType === 'oauth' && !readiness) return ACCOUNT_STATES.UNKNOWN;
   if (connectionCapability === 'planned') return ACCOUNT_STATES.UNAVAILABLE;
   return ACCOUNT_STATES.UNAVAILABLE;
 }
@@ -212,7 +213,13 @@ export default function ConnectedAccounts({ clientId, status, onRefresh }) {
                   const readiness = oauthReadiness[key];
                   const canConnect = platformHasCapability(platform, 'connect');
                   const connectionCapability = platform.capabilityStatuses?.connection || 'not_available';
-                  const state = readinessState(connectionState, readiness, canConnect, connectionCapability);
+                  const state = readinessState(
+                    connectionState,
+                    readiness,
+                    canConnect,
+                    connectionCapability,
+                    platform.authType,
+                  );
                   const stateMeta = STATE_META[state];
                   const connected = state === ACCOUNT_STATES.CONNECTED;
                   const fbConnected = (combinedStatus.facebook || {}).status === 'active';
@@ -267,7 +274,7 @@ export default function ConnectedAccounts({ clientId, status, onRefresh }) {
                       </div>
 
                       <div className="mt-4 flex flex-wrap gap-2">
-                        {state === ACCOUNT_STATES.EXPIRED ? (
+                        {state === ACCOUNT_STATES.EXPIRED || (state === ACCOUNT_STATES.ERROR && canConnect) ? (
                           <Button size="sm" icon={RefreshCw} onClick={() => handleConnect(platform)}>
                             Reconnect
                           </Button>
