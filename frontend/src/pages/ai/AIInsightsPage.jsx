@@ -81,7 +81,7 @@ export default function AIInsightsPage({ clientId: propClientId = null }) {
 
   async function regenerate() {
     if (!clientId) {
-      toast.error('Pick a client first');
+      toast.error('Pick a workspace first');
       return;
     }
     setGenerating(true);

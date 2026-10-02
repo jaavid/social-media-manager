@@ -52,7 +52,7 @@ export default function AIUsagePage() {
     setError('');
     Promise.all([
       aiV2API.usageOverview({ period }),
-      aiV2API.usageByClient({ period }),
+      aiV2API.usageByWorkspace({ period }),
       aiV2API.usageByUser({ period }),
     ])
       .then(([o, c, u]) => {
@@ -188,9 +188,9 @@ export default function AIUsagePage() {
           {/* Per-client + per-user side by side on desktop, stacked on mobile */}
           <div style={twoColStyle} className="ai-usage-twocol">
             <Card padding="none">
-              <Card.Header title="Top clients" style={{ padding: '14px 16px', margin: 0 }} />
+              <Card.Header title="Top workspaces" style={{ padding: '14px 16px', margin: 0 }} />
               {(byClient?.clients || []).length === 0 ? (
-                <div style={emptyCellStyle}>No client-scoped usage in this period.</div>
+                <div style={emptyCellStyle}>No workspace-scoped usage in this period.</div>
               ) : (
                 <ul style={listStyle}>
                   {(byClient?.clients || []).slice(0, 12).map((c) => (

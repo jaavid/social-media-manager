@@ -140,7 +140,7 @@ export async function exportPDF({
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(11);
   doc.text(
-    'Prepared for client sharing. This report summarizes performance, platform mix, charts, and recent post activity.',
+    'Prepared for workspace sharing. This report summarizes performance, platform mix, charts, and recent post activity.',
     14,
     44
   );

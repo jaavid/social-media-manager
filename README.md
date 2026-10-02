@@ -419,3 +419,5 @@ Copyright (c) 2026 Chandrabhan Shekhawat — Gigai Kripa Services
 
 For responsible disclosure, see [SECURITY.md](./SECURITY.md). Please don't open
 public issues for security reports.
+
+Workspace is the canonical product/API term. See the [Workspace vocabulary and compatibility contract](docs/WORKSPACE_VOCABULARY.md) for new routes, retained Client aliases, and the deferred database rename.

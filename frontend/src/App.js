@@ -151,6 +151,7 @@ function AdminLayout() {
           <Route path="ads/*"       element={<AdsModule />} />
 
           {/* Outside-module pages */}
+          <Route path="workspaces" element={<AllClientsPage />} />
           <Route path="clients"            element={<AllClientsPage />} />
           <Route path="management"         element={<ManagementPage />} />
           <Route path="account-settings"   element={<UserSettingsPage />} />
@@ -174,6 +175,7 @@ function AdminLayout() {
           <Route path="bot-templates"       element={<TemplatesGalleryPage />} />
 
           {/* Per-client deep-dive */}
+          <Route path="workspace/:workspaceId/*" element={<AdminClientView />} />
           <Route path="client/:clientId/*" element={<AdminClientView />} />
 
           {/* Legacy URL redirects → new module routes */}
@@ -206,7 +208,8 @@ function AdminLayout() {
 }
 
 function AdminClientView() {
-  const { clientId } = useParams();
+  const { clientId: legacyClientId, workspaceId } = useParams();
+  const clientId = workspaceId || legacyClientId;
   return (
     <Suspense fallback={<LazyFallback />}>
       <Routes>

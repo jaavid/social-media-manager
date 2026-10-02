@@ -8,7 +8,7 @@
  * ========================================================================== */
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { useClients } from '../hooks/useData';
+import { useWorkspaces } from '../hooks/useData';
 import { captionAPI, hashtagAPI } from '../services/api';
 import {
   Copy, Edit2, CalendarDays, RefreshCw, Sparkles,
@@ -331,7 +331,7 @@ const histStyles = {
 export default function CaptionWriterPage({ defaultTab = 'caption' }) {
   const { user } = useAuth();
   const isAdmin = user?.role === 'superadmin' || user?.role === 'staff';
-  const { clients } = useClients();
+  const { workspaces: clients } = useWorkspaces();
 
   const defaultClientId = isAdmin ? null : (user?.client_id || null);
   const [mode, setMode] = useState(defaultTab); // 'caption' | 'hashtag'
@@ -415,7 +415,7 @@ export default function CaptionWriterPage({ defaultTab = 'caption' }) {
   const handleGenerateCaption = async () => {
     if (!topic.trim()) { setCapError('Please enter a topic.'); return; }
     if (selectedPlatforms.length === 0) { setCapError('Select at least one platform.'); return; }
-    if (isAdmin && !clientId) { setCapError('Please select a user/client first.'); return; }
+    if (isAdmin && !clientId) { setCapError('Please select a user/workspace first.'); return; }
 
     setCapLoading(true);
     setCapError('');
@@ -467,7 +467,7 @@ export default function CaptionWriterPage({ defaultTab = 'caption' }) {
   const handleGenerateHashtags = async () => {
     if (!hNiche.trim()) { setHashError('Please enter your niche.'); return; }
     if (!hTopic.trim()) { setHashError('Please enter a post topic.'); return; }
-    if (isAdmin && !clientId) { setHashError('Please select a user/client first.'); return; }
+    if (isAdmin && !clientId) { setHashError('Please select a user/workspace first.'); return; }
 
     setHashLoading(true);
     setHashError('');

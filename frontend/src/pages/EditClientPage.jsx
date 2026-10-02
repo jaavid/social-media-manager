@@ -8,7 +8,7 @@
  * ========================================================================== */
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { clientsAPI } from '../services/api';
+import { workspacesAPI } from '../services/api';
 import { ArrowLeft } from 'lucide-react';
 import PageHeader from '../components/layout/PageHeader';
 
@@ -21,7 +21,7 @@ export default function EditClientPage({ clientId, onSelectClient }) {
   const [msg, setMsg]         = useState('');
 
   useEffect(() => {
-    clientsAPI.get(clientId).then(res => {
+    workspacesAPI.get(clientId).then(res => {
       const c = res.data;
       setForm({
         company: c.company || '',
@@ -31,7 +31,7 @@ export default function EditClientPage({ clientId, onSelectClient }) {
         website: c.website || '',
       });
       setLoading(false);
-    }).catch(() => { setMsg('❌ Failed to load client.'); setLoading(false); });
+    }).catch(() => { setMsg('❌ Failed to load workspace.'); setLoading(false); });
   }, [clientId]);
 
   const handleFieldChange = (field, value) => {
@@ -69,9 +69,9 @@ export default function EditClientPage({ clientId, onSelectClient }) {
     }
     setSaving(true); setMsg('');
     try {
-      const res = await clientsAPI.update(clientId, form);
+      const res = await workspacesAPI.update(clientId, form);
       onSelectClient?.(res.data);
-      setMsg('✅ Client updated successfully.');
+      setMsg('✅ Workspace updated successfully.');
     } catch (err) {
       setMsg('❌ ' + (err.response?.data?.error || JSON.stringify(err.response?.data) || 'Update failed'));
     } finally { setSaving(false); }

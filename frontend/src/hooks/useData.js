@@ -7,7 +7,7 @@
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { clientsAPI, oauthAPI, overviewAPI, syncLogsAPI, goalsAPI, alertsAPI, lookupsAPI } from '../services/api';
+import { workspacesAPI, oauthAPI, overviewAPI, syncLogsAPI, goalsAPI, alertsAPI, lookupsAPI } from '../services/api';
 import { PLATFORM_LIST } from '../services/platforms';
 import { format, subDays } from 'date-fns';
 
@@ -19,24 +19,24 @@ export function useDateRange(defaultDays = 30) {
   return [range, setRange];
 }
 
-export function useClients() {
+export function useWorkspaces() {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const fetch = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await clientsAPI.list();
+      const res = await workspacesAPI.list();
       setClients(res.data.results || res.data);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
   }, []);
 
   useEffect(() => { fetch(); }, [fetch]);
-  return { clients, loading, refetch: fetch };
+  return { workspaces: clients, clients, loading, refetch: fetch };
 }
 
-export function useClientSummary(clientId, range, platform) {
+export function useWorkspaceSummary(clientId, range, platform) {
   const [data, setData]       = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -46,7 +46,7 @@ export function useClientSummary(clientId, range, platform) {
       setLoading(true);
       const params = { ...range };
       if (platform && platform !== 'all') params.platform = platform;
-      const res = await clientsAPI.summary(clientId, params);
+      const res = await workspacesAPI.summary(clientId, params);
       setData(res.data);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
@@ -66,7 +66,7 @@ export function useTimeseries(clientId, range, platform) {
       setLoading(true);
       const params = { ...range };
       if (platform && platform !== 'all') params.platform = platform;
-      const res = await clientsAPI.timeseries(clientId, params);
+      const res = await workspacesAPI.timeseries(clientId, params);
       setData(res.data.results || res.data);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
@@ -89,7 +89,7 @@ export function usePosts(clientId, platform, range, pageSize = 20) {
       setLoading(true);
       const params = { limit: pageSize, offset: 0, ...range };
       if (platform && platform !== 'all') params.platform = platform;
-      const res = await clientsAPI.posts(clientId, params);
+      const res = await workspacesAPI.posts(clientId, params);
       const data = res.data;
       if (data.results) {
         setPosts(data.results);
@@ -110,7 +110,7 @@ export function usePosts(clientId, platform, range, pageSize = 20) {
       setLoadingMore(true);
       const params = { limit: pageSize, offset: posts.length, ...range };
       if (platform && platform !== 'all') params.platform = platform;
-      const res = await clientsAPI.posts(clientId, params);
+      const res = await workspacesAPI.posts(clientId, params);
       const data = res.data;
       if (data.results) {
         setPosts(prev => [...prev, ...data.results]);
@@ -293,3 +293,7 @@ export function useLookups() {
   useEffect(() => { fetch(); }, [fetch]);
   return { lookups, loading, refetch: fetch };
 }
+
+// Compatibility hooks for existing feature modules.
+export const useClients = useWorkspaces;
+export const useClientSummary = useWorkspaceSummary;

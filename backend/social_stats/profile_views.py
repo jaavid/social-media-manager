@@ -19,7 +19,10 @@ from django.utils import timezone
 
 from rest_framework.decorators import api_view, permission_classes, parser_classes
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
+from .workspace_vocabulary import (
+    WorkspaceJSONParser as JSONParser, WorkspaceFormParser as FormParser,
+    WorkspaceMultiPartParser as MultiPartParser,
+)
 from rest_framework.response import Response
 
 from .models import UserProfile, Client, ClientInvitation

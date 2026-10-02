@@ -16,6 +16,18 @@ from .models import (
 from .platforms.registry import PLATFORMS_BY_KEY, PLATFORM_REGISTRY, grouped_platform_choices
 
 
+class WorkspaceLabelsMixin:
+    """Use product vocabulary for workspace relations without renaming DB fields."""
+    @admin.display(description='Workspace', ordering='client__company')
+    def workspace_column(self, obj):
+        return obj.client
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.remote_field.model is Client:
+            kwargs.setdefault('label', 'Workspace')
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+
 class PlatformCredentialAdminForm(forms.ModelForm):
     class Meta:
         model = PlatformCredential
@@ -43,19 +55,19 @@ class PlatformCategoryFilter(admin.SimpleListFilter):
         return queryset.filter(platform__in=keys)
 
 @admin.register(Client)
-class ClientAdmin(admin.ModelAdmin):
+class ClientAdmin(WorkspaceLabelsMixin, admin.ModelAdmin):
     list_display = ['company', 'name', 'email', 'is_active', 'created_at']
     search_fields = ['company', 'name', 'email']
 
 @admin.register(UserProfile)
-class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ['user', 'role', 'client']
+class UserProfileAdmin(WorkspaceLabelsMixin, admin.ModelAdmin):
+    list_display = ['user', 'role', 'workspace_column']
     list_filter = ['role']
 
 @admin.register(PlatformCredential)
-class CredentialAdmin(admin.ModelAdmin):
+class CredentialAdmin(WorkspaceLabelsMixin, admin.ModelAdmin):
     form = PlatformCredentialAdminForm
-    list_display = ['client', 'platform_title', 'platform_category', 'status', 'connected_at', 'expires_at']
+    list_display = ['workspace_column', 'platform_title', 'platform_category', 'status', 'connected_at', 'expires_at']
     list_filter = [PlatformCategoryFilter, 'platform', 'is_active']
     readonly_fields = ['connected_at', 'updated_at']
 
@@ -71,27 +83,27 @@ class CredentialAdmin(admin.ModelAdmin):
 
 
 @admin.register(SocialAccount)
-class SocialAccountAdmin(admin.ModelAdmin):
-    list_display = ['display_name', 'client', 'platform', 'external_id', 'is_active', 'updated_at']
+class SocialAccountAdmin(WorkspaceLabelsMixin, admin.ModelAdmin):
+    list_display = ['display_name', 'workspace_column', 'platform', 'external_id', 'is_active', 'updated_at']
     list_filter = [PlatformCategoryFilter, 'platform', 'is_active']
     search_fields = ['display_name', 'username', 'external_id', 'client__company']
     readonly_fields = ['created_at', 'updated_at']
 
 @admin.register(DailyMetric)
-class DailyMetricAdmin(admin.ModelAdmin):
-    list_display = ['client', 'platform', 'date', 'impressions', 'reach', 'clicks']
+class DailyMetricAdmin(WorkspaceLabelsMixin, admin.ModelAdmin):
+    list_display = ['workspace_column', 'platform', 'date', 'impressions', 'reach', 'clicks']
     list_filter = ['platform']
     date_hierarchy = 'date'
 
 @admin.register(SyncLog)
-class SyncLogAdmin(admin.ModelAdmin):
-    list_display = ['client', 'platform', 'status', 'records_synced', 'started_at']
+class SyncLogAdmin(WorkspaceLabelsMixin, admin.ModelAdmin):
+    list_display = ['workspace_column', 'platform', 'status', 'records_synced', 'started_at']
     list_filter = ['platform', 'status']
 
 
 @admin.register(ROISettings)
-class ROISettingsAdmin(admin.ModelAdmin):
-    list_display  = ['client', 'total_budget_display', 'avg_sale_value', 'conversion_rate', 'updated_at']
+class ROISettingsAdmin(WorkspaceLabelsMixin, admin.ModelAdmin):
+    list_display  = ['workspace_column', 'total_budget_display', 'avg_sale_value', 'conversion_rate', 'updated_at']
     search_fields = ['client__company']
 
     def total_budget_display(self, obj):
@@ -100,16 +112,16 @@ class ROISettingsAdmin(admin.ModelAdmin):
 
 
 @admin.register(ROIReport)
-class ROIReportAdmin(admin.ModelAdmin):
-    list_display   = ['client', 'month', 'year', 'total_investment', 'estimated_revenue', 'roi_percentage', 'generated_at']
+class ROIReportAdmin(WorkspaceLabelsMixin, admin.ModelAdmin):
+    list_display   = ['workspace_column', 'month', 'year', 'total_investment', 'estimated_revenue', 'roi_percentage', 'generated_at']
     list_filter    = ['year', 'month']
     date_hierarchy = 'generated_at'
     search_fields  = ['client__company']
 
 
 @admin.register(CalendarPost)
-class CalendarPostAdmin(admin.ModelAdmin):
-    list_display    = ['client', 'platform', 'status', 'post_type', 'title', 'scheduled_at', 'published_at', 'impressions', 'likes']
+class CalendarPostAdmin(WorkspaceLabelsMixin, admin.ModelAdmin):
+    list_display    = ['workspace_column', 'platform', 'status', 'post_type', 'title', 'scheduled_at', 'published_at', 'impressions', 'likes']
     list_filter     = ['platform', 'status', 'post_type']
     search_fields   = ['client__company', 'title', 'caption']
     date_hierarchy  = 'published_at'
@@ -118,23 +130,23 @@ class CalendarPostAdmin(admin.ModelAdmin):
 
 
 @admin.register(CalendarNote)
-class CalendarNoteAdmin(admin.ModelAdmin):
-    list_display  = ['client', 'date', 'title', 'is_client_visible', 'created_at']
+class CalendarNoteAdmin(WorkspaceLabelsMixin, admin.ModelAdmin):
+    list_display  = ['workspace_column', 'date', 'title', 'is_client_visible', 'created_at']
     list_filter   = ['is_client_visible']
     search_fields = ['client__company', 'title', 'note']
     raw_id_fields = ['client', 'created_by']
 
 
 @admin.register(PostingSchedule)
-class PostingScheduleAdmin(admin.ModelAdmin):
-    list_display  = ['client', 'platform', 'day_of_week', 'hour', 'minute', 'is_active']
+class PostingScheduleAdmin(WorkspaceLabelsMixin, admin.ModelAdmin):
+    list_display  = ['workspace_column', 'platform', 'day_of_week', 'hour', 'minute', 'is_active']
     list_filter   = ['platform', 'is_active']
     search_fields = ['client__company']
     raw_id_fields = ['client']
 
 
 @admin.register(SiteContent)
-class SiteContentAdmin(admin.ModelAdmin):
+class SiteContentAdmin(WorkspaceLabelsMixin, admin.ModelAdmin):
     list_display = ['key', 'title', 'is_public', 'last_updated', 'updated_at']
     list_filter = ['is_public']
     search_fields = ['key', 'title']
@@ -146,7 +158,7 @@ class LookupItemInline(admin.TabularInline):
 
 
 @admin.register(LookupCollection)
-class LookupCollectionAdmin(admin.ModelAdmin):
+class LookupCollectionAdmin(WorkspaceLabelsMixin, admin.ModelAdmin):
     list_display = ['key', 'title', 'is_public', 'updated_at']
     search_fields = ['key', 'title']
     list_filter = ['is_public']

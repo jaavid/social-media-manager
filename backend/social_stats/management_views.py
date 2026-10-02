@@ -320,7 +320,7 @@ class ClientManagementDetailView(APIView):
     def get(self, request, pk):
         client = self._get_client(request, pk)
         if not client:
-            return Response({'error': 'Client not found'}, status=404)
+            return Response({'error': 'Workspace not found'}, status=404)
         client_profile = UserProfile.objects.filter(client=client, role='client').first()
         assigned_staff = StaffClientAssignment.objects.filter(client=client).select_related('staff_profile__user')
         from .models import PlatformCredential, SyncLog
@@ -346,7 +346,7 @@ class ClientManagementDetailView(APIView):
     def patch(self, request, pk):
         client = self._get_client(request, pk)
         if not client:
-            return Response({'error': 'Client not found'}, status=404)
+            return Response({'error': 'Workspace not found'}, status=404)
         for field in ['company', 'email', 'name', 'phone', 'website', 'is_active']:
             if field in request.data:
                 setattr(client, field, request.data[field])
@@ -397,7 +397,7 @@ class ClientPortalConfigView(APIView):
     def get(self, request, pk):
         client, config = self._get_or_create_config(request, pk)
         if not client:
-            return Response({'error': 'Client not found'}, status=404)
+            return Response({'error': 'Workspace not found'}, status=404)
         return Response({
             'client_id':             client.id,
             'client_name':           client.company,
@@ -421,7 +421,7 @@ class ClientPortalConfigView(APIView):
     def put(self, request, pk):
         client, config = self._get_or_create_config(request, pk)
         if not client:
-            return Response({'error': 'Client not found'}, status=404)
+            return Response({'error': 'Workspace not found'}, status=404)
         fields = [
             'portal_title', 'show_platform_tabs', 'show_date_picker',
             'show_export_button', 'show_sync_button', 'show_posts_section',

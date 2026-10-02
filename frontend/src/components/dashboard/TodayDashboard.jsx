@@ -405,7 +405,7 @@ function NoClientState() {
   return (
     <div style={{ ...S.card, margin: 16 }}>
       <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
-        Select a client to see today's briefing.
+        Select a workspace to see today's briefing.
       </div>
     </div>
   );

@@ -96,7 +96,7 @@ export default function BrandVoicePage({ clientId: propClientId = null }) {
       return;
     }
     if (!clientId) {
-      toast.error('Pick a client first');
+      toast.error('Pick a workspace first');
       return;
     }
     setTraining(true);
@@ -122,7 +122,7 @@ export default function BrandVoicePage({ clientId: propClientId = null }) {
   async function handleTest() {
     const t = testTopic.trim();
     if (!t) { toast.error('Add a topic to test'); return; }
-    if (!clientId) { toast.error('Pick a client first'); return; }
+    if (!clientId) { toast.error('Pick a workspace first'); return; }
     setTesting(true);
     setTestResult(null);
     try {
@@ -143,12 +143,12 @@ export default function BrandVoicePage({ clientId: propClientId = null }) {
   if (!clientId && isAdmin) {
     return (
       <div className="app-page app-page--lg">
-        <PageHeader title="Brand Voice" subtitle="Pick a client to train their brand voice" />
+        <PageHeader title="Brand Voice" subtitle="Pick a workspace to train their brand voice" />
         <Card padding="lg">
           <EmptyState
             icon={Mic}
-            title="Pick a client"
-            description="Brand voice is per-client. Open a specific client to train its voice."
+            title="Pick a workspace"
+            description="Brand voice is per-workspace. Open a specific workspace to train its voice."
           />
         </Card>
       </div>

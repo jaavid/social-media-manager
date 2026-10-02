@@ -220,6 +220,7 @@ from .health_views import services_health
 from .dashboard_views import dashboard_counts, unified_search, dashboard_today
 
 router = DefaultRouter()
+router.register(r'workspaces', ClientViewSet, basename='workspace')
 router.register(r'clients',     ClientViewSet,    basename='client')
 router.register(r'credentials', CredentialViewSet,basename='credential')
 router.register(r'social-accounts', SocialAccountViewSet, basename='social-account')
@@ -403,9 +404,11 @@ urlpatterns = [
     path('notifications/read-all/',     mark_all_read,      name='notif_read_all'),
 
     # Solo client setup
+    path('workspace/setup-solo/', setup_solo_client, name='setup_solo_workspace'),
     path('client/setup-solo/', setup_solo_client, name='setup_solo_client'),
 
     # Admin actions
+    path('admin/create-workspace/', create_client_user, name='create_workspace'),
     path('admin/create-client/', create_client_user,  name='create_client'),
     path('admin/sync-all/',      sync_all_clients,     name='sync_all_clients'),
     path('overview/',            OverviewView.as_view(), name='overview'),
@@ -448,6 +451,11 @@ urlpatterns = [
     path('management/staff/<int:pk>/',                     StaffDetailView.as_view(),             name='mgmt_staff_detail'),
     path('management/staff/<int:pk>/permissions/',         StaffPermissionsView.as_view(),        name='mgmt_staff_perms'),
     path('management/staff/<int:pk>/clients/',             StaffClientsView.as_view(),            name='mgmt_staff_clients'),
+    path('management/staff/<int:pk>/workspaces/', StaffClientsView.as_view(), name='mgmt_staff_workspaces'),
+    path('management/workspaces/', ClientManagementListView.as_view(), name='mgmt_workspace_list'),
+    path('management/workspaces/<int:pk>/', ClientManagementDetailView.as_view(), name='mgmt_workspace_detail'),
+    path('management/workspaces/<int:pk>/permissions/', ClientPermissionsView.as_view(), name='mgmt_workspace_perms'),
+    path('management/workspaces/<int:pk>/portal-config/', ClientPortalConfigView.as_view(), name='mgmt_workspace_portal_config'),
     path('management/clients/',                            ClientManagementListView.as_view(),    name='mgmt_client_list'),
     path('management/clients/<int:pk>/',                   ClientManagementDetailView.as_view(),  name='mgmt_client_detail'),
     path('management/clients/<int:pk>/permissions/',       ClientPermissionsView.as_view(),       name='mgmt_client_perms'),
@@ -541,6 +549,7 @@ urlpatterns = [
 
     # ── AI v2 — usage / cost dashboard () ──────────────────────────
     path('ai/v2/usage/',           ai_v2_usage_overview,   name='ai_v2_usage_overview'),
+    path('ai/v2/usage/by-workspace/', ai_v2_usage_by_client, name='ai_v2_usage_by_workspace'),
     path('ai/v2/usage/by-client/', ai_v2_usage_by_client,  name='ai_v2_usage_by_client'),
     path('ai/v2/usage/by-user/',   ai_v2_usage_by_user,    name='ai_v2_usage_by_user'),
     path('ai/v2/usage/budget/',    ai_v2_usage_budget,     name='ai_v2_usage_budget'),

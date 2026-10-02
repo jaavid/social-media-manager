@@ -169,7 +169,7 @@ export default function AgencyInviteResponsePage() {
               </span>
             </div>
             <p style={{ ...hintText, marginTop: 4 }}>
-              The client picked these — you can't widen them at accept time. If you need different access,
+              The workspace owner picked these — you can't widen them at accept time. If you need different access,
               decline this and send them a manage-request from your agency dashboard with your own proposal.
             </p>
             <div style={{ marginTop: 12 }}>
@@ -205,7 +205,7 @@ export default function AgencyInviteResponsePage() {
               <div>
                 <strong style={{ color: 'var(--text-primary)' }}>Already {invite.status}</strong>
                 <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--text-secondary)' }}>
-                  {invite.status === 'accepted' && 'You are now managing this client.'}
+                  {invite.status === 'accepted' && 'You are now managing this workspace.'}
                   {invite.status === 'declined' && 'You declined this invitation.'}
                   {invite.status === 'expired' && 'This invitation expired.'}
                 </p>

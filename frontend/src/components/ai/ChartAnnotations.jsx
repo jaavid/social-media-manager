@@ -41,7 +41,7 @@ export default function ChartAnnotations({
 
   async function explain() {
     if (!clientId) {
-      toast.error('Pick a client first');
+      toast.error('Pick a workspace first');
       return;
     }
     setLoading(true);

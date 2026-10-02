@@ -12,8 +12,8 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   AreaChart, Area, RadarChart, Radar, PolarGrid, PolarAngleAxis,
 } from 'recharts';
-import { overviewAPI, clientsAPI } from '../services/api';
-import { useClients, useDateRange } from '../hooks/useData';
+import { overviewAPI, workspacesAPI } from '../services/api';
+import { useWorkspaces, useDateRange } from '../hooks/useData';
 import { TrendingUp, TrendingDown, Minus, RefreshCw, Users, Eye, MousePointer, Play, UserPlus } from 'lucide-react';
 import DateRangePicker from '../components/ui/DateRangePicker';
 import SocialPlatformIcon from '../components/ui/SocialPlatformIcon';
@@ -128,7 +128,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 
 // ── Main Component ────────────────────────────────────────────────────────────
 export default function AnalyticsPage() {
-  const { clients } = useClients();
+  const { workspaces: clients } = useWorkspaces();
   const [selectedClientId, setSelectedClientId] = useState('all');
   const [selectedPlatform, setSelectedPlatform] = useState('all');
   const [range, setRange]               = useDateRange(30);
@@ -177,13 +177,13 @@ export default function AnalyticsPage() {
 
     // Current period
     setSummaryLoading(true);
-    clientsAPI.summary(id, { ...range, ...(platform ? { platform } : {}) })
+    workspacesAPI.summary(id, { ...range, ...(platform ? { platform } : {}) })
       .then(res => setSummary(res.data))
       .catch(() => setSummary(null))
       .finally(() => setSummaryLoading(false));
 
     // Previous period for comparison
-    clientsAPI.summary(id, {
+    workspacesAPI.summary(id, {
       since: prevRange.since, until: prevRange.until,
       ...(platform ? { platform } : {}),
     })
@@ -192,7 +192,7 @@ export default function AnalyticsPage() {
 
     // Timeseries
     setTimeseriesLoading(true);
-    clientsAPI.timeseries(id, { ...range, ...(platform ? { platform } : {}) })
+    workspacesAPI.timeseries(id, { ...range, ...(platform ? { platform } : {}) })
       .then(res => setTimeseries(res.data?.results || res.data || []))
       .catch(() => setTimeseries([]))
       .finally(() => setTimeseriesLoading(false));
@@ -255,7 +255,7 @@ export default function AnalyticsPage() {
         title="Analytics"
         subtitle={isClientSelected
           ? `Viewing ${selectedClientName} — ${range.since} to ${range.until}`
-          : `All clients overview — ${range.since} to ${range.until}`}
+          : `All workspaces overview — ${range.since} to ${range.until}`}
         actions={(
           <div className="analytics-controls" style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
             <DateRangePicker range={range} onChange={setRange} />
@@ -367,7 +367,7 @@ export default function AnalyticsPage() {
       ) : (
         <SectionCard
           title="Performance by Platform"
-          subtitle={`Aggregated across all clients — ${range.since} to ${range.until}`}
+          subtitle={`Aggregated across all workspaces — ${range.since} to ${range.until}`}
           style={{ marginBottom: 24 }}
         >
           {overviewLoading ? (
@@ -540,7 +540,7 @@ export default function AnalyticsPage() {
           <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--text-tertiary)' }}>Loading…</div>
         ) : platformData.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--text-tertiary)' }}>
-            No platform data. Sync clients to populate analytics.
+            No platform data. Sync workspaces to populate analytics.
           </div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
@@ -610,14 +610,14 @@ export default function AnalyticsPage() {
         >
           {clients.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--text-tertiary)' }}>
-              No clients yet. Add a client to get started.
+              No workspaces yet. Add a workspace to get started.
             </div>
           ) : (
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                 <thead>
                   <tr style={{ background: 'var(--surface-page)' }}>
-                    {['Client', 'Status', 'Created', 'Website', ''].map(h => (
+                    {['Workspace', 'Status', 'Created', 'Website', ''].map(h => (
                       <th key={h} style={{
                         padding: '10px 16px', textAlign: 'left', fontWeight: 700,
                         color: 'var(--text-secondary)', borderBottom: '1px solid var(--border-default)',

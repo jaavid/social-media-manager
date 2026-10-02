@@ -18,7 +18,7 @@ from .platforms.registry import PLATFORM_CHOICES
 ROLE_CHOICES = [
     ('superadmin', 'Super Admin'),
     ('staff',      'Staff'),
-    ('client',     'Client'),
+    ('client',     'Workspace member'),
 ]
 
 SYNC_STATUS = [
@@ -148,6 +148,8 @@ class Client(models.Model):
 
     class Meta:
         ordering = ['company']
+        verbose_name = 'Workspace'
+        verbose_name_plural = 'Workspaces'
 
 
 # ── Competitors ───────────────────────────────────────────────────────────────

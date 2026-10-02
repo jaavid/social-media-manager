@@ -48,7 +48,7 @@ Organization
 ## Batch D — tenancy and authorization unification
 
 - [ ] **TEN-001** Add/formalize Organization/Tenant ownership above workspaces.
-- [ ] **TEN-002** Standardize product vocabulary from legacy `Client` to **Workspace** in APIs/UI; defer DB rename until safe.
+- [x] **TEN-002** Standardize product vocabulary from legacy `Client` to **Workspace** in APIs/UI; defer DB rename until safe.
 - [ ] **RBAC-001** Unify legacy `UserProfile/StaffClientAssignment/UserPermission` authorization with marketplace `AgencyMembership/AgencyClientRelation` authorization.
 - [ ] **RBAC-002** Define organization/workspace role presets while keeping granular permission overrides.
 - [ ] **RBAC-003** Define approval defaults per role/action and expose them in team management.

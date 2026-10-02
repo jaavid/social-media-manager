@@ -98,7 +98,7 @@ export default function AIWriteButton({
       return;
     }
     if (!clientId) {
-      toast.error('Pick a client first');
+      toast.error('Pick a workspace first');
       return;
     }
     setLoading(true);

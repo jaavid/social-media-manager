@@ -36,7 +36,10 @@ from django.core.files.base import ContentFile
 from django.utils import timezone
 from PIL import Image
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
+from .workspace_vocabulary import (
+    WorkspaceJSONParser as JSONParser, WorkspaceFormParser as FormParser,
+    WorkspaceMultiPartParser as MultiPartParser,
+)
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 

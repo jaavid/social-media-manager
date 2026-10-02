@@ -33,7 +33,7 @@ export function useClientManagementList() {
   const fetchClients = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await managementAPI.listClients();
+      const res = await managementAPI.listWorkspaces();
       setClients(res.data);
     } finally {
       setLoading(false);

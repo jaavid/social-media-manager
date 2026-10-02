@@ -44,7 +44,7 @@ export default function CompetitorsPage() {
     <div style={{ paddingBottom: 32 }}>
       <PageHeader
         title="Competitors"
-        subtitle="Track public profile metrics and benchmark your client against them"
+        subtitle="Track public profile metrics and benchmark your workspace against them"
         action={<Button icon={Plus} onClick={() => setShowCreate(true)}>Add Competitor</Button>}
       />
 

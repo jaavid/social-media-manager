@@ -17,7 +17,7 @@ import {
   MessageSquare, UserSquare,
 } from 'lucide-react';
 
-import { useClients } from '../../hooks/useData';
+import { useWorkspaces } from '../../hooks/useData';
 import useUnifiedSearch from '../../hooks/useUnifiedSearch';
 import { useLanguage } from '../../i18n';
 
@@ -28,7 +28,7 @@ export default function CommandPalette({ open, onOpenChange, basePath }) {
   const navigate = useNavigate();
   const [recents, setRecents] = useState(() => readRecents());
   const [inputValue, setInputValue] = useState('');
-  const { clients } = useClients();
+  const { workspaces: clients } = useWorkspaces();
   const { tr } = useLanguage();
 
   const { results: searchResults, isFetching: searchFetching, debouncedQuery } =
@@ -165,12 +165,12 @@ export default function CommandPalette({ open, onOpenChange, basePath }) {
           </Group>
 
           {(clients || []).length > 0 && (
-            <Group heading={tr('Clients')}>
+            <Group heading={tr('Workspaces')}>
               {(clients || []).slice(0, 8).map((c) => (
                 <Item
                   key={`client-${c.id}`}
-                  item={{ id: `client-${c.id}`, label: c.company, hint: tr('Switch to client'), icon: Users2 }}
-                  onSelect={() => pick(`client-${c.id}`, () => navigate(`/admin/client/${c.id}`))}
+                  item={{ id: `client-${c.id}`, label: c.company, hint: tr('Switch to workspace'), icon: Users2 }}
+                  onSelect={() => pick(`client-${c.id}`, () => navigate(`/admin/workspace/${c.id}`))}
                 />
               ))}
             </Group>

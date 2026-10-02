@@ -65,7 +65,7 @@ export default function AIAuditPage({ clientId: propClientId = null }) {
     <div className="app-page app-page--lg">
       <PageHeader
         title="What did Social Stats do for me?"
-        subtitle="Every AI request on this client account — for transparency + compliance."
+        subtitle="Every AI request on this workspace account — for transparency + compliance."
         actions={(
           <Button variant="ghost" size="sm" icon={RefreshCw} onClick={load}>Refresh</Button>
         )}

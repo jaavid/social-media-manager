@@ -9,7 +9,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { useClients, useLookups } from '../hooks/useData';
+import { useWorkspaces, useLookups } from '../hooks/useData';
 import { postIdeasAPI } from '../services/api';
 import SocialPlatformIcon from '../components/ui/SocialPlatformIcon';
 import PageHeader from '../components/layout/PageHeader';
@@ -85,7 +85,7 @@ export default function PostIdeasPage({ clientId: propClientId = null }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
   const { lookups } = useLookups();
-  const { clients } = useClients();
+  const { workspaces: clients } = useWorkspaces();
 
   const businessTypeOptions = lookups.business_types?.map(item => ({ value: item.key, label: item.label })) || BUSINESS_TYPES;
   const monthOptions = lookups.months?.map((item, index) => ({
@@ -195,7 +195,7 @@ export default function PostIdeasPage({ clientId: propClientId = null }) {
       ...form,
       client_id: isAdmin ? form.client_id : user?.client_id,
     };
-    if (!payload.client_id) return setError('Client ID is required.');
+    if (!payload.client_id) return setError('Workspace ID is required.');
 
     setStep('loading');
     try {

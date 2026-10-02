@@ -9,7 +9,7 @@ const SUPPORTED = new Set(['en', 'fa']);
 export const enMessages = {
   'accounts.title': 'Connected Accounts',
   'accounts.subtitle': 'Connect social accounts and publishing destinations.',
-  'accounts.workspacePreparing': 'Your client workspace is still being prepared. Please refresh the page and try again.',
+  'accounts.workspacePreparing': 'Your workspace is still being prepared. Please refresh the page and try again.',
   'accounts.disconnectConfirm': 'Disconnect {platform}? Publishing and synchronization will stop.',
   'accounts.connectedViaFacebook': 'Connected via Facebook',
   'accounts.status.active': 'Active',
@@ -58,7 +58,7 @@ export const enMessages = {
 export const faMessages = {
   'accounts.title': 'حساب‌های متصل',
   'accounts.subtitle': 'حساب‌های اجتماعی و مقصدهای انتشار را متصل کنید.',
-  'accounts.workspacePreparing': 'فضای کاری مشتری هنوز در حال آماده‌سازی است. صفحه را تازه‌سازی و دوباره تلاش کنید.',
+  'accounts.workspacePreparing': 'فضای کاری هنوز در حال آماده‌سازی است. صفحه را تازه‌سازی و دوباره تلاش کنید.',
   'accounts.disconnectConfirm': 'اتصال {platform} قطع شود؟ انتشار و همگام‌سازی متوقف خواهد شد.',
   'accounts.connectedViaFacebook': 'متصل از طریق فیسبوک',
   'accounts.status.active': 'فعال',
@@ -122,8 +122,8 @@ const fa = {
   'common.notifications': 'اعلان‌ها',
   'common.signOut': 'خروج',
   'common.accountSettings': 'تنظیمات حساب',
-  'common.searchClients': 'جست‌وجوی مشتریان…',
-  'common.allClients': 'همه مشتریان',
+  'common.searchWorkspaces': 'جست‌وجوی فضاهای کاری…',
+  'common.allWorkspaces': 'همه فضاهای کاری',
   'common.openMenu': 'باز کردن منو',
   'common.closeMenu': 'بستن منو',
   'common.accountMenu': 'منوی حساب',
@@ -222,8 +222,8 @@ const faRaw = {
   'Coming soon': 'به‌زودی',
   'Soon': 'به‌زودی',
   'Settings': 'تنظیمات',
-  'All clients': 'همه مشتریان',
-  'Search clients…': 'جست‌وجوی مشتریان…',
+  'All workspaces': 'همه فضاهای کاری',
+  'Search workspaces…': 'جست‌وجوی فضاهای کاری…',
   'Navigation': 'ناوبری',
   'Manage agency': 'مدیریت آژانس',
   'Marketplace profile': 'پروفایل بازار',
@@ -242,8 +242,8 @@ const faRaw = {
   'Recent': 'اخیر',
   'Pages': 'صفحات',
   'Quick actions': 'اقدام‌های سریع',
-  'Clients': 'مشتریان',
-  'Switch to client': 'رفتن به مشتری',
+  'Workspaces': 'فضاهای کاری',
+  'Switch to workspace': 'رفتن به فضای کاری',
   'Help & resources': 'راهنما و منابع',
   '↑↓ to navigate · ↵ to select': '↑↓ برای حرکت · ↵ برای انتخاب',
   'esc to close': 'Esc برای بستن',
@@ -390,7 +390,23 @@ const faRaw = {
   'Save failed.': 'ذخیره ناموفق بود.',
 };
 
+const workspaceCopyAliases = {
+  "All clients": "All workspaces",
+  "Client": "Workspace",
+  "All clients overview": "All workspaces overview",
+  "Track client momentum, sync health, campaign traction, and cross-platform performance from one polished control room.": "Track workspace momentum, sync health, campaign traction, and cross-platform performance from one polished control room.",
+  "Open a client and click \"Share Report\" to generate a public link.": "Open a workspace and click \"Share Report\" to generate a public link.",
+  "Manage shared client report links and monthly ROI summaries": "Manage shared workspace report links and monthly ROI summaries",
+  "Your client workspace is still being prepared. Please refresh the page and try again.": "Your workspace is still being prepared. Please refresh the page and try again.",
+  "Search clients…": "Search workspaces…",
+  "Clients": "Workspaces",
+  "Switch to client": "Switch to workspace"
+};
+
 const dictionaries = { en: enMessages, fa: { ...enMessages, ...faMessages, ...fa } };
+dictionaries.fa['common.allClients'] = dictionaries.fa['common.allWorkspaces'];
+dictionaries.fa['common.searchClients'] = dictionaries.fa['common.searchWorkspaces'];
+
 const rawDictionaries = { en: {}, fa: { ...faRaw, ...faExtra } };
 
 function detectInitialLanguage() {
@@ -426,7 +442,8 @@ export function setLanguage(language) {
 }
 
 export function translate(key, language = currentLanguage, fallback = key) {
-  return dictionaries[language]?.[key] || fallback;
+  const canonical = workspaceCopyAliases[key] || key;
+  return dictionaries[language]?.[canonical] || workspaceCopyAliases[fallback] || fallback;
 }
 
 export function interpolate(message, values = {}) {
@@ -436,7 +453,8 @@ export function interpolate(message, values = {}) {
 }
 
 export function translateRaw(value, language = currentLanguage) {
-  return rawDictionaries[language]?.[value] || value;
+  const canonical = workspaceCopyAliases[value] || value;
+  return rawDictionaries[language]?.[canonical] || canonical;
 }
 
 export function localeFor(language = currentLanguage) {

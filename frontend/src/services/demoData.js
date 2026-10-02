@@ -223,7 +223,7 @@ export function getDemoCalendarNotes(month, year) {
   const base = new Date(year, month - 1, 1);
   return [
     { id: 1, date: format(addDays(base, 6), 'yyyy-MM-dd'), title: 'Promo shoot', color: '#F59E0B' },
-    { id: 2, date: format(addDays(base, 12), 'yyyy-MM-dd'), title: 'Client approval due', color: '#2563EB' },
+    { id: 2, date: format(addDays(base, 12), 'yyyy-MM-dd'), title: 'Workspace approval due', color: '#2563EB' },
     { id: 3, date: format(addDays(base, 19), 'yyyy-MM-dd'), title: 'Offer refresh', color: '#10B981' },
   ];
 }
@@ -389,7 +389,7 @@ export function getDemoOnboardingSteps() {
     step(2, 'first_sync', 'Run first sync', 'Initial sync completed and platform analytics are now available.', true, subDays(now, 11)),
     step(3, 'set_goals', 'Set monthly goals', 'Revenue, lead, and engagement goals are configured for the current month.', true, subDays(now, 10)),
     step(4, 'add_credentials', 'Add brand credentials', 'Brand tone, CTAs, and publishing preferences are ready for the content team.', true, subDays(now, 9)),
-    step(5, 'invite_team', 'Invite team members', 'Add content and approval collaborators for the client workspace.', false, null),
+    step(5, 'invite_team', 'Invite team members', 'Add content and approval collaborators for the workspace.', false, null),
     step(6, 'configure_alerts', 'Configure alerts', 'Enable pacing and performance alerts for campaign monitoring.', false, null),
   ];
 }
