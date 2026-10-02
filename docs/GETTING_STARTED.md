@@ -39,9 +39,9 @@ If you have Docker, the entire stack (PostgreSQL, Redis, API, Celery
 worker + beat, frontend) runs with one command from the repo root:
 
 ```bash
-docker compose pull && docker compose up -d   # prebuilt images (amd64/arm64)
+docker compose pull && docker compose up -d   # prebuilt app image (linux/amd64)
 # or build from source: docker compose up -d --build
-docker compose exec backend python manage.py demo_setup   # demo data
+docker compose exec app python manage.py demo_setup   # demo data
 # app: http://localhost:3000
 ```
 
