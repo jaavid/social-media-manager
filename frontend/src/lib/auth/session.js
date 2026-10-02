@@ -53,7 +53,15 @@ async function acquireStorageLease(store, accessSnapshot) {
     if (!current || current.expiresAt <= Date.now()) {
       const candidate = { owner, expiresAt: Date.now() + LEASE_TTL_MS };
       store.setItem(REFRESH_LEASE_KEY, JSON.stringify(candidate));
-      await sleep(0);
+
+      // localStorage has no atomic compare-and-set. Give competing tabs a full
+      // polling interval to publish their candidate, then confirm ownership.
+      await sleep(LEASE_POLL_MS);
+
+      const accessAfterClaim = store.getItem('access_token');
+      if (accessAfterClaim && accessSnapshot && accessAfterClaim !== accessSnapshot) {
+        return { reusedAccess: accessAfterClaim };
+      }
       if (readLease(store)?.owner === owner) return { owner };
     }
 
@@ -67,6 +75,31 @@ function releaseStorageLease(store, owner) {
   if (!owner) return;
   const current = readLease(store);
   if (current?.owner === owner) store.removeItem(REFRESH_LEASE_KEY);
+}
+
+async function waitForCompetingRefresh(store, accessSnapshot, refreshSnapshot) {
+  const deadline = Date.now() + Math.min(LEASE_TTL_MS, 1200);
+
+  while (Date.now() < deadline) {
+    const updatedAccess = store.getItem('access_token');
+    const updatedRefresh = store.getItem('refresh_token');
+    if (updatedAccess && accessSnapshot && updatedAccess !== accessSnapshot) {
+      return updatedAccess;
+    }
+    if (updatedRefresh && refreshSnapshot && updatedRefresh !== refreshSnapshot) {
+      // A competing tab rotated the refresh token. Its access-token write is
+      // adjacent, but allow one more poll in case storage events interleave.
+      await sleep(LEASE_POLL_MS);
+      const accessAfterRotation = store.getItem('access_token');
+      if (accessAfterRotation && accessAfterRotation !== accessSnapshot) return accessAfterRotation;
+    }
+
+    const lease = readLease(store);
+    if (!lease || lease.expiresAt <= Date.now()) break;
+    await sleep(LEASE_POLL_MS);
+  }
+
+  return null;
 }
 
 export function onSessionInvalidated(listener) {
@@ -111,14 +144,22 @@ async function performRefresh(accessSnapshot) {
   try {
     response = await axios.post(`${apiBaseUrl()}/auth/refresh/`, { refresh });
   } catch (error) {
-    const updatedAccess = store.getItem('access_token');
-    if (updatedAccess && accessSnapshot && updatedAccess !== accessSnapshot) return updatedAccess;
+    // A concurrent fallback refresh can win after this request has already
+    // been sent. Never treat the loser as terminal until we give the winner
+    // a chance to publish its rotated credentials.
+    const competingAccess = await waitForCompetingRefresh(store, accessSnapshot, refresh);
+    if (competingAccess) return competingAccess;
     throw error;
   }
 
   const updatedAccess = store.getItem('access_token');
-  if (updatedAccess && accessSnapshot && updatedAccess !== accessSnapshot) {
-    return updatedAccess;
+  const updatedRefresh = store.getItem('refresh_token');
+  if (
+    (updatedAccess && accessSnapshot && updatedAccess !== accessSnapshot)
+    || (updatedRefresh && refresh && updatedRefresh !== refresh)
+  ) {
+    if (updatedAccess) return updatedAccess;
+    throw new Error('Session changed while refresh was in flight');
   }
 
   const access = response.data?.access;
