@@ -194,22 +194,24 @@ One command brings up the full stack — PostgreSQL, Redis, the Django/Channels
 API, a Celery worker + beat, and the React app served by nginx on one origin:
 
 ```bash
-# Pull the prebuilt multi-arch images (amd64 + arm64) and start:
+# Pull the prebuilt linux/amd64 app image and start:
 docker compose pull && docker compose up -d
 # — or build from source instead: docker compose up -d --build
 
 # optional: seed 3 demo accounts + 90 days of analytics
-docker compose exec backend python manage.py demo_setup
+docker compose exec app python manage.py demo_setup
 # app:          http://localhost:3000
-# Django admin: http://localhost:8000/admin/
+# Django admin: http://localhost:3000/backend/
 ```
 
-Images are published by this repository to GHCR on releases/main builds:
-`ghcr.io/jaavid/social-stats-backend` and
-`ghcr.io/jaavid/social-stats-frontend` (`:latest` + semver tags).
+The unified app image is published to GHCR on main pushes and version tags:
+`ghcr.io/jaavid/social-stats-app` (`:latest` + semver tags).
+Publication currently targets `linux/amd64` only; ARM publication is deferred.
+Build layers are cached in GitHub Actions, with optional cache export limited
+to two minutes. The publication job has a 20-minute timeout.
 
-The compose image names can be overridden with `SOCIAL_STATS_BACKEND_IMAGE` and
-`SOCIAL_STATS_FRONTEND_IMAGE` when using a private registry or a different namespace.
+The compose app image can be overridden with `SOCIAL_STATS_APP_IMAGE`
+when using a private registry or a different namespace.
 
 Set at least `SECRET_KEY` (and `ANTHROPIC_API_KEY` for AI) in a `.env.docker`
 file at the repo root — see `backend/.env.example` for every variable.

@@ -12,8 +12,8 @@ Key facts:
 - Repository: https://github.com/cbsshekhawat18-lab/social-stats-social-media-manager
 - License: MIT — free to self-host, no feature gating
 - Quick start: `docker compose pull && docker compose up -d` (prebuilt
-  multi-arch images on GHCR), or manual setup with Python 3.11–3.12 + Node 18
-- Demo data: `docker compose exec backend python manage.py demo_setup`
+  linux/amd64 app image on GHCR), or manual setup with Python 3.11–3.12 + Node 18
+- Demo data: `docker compose exec app python manage.py demo_setup`
 - Stack: Django 4.2, Django REST Framework, Channels (WebSockets), Celery +
   Redis, PostgreSQL/SQLite, React 18, React Query, Zustand
 
