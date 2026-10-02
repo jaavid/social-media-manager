@@ -2,8 +2,10 @@ name: Finalize Batch B review fixes
 
 on:
   push:
-    branches: [feat/connected-accounts-batch-b]
-    paths: [.github/workflows/batch-b-finalize.yml]
+    branches:
+      - feat/connected-accounts-batch-b
+    paths:
+      - .github/workflows/batch-b-finalize.yml
 
 permissions:
   contents: write
@@ -23,66 +25,32 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          import re
-
-          def sub_once(text, pattern, repl, label, flags=0):
-              updated, count = re.subn(pattern, repl, text, count=1, flags=flags)
-              if count != 1:
-                  raise SystemExit(f'{label}: expected source not found')
-              return updated
 
           p = Path('backend/social_stats/oauth_views.py')
           s = p.read_text()
           if 'from django.db.models.functions import Coalesce' not in s:
-              s = s.replace(
-                  'from django.utils import timezone\n',
-                  'from django.utils import timezone\nfrom django.db.models.functions import Coalesce\n',
-                  1,
-              )
-          s = sub_once(
-              s,
-              r"last_sync = SyncLog\.objects\.filter\(\s*client_id=client_id,\s*platform=platform,\s*status='success',\s*\)\.order_by\('-finished_at', '-started_at'\)\.first\(\)",
-              "last_sync = SyncLog.objects.filter(\n            client_id=client_id,\n            platform=platform,\n            status='success',\n        ).annotate(\n            effective_sync_at=Coalesce('finished_at', 'started_at')\n        ).order_by('-effective_sync_at').first()",
-              'oauth status SyncLog ordering',
-              re.S,
-          )
-          p.write_text(s)
+              s = s.replace('from django.utils import timezone\n', 'from django.utils import timezone\nfrom django.db.models.functions import Coalesce\n', 1)
+          old = "        last_sync = SyncLog.objects.filter(\n            client_id=client_id,\n            platform=platform,\n            status='success',\n        ).order_by('-finished_at', '-started_at').first()"
+          new = "        last_sync = SyncLog.objects.filter(\n            client_id=client_id,\n            platform=platform,\n            status='success',\n        ).annotate(\n            effective_sync_at=Coalesce('finished_at', 'started_at')\n        ).order_by('-effective_sync_at').first()"
+          if old not in s:
+              raise SystemExit('oauth status SyncLog ordering source not found')
+          p.write_text(s.replace(old, new, 1))
 
           p = Path('frontend/src/services/api.js')
           s = p.read_text()
-          s = sub_once(
-              s,
-              r"function _redirectToLogin\(\) \{\s*invalidateSession\(\);\s*if \(typeof window === 'undefined'\) return;",
-              "function _redirectToLogin(expectedAccessToken) {\n  const invalidated = invalidateSession({ expectedAccessToken });\n  if (!invalidated || typeof window === 'undefined') return;",
-              'API redirect helper',
-              re.S,
-          )
-          s = sub_once(
-              s,
-              r"try \{\s*const access = await refreshAccessToken\(\);\s*original\.headers\.Authorization = `Bearer \$\{access\}`;\s*return api\(original\);\s*\} catch \{\s*_redirectToLogin\(\);\s*return Promise\.reject\(error\);\s*\}",
-              """const authorization = original?.headers?.get?.('Authorization')
-      || original?.headers?.Authorization
-      || original?.headers?.authorization
-      || '';
-    const failedAccessToken = typeof authorization === 'string' && authorization.startsWith('Bearer ')
-      ? authorization.slice(7)
-      : localStorage.getItem('access_token');
-
-    try {
-      const access = await refreshAccessToken(failedAccessToken);
-      original.headers.Authorization = `Bearer ${access}`;
-      return api(original);
-    } catch {
-      _redirectToLogin(failedAccessToken);
-      return Promise.reject(error);
-    }""",
-              'API refresh retry',
-              re.S,
-          )
-          p.write_text(s)
+          old = "function _redirectToLogin() {\n  invalidateSession();\n  if (typeof window === 'undefined') return;"
+          new = "function _redirectToLogin(expectedAccessToken) {\n  const invalidated = invalidateSession({ expectedAccessToken });\n  if (!invalidated || typeof window === 'undefined') return;"
+          if old not in s:
+              raise SystemExit('API redirect helper source not found')
+          s = s.replace(old, new, 1)
+          old = "    try {\n      const access = await refreshAccessToken();\n      original.headers.Authorization = `Bearer ${access}`;\n      return api(original);\n    } catch {\n      _redirectToLogin();\n      return Promise.reject(error);\n    }"
+          new = "    const authorization = original?.headers?.get?.('Authorization') || original?.headers?.Authorization || original?.headers?.authorization || '';\n    const failedAccessToken = typeof authorization === 'string' && authorization.startsWith('Bearer ') ? authorization.slice(7) : localStorage.getItem('access_token');\n\n    try {\n      const access = await refreshAccessToken(failedAccessToken);\n      original.headers.Authorization = `Bearer ${access}`;\n      return api(original);\n    } catch {\n      _redirectToLogin(failedAccessToken);\n      return Promise.reject(error);\n    }"
+          if old not in s:
+              raise SystemExit('API refresh retry source not found')
+          p.write_text(s.replace(old, new, 1))
           PY
 
-      - name: Remove temporary workflow and commit fixes
+      - name: Remove finalizer and commit
         shell: bash
         run: |
           rm -f .github/workflows/batch-b-finalize.yml
