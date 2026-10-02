@@ -1,0 +1,617 @@
+name: Batch B verified review fixes
+
+on:
+  push:
+    branches:
+      - feat/connected-accounts-batch-b
+    paths:
+      - .github/workflows/batch-b-review-fixes.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: feat/connected-accounts-batch-b
+          fetch-depth: 0
+
+      - name: Apply verified review fixes
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          # 1) Provider readiness: Google Business Profile must not inherit
+          # YouTube scopes from the shared Google OAuth configuration.
+          path = Path('backend/social_stats/oauth_readiness.py')
+          text = path.read_text()
+          youtube_scopes = """GOOGLE_SCOPES = [
+              'https://www.googleapis.com/auth/youtube.force-ssl',
+              'https://www.googleapis.com/auth/yt-analytics.readonly',
+              'openid',
+              'email',
+              'profile',
+          ]
+          """
+          gmb_scopes = youtube_scopes + """
+          GMB_SCOPES = [
+              'https://www.googleapis.com/auth/business.manage',
+              'openid',
+              'email',
+              'profile',
+          ]
+          """
+          if youtube_scopes not in text:
+              raise SystemExit('oauth_readiness.py: GOOGLE_SCOPES block not found')
+          text = text.replace(youtube_scopes, gmb_scopes, 1)
+          needle = """        'google_my_business': {
+              **google,
+              'required_apis': [
+          """
+          replacement = """        'google_my_business': {
+              **google,
+              'scopes': GMB_SCOPES,
+              'required_apis': [
+          """
+          if needle not in text:
+              raise SystemExit('oauth_readiness.py: GMB payload not found')
+          path.write_text(text.replace(needle, replacement, 1))
+
+          # 2) Sync health ordering: order by the same effective timestamp that
+          # the API returns, including legacy/success rows with null finished_at.
+          path = Path('backend/social_stats/oauth_views.py')
+          text = path.read_text()
+          import_anchor = 'from django.utils import timezone\n'
+          if import_anchor not in text:
+              raise SystemExit('oauth_views.py: timezone import not found')
+          text = text.replace(
+              import_anchor,
+              import_anchor + 'from django.db.models.functions import Coalesce\n',
+              1,
+          )
+          old_query = """        last_sync = SyncLog.objects.filter(
+              client_id=client_id,
+              platform=platform,
+              status='success',
+          ).order_by('-finished_at', '-started_at').first()
+          """
+          new_query = """        last_sync = SyncLog.objects.filter(
+              client_id=client_id,
+              platform=platform,
+              status='success',
+          ).annotate(
+              effective_sync_at=Coalesce('finished_at', 'started_at')
+          ).order_by('-effective_sync_at').first()
+          """
+          if old_query not in text:
+              raise SystemExit('oauth_views.py: SyncLog ordering block not found')
+          path.write_text(text.replace(old_query, new_query, 1))
+
+          # 3/4) Connected Accounts: expired must reconnect before the generic
+          # connected/disconnect branch, and absent operator-only readiness is
+          # an explicit unknown state rather than falsely claiming configured.
+          path = Path('frontend/src/components/ui/ConnectedAccounts.jsx')
+          text = path.read_text()
+          text = text.replace(
+              "  ready: { variant: 'info', icon: CheckCircle2, label: 'Ready to connect' },\n",
+              "  ready: { variant: 'info', icon: CheckCircle2, label: 'Ready to connect' },\n"
+              "  unknown: { variant: 'default', icon: null, label: 'Readiness unknown' },\n",
+              1,
+          )
+          old_state = """  if (readiness && readiness.configured === false) return 'setup_required';
+            if (canConnect && (!readiness || readiness.configured)) return 'ready';
+            if (connectionCapability === 'planned') return 'unavailable';
+          """
+          new_state = """  if (readiness && readiness.configured === false) return 'setup_required';
+            if (canConnect && readiness?.configured === true) return 'ready';
+            if (canConnect) return 'unknown';
+            if (connectionCapability === 'planned') return 'unavailable';
+          """
+          if old_state not in text:
+              raise SystemExit('ConnectedAccounts.jsx: readiness state block not found')
+          text = text.replace(old_state, new_state, 1)
+          old_actions = """                        {connected && !viaFacebook ? (
+                            <Button
+                              variant=\"danger\"
+                              size=\"sm\"
+                              loading={Boolean(loading[key])}
+                              onClick={() => handleDisconnect(platform)}
+                            >
+                              {t('accounts.disconnect')}
+                            </Button>
+                          ) : state === 'ready' ? (
+                            <Button
+                              size=\"sm\"
+                              onClick={() => handleConnect(platform)}
+                              style={{ background: platform.color }}
+                            >
+                              {t('accounts.connect', undefined, { platform: platformLabel })}
+                            </Button>
+                          ) : state === 'expired' ? (
+                            <Button size=\"sm\" icon={RefreshCw} onClick={() => handleConnect(platform)}>
+                              Reconnect
+                            </Button>
+                          ) : null}
+          """
+          new_actions = """                        {state === 'expired' ? (
+                            <Button size=\"sm\" icon={RefreshCw} onClick={() => handleConnect(platform)}>
+                              Reconnect
+                            </Button>
+                          ) : connected && !viaFacebook ? (
+                            <Button
+                              variant=\"danger\"
+                              size=\"sm\"
+                              loading={Boolean(loading[key])}
+                              onClick={() => handleDisconnect(platform)}
+                            >
+                              {t('accounts.disconnect')}
+                            </Button>
+                          ) : state === 'ready' || state === 'unknown' ? (
+                            <Button
+                              size=\"sm\"
+                              onClick={() => handleConnect(platform)}
+                              style={{ background: platform.color }}
+                            >
+                              {t('accounts.connect', undefined, { platform: platformLabel })}
+                            </Button>
+                          ) : null}
+          """
+          if old_actions not in text:
+              raise SystemExit('ConnectedAccounts.jsx: action branch not found')
+          path.write_text(text.replace(old_actions, new_actions, 1))
+
+          # 5) Realtime: attach a connection generation to async continuations.
+          # Manual close/token replacement invalidates older generations so a
+          # late refresh cannot resurrect a stale socket.
+          path = Path('frontend/src/hooks/useRealtime.js')
+          text = path.read_text()
+          refs = """  const reconnectTimer = useRef(null);
+            const pingTimer = useRef(null);
+            const attempt = useRef(0);
+          """
+          refs_new = """  const reconnectTimer = useRef(null);
+            const pingTimer = useRef(null);
+            const attempt = useRef(0);
+            const connectionGeneration = useRef(0);
+          """
+          if refs not in text:
+              raise SystemExit('useRealtime.js: refs block not found')
+          text = text.replace(refs, refs_new, 1)
+
+          old_close = """  const close = useCallback(() => {
+              if (pingTimer.current) { clearInterval(pingTimer.current); pingTimer.current = null; }
+              if (wsRef.current) {
+                try { wsRef.current.close(); } catch {}
+                wsRef.current = null;
+              }
+              setStatus('closed');
+            }, []);
+          """
+          new_close = """  const close = useCallback(() => {
+              connectionGeneration.current += 1;
+              if (reconnectTimer.current) { clearTimeout(reconnectTimer.current); reconnectTimer.current = null; }
+              if (pingTimer.current) { clearInterval(pingTimer.current); pingTimer.current = null; }
+              if (wsRef.current) {
+                try { wsRef.current.close(); } catch {}
+                wsRef.current = null;
+              }
+              setStatus('closed');
+            }, []);
+          """
+          if old_close not in text:
+              raise SystemExit('useRealtime.js: close callback not found')
+          text = text.replace(old_close, new_close, 1)
+
+          connect_anchor = """    const token = (typeof localStorage !== 'undefined') ? localStorage.getItem('access_token') : null;
+              if (!token) return; // wait until login finishes
+
+              setStatus('connecting');
+          """
+          connect_new = """    const token = (typeof localStorage !== 'undefined') ? localStorage.getItem('access_token') : null;
+              if (!token) return; // wait until login finishes
+
+              const generation = ++connectionGeneration.current;
+              setStatus('connecting');
+          """
+          if connect_anchor not in text:
+              raise SystemExit('useRealtime.js: connect token block not found')
+          text = text.replace(connect_anchor, connect_new, 1)
+
+          old_onclose = """    ws.onclose = async (e) => {
+            if (pingTimer.current) { clearInterval(pingTimer.current); pingTimer.current = null; }
+            wsRef.current = null;
+            setStatus('closed');
+
+            // 4401 means the access token is missing or expired. Coordinate the
+            // refresh with HTTP callers/tabs, then reconnect with the new JWT.
+            if (e.code === 4401) {
+              try {
+                await refreshAccessToken();
+                attempt.current = 0;
+                connect();
+              } catch {
+                invalidateSession();
+              }
+              return;
+            }
+            // 4403 is authorization failure, not an expired session.
+            if (e.code === 4403) return;
+            scheduleReconnect();
+          };
+          """
+          new_onclose = """    ws.onclose = async (e) => {
+              // A token-change reconnect or unmount may close an older socket after
+              // its replacement already exists. Stale callbacks must be inert.
+              if (connectionGeneration.current !== generation || wsRef.current !== ws) return;
+
+              if (pingTimer.current) { clearInterval(pingTimer.current); pingTimer.current = null; }
+              wsRef.current = null;
+              setStatus('closed');
+
+              if (e.code === 4401) {
+                try {
+                  await refreshAccessToken(token);
+                  if (connectionGeneration.current !== generation) return;
+                  attempt.current = 0;
+                  connect();
+                } catch {
+                  if (connectionGeneration.current === generation) {
+                    invalidateSession({ expectedAccessToken: token });
+                  }
+                }
+                return;
+              }
+              // 4403 is authorization failure, not an expired session.
+              if (e.code === 4403) return;
+              scheduleReconnect();
+            };
+          """
+          if old_onclose not in text:
+              raise SystemExit('useRealtime.js: current onclose block not found')
+          text = text.replace(old_onclose, new_onclose, 1)
+          path.write_text(text)
+
+          # 6/7/8) Shared auth session: use the token that actually failed, make
+          # late 401s reuse a newer access token, guard invalidation against a
+          # cross-tab replacement, and never write a refresh response into a
+          # session that was invalidated/replaced while the request was pending.
+          Path('frontend/src/lib/auth/session.js').write_text("""import axios from 'axios';
+
+          const REFRESH_LOCK = 'social-stats.jwt-refresh';
+          const INVALIDATION_KEY = 'social-stats.session-invalidated';
+          const sessionInvalidationListeners = new Set();
+          let refreshPromise = null;
+
+          function apiBaseUrl() {
+            return process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+          }
+
+          function storage() {
+            return typeof localStorage === 'undefined' ? null : localStorage;
+          }
+
+          function notifyInvalidated() {
+            sessionInvalidationListeners.forEach((listener) => listener());
+          }
+
+          export function onSessionInvalidated(listener) {
+            sessionInvalidationListeners.add(listener);
+            return () => sessionInvalidationListeners.delete(listener);
+          }
+
+          export function invalidateSession({ broadcast = true, expectedAccessToken } = {}) {
+            const store = storage();
+            if (!store) {
+              notifyInvalidated();
+              return true;
+            }
+
+            try {
+              const currentAccess = store.getItem('access_token');
+              // A failed request from an older token must never sign out a session
+              // that another tab/login has already replaced.
+              if (expectedAccessToken && currentAccess !== expectedAccessToken) return false;
+
+              store.removeItem('access_token');
+              store.removeItem('refresh_token');
+              if (broadcast) {
+                store.setItem(INVALIDATION_KEY, JSON.stringify({
+                  at: Date.now(),
+                  expectedAccessToken: expectedAccessToken || null,
+                }));
+              }
+            } catch {}
+
+            notifyInvalidated();
+            return true;
+          }
+
+          function currentSession(store) {
+            return {
+              access: store.getItem('access_token') || '',
+              refresh: store.getItem('refresh_token') || '',
+            };
+          }
+
+          function sessionChanged(before, after) {
+            return before.access !== after.access || before.refresh !== after.refresh;
+          }
+
+          async function performRefresh(failedAccessToken) {
+            const store = storage();
+            if (!store) throw new Error('Session storage unavailable');
+
+            const before = currentSession(store);
+            // The request that produced this 401 may have been sent before another
+            // tab/caller completed a refresh. Reuse the newer credential.
+            if (failedAccessToken && before.access && before.access !== failedAccessToken) {
+              return before.access;
+            }
+            if (!before.refresh) throw new Error('Refresh token unavailable');
+
+            let response;
+            try {
+              response = await axios.post(`${apiBaseUrl()}/auth/refresh/`, { refresh: before.refresh });
+            } catch (error) {
+              const afterFailure = currentSession(store);
+              // On browsers without Web Locks, parallel tabs may race. If another
+              // tab won that race, reuse its session instead of invalidating it.
+              if (sessionChanged(before, afterFailure) && afterFailure.access) {
+                return afterFailure.access;
+              }
+              throw error;
+            }
+
+            const afterRequest = currentSession(store);
+            if (sessionChanged(before, afterRequest)) {
+              // Logout/new login/another refresh happened while the request was in
+              // flight. Discard this now-stale response rather than overwriting it.
+              if (afterRequest.access && afterRequest.refresh) return afterRequest.access;
+              throw new Error('Session changed while refresh was in flight');
+            }
+
+            const access = response.data?.access;
+            if (!access) throw new Error('Refresh response did not include an access token');
+
+            store.setItem('access_token', access);
+            if (response.data?.refresh) store.setItem('refresh_token', response.data.refresh);
+            return access;
+          }
+
+          async function coordinatedRefresh(failedAccessToken) {
+            if (typeof navigator !== 'undefined' && navigator.locks?.request) {
+              return navigator.locks.request(
+                REFRESH_LOCK,
+                () => performRefresh(failedAccessToken),
+              );
+            }
+            // Without Web Locks we cannot atomically lease localStorage. The
+            // compare-before-write and conditional invalidation guards above make
+            // parallel refreshes non-destructive if another tab wins the race.
+            return performRefresh(failedAccessToken);
+          }
+
+          export function refreshAccessToken(failedAccessToken) {
+            if (refreshPromise) return refreshPromise;
+
+            const failedToken = failedAccessToken || storage()?.getItem('access_token') || '';
+            refreshPromise = coordinatedRefresh(failedToken)
+              .finally(() => { refreshPromise = null; });
+            return refreshPromise;
+          }
+
+          if (typeof window !== 'undefined') {
+            window.addEventListener('storage', (event) => {
+              if (event.key !== INVALIDATION_KEY || !event.newValue) return;
+              try {
+                const payload = JSON.parse(event.newValue);
+                invalidateSession({
+                  broadcast: false,
+                  expectedAccessToken: payload.expectedAccessToken || undefined,
+                });
+              } catch {
+                invalidateSession({ broadcast: false });
+              }
+            });
+          }
+          """)
+
+          # Pass the access token that actually received the 401. This closes the
+          # late-401 window where a completed refresh could otherwise rotate again.
+          path = Path('frontend/src/services/api.js')
+          text = path.read_text()
+          old_redirect = """function _redirectToLogin() {
+            invalidateSession();
+            if (typeof window === 'undefined') return;
+          """
+          new_redirect = """function _redirectToLogin(expectedAccessToken) {
+            const invalidated = invalidateSession({ expectedAccessToken });
+            if (!invalidated || typeof window === 'undefined') return;
+          """
+          if old_redirect not in text:
+              raise SystemExit('api.js: redirect helper not found')
+          text = text.replace(old_redirect, new_redirect, 1)
+
+          old_try = """    try {
+              const access = await refreshAccessToken();
+              original.headers.Authorization = `Bearer ${access}`;
+              return api(original);
+            } catch {
+              _redirectToLogin();
+              return Promise.reject(error);
+            }
+          """
+          new_try = """    const authorization = original?.headers?.get?.('Authorization')
+              || original?.headers?.Authorization
+              || original?.headers?.authorization
+              || '';
+            const failedAccessToken = typeof authorization === 'string' && authorization.startsWith('Bearer ')
+              ? authorization.slice(7)
+              : localStorage.getItem('access_token');
+
+            try {
+              const access = await refreshAccessToken(failedAccessToken);
+              original.headers.Authorization = `Bearer ${access}`;
+              return api(original);
+            } catch {
+              _redirectToLogin(failedAccessToken);
+              return Promise.reject(error);
+            }
+          """
+          if old_try not in text:
+              raise SystemExit('api.js: refresh try/catch not found')
+          path.write_text(text.replace(old_try, new_try, 1))
+          PY
+
+      - name: Extend regression tests
+        shell: bash
+        run: |
+          cat > frontend/src/lib/auth/session.test.js <<'EOF'
+          import axios from 'axios';
+          import { invalidateSession, refreshAccessToken } from './session';
+
+          jest.mock('axios');
+
+          describe('auth session coordinator', () => {
+            beforeEach(() => {
+              localStorage.clear();
+              axios.post.mockReset();
+              Object.defineProperty(navigator, 'locks', {
+                configurable: true,
+                value: undefined,
+              });
+            });
+
+            test('serializes concurrent refreshes and persists rotated refresh tokens', async () => {
+              localStorage.setItem('access_token', 'access-old');
+              localStorage.setItem('refresh_token', 'refresh-old');
+
+              let resolveRefresh;
+              axios.post.mockReturnValue(new Promise((resolve) => { resolveRefresh = resolve; }));
+
+              const first = refreshAccessToken('access-old');
+              const second = refreshAccessToken('access-old');
+              expect(axios.post).toHaveBeenCalledTimes(1);
+
+              resolveRefresh({ data: { access: 'access-new', refresh: 'refresh-new' } });
+              await expect(first).resolves.toBe('access-new');
+              await expect(second).resolves.toBe('access-new');
+              expect(localStorage.getItem('access_token')).toBe('access-new');
+              expect(localStorage.getItem('refresh_token')).toBe('refresh-new');
+            });
+
+            test('late 401 for an old token reuses the completed refresh', async () => {
+              localStorage.setItem('access_token', 'access-new');
+              localStorage.setItem('refresh_token', 'refresh-new');
+
+              await expect(refreshAccessToken('access-old')).resolves.toBe('access-new');
+              expect(axios.post).not.toHaveBeenCalled();
+            });
+
+            test('reuses a token refreshed by another tab after acquiring the browser lock', async () => {
+              localStorage.setItem('access_token', 'access-old');
+              localStorage.setItem('refresh_token', 'refresh-old');
+              const request = jest.fn(async (_name, callback) => {
+                localStorage.setItem('access_token', 'access-from-other-tab');
+                localStorage.setItem('refresh_token', 'refresh-from-other-tab');
+                return callback();
+              });
+              Object.defineProperty(navigator, 'locks', {
+                configurable: true,
+                value: { request },
+              });
+
+              await expect(refreshAccessToken('access-old')).resolves.toBe('access-from-other-tab');
+              expect(request).toHaveBeenCalledTimes(1);
+              expect(axios.post).not.toHaveBeenCalled();
+            });
+
+            test('discards a refresh response if the session was invalidated while in flight', async () => {
+              localStorage.setItem('access_token', 'access-old');
+              localStorage.setItem('refresh_token', 'refresh-old');
+
+              let resolveRefresh;
+              axios.post.mockReturnValue(new Promise((resolve) => { resolveRefresh = resolve; }));
+              const pending = refreshAccessToken('access-old');
+
+              invalidateSession();
+              resolveRefresh({ data: { access: 'stale-access', refresh: 'stale-refresh' } });
+
+              await expect(pending).rejects.toThrow('Session changed while refresh was in flight');
+              expect(localStorage.getItem('access_token')).toBeNull();
+              expect(localStorage.getItem('refresh_token')).toBeNull();
+            });
+
+            test('conditional invalidation cannot clear a newer session', () => {
+              localStorage.setItem('access_token', 'access-new');
+              localStorage.setItem('refresh_token', 'refresh-new');
+
+              expect(invalidateSession({ expectedAccessToken: 'access-old' })).toBe(false);
+              expect(localStorage.getItem('access_token')).toBe('access-new');
+              expect(localStorage.getItem('refresh_token')).toBe('refresh-new');
+            });
+
+            test('invalidates auth tokens without clearing unrelated preferences', () => {
+              localStorage.setItem('access_token', 'access');
+              localStorage.setItem('refresh_token', 'refresh');
+              localStorage.setItem('language', 'fa');
+
+              expect(invalidateSession()).toBe(true);
+
+              expect(localStorage.getItem('access_token')).toBeNull();
+              expect(localStorage.getItem('refresh_token')).toBeNull();
+              expect(localStorage.getItem('language')).toBe('fa');
+            });
+          });
+          EOF
+
+          cat > backend/social_stats/tests/test_oauth_readiness.py <<'EOF'
+          from django.test import SimpleTestCase, override_settings
+
+          from social_stats.oauth_readiness import oauth_readiness_report
+
+
+          class OAuthReadinessReportTests(SimpleTestCase):
+              @override_settings(
+                  GOOGLE_CLIENT_ID='client-id',
+                  GOOGLE_CLIENT_SECRET='client-secret',
+                  GOOGLE_REDIRECT_URI='https://example.test/api/oauth/google/callback/',
+              )
+              def test_google_business_profile_uses_business_scope_not_youtube_scopes(self):
+                  report = oauth_readiness_report()
+
+                  self.assertIn(
+                      'https://www.googleapis.com/auth/business.manage',
+                      report['google_my_business']['scopes'],
+                  )
+                  self.assertNotIn(
+                      'https://www.googleapis.com/auth/youtube.force-ssl',
+                      report['google_my_business']['scopes'],
+                  )
+                  self.assertIn(
+                      'https://www.googleapis.com/auth/youtube.force-ssl',
+                      report['youtube']['scopes'],
+                  )
+          EOF
+
+      - name: Run focused validation
+        shell: bash
+        run: |
+          (cd frontend && npm ci && CI=true npm test -- --watchAll=false --runInBand src/lib/auth/session.test.js)
+          python3 -m py_compile backend/social_stats/oauth_readiness.py backend/social_stats/oauth_views.py
+
+      - name: Commit fixes and remove one-shot workflow
+        shell: bash
+        run: |
+          rm .github/workflows/batch-b-review-fixes.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git diff --cached --check
+          git commit -m 'fix: address verified Batch B review findings [skip batch-b-review]'
+          git push origin HEAD:feat/connected-accounts-batch-b
