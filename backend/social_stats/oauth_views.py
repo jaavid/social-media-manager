@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 from django.conf import settings
 from django.shortcuts import redirect
 from django.utils import timezone
+from django.db.models.functions import Coalesce
 from django.contrib.auth.decorators import login_required
 
 from rest_framework.decorators import api_view, permission_classes
@@ -728,7 +729,9 @@ def oauth_status(request, client_id):
             client_id=client_id,
             platform=platform,
             status='success',
-        ).order_by('-finished_at', '-started_at').first()
+        ).annotate(
+            effective_sync_at=Coalesce('finished_at', 'started_at')
+        ).order_by('-effective_sync_at').first()
         last_successful_sync = (
             (last_sync.finished_at or last_sync.started_at).isoformat()
             if last_sync else None

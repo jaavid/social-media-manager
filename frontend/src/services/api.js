@@ -32,9 +32,9 @@ const PUBLIC_PATH_PREFIXES = [
   '/agency-invite/', '/invitation/', '/report/',
 ];
 
-function _redirectToLogin() {
-  invalidateSession();
-  if (typeof window === 'undefined') return;
+function _redirectToLogin(expectedAccessToken) {
+  const invalidated = invalidateSession({ expectedAccessToken });
+  if (!invalidated || typeof window === 'undefined') return;
   const path = window.location.pathname || '';
   if (PUBLIC_PATH_PREFIXES.some((p) => path.startsWith(p))) return;
   window.location.href = '/login';
@@ -62,12 +62,15 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
+    const authorization = original?.headers?.get?.('Authorization') || original?.headers?.Authorization || original?.headers?.authorization || '';
+    const failedAccessToken = typeof authorization === 'string' && authorization.startsWith('Bearer ') ? authorization.slice(7) : localStorage.getItem('access_token');
+
     try {
-      const access = await refreshAccessToken();
+      const access = await refreshAccessToken(failedAccessToken);
       original.headers.Authorization = `Bearer ${access}`;
       return api(original);
     } catch {
-      _redirectToLogin();
+      _redirectToLogin(failedAccessToken);
       return Promise.reject(error);
     }
   }
