@@ -770,7 +770,7 @@ export function CrossLinksSection({ user }) {
 
   const LINKS = [
     { to: `${base}/management`, label: 'Team & permissions',  description: 'Invite teammates, assign roles, override permissions.', staffOnly: true },
-    { to: `${base}/clients`,    label: 'Workspaces (clients)', description: 'Manage every client account in your agency.',         staffOnly: true },
+    { to: `${base}/workspaces`,    label: 'Workspaces (workspaces)', description: 'Manage every workspace account in your agency.',         staffOnly: true },
     { to: `${base}/analytics/audit-log`, label: 'Audit log',     description: 'Search every action across your account.',             staffOnly: true },
     { to: '/help',              label: 'Help center',          description: 'Setup guides, troubleshooting, FAQs.',                  staffOnly: false },
   ].filter((l) => !l.staffOnly || isStaff);

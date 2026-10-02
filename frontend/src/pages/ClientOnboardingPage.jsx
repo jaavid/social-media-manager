@@ -9,7 +9,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { clientsAPI } from '../services/api';
+import { workspacesAPI } from '../services/api';
 import PageHeader from '../components/layout/PageHeader';
 import ConnectedAccounts from '../components/ui/ConnectedAccounts';
 import CompetitorSection from '../components/ui/CompetitorSection';
@@ -107,7 +107,7 @@ export default function ClientOnboardingPage() {
   // Load existing client data and resume saved step on mount
   useEffect(() => {
     if (!clientId || dataLoaded) return;
-    clientsAPI.get(clientId).then(res => {
+    workspacesAPI.get(clientId).then(res => {
       const c = res.data;
       setFormData(prev => ({
         ...prev,
@@ -380,7 +380,7 @@ export default function ClientOnboardingPage() {
     if (!clientId) return;
     try {
       setSaving(true);
-      await clientsAPI.update(clientId, buildSubmitData());
+      await workspacesAPI.update(clientId, buildSubmitData());
     } catch { /* silent */ } finally {
       setSaving(false);
     }
@@ -421,9 +421,9 @@ export default function ClientOnboardingPage() {
       submitData.append('onboarding_complete', 'true');
 
       if (clientId) {
-        await clientsAPI.update(clientId, submitData);
+        await workspacesAPI.update(clientId, submitData);
       } else {
-        await clientsAPI.create(submitData);
+        await workspacesAPI.create(submitData);
         await refreshUser();
       }
       sessionStorage.removeItem(STEP_STORAGE_KEY);

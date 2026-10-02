@@ -11,7 +11,7 @@ import { addMonths, subMonths, format, parseISO, endOfMonth } from 'date-fns';
 import { ChevronLeft, ChevronRight, Plus, Calendar, List, BarChart2 } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { useClients } from '../hooks/useData';
+import { useWorkspaces } from '../hooks/useData';
 import {
   useCalendarPosts, useCalendarStats, useCalendarNotes,
   useCreatePost, useUpcomingPosts,
@@ -191,7 +191,7 @@ const listBtnStyle = {
 export default function CalendarPage({ clientId: propClientId }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
-  const { clients } = useClients();
+  const { workspaces: clients } = useWorkspaces();
   const { isPersian, t, tr, formatDate, formatNumber } = useLanguage();
   const isAdmin = user?.role === 'superadmin' || user?.role === 'staff';
   const isEmbedded = !!propClientId;

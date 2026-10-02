@@ -9,7 +9,7 @@
 import { useState } from 'react';
 import { NavLink, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { useClientSummary, useTimeseries, usePosts, useDateRange, useOAuthStatus, useLookups } from '../hooks/useData';
+import { useWorkspaceSummary, useTimeseries, usePosts, useDateRange, useOAuthStatus, useLookups } from '../hooks/useData';
 import { PLATFORMS, fmt } from '../services/platforms';
 import { exportPDF } from '../services/exportPDF';
 import StatCard from '../components/ui/StatCard';
@@ -17,7 +17,7 @@ import PlatformTabs from '../components/ui/PlatformTabs';
 import TodayBriefing from '../components/ai/TodayBriefing';
 import DateRangePicker from '../components/ui/DateRangePicker';
 import { ImpressionsChart, EngagementChart, VideoViewsChart, PlatformCompareChart } from '../components/charts/Charts';
-import { clientsAPI } from '../services/api';
+import { workspacesAPI } from '../services/api';
 import {
   Eye, Radio, MousePointer2, Heart, Play, UserPlus, Globe, Phone,
   RefreshCw, Loader2, FileText, Share2, Clock, TrendingDown, Timer,
@@ -78,7 +78,7 @@ export default function ClientDashboard({ clientId: propClientId }) {
   // ── Data ──────────────────────────────────────────────────────────────────
   // Hooks live here (parent) so switching tabs doesn't refetch. Each tab
   // receives the slice of data it needs via props.
-  const { data: summary, loading: sumLoading, refetch: refetchSummary } = useClientSummary(clientId, range, platform);
+  const { data: summary, loading: sumLoading, refetch: refetchSummary } = useWorkspaceSummary(clientId, range, platform);
   const { data: timeseries, loading: tsLoading }                        = useTimeseries(clientId, range, platform);
   const { posts }                                                        = usePosts(clientId, platform, range);
   const { status: oauthStatus }                                          = useOAuthStatus(clientId);
@@ -108,7 +108,7 @@ export default function ClientDashboard({ clientId: propClientId }) {
   const handleSync = async () => {
     setSyncing(true);
     try {
-      await clientsAPI.triggerSync(clientId, connectedPlatforms);
+      await workspacesAPI.triggerSync(clientId, connectedPlatforms);
       setTimeout(() => { refetchSummary(); setSyncing(false); }, 3000);
     } catch { setSyncing(false); }
   };

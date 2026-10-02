@@ -142,7 +142,7 @@ export default function SendManageRequestModal({ open, onClose, onSent }) {
               Step {step} of 4
             </div>
             <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-primary)' }}>
-              Invite a client to manage
+              Request access to a workspace
             </div>
           </div>
           <button type="button" onClick={onClose} aria-label="Close" style={iconBtn}><X size={16} /></button>
@@ -153,9 +153,9 @@ export default function SendManageRequestModal({ open, onClose, onSent }) {
         <div style={{ flex: 1, overflowY: 'auto', padding: '4px 24px 18px' }}>
           {step === 1 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <Field label="Client email" type="email" value={form.target_email}
+              <Field label="Owner email" type="email" value={form.target_email}
                      onChange={(e) => setForm((s) => ({ ...s, target_email: e.target.value }))}
-                     placeholder="client@business.com" autoFocus />
+                     placeholder="workspace@business.com" autoFocus />
               <Field label="Phone (optional, sends WhatsApp invite)" value={form.target_phone}
                      onChange={(e) => setForm((s) => ({ ...s, target_phone: e.target.value }))}
                      placeholder="+91 …" />
@@ -165,8 +165,8 @@ export default function SendManageRequestModal({ open, onClose, onSent }) {
           {step === 2 && (
             <div>
               <p style={hintStyle}>
-                Pick which actions you should be able to perform on the client's behalf.
-                The client will see this list and can override anything before accepting.
+                Pick which actions you should be able to perform in the workspace.
+                The workspace owner will see this list and can override anything before accepting.
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                 {Object.entries(grouped).map(([cat, perms]) => (
@@ -195,7 +195,7 @@ export default function SendManageRequestModal({ open, onClose, onSent }) {
           {step === 3 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div>
-                <Label>Message to the client</Label>
+                <Label>Message to the workspace owner</Label>
                 <textarea
                   value={form.proposed_message}
                   onChange={(e) => setForm((s) => ({ ...s, proposed_message: e.target.value }))}
@@ -247,7 +247,7 @@ function ReviewSummary({ form, granted }) {
       <Row k="Message"        v={form.proposed_message || <em style={{ color: 'var(--text-tertiary)' }}>(none)</em>} multiline />
       <p style={{ ...hintStyle, marginTop: 8 }}>
         <Check size={11} style={{ marginRight: 4, verticalAlign: 'middle', color: 'var(--success)' }} />
-        Client receives an email with a magic link. Their decision is recorded — you can cancel from your sent list any time.
+        The workspace owner receives an email with a magic link. Their decision is recorded — you can cancel from your sent list any time.
       </p>
     </div>
   );

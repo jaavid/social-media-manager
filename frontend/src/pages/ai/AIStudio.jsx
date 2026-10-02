@@ -62,7 +62,7 @@ const FEATURE_GROUPS = [
 ];
 
 const ADMIN_ITEMS = [
-  { id: 'ai-usage', title: 'AI Usage', icon: Activity, body: 'Cost dashboards, per-client + per-user breakdown.', to: '/ai-usage', accent: 'var(--warning)' },
+  { id: 'ai-usage', title: 'AI Usage', icon: Activity, body: 'Cost dashboards, per-workspace + per-user breakdown.', to: '/ai-usage', accent: 'var(--warning)' },
 ];
 
 

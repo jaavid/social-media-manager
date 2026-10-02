@@ -10,7 +10,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useSearchParams, useLocation  } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useOAuthStatus, useLookups } from '../hooks/useData';
-import { clientsAPI } from '../services/api';
+import { workspacesAPI } from '../services/api';
 import ConnectedAccounts from '../components/ui/ConnectedAccounts';
 import CompetitorSection from '../components/ui/CompetitorSection';
 import PageHeader from '../components/layout/PageHeader';
@@ -103,7 +103,7 @@ export default function SettingsPage({ clientId: propClientId }) {
   useEffect(() => {
     const loadClientData = async () => {
       try {
-        const response = await clientsAPI.get(clientId);
+        const response = await workspacesAPI.get(clientId);
         const client = response.data;
         
         setFormData({
@@ -135,7 +135,7 @@ export default function SettingsPage({ clientId: propClientId }) {
 
         });
       } catch (error) {
-        console.error('Failed to load client data:', error);
+        console.error('Failed to load workspace data:', error);
       } finally {
         setProfileLoading(false);
       }
@@ -374,7 +374,7 @@ export default function SettingsPage({ clientId: propClientId }) {
         }
       });
 
-      await clientsAPI.update(clientId, submitData);
+      await workspacesAPI.update(clientId, submitData);
       alert('Profile updated successfully!');
     } catch (error) {
       console.error('Failed to update profile:', error);

@@ -101,7 +101,7 @@ function PermissionsPanel({ entityId, entityType }) {
     try {
       const fn = entityType === 'staff'
         ? managementAPI.getStaffPermissions
-        : managementAPI.getClientPermissions;
+        : managementAPI.getWorkspacePermissions;
       const res = await fn(entityId);
       const arr = dictToGroupsArray(res.data);
       setGroups(arr);
@@ -134,7 +134,7 @@ function PermissionsPanel({ entityId, entityType }) {
       const revokes = Object.entries(changed).filter(([, v]) => !v).map(([c]) => c);
       const fn = entityType === 'staff'
         ? managementAPI.setStaffPermissions
-        : managementAPI.setClientPermissions;
+        : managementAPI.setWorkspacePermissions;
       await fn(entityId, { grants, revokes });
       await load();
     } catch {
@@ -150,7 +150,7 @@ function PermissionsPanel({ entityId, entityType }) {
     try {
       const fn = entityType === 'staff'
         ? managementAPI.setStaffPermissions
-        : managementAPI.setClientPermissions;
+        : managementAPI.setWorkspacePermissions;
       await fn(entityId, { reset_all: true });
       await load();
     } catch {
@@ -227,7 +227,7 @@ function PortalConfigPanel({ clientId }) {
   const [saved, setSaved]     = useState(false);
 
   useEffect(() => {
-    managementAPI.getClientPortalConfig(clientId)
+    managementAPI.getWorkspacePortalConfig(clientId)
       .then(res => setCfg(res.data))
       .catch(() => setError('Failed to load portal config.'))
       .finally(() => setLoading(false));
@@ -236,7 +236,7 @@ function PortalConfigPanel({ clientId }) {
   const handleSave = async () => {
     setSaving(true); setError(''); setSaved(false);
     try {
-      await managementAPI.saveClientPortalConfig(clientId, cfg);
+      await managementAPI.saveWorkspacePortalConfig(clientId, cfg);
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch {
@@ -337,15 +337,15 @@ function StaffClientsPanel({ staffId }) {
     setLoading(true);
     try {
       const [assignedRes, allRes] = await Promise.all([
-        managementAPI.getStaffClients(staffId),
-        managementAPI.listClients(),
+        managementAPI.getStaffWorkspaces(staffId),
+        managementAPI.listWorkspaces(),
       ]);
       const assignedList = assignedRes.data;
       const assignedIds = new Set(assignedList.map(c => c.id));
       setAssigned(assignedList);
       setAvailable(allRes.data.filter(c => !assignedIds.has(c.id)));
     } catch {
-      setError('Failed to load client assignments.');
+      setError('Failed to load workspace assignments.');
     } finally {
       setLoading(false);
     }
@@ -356,18 +356,18 @@ function StaffClientsPanel({ staffId }) {
   const handleAdd = async (clientId) => {
     setSaving(true);
     try {
-      await managementAPI.setStaffClients(staffId, { add: [{ client_id: clientId }], remove: [] });
+      await managementAPI.setStaffWorkspaces(staffId, { add: [{ client_id: clientId }], remove: [] });
       await load();
-    } catch { setError('Failed to add client.'); }
+    } catch { setError('Failed to add workspace.'); }
     finally { setSaving(false); }
   };
 
   const handleRemove = async (clientId) => {
     setSaving(true);
     try {
-      await managementAPI.setStaffClients(staffId, { add: [], remove: [clientId] });
+      await managementAPI.setStaffWorkspaces(staffId, { add: [], remove: [clientId] });
       await load();
-    } catch { setError('Failed to remove client.'); }
+    } catch { setError('Failed to remove workspace.'); }
     finally { setSaving(false); }
   };
 
@@ -642,7 +642,7 @@ function ClientsTab() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await managementAPI.listClients();
+      const res = await managementAPI.listWorkspaces();
       setClients(res.data);
     } catch { setError('Failed to load users.'); }
     finally { setLoading(false); }
@@ -782,7 +782,7 @@ function RoleDefaultsTab() {
         <SegmentedTabs
           items={[
             { id: 'staff', label: 'Staff' },
-            { id: 'client', label: 'Client' },
+            { id: 'client', label: 'Workspace member' },
           ]}
           active={role}
           onChange={setRole}

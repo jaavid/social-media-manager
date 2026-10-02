@@ -14,7 +14,10 @@ from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView
-from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
+from .workspace_vocabulary import (
+    WorkspaceJSONParser as JSONParser, WorkspaceFormParser as FormParser,
+    WorkspaceMultiPartParser as MultiPartParser,
+)
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
@@ -50,6 +53,7 @@ class CustomTokenSerializer(TokenObtainPairSerializer):
             ensure_client_profile(profile)
             token['role']      = profile.role
             token['client_id'] = profile.client_id
+            token['workspace_id'] = profile.client_id
             token['name']      = user.get_full_name() or user.username
             # Include permissions in token
             from .permissions import PermissionChecker

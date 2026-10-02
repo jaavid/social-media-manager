@@ -8,7 +8,7 @@
  * ========================================================================== */
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useOverview, useDateRange, useClients, useGoals, useAlerts, useLookups } from '../hooks/useData';
+import { useOverview, useDateRange, useWorkspaces, useGoals, useAlerts, useLookups } from '../hooks/useData';
 import DateRangePicker from '../components/ui/DateRangePicker';
 import StatCard from '../components/ui/StatCard';
 import { PLATFORMS } from '../services/platforms';
@@ -42,7 +42,7 @@ const now = new Date();
 
 function GoalManager({ platformOptions = PLATFORM_OPTIONS }) {
   const { tr, formatNumber } = useLanguage();
-  const { clients }           = useClients();
+  const { workspaces: clients }           = useWorkspaces();
   const [open, setOpen]       = useState(false);
   const [form, setForm]       = useState({
     client: '', platform: 'all', metric: 'impressions',
@@ -565,7 +565,7 @@ function ROIOverviewPanel() {
                     <td style={styles.td}><span style={{ display: 'inline-block', padding: '2px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700, background: label.bg, color: label.color }}>{label.text}</span></td>
                     <td style={styles.td}>
                       {r.client_id && (
-                        <button onClick={() => navigate(`/admin/client/${r.client_id}/roi`)} style={{ background: 'none', border: '1px solid var(--border-default)', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontSize: 12, color: '#00d7ff', display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <button onClick={() => navigate(`/admin/workspace/${r.client_id}/roi`)} style={{ background: 'none', border: '1px solid var(--border-default)', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontSize: 12, color: '#00d7ff', display: 'flex', alignItems: 'center', gap: 4 }}>
                           <ExternalLink size={12} /> {tr('View')}
                         </button>
                       )}
@@ -631,13 +631,13 @@ export default function AdminOverview() {
           <div style={styles.heroCopy}>
             <div style={styles.heroEyebrow}>{tr('Agency Command Center')}</div>
             <h1 style={styles.heroTitle}>{tr('Make the numbers feel actionable.')}</h1>
-            <p style={styles.heroSubtitle}>{tr('Track client momentum, sync health, campaign traction, and cross-platform performance from one polished control room.')}</p>
+            <p style={styles.heroSubtitle}>{tr('Track workspace momentum, sync health, campaign traction, and cross-platform performance from one polished control room.')}</p>
           </div>
           <div style={styles.heroActions}><DateRangePicker range={range} onChange={setRange} /></div>
         </div>
 
         <div className="admin-signal-grid" style={styles.signalGrid}>
-          <SignalCard label={tr('Active Users')} value={loading ? '...' : formatNumber(overview?.total_clients || 0)} detail={loading ? tr('Loading agency coverage') : `${formatNumber(activePlatforms)} ${tr('active platforms in this window')}`} accent="#00d7ff" />
+          <SignalCard label={tr('Active Workspaces')} value={loading ? '...' : formatNumber(overview?.total_workspaces || 0)} detail={loading ? tr('Loading agency coverage') : `${formatNumber(activePlatforms)} ${tr('active platforms in this window')}`} accent="#00d7ff" />
           <SignalCard label={tr('Top Platform')} value={topPlatformLabel} detail={topPlatform ? `${formatNumber(topPlatform.impressions || 0)} ${tr('impressions')} · ${formatNumber(topPlatform.reach || 0)} ${tr('reach')}` : tr('Waiting for synced performance data')} accent={topPlatformColor} />
           <SignalCard label={tr('Click Efficiency')} value={`${formatNumber(ctr)}%`} detail={`${formatNumber(totalClicks)} ${tr('clicks')} · ${formatNumber(totalImpressions)} ${tr('impressions')}`} accent="#22c55e" />
           <SignalCard label={tr('Sync Health')} value={latestSync ? `${formatNumber(syncSuccessCount)}/${formatNumber(overview?.recent_syncs?.length || 0)}` : `${formatNumber(0)}/${formatNumber(0)}`} detail={latestSyncLabel} accent={latestSync?.status === 'failed' ? '#ef4444' : latestSync?.status === 'running' ? '#00d7ff' : '#f59e0b'} />
@@ -654,7 +654,7 @@ export default function AdminOverview() {
       <div style={styles.sectionHeading}><div><div style={styles.sectionEyebrow}>{tr('Performance Snapshot')}</div><h2 style={styles.sectionTitle}>{tr('Core agency metrics at a glance')}</h2></div></div>
 
       <div className="admin-stat-cards" style={styles.cards}>
-        <StatCard label={tr('Total Users')} value={formatNumber(overview?.total_clients || 0)} icon={Users} color="#00d7ff" />
+        <StatCard label={tr('Total Workspaces')} value={formatNumber(overview?.total_workspaces || 0)} icon={Users} color="#00d7ff" />
         <StatCard label={tr('Total Impressions')} value={formatNumber(totalImpressions)} icon={Eye} color="#00d7ff" />
         <StatCard label={tr('Total Clicks')} value={formatNumber(totalClicks)} icon={MousePointer2} color="#22c55e" />
         <StatCard label={tr('Total Followers')} value={formatNumber(totalFollowers)} icon={TrendingUp} color="#f59e0b" />
@@ -697,7 +697,7 @@ export default function AdminOverview() {
             <div className="admin-table-wrap" style={styles.tableWrap}>
               <h3 style={styles.tableTitle}>{tr('Recent Sync Activity')}</h3>
               <table style={styles.table}>
-                <thead><tr>{['Client','Platform','Status','Daily Rows','Started'].map(h => <th key={h} style={styles.th}>{tr(h)}</th>)}</tr></thead>
+                <thead><tr>{['Workspace','Platform','Status','Daily Rows','Started'].map(h => <th key={h} style={styles.th}>{tr(h)}</th>)}</tr></thead>
                 <tbody>
                   {overview.recent_syncs.map(l => (
                     <tr key={l.id} style={styles.tr}>

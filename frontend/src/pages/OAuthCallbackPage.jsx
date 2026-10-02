@@ -42,7 +42,7 @@ export default function OAuthCallbackPage() {
     const isAdmin = user.role === 'superadmin' || user.role === 'staff';
 
     if (isAdmin && clientId) {
-      navigate(`/admin/client/${clientId}/settings`, { state: routerState, replace: true });
+      navigate(`/admin/workspace/${clientId}/settings`, { state: routerState, replace: true });
     } else if (isAdmin) {
       navigate('/admin', { replace: true });
     } else {

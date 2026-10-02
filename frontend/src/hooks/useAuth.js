@@ -97,7 +97,7 @@ export function AuthProvider({ children }) {
   }, [user]);
 
   // True when a client is logged in but has no client_id yet (self-registered, no agency)
-  const isPending = !!(user && user.role === 'client' && !user.client_id);
+  const isPending = !!(user && user.role === 'client' && !(user.workspace_id ?? user.client_id));
 
   // Account-type helpers. account_type is set on UserProfile and surfaced
   // by /auth/me/. Possible values: 'end_user' | 'agency_member' | 'legacy'

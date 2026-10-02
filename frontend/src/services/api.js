@@ -7,6 +7,7 @@
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
 import axios from 'axios';
+import { workspaceRequest } from './workspaceVocabulary';
 import { invalidateSession, onSessionInvalidated, refreshAccessToken } from '../lib/auth/session';
 
 export { invalidateSession, onSessionInvalidated };
@@ -18,6 +19,8 @@ const api = axios.create({
 
 // Attach JWT token to every request
 api.interceptors.request.use((config) => {
+  config.params = workspaceRequest(config.params);
+  config.data = workspaceRequest(config.data);
   const token = localStorage.getItem('access_token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
@@ -289,29 +292,32 @@ export const reviewAPI = {
   helpful: (id)                  => api.post(`/reviews/${id}/helpful/`, {}),
 };
 
-// ── Clients ───────────────────────────────────────────
-export const clientsAPI = {
-  list:        ()           => api.get('/clients/'),
-  get:         (id)         => api.get(`/clients/${id}/`),
-  create:      (data)       => api.post('/clients/', data),
+// ── Workspaces ───────────────────────────────────────────
+export const workspacesAPI = {
+  list:        ()           => api.get('/workspaces/'),
+  get:         (id)         => api.get(`/workspaces/${id}/`),
+  create:      (data)       => api.post('/workspaces/', data),
   update:      (id, data)   => api.patch(
-    `/clients/${id}/`,
+    `/workspaces/${id}/`,
     data,
     data instanceof FormData
       ? { headers: { 'Content-Type': 'multipart/form-data' } }
       : undefined
   ),
-  delete:      (id)         => api.delete(`/clients/${id}/`),
-  summary:     (id, params) => api.get(`/clients/${id}/summary/`, { params }),
-  timeseries:  (id, params) => api.get(`/clients/${id}/timeseries/`, { params }),
-  posts:       (id, params) => api.get(`/clients/${id}/posts/`, { params }),
-  triggerSync: (id, platforms, socialAccountIds) => api.post(`/clients/${id}/trigger_sync/`, {
+  delete:      (id)         => api.delete(`/workspaces/${id}/`),
+  summary:     (id, params) => api.get(`/workspaces/${id}/summary/`, { params }),
+  timeseries:  (id, params) => api.get(`/workspaces/${id}/timeseries/`, { params }),
+  posts:       (id, params) => api.get(`/workspaces/${id}/posts/`, { params }),
+  triggerSync: (id, platforms, socialAccountIds) => api.post(`/workspaces/${id}/trigger_sync/`, {
     platforms,
     ...(socialAccountIds ? { social_account_ids: socialAccountIds } : {}),
   }),
-  syncStatus:  (id, params) => api.get(`/clients/${id}/sync_status/`, { params }),
+  syncStatus:  (id, params) => api.get(`/workspaces/${id}/sync_status/`, { params }),
   syncAll:     ()           => api.post('/admin/sync-all/'),
 };
+
+// Backward-compatible JavaScript export; canonical calls use Workspace routes.
+export const clientsAPI = workspacesAPI;
 
 // ── OAuth ─────────────────────────────────────────────
 export const oauthAPI = {
@@ -330,7 +336,7 @@ export const overviewAPI = {
 
 // ── Admin ─────────────────────────────────────────────
 export const adminAPI = {
-  createClient: (data) => api.post('/admin/create-client/', data),
+  createWorkspace: (data) => api.post('/admin/create-workspace/', data),
 };
 
 // ── Sync Logs ─────────────────────────────────────────
@@ -462,7 +468,7 @@ export { api };
 
 // ── Solo Client Setup ─────────────────────────────────────────────────────────
 export const soloAPI = {
-  setup: () => api.post('/client/setup-solo/'),
+  setup: () => api.post('/workspace/setup-solo/'),
 };
 
 // ── Management (superadmin only) ──────────────────────
@@ -475,16 +481,16 @@ export const managementAPI = {
   deleteStaff:         (id)         => api.delete(`/management/staff/${id}/`),
   getStaffPermissions: (id)         => api.get(`/management/staff/${id}/permissions/`),
   setStaffPermissions: (id, data)   => api.post(`/management/staff/${id}/permissions/`, data),
-  getStaffClients:     (id)         => api.get(`/management/staff/${id}/clients/`),
-  setStaffClients:     (id, data)   => api.post(`/management/staff/${id}/clients/`, data),
+  getStaffWorkspaces:     (id)         => api.get(`/management/staff/${id}/workspaces/`),
+  setStaffWorkspaces:     (id, data)   => api.post(`/management/staff/${id}/workspaces/`, data),
   // Clients
-  listClients:               ()           => api.get('/management/clients/'),
-  getClient:                 (id)         => api.get(`/management/clients/${id}/`),
-  updateClient:              (id, data)   => api.patch(`/management/clients/${id}/`, data),
-  getClientPermissions:      (id)         => api.get(`/management/clients/${id}/permissions/`),
-  setClientPermissions:      (id, data)   => api.post(`/management/clients/${id}/permissions/`, data),
-  getClientPortalConfig:     (id)         => api.get(`/management/clients/${id}/portal-config/`),
-  saveClientPortalConfig:    (id, data)   => api.put(`/management/clients/${id}/portal-config/`, data),
+  listWorkspaces:               ()           => api.get('/management/workspaces/'),
+  getWorkspace:                 (id)         => api.get(`/management/workspaces/${id}/`),
+  updateWorkspace:              (id, data)   => api.patch(`/management/workspaces/${id}/`, data),
+  getWorkspacePermissions:      (id)         => api.get(`/management/workspaces/${id}/permissions/`),
+  setWorkspacePermissions:      (id, data)   => api.post(`/management/workspaces/${id}/permissions/`, data),
+  getWorkspacePortalConfig:     (id)         => api.get(`/management/workspaces/${id}/portal-config/`),
+  saveWorkspacePortalConfig:    (id, data)   => api.put(`/management/workspaces/${id}/portal-config/`, data),
   // Permissions & Roles
   listPermissions:     ()           => api.get('/management/permissions/'),
   getRoleDefaults:     (role)       => api.get(`/management/role-defaults/${role}/`),
@@ -582,7 +588,7 @@ export const aiV2API = {
   reportNarrate:      (data) => api.post('/ai/v2/report-narrate/', data),
 
   usageOverview:   (params) => api.get('/ai/v2/usage/',           { params }),
-  usageByClient:   (params) => api.get('/ai/v2/usage/by-client/', { params }),
+  usageByWorkspace:   (params) => api.get('/ai/v2/usage/by-workspace/', { params }),
   usageByUser:     (params) => api.get('/ai/v2/usage/by-user/',   { params }),
   usageBudget:     ()       => api.get('/ai/v2/usage/budget/'),
   usageQuota:      (params) => api.get('/ai/v2/usage/quota/',     { params }),
@@ -824,3 +830,16 @@ export const privacyAPI = {
 };
 
 export default api;
+
+// Compatibility names for integrations using the pre-Workspace SDK.
+adminAPI.createClient = adminAPI.createWorkspace;
+managementAPI.getStaffClients = managementAPI.getStaffWorkspaces;
+managementAPI.setStaffClients = managementAPI.setStaffWorkspaces;
+managementAPI.listClients = managementAPI.listWorkspaces;
+managementAPI.getClient = managementAPI.getWorkspace;
+managementAPI.updateClient = managementAPI.updateWorkspace;
+managementAPI.getClientPermissions = managementAPI.getWorkspacePermissions;
+managementAPI.setClientPermissions = managementAPI.setWorkspacePermissions;
+managementAPI.getClientPortalConfig = managementAPI.getWorkspacePortalConfig;
+managementAPI.saveClientPortalConfig = managementAPI.saveWorkspacePortalConfig;
+aiV2API.usageByClient = aiV2API.usageByWorkspace;

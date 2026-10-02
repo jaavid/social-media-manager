@@ -137,7 +137,7 @@ class TenantScopedMixin:
     def perform_create(self, serializer):
         client_id = self.resolved_client_id()
         if client_id is None:
-            raise PermissionDenied('No client context available for this user')
+            raise PermissionDenied('No workspace context available for this user')
 
         extra = {f'{self.client_field_name}_id': client_id}
         model = serializer.Meta.model

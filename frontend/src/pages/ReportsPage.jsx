@@ -8,7 +8,7 @@
  * ========================================================================== */
 import { useState, useEffect, useCallback } from 'react';
 import { sharedReportsAPI, roiAPI } from '../services/api';
-import { useClients } from '../hooks/useData';
+import { useWorkspaces } from '../hooks/useData';
 import { formatTimeAgo } from '../services/formatters';
 import {
   Link2, Copy, Eye, Trash2, Check, Lock, ExternalLink,
@@ -84,7 +84,7 @@ function SharedLinksPanel({ clientFilter }) {
           <div style={{ fontSize: 36, marginBottom: 10 }}>🔗</div>
           <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: 15 }}>No shared links yet</div>
           <div style={{ color: 'var(--text-secondary)', fontSize: 13, marginTop: 4 }}>
-            Open a client and click "Share Report" to generate a public link.
+            Open a workspace and click "Share Report" to generate a public link.
           </div>
         </div>
       ) : (
@@ -288,7 +288,7 @@ function ROIReportsPanel() {
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 export default function ReportsPage() {
-  const { clients } = useClients();
+  const { workspaces: clients } = useWorkspaces();
   const [clientFilter, setClientFilter] = useState('');
   const [activeTab, setActiveTab]       = useState('shared');
 
@@ -301,14 +301,14 @@ export default function ReportsPage() {
     <div className="app-page app-page--md">
       <PageHeader
         title="Reports"
-        subtitle="Manage shared client report links and monthly ROI summaries"
+        subtitle="Manage shared workspace report links and monthly ROI summaries"
         actions={(
           <select
             value={clientFilter}
             onChange={e => setClientFilter(e.target.value)}
             style={{ ...selectStyle, minWidth: 200 }}
           >
-            <option value="">All clients</option>
+            <option value="">All workspaces</option>
             {clients.map(c => (
               <option key={c.id} value={c.id}>{c.company}</option>
             ))}

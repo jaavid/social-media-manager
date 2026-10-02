@@ -3,6 +3,17 @@
 // incrementally through `tr()` without introducing another i18n dependency.
 
 const faExtra = {
+  'Active Workspaces': 'فضاهای کاری فعال',
+  'Total Workspaces': 'تعداد فضاهای کاری',
+  'Owner email': 'ایمیل مالک',
+  'Workspaces': 'فضاهای کاری',
+  'Workspace': 'فضای کاری',
+  'Workspace member': 'عضو فضای کاری',
+  'Connected Workspaces': 'فضاهای کاری متصل',
+  'Invite a Workspace Owner': 'دعوت از مالک فضای کاری',
+  'Owner Email': 'ایمیل مالک',
+  'Sync all workspaces': 'همگام‌سازی همه فضاهای کاری',
+
   // Generic actions and states
   'Add': 'افزودن',
   'Add new': 'افزودن مورد جدید',
@@ -58,7 +69,7 @@ const faExtra = {
   'All Users': 'همه کاربران',
   'All Platforms': 'همه پلتفرم‌ها',
   'All platforms': 'همه پلتفرم‌ها',
-  'All clients': 'همه مشتریان',
+  'All workspaces': 'همه فضاهای کاری',
   'Copy': 'کپی',
   'Copy link': 'کپی لینک',
   'Copied!': 'کپی شد!',
@@ -73,7 +84,7 @@ const faExtra = {
   'Never': 'هرگز',
   'Protected': 'محافظت‌شده',
   'Period': 'بازه',
-  'Client': 'مشتری',
+  'Workspace': 'فضای کاری',
   'Started': 'شروع',
   'Daily Rows': 'ردیف‌های روزانه',
   'Target': 'هدف',
@@ -106,12 +117,12 @@ const faExtra = {
   'No timeseries data.': 'داده سری زمانی وجود ندارد.',
   'Platform Balance Radar': 'نمودار راداری توازن پلتفرم‌ها',
   'Relative strength across all metrics per platform': 'قدرت نسبی هر پلتفرم در همه شاخص‌ها',
-  'All clients overview': 'نمای کلی همه مشتریان',
+  'All workspaces overview': 'نمای کلی همه فضاهای کاری',
 
   // Dashboard
   'Agency Command Center': 'مرکز فرماندهی آژانس',
   'Make the numbers feel actionable.': 'اعداد را به تصمیم‌های قابل اجرا تبدیل کنید.',
-  'Track client momentum, sync health, campaign traction, and cross-platform performance from one polished control room.': 'روند رشد مشتریان، سلامت همگام‌سازی، عملکرد کمپین‌ها و وضعیت همه پلتفرم‌ها را از یک مرکز کنترل یکپارچه دنبال کنید.',
+  'Track workspace momentum, sync health, campaign traction, and cross-platform performance from one polished control room.': 'روند رشد فضاهای کاری، سلامت همگام‌سازی، عملکرد کمپین‌ها و وضعیت همه پلتفرم‌ها را از یک مرکز کنترل یکپارچه دنبال کنید.',
   'Active Users': 'کاربران فعال',
   'active platforms in this window': 'پلتفرم فعال در این بازه',
   'Top Platform': 'برترین پلتفرم',
@@ -167,7 +178,7 @@ const faExtra = {
   // Reports
   'Loading links…': 'در حال بارگذاری لینک‌ها…',
   'No shared links yet': 'هنوز لینک اشتراکی وجود ندارد',
-  'Open a client and click "Share Report" to generate a public link.': 'یک مشتری را باز کنید و روی «اشتراک گزارش» بزنید تا لینک عمومی ساخته شود.',
+  'Open a workspace and click "Share Report" to generate a public link.': 'یک فضای کاری را باز کنید و روی «اشتراک گزارش» بزنید تا لینک عمومی ساخته شود.',
   'EXPIRED': 'منقضی‌شده',
   'views': 'بازدید',
   'Created': 'ایجادشده',
@@ -187,7 +198,7 @@ const faExtra = {
   'Review': 'نیازمند بررسی',
   'View': 'مشاهده',
   'Shared Links': 'لینک‌های اشتراکی',
-  'Manage shared client report links and monthly ROI summaries': 'مدیریت لینک‌های اشتراک گزارش مشتریان و خلاصه‌های ماهانه بازگشت سرمایه',
+  'Manage shared workspace report links and monthly ROI summaries': 'مدیریت لینک‌های اشتراک گزارش فضاهای کاری و خلاصه‌های ماهانه بازگشت سرمایه',
 
   // Authentication
   'Email': 'ایمیل',

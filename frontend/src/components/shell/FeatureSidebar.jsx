@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 
 import PermissionGate from '../ui/PermissionGate';
-import { useClients } from '../../hooks/useData';
+import { useWorkspaces } from '../../hooks/useData';
 import { useBadgeCount } from '../../stores/appStore';
 import { useLanguage } from '../../i18n';
 
@@ -212,7 +212,7 @@ function ClientSwitcher({ selected, onSelect }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   const navigate = useNavigate();
-  const { clients } = useClients();
+  const { workspaces: clients } = useWorkspaces();
   const { t } = useLanguage();
 
   const filtered = (clients || []).filter((c) =>
@@ -244,7 +244,7 @@ function ClientSwitcher({ selected, onSelect }) {
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
           fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', textAlign: 'start',
         }}>
-          {selected?.company || t('common.allClients', 'All clients')}
+          {selected?.company || t('common.allWorkspaces', 'All workspaces')}
         </span>
         <ChevronDown size={14} color="var(--text-tertiary)" />
       </button>
@@ -275,7 +275,7 @@ function ClientSwitcher({ selected, onSelect }) {
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder={t('common.searchClients', 'Search clients…')}
+                placeholder={t('common.searchWorkspaces', 'Search workspaces…')}
                 style={{
                   width: '100%', padding: '6px 10px', paddingInlineStart: 26,
                   background: 'var(--surface-sunken)',
@@ -291,7 +291,7 @@ function ClientSwitcher({ selected, onSelect }) {
           </div>
           <div style={{ padding: 4 }}>
             <SwitcherRow
-              label={t('common.allClients', 'All clients')}
+              label={t('common.allWorkspaces', 'All workspaces')}
               active={!selected}
               onClick={() => { onSelect?.(null); setOpen(false); }}
             />
@@ -303,7 +303,7 @@ function ClientSwitcher({ selected, onSelect }) {
                 onClick={() => {
                   onSelect?.(c);
                   setOpen(false);
-                  navigate(`/admin/client/${c.id}`);
+                  navigate(`/admin/workspace/${c.id}`);
                 }}
               />
             ))}

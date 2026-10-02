@@ -234,7 +234,7 @@ export default function ShareReportModal({ clientId, onClose }) {
           {shareUrl && (
             <div style={urlBox}>
               <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginBottom: 10 }}>
-                This link opens the public HTML report page you can share with the client.
+                This link opens the public HTML report page you can share with the workspace.
               </div>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 14 }}>
                 <input readOnly value={shareUrl} style={{ ...inputStyle, flex: 1, fontSize: 12 }} />

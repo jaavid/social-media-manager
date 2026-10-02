@@ -30,7 +30,7 @@ export default function ContentCalculatorPage({ clientId }) {
       <PageHeader
         title="Content Calculator"
         subtitle="Plan stronger captions, measure writing length, and prepare post content before publishing."
-        actions={<div style={styles.clientBadge}>Client ID: {clientId || 'Not selected'}</div>}
+        actions={<div style={styles.clientBadge}>Workspace ID: {clientId || 'Not selected'}</div>}
       />
 
       <div style={styles.metricGrid}>

@@ -10,7 +10,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { CheckCircle2, ChevronDown, ChevronUp, Circle, RotateCcw, Rocket } from 'lucide-react';
 import PageHeader from '../components/layout/PageHeader';
 import { onboardingAPI } from '../services/api';
-import { useClients } from '../hooks/useData';
+import { useWorkspaces } from '../hooks/useData';
 function ProgressBar({ value }) {
   return (
     <div style={styles.progressTrack}>
@@ -20,7 +20,7 @@ function ProgressBar({ value }) {
 }
 
 export default function AdminOnboardingPage() {
-  const { clients } = useClients();
+  const { workspaces: clients } = useWorkspaces();
   const [steps, setSteps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedClient, setExpandedClient] = useState(null);
@@ -54,7 +54,7 @@ export default function AdminOnboardingPage() {
     steps.forEach((step) => {
       const clientId = step.client;
       if (!map.has(clientId)) {
-        const clientName = step.client_name || clients.find((client) => client.id === clientId)?.company || `Client ${clientId}`;
+        const clientName = step.client_name || clients.find((client) => client.id === clientId)?.company || `Workspace ${clientId}`;
         map.set(clientId, { clientId, clientName, steps: [] });
       }
       map.get(clientId).steps.push(step);
@@ -78,9 +78,9 @@ export default function AdminOnboardingPage() {
     <div className="app-page app-page--content app-page--lg">
       <PageHeader
         title="Onboarding"
-        subtitle="Track setup progress across all clients and complete steps from one place."
+        subtitle="Track setup progress across all workspaces and complete steps from one place."
         meta={[
-          { label: 'Clients', value: grouped.length },
+          { label: 'Workspaces', value: grouped.length },
           { label: 'Completed Steps', value: steps.filter((step) => step.is_completed).length },
           { label: 'Open Steps', value: steps.filter((step) => !step.is_completed).length },
         ]}

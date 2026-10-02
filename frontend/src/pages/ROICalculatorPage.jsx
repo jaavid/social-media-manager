@@ -19,7 +19,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useROISettings, useROICalculator, useROIReports } from '../hooks/useROI';
 import ROIFunnel from '../components/ui/ROIFunnel';
 import { PLATFORMS } from '../services/platforms';
-import { useClients } from '../hooks/useData';
+import { useWorkspaces } from '../hooks/useData';
 import PageHeader from '../components/layout/PageHeader';
 import SocialPlatformIcon from '../components/ui/SocialPlatformIcon';
 
@@ -249,7 +249,7 @@ function GoalBar({ label, current, target, progress, fmt }) {
 // ── Main Component ────────────────────────────────────────────────────────────
 export default function ROICalculatorPage({ clientId: propClientId }) {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { clients } = useClients();
+  const { workspaces: clients } = useWorkspaces();
   const showClientSelector = !propClientId;
   const queryClientId = searchParams.get('client');
   const parsedClientId = queryClientId ? parseInt(queryClientId, 10) : null;

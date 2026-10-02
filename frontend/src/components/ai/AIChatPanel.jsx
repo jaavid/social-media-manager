@@ -102,7 +102,7 @@ export default function AIChatPanel({ open, onClose, clientId }) {
     const message = (text || '').trim();
     if (!message && !confirm) return;
     if (!clientId) {
-      toast.error('Pick a client first');
+      toast.error('Pick a workspace first');
       return;
     }
     setSending(true);

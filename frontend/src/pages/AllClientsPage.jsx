@@ -8,8 +8,8 @@
  * ========================================================================== */
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useClients } from '../hooks/useData';
-import { invitationAPI, clientsAPI } from '../services/api';
+import { useWorkspaces } from '../hooks/useData';
+import { invitationAPI, workspacesAPI } from '../services/api';
 import {
   Search, ChevronRight, Settings, Mail, X,
   Loader2, Users, Send, Clock, CheckCircle,
@@ -27,7 +27,7 @@ const STATUS_COLOR = {
 
 export default function AllClientsPage({ onSelectClient }) {
   const navigate             = useNavigate();
-  const { clients } = useClients();
+  const { workspaces: clients } = useWorkspaces();
   const [search, setSearch]  = useState('');
 
   // ── Sync state ───────────────────────────────────────────────────────────────
@@ -38,8 +38,8 @@ export default function AllClientsPage({ onSelectClient }) {
   const handleSyncAll = async () => {
     setSyncingAll(true); setSyncMsg('');
     try {
-      const res = await clientsAPI.syncAll();
-      setSyncMsg(`Queued sync for ${res.data.queued_clients} client(s).`);
+      const res = await workspacesAPI.syncAll();
+      setSyncMsg(`Queued sync for ${res.data.queued_clients} workspace(s).`);
       setTimeout(() => setSyncMsg(''), 5000);
     } catch { setSyncMsg('Sync failed. Please try again.'); }
     finally { setSyncingAll(false); }
@@ -48,7 +48,7 @@ export default function AllClientsPage({ onSelectClient }) {
   const handleSyncOne = async (clientId) => {
     setSyncingId(clientId);
     try {
-      await clientsAPI.triggerSync(clientId);
+      await workspacesAPI.triggerSync(clientId);
     } catch { /* ignore */ }
     finally { setSyncingId(null); }
   };
@@ -109,8 +109,8 @@ export default function AllClientsPage({ onSelectClient }) {
   return (
     <div style={S.page}>
       <PageHeader
-        title="Clients"
-        subtitle={`${clients.length} connected client${clients.length !== 1 ? 's' : ''}`}
+        title="Workspaces"
+        subtitle={`${clients.length} connected workspace${clients.length !== 1 ? 's' : ''}`}
       />
 
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
@@ -121,7 +121,7 @@ export default function AllClientsPage({ onSelectClient }) {
           <UserCheck size={18} style={{ color: '#16a34a' }} />
           <div>
             <div style={S.statNum}>{clients.length}</div>
-            <div style={S.statLabel}>Connected Clients</div>
+            <div style={S.statLabel}>Connected Workspaces</div>
           </div>
         </div>
         <div style={S.statCard}>
@@ -145,7 +145,7 @@ export default function AllClientsPage({ onSelectClient }) {
         <div style={S.invitePanelHeader}>
           <div style={S.invitePanelIcon}><Send size={16} style={{ color: '#7c3aed' }} /></div>
           <div>
-            <h3 style={S.invitePanelTitle}>Invite a Client</h3>
+            <h3 style={S.invitePanelTitle}>Invite a Workspace Owner</h3>
             <p style={S.invitePanelSub}>Send an invitation link. Once they sign up and verify their email, you'll receive a notification to send a dashboard access request.</p>
           </div>
         </div>
@@ -153,15 +153,15 @@ export default function AllClientsPage({ onSelectClient }) {
         {inviteResult === 'success' ? (
           <div style={S.successBanner}>
             <CheckCircle size={16} />
-            Invitation sent! The client will receive an email with the invite link. You'll be notified when they join.
+            Invitation sent! The workspace owner will receive an email with the invite link. You'll be notified when they join.
             <button onClick={() => setInviteResult('')} style={S.dismissBtn}>Send another</button>
           </div>
         ) : (
           <form onSubmit={handleInvite} style={S.inviteForm}>
             <div style={{ flex: '1 1 220px' }}>
-              <label style={S.label}>Client Email <span style={S.req}>*</span></label>
+              <label style={S.label}>Owner Email <span style={S.req}>*</span></label>
               <input
-                type="email" required placeholder="client@company.com"
+                type="email" required placeholder="workspace@company.com"
                 value={inviteEmail} onChange={e => setInviteEmail(e.target.value)}
                 style={S.input}
               />
@@ -206,14 +206,14 @@ export default function AllClientsPage({ onSelectClient }) {
         ) : invitations.length === 0 ? (
           <div style={S.emptyState}>
             <Mail size={28} style={{ color: 'var(--text-quaternary)', marginBottom: 8 }} />
-            <p style={{ margin: 0, color: 'var(--text-tertiary)', fontSize: 13 }}>No invitations sent yet. Use the form above to invite your first client.</p>
+            <p style={{ margin: 0, color: 'var(--text-tertiary)', fontSize: 13 }}>No invitations sent yet. Use the form above to invite your first workspace.</p>
           </div>
         ) : (
           <div style={S.tableWrap}>
             <table style={S.table}>
               <thead>
                 <tr>
-                  {['Client Email', 'Status', 'Sent', 'Message', 'Action'].map(h => (
+                  {['Owner Email', 'Status', 'Sent', 'Message', 'Action'].map(h => (
                     <th key={h} style={S.th}>{h}</th>
                   ))}
                 </tr>
@@ -264,14 +264,14 @@ export default function AllClientsPage({ onSelectClient }) {
       {/* ── Connected Clients ─────────────────────────────────────────────────── */}
       <div style={S.section}>
         <div style={S.sectionHeader}>
-          <h3 style={S.sectionTitle}>Connected Clients</h3>
+          <h3 style={S.sectionTitle}>Connected Workspaces</h3>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             {syncMsg && (
               <span style={{ fontSize: 12, color: syncMsg.includes('failed') ? '#dc2626' : '#16a34a', fontWeight: 600 }}>
                 {syncMsg}
               </span>
             )}
-            <button onClick={handleSyncAll} disabled={syncingAll} style={S.syncAllBtn} title="Sync all clients">
+            <button onClick={handleSyncAll} disabled={syncingAll} style={S.syncAllBtn} title="Sync all workspaces">
               {syncingAll
                 ? <><Loader2 size={13} style={{ animation: 'spin .8s linear infinite' }} /> Syncing…</>
                 : <><Zap size={13} /> Sync All</>}
@@ -281,7 +281,7 @@ export default function AllClientsPage({ onSelectClient }) {
               <input
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                placeholder="Search clients…"
+                placeholder="Search workspaces…"
                 style={S.searchInput}
               />
             </div>
@@ -293,8 +293,8 @@ export default function AllClientsPage({ onSelectClient }) {
             <Users size={28} style={{ color: 'var(--text-quaternary)', marginBottom: 8 }} />
             <p style={{ margin: 0, color: 'var(--text-tertiary)', fontSize: 13 }}>
               {clients.length === 0
-                ? "No clients connected yet. Invite a client above — once they accept your access request they'll appear here."
-                : 'No clients match your search.'}
+                ? "No workspaces connected yet. Invite a workspace owner above — once they accept your access request they'll appear here."
+                : 'No workspaces match your search.'}
             </p>
           </div>
         ) : (
@@ -326,7 +326,7 @@ export default function AllClientsPage({ onSelectClient }) {
                     <td style={S.td}>
                       <div style={{ display: 'flex', gap: 8 }}>
                         <button
-                          onClick={() => { onSelectClient?.(c); navigate(`/admin/client/${c.id}`); }}
+                          onClick={() => { onSelectClient?.(c); navigate(`/admin/workspace/${c.id}`); }}
                           style={S.dashBtn}
                         >
                           <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
@@ -334,7 +334,7 @@ export default function AllClientsPage({ onSelectClient }) {
                           </span>
                         </button>
                         <button
-                          onClick={() => { onSelectClient?.(c); navigate(`/admin/client/${c.id}/settings`); }}
+                          onClick={() => { onSelectClient?.(c); navigate(`/admin/workspace/${c.id}/settings`); }}
                           style={S.settingsBtn}
                         >
                           <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
@@ -345,7 +345,7 @@ export default function AllClientsPage({ onSelectClient }) {
                           onClick={() => handleSyncOne(c.id)}
                           disabled={syncingId === c.id}
                           style={S.syncBtn}
-                          title="Sync this client"
+                          title="Sync this workspace"
                         >
                           {syncingId === c.id
                             ? <Loader2 size={12} style={{ animation: 'spin .8s linear infinite' }} />
@@ -364,13 +364,13 @@ export default function AllClientsPage({ onSelectClient }) {
       {/* ── How it works ─────────────────────────────────────────────────────── */}
       {clients.length === 0 && invitations.length === 0 && (
         <div style={S.howItWorks}>
-          <h4 style={S.howTitle}>How client onboarding works</h4>
+          <h4 style={S.howTitle}>How workspace onboarding works</h4>
           <div style={S.steps}>
             {[
-              { icon: <Send size={16} />, color: '#7c3aed', label: '1. Send Invitation', desc: 'Enter the client\'s email above and send an invitation.' },
-              { icon: <Mail size={16} />, color: '#0369a1', label: '2. Client Signs Up', desc: 'The client receives an email, signs up on Social Stats, and verifies their account.' },
-              { icon: <Building2 size={16} />, color: '#d97706', label: '3. You Get Notified', desc: 'You\'ll receive an email when the client joins. Then send a dashboard access request.' },
-              { icon: <CheckCircle size={16} />, color: '#16a34a', label: '4. Client Accepts', desc: 'Once they accept the access request, they appear in your clients list.' },
+              { icon: <Send size={16} />, color: '#7c3aed', label: '1. Send Invitation', desc: 'Enter the workspace owner\'s email above and send an invitation.' },
+              { icon: <Mail size={16} />, color: '#0369a1', label: '2. Workspace Owner Signs Up', desc: 'The workspace owner receives an email, signs up on Social Stats, and verifies their account.' },
+              { icon: <Building2 size={16} />, color: '#d97706', label: '3. You Get Notified', desc: 'You\'ll receive an email when the workspace joins. Then send a dashboard access request.' },
+              { icon: <CheckCircle size={16} />, color: '#16a34a', label: '4. Workspace Owner Accepts', desc: 'Once they accept the access request, they appear in your workspaces list.' },
             ].map(s => (
               <div key={s.label} style={S.step}>
                 <div style={{ ...S.stepIcon, color: s.color, background: s.color + '18' }}>{s.icon}</div>
