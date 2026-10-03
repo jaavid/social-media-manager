@@ -1,5 +1,5 @@
 import { persistentStorage } from '../lib/runtime/storage';
-import { useEffect, useState } from 'react';
+import { useEffect, useSyncExternalStore } from 'react';
 import '../styles/i18n.css';
 import faExtra from './fa-extra';
 
@@ -411,7 +411,7 @@ dictionaries.fa['common.searchClients'] = dictionaries.fa['common.searchWorkspac
 const rawDictionaries = { en: {}, fa: { ...faRaw, ...faExtra } };
 
 function detectInitialLanguage() {
-  if (typeof window === 'undefined') return 'en';
+  if (typeof window === 'undefined') return 'fa';
   const stored = persistentStorage.getItem(STORAGE_KEY);
   if (SUPPORTED.has(stored)) return stored;
   return (window.navigator.language || '').toLowerCase().startsWith('fa') ? 'fa' : 'en';
@@ -472,15 +472,14 @@ export function formatUiNumber(value, language = currentLanguage) {
   return new Intl.NumberFormat(language === 'fa' ? 'fa-IR' : 'en-US').format(value);
 }
 
-export function useLanguage() {
-  const [language, setState] = useState(currentLanguage);
+function subscribeLanguage(listener) {
+  window.addEventListener(LANGUAGE_EVENT, listener);
+  return () => window.removeEventListener(LANGUAGE_EVENT, listener);
+}
 
-  useEffect(() => {
-    applyDocumentLanguage(currentLanguage);
-    const handler = (event) => setState(event.detail || currentLanguage);
-    window.addEventListener(LANGUAGE_EVENT, handler);
-    return () => window.removeEventListener(LANGUAGE_EVENT, handler);
-  }, []);
+export function useLanguage() {
+  const language = useSyncExternalStore(subscribeLanguage, getLanguage, () => 'fa');
+  useEffect(() => { applyDocumentLanguage(language); }, [language]);
 
   return {
     language,

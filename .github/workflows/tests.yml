@@ -121,28 +121,21 @@ jobs:
           CI: "true"
         run: npm run build
 
-      - name: Next production build
-        working-directory: frontend
-        env:
-          NEXT_TELEMETRY_DISABLED: "1"
-        run: npm run build:next
-
       - name: Run Jest tests
         working-directory: frontend
         env:
           CI: "true"
         run: npm test
 
-      - name: Install browser for migration checks
+      - name: Install browser for cutover checks
         working-directory: frontend
         run: npx playwright install --with-deps chromium
 
-      - name: Split-host migration browser tests
+      - name: Native Next browser tests
         working-directory: frontend
         env:
           CI: "true"
         run: |
-          npm run build:rollout
           npm run test:next
 
   docker:
@@ -174,67 +167,36 @@ jobs:
           docker compose logs app | tail -100
           exit 1
 
-      - name: SPA, static assets and API share one origin
+      - name: Next rendering, assets and Django routing share one origin
+        run: python3 scripts/check_next_stack.py http://localhost:3000
+
+      - name: Health includes the frontend process
         run: |
-          html=$(curl -fsS http://localhost:3000/)
-          printf '%s' "$html" | grep -qi "<title>" || { docker compose logs app | tail -50; exit 1; }
+          docker compose exec -T app supervisorctl stop next
+          code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:3000/healthz)
+          test "$code" = 500
+          docker compose exec -T app supervisorctl start next
+          for i in $(seq 1 20); do
+            if curl -fsS http://localhost:3000/healthz; then exit 0; fi
+            sleep 1
+          done
+          exit 1
 
-          if [[ "$html" =~ src=\"(/static/js/[^\"]+\.js)\" ]]; then
-            js_asset="${BASH_REMATCH[1]}"
-          else
-            echo "React JS asset not found in index.html"
-            exit 1
-          fi
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
 
-          if [[ "$html" =~ href=\"(/static/css/[^\"]+\.css)\" ]]; then
-            css_asset="${BASH_REMATCH[1]}"
-          else
-            echo "React CSS asset not found in index.html"
-            exit 1
-          fi
-
-          curl -fsS "http://localhost:3000${js_asset}" > /dev/null || { echo "React JS asset failed: $js_asset"; exit 1; }
-          curl -fsS "http://localhost:3000${css_asset}" > /dev/null || { echo "React CSS asset failed: $css_asset"; exit 1; }
-          curl -fsS http://localhost:3000/static/admin/css/base.css > /dev/null || { echo "Django admin static asset failed"; exit 1; }
-
-          code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:3000/api/auth/me/)
-          case "$code" in
-            401|403)
-              echo "API routed correctly; unauthenticated request returned $code"
-              ;;
-            *)
-              echo "expected 401 or 403 from /api/auth/me/, got $code"
-              docker compose logs app | tail -50
-              exit 1
-              ;;
-          esac
-
-      - name: React admin deep links and backend admin are independently routed
+      - name: Browser parity through the unified production ingress
+        working-directory: frontend
+        env:
+          CI: "true"
+          E2E_BASE_URL: http://127.0.0.1:3000
         run: |
-          curl -fsS http://localhost:3000/ -o /tmp/spa-root.html
-          curl -fsS http://localhost:3000/admin/ -o /tmp/spa-admin.html
-          curl -fsS http://localhost:3000/admin/analytics/dashboard -o /tmp/spa-admin-deep.html
-
-          cmp -s /tmp/spa-root.html /tmp/spa-admin.html || {
-            echo "/admin/ did not return the React SPA entry document"
-            exit 1
-          }
-          cmp -s /tmp/spa-root.html /tmp/spa-admin-deep.html || {
-            echo "React /admin/* deep link did not fall back to index.html"
-            exit 1
-          }
-
-          slashless_code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:3000/backend)
-          case "$slashless_code" in
-            301|302|307|308) ;;
-            *) echo "expected redirect for /backend, got $slashless_code"; exit 1 ;;
-          esac
-
-          code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:3000/backend/)
-          case "$code" in
-            200|301|302) ;;
-            *) echo "unexpected Django admin status at /backend/: $code"; exit 1 ;;
-          esac
+          npm ci --prefer-offline --no-audit --no-fund
+          npx playwright install --with-deps chromium
+          npm run test:next
 
       - name: Seed demo data inside app container
         run: docker compose exec -T app python manage.py demo_setup
@@ -242,6 +204,7 @@ jobs:
       - name: Verify supervised processes and Celery periodic tasks
         run: |
           docker compose exec -T app supervisorctl status | tee /tmp/supervisor.txt
+          grep -E '^next[[:space:]]+RUNNING' /tmp/supervisor.txt
           grep -E '^django[[:space:]]+RUNNING' /tmp/supervisor.txt
           grep -E '^celery[[:space:]]+RUNNING' /tmp/supervisor.txt
           grep -E '^beat[[:space:]]+RUNNING' /tmp/supervisor.txt

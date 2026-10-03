@@ -25,7 +25,7 @@ import { QueryClient } from '@tanstack/react-query';
  * helpers in `useRealtimeSync.js` rely on this — touch only the right
  * subtree on each event.
  */
-export const queryClient = new QueryClient({
+export function createQueryClient() { return new QueryClient({
   defaultOptions: {
     queries: {
       staleTime:           30_000,        // 30s
@@ -38,7 +38,7 @@ export const queryClient = new QueryClient({
       retry: 0, // never silently re-do a write — let the caller decide
     },
   },
-});
+}); }
 
 
 /**

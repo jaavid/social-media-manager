@@ -14,7 +14,7 @@
  * are not yet built (later marketplace stages) are listed with `comingSoon`.
  */
 import { useEffect, useState } from 'react';
-import { AppOutlet as Outlet, AppNavLink as NavLink, useAppLocation as useLocation } from '../../app/navigation';
+import { AppNavLink as NavLink, useAppLocation as useLocation } from '../../app/navigation';
 import {
   LayoutDashboard, FileType, PenSquare, CalendarDays, Inbox, LineChart,
   Building2, Plug, ShieldCheck, ClipboardCheck, Search,
@@ -61,7 +61,7 @@ const SECTIONS = [
   },
 ];
 
-export default function EndUserShell() {
+export default function EndUserShell({ children }) {
   const { user } = useAuth();
   const location = useLocation();
   const [badges, setBadges] = useState({ pendingApprovals: 0 });
@@ -214,7 +214,7 @@ export default function EndUserShell() {
       </aside>
 
       <main style={{ flex: 1, minWidth: 0, padding: 28 }} className="eu-main">
-        <Outlet />
+        {children}
       </main>
 
       <style>{`

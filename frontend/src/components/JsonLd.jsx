@@ -6,51 +6,21 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
-import { useEffect } from 'react';
 
-/**
- * JsonLd — imperative <script type="application/ld+json"> manager.
- *
- * Renders nothing visually. On mount, injects a JSON-LD block into <head>
- * keyed by `id` so multiple JsonLd blocks can coexist on one page (e.g. an
- * Organization plus a BreadcrumbList plus an Article).
- *
- *   <JsonLd id="article" data={{ '@context': 'https://schema.org', '@type': 'Article', ... }} />
- *
- * On unmount we DON'T remove the script — Google sometimes reads after
- * client transitions and a stale tag is harmless. The next page mounts
- * its own block under a different id (or replaces the same one).
- *
- * Use the helper builders below for common shapes (organization, article,
- * software application, breadcrumb, FAQ).
- */
+/** Server-rendered structured data; React removes it with the owning route. */
 export default function JsonLd({ id, data }) {
-  useEffect(() => {
-    if (!data) return;
-    const tagId = `jsonld-${id}`;
-    let tag = document.getElementById(tagId);
-    if (!tag) {
-      tag = document.createElement('script');
-      tag.type = 'application/ld+json';
-      tag.id = tagId;
-      document.head.appendChild(tag);
-    }
-    try {
-      tag.textContent = JSON.stringify(data);
-    } catch {
-      /* ignore — bad payload */
-    }
-  }, [id, data]);
-
-  return null;
+  if (!data) return null;
+  // Escape '<' so feature-provided content cannot close the JSON script tag.
+  const json = JSON.stringify(data).replace(/</g, '\\u003c');
+  return <script id={`jsonld-${id}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: json }} />;
 }
 
-
 // ── shared site identity ──────────────────────────────────────────────
+const PUBLIC_SITE_ORIGIN = (process.env.NEXT_PUBLIC_SITE_URL || 'https://socialstats.app').replace(/\/$/, '');
 const SITE = {
   name: 'Social Stats',
-  url: 'https://cbsshekhawat18-lab.github.io/social-stats-social-media-manager/',
-  logo: 'https://cbsshekhawat18-lab.github.io/social-stats-social-media-manager/screenshot.png',
+  url: PUBLIC_SITE_ORIGIN,
+  logo: `${PUBLIC_SITE_ORIGIN}/screenshot.png`,
   sameAs: [
     'https://github.com/cbsshekhawat18-lab/social-stats-social-media-manager',
   ],

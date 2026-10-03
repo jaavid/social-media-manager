@@ -11,10 +11,11 @@ import { useState, useEffect } from 'react';
 const MOBILE = 768;
 
 export default function useBreakpoint() {
-  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= MOBILE);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     const mq = window.matchMedia(`(max-width: ${MOBILE}px)`);
+    setIsMobile(mq.matches);
     const handler = (e) => setIsMobile(e.matches);
     mq.addEventListener('change', handler);
     return () => mq.removeEventListener('change', handler);

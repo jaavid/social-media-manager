@@ -6,7 +6,6 @@ jest.mock('../../app/navigation', () => ({
   useAppLocation: () => ({ pathname: '/' }),
 }));
 jest.mock('../ui/ThemeToggle', () => () => <button>Theme</button>);
-jest.mock('../../utils/prefetchRoute', () => ({ prefetchRoute: jest.fn() }));
 
 function mount(width = 1440) {
   window.innerWidth = width;

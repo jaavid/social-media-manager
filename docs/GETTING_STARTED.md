@@ -18,7 +18,7 @@ keys are required for this walkthrough.
 | Tool | Version | Notes |
 |---|---|---|
 | Python | 3.11–3.12 | backend (Django 4.2 does not support 3.13+) |
-| Node.js | 18+ | frontend |
+| Node.js | 20.9+ (20 LTS recommended) | Next frontend |
 | Redis | any recent | required for Celery (background sync + notifications) |
 | Anthropic API key | optional | only for AI features — everything else runs without it |
 
@@ -100,7 +100,7 @@ In a new terminal:
 cd frontend
 npm install
 cp .env.example .env
-npm start
+npm run dev
 ```
 
 This opens `http://localhost:3000`.

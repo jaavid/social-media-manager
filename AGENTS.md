@@ -12,7 +12,7 @@ Use Python 3.12 and Node 20, matching CI. Run commands from the indicated direct
 
 - Backend: `pip install -r requirements-dev.txt` installs runtime and analysis dependencies; `python manage.py migrate` applies migrations; `python manage.py runserver` starts the development API.
 - Backend: `python manage.py test social_stats.tests` runs Django tests; `python manage.py makemigrations social_stats --check --dry-run` checks migration drift.
-- Frontend: `npm install` installs dependencies; `npm start` runs Vite on port 3000; `npm run build` creates the Vite production bundle. The optional Next host uses `npm run dev:next`, `npm run build:next` and `npm run start:next`; see `docs/NEXT_MIGRATION.md`.
+- Frontend: `npm ci`; `npm run dev` runs Next on port 3000; `npm run build` generates native routes and builds Next; `npm start` runs the production standalone server. See `docs/NEXT_MIGRATION.md`.
 - Frontend: `CI=true npm test` runs standalone Jest; `npm run i18n:check` checks user-facing strings.
 - Repository root: `pre-commit install` enables hooks; `pre-commit run --all-files` runs hygiene, Ruff, Bandit, and secret checks.
 

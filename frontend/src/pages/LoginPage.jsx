@@ -6,6 +6,7 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
+import { useAppSearchParams } from '../app/navigation';
 import { apiBaseUrl } from '../lib/runtime/config';
 
 import { useEffect, useState } from 'react';
@@ -38,6 +39,9 @@ export default function LoginPage() {
   // MFA second-factor step (set when /auth/login/ returns mfa_required,
   // or handed over by /auth/callback when a social login needs a TOTP code)
   const [mfaToken, setMfaToken] = useState(location.state?.mfaToken || '');
+  useEffect(() => {
+    if (location.state?.mfaToken) setMfaToken(location.state.mfaToken);
+  }, [location.state?.mfaToken]);
   const [mfaCode, setMfaCode] = useState('');
   const [useBackupCode, setUseBackupCode] = useState(false);
 
@@ -55,7 +59,7 @@ export default function LoginPage() {
     return () => { alive = false; };
   }, []);
 
-  const params = new URLSearchParams(window.location.search);
+  const [params] = useAppSearchParams();
   const urlError = params.get('error');
   const nextPath = params.get('next');
 

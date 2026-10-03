@@ -1,3 +1,5 @@
 'use client';
-import TermsOfServicePage from '../../../src/pages/TermsOfServicePage';
-export default function View() { return <TermsOfServicePage />; }
+import Feature from '../../../src/pages/TermsOfServicePage.jsx';
+export default function View() {
+  return <Feature />;
+}

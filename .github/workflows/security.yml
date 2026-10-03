@@ -101,13 +101,9 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
 
       - name: npm audit (informational baseline)
-        # Informational, not a merge gate. The current findings are all in
-        # transitive *dev* dependencies of react-scripts / tailwindcss (build
-        # tooling that never ships to the browser bundle). Gating on them would
-        # block every PR for issues we can't fix without ejecting CRA. Mirrors
-        # the pip-audit "informational baseline" approach above. Triage via the
-        # JSON report; tighten to `--audit-level=critical` once the baseline is
-        # cleared.
+        # Informational baseline; findings include production feature dependencies.
+        # Do not describe these as CRA-only development findings. Review the audit
+        # report separately from the Next cutover regression gate.
         continue-on-error: true
         run: npm audit --audit-level=high || true
 

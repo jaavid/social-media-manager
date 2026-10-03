@@ -1,4 +1,5 @@
+// Generated from src/app/routes/routeInventory.json.
 import View from './View';
-import RouteView from '../RouteView';
-export const metadata = { title: 'Sign in', robots: { index: false, follow: false } };
-export default function Page() { return <RouteView><View /></RouteView>; }
+import { publicMetadata } from '../../metadata.mjs';
+export const metadata = publicMetadata("Login", "Manage analytics, content, conversations, and ads across your workspaces.", "/login", true);
+export default function Page() { return <View />; }

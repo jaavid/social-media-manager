@@ -1,3 +1,5 @@
 'use client';
-import LoginPage from '../../../src/pages/LoginPage';
-export default function View() { return <LoginPage />; }
+import Feature from '../../../src/pages/LoginPage.jsx';
+export default function View() {
+  return <Feature />;
+}
