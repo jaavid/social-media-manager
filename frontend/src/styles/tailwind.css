@@ -63,7 +63,7 @@
 
   .ds-topbar,
   .ds-mobile-topbar {
-    box-shadow: 0 1px 0 color-mix(in srgb, var(--border-default) 70%, transparent);
+    box-shadow: none;
   }
 
   .ds-mobile-topbar {

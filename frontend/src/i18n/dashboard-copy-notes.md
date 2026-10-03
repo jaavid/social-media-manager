@@ -8,6 +8,6 @@ Persian presentation rules:
 - User-visible dates use `formatDate()` so Persian mode uses the Persian calendar.
 - User-visible counts and metrics use `formatNumber()` for Persian digits.
 - Technical identifiers, URLs, percentages/currency where direction matters, and numeric form controls stay isolated from RTL flow where appropriate.
-- Vazirmatn typography and weight hierarchy are inherited from the design-system defaults introduced before this change.
+- Noto Sans Arabic typography and weight hierarchy are inherited from the design-system defaults introduced before this change.
 
 This note is intentionally small and exists to keep future dashboard additions on the same localization path.

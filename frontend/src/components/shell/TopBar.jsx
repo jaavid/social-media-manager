@@ -4,7 +4,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from '../ui/DropdownMenu';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   AppLink as Link,
   useAppLocation as useLocation,
@@ -33,14 +33,12 @@ export default function TopBar({ basePath, onOpenPalette }) {
   const isMac =
     typeof navigator !== 'undefined' && /mac/i.test(navigator.platform);
   return (
-    <header className="ds-topbar fixed inset-x-0 top-0 z-80 ms-[calc(var(--module-rail-width)+var(--feature-sidebar-width))] flex h-[var(--topbar-height)] items-center gap-3 border-b border-border/70 bg-card/90 px-5 backdrop-blur-xl">
+    <header className="ds-topbar fixed inset-x-0 top-0 z-80 ms-[calc(var(--module-rail-width)+var(--feature-sidebar-width))] flex h-[var(--topbar-height)] items-center gap-2 border-b border-border/70 bg-card/90 px-3 xl:gap-3 xl:px-5 backdrop-blur-xl">
       <WorkspaceSwitcher user={user} basePath={basePath} />
-
-      <div className="h-6 w-px bg-border/70" aria-hidden />
 
       <nav
         aria-label={t('common.navigation', 'Breadcrumb')}
-        className="hidden min-w-0 items-center gap-1.5 lg:flex"
+        className="hidden min-w-0 items-center gap-1.5 2xl:flex"
       >
         {crumbs.map((c, i) => {
           const label = tr(c.label);
@@ -85,20 +83,20 @@ export default function TopBar({ basePath, onOpenPalette }) {
         type="button"
         onClick={onOpenPalette}
         aria-label={t('common.search', 'Open command palette')}
-        className="group flex h-9 min-w-44 flex-[0_1_300px] items-center gap-2 rounded-xl border border-border/70 bg-muted/70 px-3 text-[13px] font-medium text-muted-foreground shadow-sm transition hover:border-border hover:bg-accent hover:text-foreground"
+        className="group flex h-9 min-w-9 flex-[0_1_260px] items-center gap-2 rounded-lg border-0 bg-muted/70 px-3 text-[13px] font-medium text-muted-foreground transition hover:border-border hover:bg-accent hover:text-foreground"
       >
         <Search size={14} className="shrink-0" />
-        <span className="flex-1 truncate text-start">
+        <span className="hidden flex-1 truncate text-start xl:block">
           {t('common.search', 'Search anything…')}
         </span>
-        <kbd className="rounded-md border border-border/70 bg-card px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground shadow-xs">
+        <kbd className="hidden rounded bg-card px-1.5 py-0.5 text-[11px] leading-relaxed text-muted-foreground xl:block">
           {isMac ? '⌘' : 'Ctrl'}K
         </kbd>
       </button>
 
-      <div className="flex items-center gap-1 rounded-xl border border-border/60 bg-card/80 p-1 shadow-sm">
-        <LanguageToggle />
-        <ThemeToggle size="sm" />
+      <div className="flex shrink-0 items-center gap-1">
+        <LanguageToggle variant="ghost" />
+        <ThemeToggle size="md" variant="ghost" />
         <NotificationBellWrapper />
       </div>
 
@@ -106,7 +104,7 @@ export default function TopBar({ basePath, onOpenPalette }) {
         to="/changelog"
         target="_blank"
         rel="noopener noreferrer"
-        className="ds-whats-new hidden items-center gap-1.5 rounded-full border border-primary/15 bg-primary/10 px-2.5 py-1.5 text-[11px] font-semibold text-primary no-underline transition hover:bg-primary/15 xl:inline-flex"
+        className="ds-whats-new hidden items-center gap-1.5 rounded-full border border-primary/15 bg-primary/10 px-2.5 py-1.5 text-[11px] font-semibold text-primary no-underline transition hover:bg-primary/15 2xl:inline-flex"
         aria-label={t('common.new', "What's new")}
       >
         <Sparkles size={11} />
@@ -118,7 +116,6 @@ export default function TopBar({ basePath, onOpenPalette }) {
 function WorkspaceSwitcher({ user, basePath }) {
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const ref = useRef(null);
   const [open, setOpen] = useState(false);
   const workspaces = useMemo(() => normalizeWorkspaces(user), [user]);
   const current =
@@ -128,16 +125,16 @@ function WorkspaceSwitcher({ user, basePath }) {
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="flex h-9 max-w-60 items-center gap-2 rounded-xl border border-transparent px-2 text-start transition hover:border-border/70 hover:bg-accent"
+          className="flex h-10 min-w-0 max-w-40 shrink xl:max-w-52 items-center gap-2 rounded-lg border-0 px-2 text-start transition hover:bg-accent"
         >
           <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-primary/12 text-primary">
             <Building2 size={14} />
           </span>
           <span className="min-w-0">
-            <span className="block truncate text-xs font-semibold text-foreground">
+            <span className="block truncate text-[13px] font-semibold leading-relaxed text-foreground">
               {current.name}
             </span>
-            <span className="block truncate text-[10px] text-muted-foreground">
+            <span className="block truncate text-[11px] leading-relaxed text-muted-foreground">
               {current.subtitle}
             </span>
           </span>
@@ -174,7 +171,7 @@ function WorkspaceSwitcher({ user, basePath }) {
               <span className="block truncate text-xs font-semibold">
                 {workspace.name}
               </span>
-              <span className="block truncate text-[10px] text-muted-foreground">
+              <span className="block truncate text-[11px] leading-relaxed text-muted-foreground">
                 {workspace.subtitle}
               </span>
             </span>
@@ -226,7 +223,7 @@ function normalizeWorkspaces(user) {
 }
 function NotificationBellWrapper() {
   try {
-    return <NotificationBell />;
+    return <NotificationBell variant="ghost" />;
   } catch {
     return null;
   }

@@ -56,7 +56,7 @@ function timeAgo(dateStr) {
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
-export default function NotificationBell({ clientId }) {
+export default function NotificationBell({ clientId, variant = 'default' }) {
   const { refreshAuth, status, user } = useAuth();
   const navigate        = useNavigate();
   const dropRef         = useRef(null);
@@ -181,10 +181,10 @@ export default function NotificationBell({ clientId }) {
 
   return (
     <div ref={dropRef} style={s.wrap}>
-      <button ref={btnRef} onClick={handleToggle} style={s.btn} title="Notifications & Alerts">
+      <button ref={btnRef} onClick={handleToggle} style={{ ...s.btn, ...(variant === 'ghost' ? s.ghostBtn : {}) }} title="Notifications & Alerts">
         <Bell size={20} />
         {totalUnread > 0 && (
-          <span style={s.badge}>{totalUnread > 99 ? '99+' : totalUnread}</span>
+          <span style={{ ...s.badge, ...(variant === 'ghost' ? s.ghostBadge : {}) }}>{totalUnread > 99 ? '99+' : totalUnread}</span>
         )}
       </button>
 
@@ -339,6 +339,16 @@ const s = {
     color: '#374151',
     boxShadow: '0 10px 24px rgba(148,163,184,.12)',
     backdropFilter: 'blur(10px)',
+  },
+  ghostBtn: {
+    width: 36, height: 36, flexShrink: 0,
+    border: 'none', borderRadius: 'var(--radius-md)',
+    background: 'transparent', color: 'var(--text-secondary)',
+    boxShadow: 'none', backdropFilter: 'none',
+  },
+  ghostBadge: {
+    top: -2, right: -2, minWidth: 16,
+    padding: '1px 4px', fontSize: 9, border: 'none',
   },
   badge: {
     position: 'absolute', top: -8, right: -8,
