@@ -69,6 +69,21 @@ export function hasCapability(platform, capability) {
   return ACTIVE_CAPABILITY_STATUSES.includes(capabilityStatus(platform, capability));
 }
 
+export function featureStatus(platform, feature) {
+  return PLATFORM_CAPABILITIES[platform]?.features?.support?.[feature] || 'not_available';
+}
+
+export function hasFeature(platform, feature, destinationType) {
+  if (!ACTIVE_CAPABILITY_STATUSES.includes(featureStatus(platform, feature))) return false;
+  const field = {
+    forum_topics: 'message_thread_id',
+    channel_direct_messages: 'direct_messages_topic_id',
+    streamed_drafts: 'streamed_drafts',
+  }[feature];
+  if (!field) return true;
+  return Boolean(PLATFORM_CAPABILITIES[platform]?.features?.destinations?.[destinationType]?.[field]);
+}
+
 const FALLBACK_CATEGORIES = [
   { key: 'messaging', order: 10, title_fa: 'پیام‌رسان‌ها', title_en: 'Messaging' },
   { key: 'video', order: 20, title_fa: 'ویدئومحور', title_en: 'Video' },

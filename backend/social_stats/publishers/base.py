@@ -77,11 +77,13 @@ class PublishResult:
     platform_url: str = ''
     raw_response: dict = field(default_factory=dict)
     warnings: list = field(default_factory=list)
+    platform_post_ids: list[str] = field(default_factory=list)
 
     def as_dict(self) -> dict:
         return {
             'success':           self.success,
             'platform_post_id':  self.platform_post_id,
+            'platform_post_ids': self.platform_post_ids,
             'platform_url':      self.platform_url,
             'warnings':          self.warnings,
         }

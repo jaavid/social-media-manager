@@ -61,15 +61,15 @@ class BotAPIClient:
                 gateway_path=f'/bot/{method}',
                 gateway_headers={'X-Upstream-Bot-Token': self.token},
             )
-        except requests.Timeout as exc:
+        except requests.Timeout:
             raise PublishError(
                 f'Bot API timed out while calling {method}', code='timeout',
-            ) from exc
-        except requests.RequestException as exc:
+            ) from None
+        except requests.RequestException:
             raise PublishError(
                 f'Bot API network error while calling {method}',
                 code='network_error',
-            ) from exc
+            ) from None
         except (RuntimeError, ValueError) as exc:
             raise PublishError(
                 f'Bot API egress configuration error while calling {method}',
@@ -83,6 +83,10 @@ class BotAPIClient:
                 f'Bot API returned a non-JSON response for {method}',
                 code='invalid_response', status_code=response.status_code,
             ) from exc
+
+        if not isinstance(payload, dict):
+            raise PublishError(f'Bot API returned an invalid response for {method}',
+                               code='invalid_response', status_code=response.status_code)
 
         route = getattr(getattr(response, 'egress_route', None), 'route', None)
         gateway_error = payload.get('error') if route == 'gateway' else None
@@ -107,33 +111,48 @@ class BotAPIClient:
                 code='egress_config', status_code=response.status_code, raw=payload,
             )
 
-        error_code = int(payload.get('error_code') or response.status_code or 0)
+        try:
+            error_code = int(payload.get('error_code') or response.status_code or 0)
+        except (TypeError, ValueError):
+            raise PublishError(f'Bot API returned an invalid error code for {method}',
+                               code='invalid_response', status_code=response.status_code) from None
+
+        # Telegram can echo request data in diagnostics. Keep only safe protocol
+        # metadata in operator errors; successful payloads remain available.
+        parameters = payload.get('parameters') or {}
+        if not isinstance(parameters, dict):
+            parameters = {}
+        safe_payload = ({'method': method, 'error_code': error_code}
+                        if self.service == 'telegram' else payload)
 
         if response.status_code == 401 or error_code == 401:
-            raise TokenExpiredError(status_code=401, raw=payload)
+            raise TokenExpiredError(status_code=401, raw=safe_payload)
         if response.status_code == 403 or error_code == 403:
-            raise PermissionDeniedError(status_code=403, raw=payload)
+            raise PermissionDeniedError(status_code=403, raw=safe_payload)
 
-        retry_after = (payload.get('parameters') or {}).get('retry_after')
+        retry_after = parameters.get('retry_after')
         if response.status_code == 429 or error_code == 429 or retry_after:
             try:
-                retry_after_seconds = int(retry_after or 60)
+                retry_after_seconds = max(1, int(retry_after or 60))
             except (TypeError, ValueError):
                 retry_after_seconds = 60
             raise RateLimitError(
-                payload.get('description') or 'Bot API rate limit exceeded',
+                (f'Bot API rate limit exceeded while calling {method}' if self.service == 'telegram'
+                 else payload.get('description') or 'Bot API rate limit exceeded'),
                 retry_after=retry_after_seconds,
                 status_code=response.status_code,
-                raw=payload,
+                raw={**safe_payload, 'retry_after': retry_after_seconds},
             )
 
         if not response.ok or not payload.get('ok', False):
             description = payload.get('description') or f'Bot API request failed ({response.status_code})'
+            if self.service == 'telegram':
+                description = f'Telegram rejected {method} ({error_code}); check destination, bot permissions and content limits'
             raise PublishError(
                 description,
                 code=str(payload.get('error_code') or 'bot_api_error'),
                 status_code=response.status_code,
-                raw=payload,
+                raw=safe_payload,
             )
 
         return payload

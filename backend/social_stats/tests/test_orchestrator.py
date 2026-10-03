@@ -171,6 +171,74 @@ class OrchestratorTests(TestCase):
         self.assertEqual(post.status, 'partial')
 
 
+    def test_partial_retry_preserves_successful_delivery(self):
+        post = self._make_post(status='partial', media_type='image', media_urls=['https://x/img.jpg'])
+        PlatformPublishLog.objects.create(unified_post=post, platform='facebook', status='success',
+                                         platform_post_id='already-sent')
+        PlatformPublishLog.objects.create(unified_post=post, platform='instagram', status='failed')
+        with patch('social_stats.publishers.facebook.FacebookPublisher.publish_image') as fb, \
+             patch('social_stats.publishers.instagram.InstagramPublisher.publish_image',
+                   return_value=PublishResult(success=True, platform_post_id='ig1')) as ig:
+            from social_stats.orchestrator import publish_unified_post
+            publish_unified_post(post.id)
+        fb.assert_not_called()
+        ig.assert_called_once()
+        self.assertEqual(post.publish_logs.get(platform='facebook').platform_post_id, 'already-sent')
+        post.refresh_from_db()
+        self.assertEqual(post.status, 'published')
+
+    def test_redelivered_worker_does_not_send_completed_or_claimed_delivery(self):
+        from social_stats.orchestrator import publish_to_platform
+        for status in ('success', 'publishing'):
+            post = self._make_post(status='publishing', target_platforms=['facebook'])
+            PlatformPublishLog.objects.create(unified_post=post, platform='facebook', status=status)
+            with patch('social_stats.publishers.facebook.FacebookPublisher.publish_text') as send:
+                publish_to_platform(post.id, 'facebook')
+            send.assert_not_called()
+
+    def test_ambiguous_delivery_is_not_automatically_resent(self):
+        post = self._make_post(status='failed', target_platforms=['facebook'])
+        PlatformPublishLog.objects.create(unified_post=post, platform='facebook', status='failed',
+                                         error_code='timeout')
+        with patch('social_stats.publishers.facebook.FacebookPublisher.publish_text') as send:
+            from social_stats.orchestrator import publish_unified_post
+            publish_unified_post(post.id)
+        send.assert_not_called()
+        self.assertEqual(post.publish_logs.get().error_code, 'timeout')
+
+    def test_structured_message_ids_are_retained_on_delivery_log(self):
+        post = self._make_post(target_platforms=['facebook'])
+        with patch('social_stats.publishers.facebook.FacebookPublisher.publish_text',
+                   return_value=PublishResult(success=True, platform_post_id='1,2',
+                                              platform_post_ids=['1', '2'])):
+            from social_stats.orchestrator import publish_unified_post
+            publish_unified_post(post.id)
+        self.assertEqual(post.publish_logs.get().raw_response['platform_post_ids'], ['1', '2'])
+
+    def test_rate_limit_uses_celery_countdown_and_bounded_retry_budget(self):
+        from celery.exceptions import Retry
+        from social_stats.orchestrator import publish_to_platform
+        from social_stats.publishers.base import RateLimitError
+        post = self._make_post(status='publishing', target_platforms=['facebook'])
+        with patch('social_stats.publishers.facebook.FacebookPublisher.publish_text',
+                   side_effect=RateLimitError(retry_after=117)), \
+             patch.object(publish_to_platform, 'retry', side_effect=Retry()) as retry:
+            with self.assertRaises(Retry):
+                publish_to_platform(post.id, 'facebook')
+        self.assertEqual(retry.call_args.kwargs['countdown'], 117)
+        self.assertEqual(post.publish_logs.get().status, 'pending')
+        publish_to_platform.push_request(retries=3)
+        try:
+            with patch('social_stats.publishers.facebook.FacebookPublisher.publish_text',
+                       side_effect=RateLimitError(retry_after=117)), \
+                 patch.object(publish_to_platform, 'retry') as retry:
+                publish_to_platform.run(post.id, 'facebook')
+            retry.assert_not_called()
+            self.assertEqual(post.publish_logs.get().status, 'failed')
+        finally:
+            publish_to_platform.pop_request()
+
+
 @override_settings(CELERY_TASK_ALWAYS_EAGER=True)
 class SchedulerTests(TestCase):
     def setUp(self):
