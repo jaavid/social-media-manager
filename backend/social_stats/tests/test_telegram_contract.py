@@ -27,7 +27,7 @@ class TelegramContractTests(SimpleTestCase):
             self.assertEqual(set(support), set(FEATURE_KEYS))
             self.assertEqual(support['media_group'], 'supported')
             self.assertTrue(get_provider(platform).capabilities.supports_feature('media_group'))
-        self.assertEqual(metadata['telegram']['features']['support']['rich_message'], 'planned')
+        self.assertEqual(metadata['telegram']['features']['support']['rich_message'], 'supported')
         self.assertEqual(metadata['bale']['features']['support']['rich_message'], 'not_available')
         destinations = metadata['telegram']['features']['destinations']
         self.assertFalse(destinations['channel']['message_thread_id'])
@@ -39,8 +39,8 @@ class TelegramContractTests(SimpleTestCase):
 
     def test_metadata_cannot_mutate_the_contract(self):
         value = bot_feature_metadata('telegram')
-        value['support']['rich_message'] = 'supported'
-        self.assertEqual(bot_feature_metadata('telegram')['support']['rich_message'], 'planned')
+        value['support']['rich_message'] = 'planned'
+        self.assertEqual(bot_feature_metadata('telegram')['support']['rich_message'], 'supported')
 
     def test_invalid_destination_contexts_fail_locally(self):
         for value in ([], {'arbitrary': 1}, {'destination_type': 'broadcast_topic'},
@@ -58,7 +58,7 @@ class TelegramContractTests(SimpleTestCase):
         client.assert_not_called()
 
     def test_unshipped_features_and_bale_extensions_are_gated(self):
-        for publisher in (TelegramPublisher(), BalePublisher()):
+        for publisher in (BalePublisher(),):
             for options in (
                 {'rich_message': {}}, {'reply_markup': {}}, {'poll': {}},
                 {'media_items': []}, {'suggested_post_parameters': {}},

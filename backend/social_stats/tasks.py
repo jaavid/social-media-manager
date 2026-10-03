@@ -1259,3 +1259,6 @@ def check_overdue_scheduled_posts():
 
     if updated:
         logger.info("check_overdue_scheduled_posts: marked %d posts as failed", updated)
+
+# Register Telegram protocol jobs with the existing Celery autodiscovery module.
+from .telegram_tasks import ingest_update, run_assistant, prune_telegram_updates, recover_telegram_jobs  # noqa: F401

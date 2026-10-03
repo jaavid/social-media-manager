@@ -11,6 +11,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
 
+from .telegram_views import TelegramAccountViewSet, TelegramSuggestionViewSet, telegram_webhook
 from .views import (
     LoginView, me, ClientViewSet, SocialAccountViewSet, CredentialViewSet,
     SyncLogViewSet, GoalViewSet, AlertViewSet, AIInsightViewSet, WeeklyTopPostViewSet,
@@ -224,6 +225,8 @@ router = DefaultRouter()
 router.register(r'workspaces', ClientViewSet, basename='workspace')
 router.register(r'clients',     ClientViewSet,    basename='client')
 router.register(r'credentials', CredentialViewSet,basename='credential')
+router.register(r'telegram-accounts', TelegramAccountViewSet, basename='telegram-account')
+router.register(r'telegram-suggestions', TelegramSuggestionViewSet, basename='telegram-suggestion')
 router.register(r'social-accounts', SocialAccountViewSet, basename='social-account')
 router.register(r'synclogs',    SyncLogViewSet,   basename='synclog')
 router.register(r'goals',       GoalViewSet,      basename='goal')
@@ -588,6 +591,7 @@ urlpatterns = [
     path('video/youtube-upload/',     youtube_upload,      name='video_youtube_upload'),
 
     # Real-time webhooks ()
+    path('webhooks/telegram/<int:account_id>/', telegram_webhook, name='telegram-webhook'),
     path('webhooks/meta/',            meta_webhook,        name='webhook_meta'),
     path('webhooks/youtube/',         youtube_webhook,     name='webhook_youtube'),
 

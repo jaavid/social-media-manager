@@ -60,7 +60,7 @@ def bot_channel_connection(request, client_id, platform):
 
     if request.method == 'DELETE':
         try:
-            ConnectionService().disconnect(client, platform)
+            ConnectionService().disconnect(client, platform, social_account_id=request.data.get('social_account_id') or request.query_params.get('social_account_id'))
         except PublishError as exc:
             return Response({'detail': str(exc), 'code': exc.code}, status=400)
         return Response(status=204)

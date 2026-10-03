@@ -18,6 +18,7 @@ import {
   usePlatformUiRegistry,
 } from '../../services/platforms';
 import { useLanguage } from '../../i18n';
+import TelegramSettings from '../TelegramSettings';
 import ApiConnectivityPanel from '../ApiConnectivityPanel';
 import FacebookConnectModal from '../FacebookConnectModal';
 import PlatformConnectModal from '../PlatformConnectModal';
@@ -363,6 +364,7 @@ export default function ConnectedAccounts({ clientId, status, onRefresh }) {
       </Card>
 
       <div className="mt-5">
+        <TelegramSettings />
         <ApiConnectivityPanel />
       </div>
     </div>

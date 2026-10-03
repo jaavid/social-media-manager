@@ -200,7 +200,7 @@ def _exec_draft_post(approval) -> tuple[bool, str, dict]:
     """
     payload = _payload(approval)
     content = payload.get('content') or payload.get('body') or ''
-    if not content and not payload.get('media_urls'):
+    if not content and not payload.get('media_urls') and payload.get('media_type') not in ('album', 'rich', 'poll'):
         return (False, 'no content or media in payload — cannot create draft', {})
 
     post = UnifiedPost.objects.create(
@@ -210,6 +210,7 @@ def _exec_draft_post(approval) -> tuple[bool, str, dict]:
         content=content,
         target_platforms=list(payload.get('target_platforms') or []),
         media_urls=list(payload.get('media_urls') or []),
+        media_type=payload.get('media_type') or 'text',
         platform_overrides=dict(payload.get('platform_overrides') or {}),
         status='draft',
     )
@@ -309,10 +310,33 @@ def _exec_schedule_post(approval):
     return True, 'scheduled', {'post_id': post.pk}
 
 
+def _exec_telegram_suggestion(approval):
+    from types import SimpleNamespace
+    from .models import TelegramSuggestion
+    from .telegram_views import apply_suggestion_decision
+    from .authorization import evaluate
+    payload = _payload(approval)
+    suggestion = TelegramSuggestion.objects.filter(pk=payload.get('suggestion_id'), client=approval.client).first()
+    if not suggestion:
+        return False, 'suggestion no longer exists', {}
+    decision = payload.get('decision')
+    if decision not in ('under_review', 'accept_as_draft', 'approve', 'decline'):
+        return False, 'invalid suggestion decision', {}
+    permission = 'publish_posts' if decision == 'approve' else 'draft_posts'
+    if not evaluate(approval.requested_by, approval.client, permission, account=suggestion.account).allowed:
+        return False, 'permission revoked for Telegram account', {}
+    # The existing approval dispatcher verified the approving actor. Execute
+    # the recorded action without recursively creating another approval.
+    data = {key: value for key, value in payload.items() if value is not None}
+    response = apply_suggestion_decision(suggestion, decision, SimpleNamespace(user=approval.decided_by, data=data))
+    return response.status_code < 400, 'Telegram suggestion decision', dict(response.data)
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Dispatch table
 # ─────────────────────────────────────────────────────────────────────────────
 EXECUTORS: dict[str, Callable] = {
+    'telegram_suggestion': _exec_telegram_suggestion,
     'publish_post':        _exec_publish_post,
     'schedule_post':       _exec_schedule_post,
     'edit_post':           _exec_edit_post,

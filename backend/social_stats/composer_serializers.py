@@ -106,9 +106,25 @@ class UnifiedPostSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         if self.instance and 'client' in attrs and attrs['client'].pk != self.instance.client_id:
             raise serializers.ValidationError({'client': 'Workspace cannot be changed'})
-        media_type = attrs.get('media_type', 'text')
-        media_urls = attrs.get('media_urls') or []
-        if media_type != 'text' and not media_urls:
+        media_type = attrs.get('media_type', getattr(self.instance, 'media_type', 'text'))
+        media_urls = attrs.get('media_urls', getattr(self.instance, 'media_urls', [])) or []
+        targets = attrs.get('target_platforms', getattr(self.instance, 'target_platforms', []))
+        overrides = attrs.get('platform_overrides', getattr(self.instance, 'platform_overrides', {})) or {}
+        if not isinstance(overrides, dict):
+            raise serializers.ValidationError({'platform_overrides': 'Must be an object'})
+        for platform in targets:
+            options = overrides.get(platform, {})
+            kind = options.get('media_type', media_type) if isinstance(options, dict) else media_type
+            if kind in ('album', 'rich', 'poll') and platform != 'telegram':
+                raise serializers.ValidationError('This publishing mode requires Telegram')
+            if platform == 'telegram':
+                from .publishers.telegram_content import validate_post
+                from .publishers.base import PublishError
+                try:
+                    validate_post(kind, options.get('content', attrs.get('content', getattr(self.instance, 'content', ''))), options, assets=True)
+                except PublishError as exc:
+                    raise serializers.ValidationError({'platform_overrides': str(exc)}) from None
+        if media_type not in ('text', 'album', 'rich', 'poll') and not media_urls:
             raise serializers.ValidationError(
                 {'media_urls': 'At least one media URL is required for non-text posts'}
             )
@@ -139,7 +155,7 @@ class QueuedItemSerializer(serializers.ModelSerializer):
         model = QueuedItem
         fields = [
             'id', 'queue',
-            'content', 'media_urls', 'hashtags', 'sort_order', 'status',
+            'content', 'media_urls', 'media_type', 'platform_overrides', 'hashtags', 'sort_order', 'status',
             'used_at', 'unified_post', 'created_at',
         ]
         read_only_fields = ['status', 'used_at', 'unified_post', 'created_at']

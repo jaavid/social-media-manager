@@ -33,7 +33,8 @@ class BotPlatformProvider(BasePlatformProvider):
             account_id=str(bot.get('id') or ''), account_name=bot_name,
             destination_id=destination, scope=f'bot:{chat_name}', access_token=token,
             data={'bot': {'id': bot.get('id'), 'name': bot_name},
-                  'destination': {'id': destination, 'name': chat_name}},
+                  'destination': {'id': destination, 'name': chat_name, 'chat_id': chat.get('id'),
+                                  'type': 'forum_supergroup' if chat.get('is_forum') and chat.get('type') == 'supergroup' else chat.get('type')}},
         )
 
     def revoke(self, credential) -> ProviderResult:

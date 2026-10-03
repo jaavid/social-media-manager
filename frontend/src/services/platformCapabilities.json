@@ -94,31 +94,32 @@
       "publish_video": "supported",
       "scheduling": "supported",
       "analytics": "not_available",
-      "inbox": "planned",
+      "inbox": "supported",
       "comments": "not_available",
       "reviews": "not_available",
-      "webhooks": "planned"
+      "webhooks": "supported"
     },
     "features": {
       "support": {
         "media_group": "supported",
-        "mixed_media_group": "planned",
-        "rich_message": "planned",
-        "rich_slideshow": "planned",
-        "rich_collage": "planned",
-        "interactive_buttons": "planned",
-        "inbound_updates": "planned",
-        "channel_direct_messages": "planned",
-        "suggested_posts": "planned",
-        "forum_topics": "planned",
-        "streamed_drafts": "planned",
-        "polls": "planned"
+        "mixed_media_group": "supported",
+        "rich_message": "supported",
+        "rich_slideshow": "supported",
+        "rich_collage": "supported",
+        "interactive_buttons": "supported",
+        "inbound_updates": "supported",
+        "channel_direct_messages": "supported",
+        "suggested_posts": "supported",
+        "forum_topics": "supported",
+        "streamed_drafts": "supported",
+        "polls": "supported"
       },
       "media_group": {
         "min_items": 2,
         "max_items": 10,
         "media_types": [
-          "photo"
+          "photo",
+          "video"
         ],
         "caption": "first_item",
         "fallback": "single_image"

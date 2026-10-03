@@ -90,25 +90,26 @@ class BotAPIClient:
 
         route = getattr(getattr(response, 'egress_route', None), 'route', None)
         gateway_error = payload.get('error') if route == 'gateway' else None
+        gateway_diagnostic = ({'method': method, 'error': gateway_error} if self.service == 'telegram' else payload)
         if gateway_error in _GATEWAY_ERRORS and not payload.get('error_code'):
             if gateway_error == 'unauthorized':
                 raise PublishError(
                     'API gateway authentication failed',
-                    code='egress_auth', status_code=response.status_code, raw=payload,
+                    code='egress_auth', status_code=response.status_code, raw=gateway_diagnostic,
                 )
             if gateway_error == 'route_not_found':
                 raise PublishError(
                     f'API gateway route is not configured for {self.service}',
-                    code='egress_route_missing', status_code=response.status_code, raw=payload,
+                    code='egress_route_missing', status_code=response.status_code, raw=gateway_diagnostic,
                 )
             if gateway_error == 'upstream_unreachable':
                 raise PublishError(
                     f'API gateway could not reach {self.service}',
-                    code='network_error', status_code=response.status_code, raw=payload,
+                    code='network_error', status_code=response.status_code, raw=gateway_diagnostic,
                 )
             raise PublishError(
                 'API gateway rejected the outbound request',
-                code='egress_config', status_code=response.status_code, raw=payload,
+                code='egress_config', status_code=response.status_code, raw=gateway_diagnostic,
             )
 
         try:
@@ -143,6 +144,12 @@ class BotAPIClient:
                 status_code=response.status_code,
                 raw={**safe_payload, 'retry_after': retry_after_seconds},
             )
+
+        if self.service == 'telegram' and isinstance(payload.get('description'), str):
+            diagnostic = payload['description'].upper().replace(' ', '_')
+            if not payload.get('ok') and any(code in diagnostic for code in ('MESSAGE_THREAD_NOT_FOUND', 'TOPIC_CLOSED', 'TOPIC_DELETED')):
+                raise PublishError('Configured Telegram topic is unavailable; update the account topic ID and bot permissions',
+                                   code='invalid_destination', status_code=response.status_code, raw=safe_payload)
 
         if not response.ok or not payload.get('ok', False):
             description = payload.get('description') or f'Bot API request failed ({response.status_code})'

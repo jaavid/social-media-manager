@@ -12,7 +12,7 @@
 | YouTube | supported | supported | not_available | not_available | supported | supported | supported | not_available | supported | not_available | beta |
 | LinkedIn | supported | supported | supported | supported | supported | supported | beta | not_available | beta | not_available | not_available |
 | Google Business Profile | supported | supported | supported | supported | not_available | supported | supported | not_available | not_available | supported | not_available |
-| Telegram | supported | supported | supported | supported | supported | supported | not_available | planned | not_available | not_available | planned |
+| Telegram | supported | supported | supported | supported | supported | supported | not_available | supported | not_available | not_available | supported |
 | Bale | supported | supported | supported | supported | supported | supported | not_available | planned | not_available | not_available | planned |
 | Eitaa | planned | planned | planned | planned | planned | planned | not_available | planned | not_available | not_available | planned |
 | Aparat | planned | planned | not_available | not_available | planned | planned | planned | not_available | planned | not_available | planned |
@@ -27,8 +27,8 @@
 [bot_features.py](../backend/social_stats/platforms/bot_features.py) می‌آید.
 `features.support` وضعیت media group، mixed media، rich message، slideshow، collage،
 buttons، inbound updates، channel DM، suggested posts، forum topics، streamed drafts و polls را جدا می‌کند.
-فعلاً فقط آلبوم عکس فعال است؛ قابلیت‌های پیشرفتهٔ تلگرام `planned` و همان قابلیت‌ها برای بله
-`not_available` هستند. از `hasFeature()` برای کنترل نمایش/فعال‌سازی استفاده کنید.
+آلبوم عکس/ویدئو، Rich Message، نظرسنجی، وب‌هوک، DM، پیشنهاد پست، topic و دستیار خصوصی
+تلگرام فعال‌اند؛ قابلیت‌های اختصاصی تلگرام برای بله `not_available` هستند. از `hasFeature()` برای کنترل نمایش/فعال‌سازی استفاده کنید.
 
 `features.destinations` امکان پروتکلی هر نوع مقصد را توضیح می‌دهد؛ این مقدار به‌تنهایی
 قابلیت را فعال نمی‌کند. broadcast channel موضوع بومی ندارد؛ `message_thread_id` فقط برای
@@ -46,3 +46,35 @@ forum supergroup و private bot با topic mode است. فعال‌کردن Thre
 Celery countdown انجام می‌شود. timeout/network/invalid-response ممکن است پس از پذیرش مقصد رخ دهند؛
 بازاجرای خودکار این logها متوقف می‌شود. قبل از انتشار مجدد، نتیجه را در مقصد بررسی کنید.
 این رفتار تضمین exactly-once تلگرام نیست؛ Bot API کلید idempotency برای ارسال ندارد.
+
+
+## راه‌اندازی قابلیت‌های پیشرفته تلگرام
+
+از Settings → Connected Accounts، حساب تلگرام را انتخاب کنید. کنترل‌های topic فقط برای
+forum supergroup، private forum و Channel DM نمایش داده می‌شوند؛ مقصد با `getChat` بررسی می‌شود.
+یک bot در Telegram یک webhook دارد. کانال‌های همان bot در همان workspace با شناسهٔ
+`parent_chat` و credential یکسان نگاشت می‌شوند؛ برای workspaceهای مستقل bot مستقل بسازید.
+Webhook به URL عمومی HTTPS برنامه ثبت می‌شود و secret رمزگذاری‌شده دارد؛ token در URL برنامه نیست.
+Celery worker و beat باید فعال باشند. receipt آپدیت‌ها ۳۰ روز نگهداری و payload پس از پردازش حذف می‌شود.
+پس از یک هفته سکوت، reset شناسهٔ Telegram پشتیبانی می‌شود. آپدیت قدیمی‌تر از بازهٔ نگهداری تضمین replay ندارد.
+
+در Composer حالت Album / Gallery برای ۲–۱۰ عکس/ویدئو، Rich Article برای بلوک‌های مرتب
+و RTL، و Poll برای نظرسنجی موجود است. Slideshow/Collage بلوک Rich Message هستند.
+Rich HTML/Markdown خام پذیرفته نمی‌شود. fallback متن و لینک رسانه انتخاب صریح کاربر است.
+URL رسانه باید عمومی و HTTPS باشد؛ `asset:<id>` فقط از workspace پست حل می‌شود.
+پیش‌نویس، duplicate، approval، schedule و انتقال پست به queue همان payload را حفظ می‌کنند.
+
+پیشنهادهای ورودی در Inbox دیده می‌شوند؛ review، کپی به draft، approve با زمان اختیاری و decline
+روی پیام اصلی انجام می‌شود. price/Stars/TON نمایش داده می‌شود ولی تأیید مالی در برنامه غیرفعال است.
+خروجی مبهم به `needs_reconciliation` می‌رود؛ پیش از تلاش جدید وضعیت واقعی Telegram را بررسی کنید.
+callbackهای acknowledgement توکن تصادفی، محدود به account/chat، یک‌بارمصرف و با انقضای ۷ روز دارند؛
+هیچ callback فرمان دلخواه یا تغییر دادهٔ workspace اجرا نمی‌کند.
+
+برای دستیار، Threaded mode را در BotFather فعال و assistant را صریحاً روشن کنید. اپراتور با
+مجوز `manage_bots` شناسهٔ کاربر Telegram را به کاربر مجاز برنامه لینک می‌کند؛ مالکیت هویت را
+پیش از لینک‌کردن بررسی کنید. دسترسی `draft_posts` و مجوز account هنگام اجرا دوباره بررسی می‌شوند.
+هر chat/topic تاریخچهٔ مستقل دارد. دستیار فقط تولید/بازنویسی محتوا دارد و به ابزارهای workspace
+دسترسی ندارد. draftها با شناسهٔ ثابت و حداکثر یک بار در ثانیه coalesce می‌شوند؛ حالت rich اختیاری است.
+پاسخ نهایی با پیام عادی ذخیره می‌شود؛ توقف تولید draftهای بعدی را قطع می‌کند.
+پیکربندی AI موجود پروژه طبق [راهنمای شروع](GETTING_STARTED.md) لازم است. تست قراردادها provider را mock می‌کند؛
+پیش از rollout، webhook و ارسال واقعی را با bot آزمایشی بررسی کنید.

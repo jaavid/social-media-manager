@@ -41,7 +41,7 @@ export const PLATFORMS = {
   },
   telegram: {
     label: 'Telegram', shortLabel: 'Telegram', color: '#229ED9', bg: '#E7F5FC', maxText: 4096,
-    types: ['text','image','video','carousel'], metrics: [],
+    types: ['text','image','video','carousel','album','rich','poll'], metrics: [],
   },
   bale: {
     label: 'Bale', shortLabel: 'Bale', color: '#00A884', bg: '#E7F8F3', maxText: 4096,
@@ -113,6 +113,7 @@ const FALLBACK_PLATFORM_METADATA = [
   auth_type,
   rollout_status,
   capabilities: platformCapabilities[key]?.capabilities || {},
+  features: platformCapabilities[key]?.features || {},
 }));
 
 const STORAGE_KEY = 'platform-registry-v2';
@@ -248,6 +249,8 @@ function uiPlatform(metadata) {
   const legacy = PLATFORMS[metadata.key] || {};
   const declaredTypes = legacy.types || Object.keys(MEDIA_CAPABILITY);
   const supportedTypes = declaredTypes.filter(type => {
+    const feature = { album: 'mixed_media_group', rich: 'rich_message', poll: 'polls' }[type];
+    if (feature) return metadata.key === 'telegram' && enabledStatus(metadata.features?.support?.[feature]);
     const capability = MEDIA_CAPABILITY[type];
     return capability && platformHasCapability(metadata, capability);
   });

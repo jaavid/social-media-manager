@@ -26,9 +26,11 @@ def bot_feature_metadata(platform):
         return {}
     statuses = dict.fromkeys(FEATURE_KEYS, 'planned' if platform == 'telegram' else 'not_available')
     statuses['media_group'] = 'supported'
+    if platform == 'telegram':
+        statuses.update(dict.fromkeys(FEATURE_KEYS, 'supported'))
     return deepcopy({
         'support': statuses,
-        'media_group': {'min_items': 2, 'max_items': 10, 'media_types': ['photo'],
+        'media_group': {'min_items': 2, 'max_items': 10, 'media_types': ['photo', 'video'] if platform == 'telegram' else ['photo'],
                         'caption': 'first_item', 'fallback': 'single_image'},
         'destinations': {
             kind: {

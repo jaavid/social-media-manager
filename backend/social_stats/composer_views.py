@@ -23,6 +23,8 @@ always derived from the authenticated user — never trusted from the body.
 """
 from __future__ import annotations
 
+from .publishers.base import PublishError
+
 import logging
 from typing import Optional
 
@@ -356,6 +358,7 @@ class UnifiedPostViewSet(TenantScopedMixin, viewsets.ModelViewSet):
             queue=queue, requested_by=request.user,
             content=post.content,
             media_urls=list(post.media_urls or []),
+            media_type=post.media_type, platform_overrides=post.platform_overrides or {},
             sort_order=(queue.items.count() + 1),
         )
         return Response(QueuedItemSerializer(item).data, status=201)
@@ -553,6 +556,13 @@ class PreflightCheckView(APIView):
                 results[platform] = {'ok': False, 'errors': errors, 'warnings': warnings}
                 any_block = True
                 continue
+
+            if platform == 'telegram':
+                from .publishers.telegram_content import validate_post
+                try:
+                    validate_post(p_media_type, p_content, o, assets=True)
+                except PublishError as exc:
+                    errors.append(str(exc))
 
             # Per-asset platform validation
             for asset in assets:
