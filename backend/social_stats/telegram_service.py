@@ -64,7 +64,8 @@ def _callback(account, query):
     message = query.get("message") or {}
     with transaction.atomic():
         row = (
-            TelegramCallback.objects.select_for_update()
+            # Lock only the callback; credential is a nullable joined relation.
+            TelegramCallback.objects.select_for_update(of=("self",))
             .select_related("account__credential")
             .filter(
                 token=token, account__client=account.client, account__is_active=True
