@@ -13,6 +13,7 @@ class BotPlatformProvider(BasePlatformProvider):
     capabilities = ProviderCapabilities(
         connect=True, publish=True, revoke=True,
         media_types=frozenset({'text', 'image', 'video', 'carousel'}),
+        features=frozenset({'media_group'}),
     )
 
     def _client(self, token: str) -> BotAPIClient:

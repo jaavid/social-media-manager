@@ -20,6 +20,10 @@ class BotPublisher(BasePublisher):
     def _client(self, credential) -> BotAPIClient:
         return BotAPIClient(credential.access_token, self.API_BASE_URL)
 
+    def _routing_options(self, kwargs):
+        from social_stats.platforms.bot_features import validated_bot_options
+        return validated_bot_options(self.platform, kwargs)
+
     def _destination(self, credential, **kwargs) -> str:
         destination = (kwargs.get('destination_id') or credential.platform_user_id or '').strip()
         if not destination:
@@ -45,17 +49,21 @@ class BotPublisher(BasePublisher):
             post_id = ','.join(ids)
         else:
             post_id = str(result.get('message_id') or '')
+            ids = [post_id] if post_id else []
         return PublishResult(
             success=True,
             platform_post_id=post_id,
+            platform_post_ids=ids,
             raw_response=payload,
         )
 
     def publish_text(self, credential, content: str, **kwargs) -> PublishResult:
         self._ensure_length(content, self.MAX_TEXT_LENGTH, 'Text')
+        options = self._routing_options(kwargs)
         payload = self._client(credential).call('sendMessage', data={
             'chat_id': self._destination(credential, **kwargs),
             'text': content,
+            **options,
         })
         return self._result(payload)
 
@@ -65,10 +73,12 @@ class BotPublisher(BasePublisher):
         self._ensure_length(content, self.MAX_CAPTION_LENGTH, 'Caption')
         if len(image_urls) > 1:
             return self.publish_carousel(credential, content, image_urls, **kwargs)
+        options = self._routing_options(kwargs)
         payload = self._client(credential).call('sendPhoto', data={
             'chat_id': self._destination(credential, **kwargs),
             'photo': image_urls[0],
             'caption': content,
+            **options,
         })
         return self._result(payload)
 
@@ -76,10 +86,12 @@ class BotPublisher(BasePublisher):
         if not video_url:
             raise PublishError('Video URL is required', code='media_invalid')
         self._ensure_length(content, self.MAX_CAPTION_LENGTH, 'Caption')
+        options = self._routing_options(kwargs)
         data = {
             'chat_id': self._destination(credential, **kwargs),
             'video': video_url,
             'caption': content,
+            **options,
         }
         if thumbnail:
             data['thumbnail'] = thumbnail
@@ -88,12 +100,15 @@ class BotPublisher(BasePublisher):
     def publish_carousel(self, credential, content: str, image_urls: list[str], **kwargs) -> PublishResult:
         if not image_urls:
             return self.publish_text(credential, content, **kwargs)
+        if len(image_urls) == 1:
+            return self.publish_image(credential, content, image_urls, **kwargs)
         if len(image_urls) > self.MAX_MEDIA_GROUP_ITEMS:
             raise PublishError(
                 f'Media group exceeds provider limit ({len(image_urls)}/{self.MAX_MEDIA_GROUP_ITEMS})',
                 code='media_invalid',
             )
         self._ensure_length(content, self.MAX_CAPTION_LENGTH, 'Caption')
+        options = self._routing_options(kwargs)
         media = [
             {
                 'type': 'photo',
@@ -105,5 +120,6 @@ class BotPublisher(BasePublisher):
         payload = self._client(credential).call('sendMediaGroup', data={
             'chat_id': self._destination(credential, **kwargs),
             'media': json.dumps(media),
+            **options,
         })
         return self._result(payload)

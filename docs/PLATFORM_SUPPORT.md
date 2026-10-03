@@ -20,3 +20,29 @@
 
 فقط `supported` و `beta` تعاملی باشند؛ `planned` غیرفعال و `not_available` پنهان. وصل‌بودن حساب به معنی آماده‌بودن همهٔ قابلیت‌ها نیست.
 برای ارتقای وضعیت یک integration، اتصال واقعی، ذخیرهٔ رمزگذاری‌شده، انتشار قابلیت‌های اعلام‌شده، log و ID خروجی، خطاهای قابل‌فهم و disconnect را با حساب sandbox بررسی و قرارداد CI را پوشش دهید.
+
+## قرارداد تلگرام و بله
+
+فیلد `features` در `/api/platforms/metadata/` و metadata محلی frontend از
+[bot_features.py](../backend/social_stats/platforms/bot_features.py) می‌آید.
+`features.support` وضعیت media group، mixed media، rich message، slideshow، collage،
+buttons، inbound updates، channel DM، suggested posts، forum topics، streamed drafts و polls را جدا می‌کند.
+فعلاً فقط آلبوم عکس فعال است؛ قابلیت‌های پیشرفتهٔ تلگرام `planned` و همان قابلیت‌ها برای بله
+`not_available` هستند. از `hasFeature()` برای کنترل نمایش/فعال‌سازی استفاده کنید.
+
+`features.destinations` امکان پروتکلی هر نوع مقصد را توضیح می‌دهد؛ این مقدار به‌تنهایی
+قابلیت را فعال نمی‌کند. broadcast channel موضوع بومی ندارد؛ `message_thread_id` فقط برای
+forum supergroup و private bot با topic mode است. فعال‌کردن Threaded mode در BotFather
+پیش‌نیاز عملیاتی private forum است. draft stream برای private chat است، نه channel.
+شناسه‌های topic باید عدد صحیح مثبت در `destination_context` باشند؛ فیلد ناشناخته، ترکیب
+نامعتبر و قابلیت آماده‌نشده قبل از HTTP با خطای typed رد می‌شوند. این context مجوز workspace نمی‌دهد.
+
+آلبوم عکس ۲ تا ۱۰ عضو دارد؛ ترتیب حفظ و caption روی اولین عکس قرار می‌گیرد. یک عضو با
+`sendPhoto` و بدون عضو با متن ارسال می‌شود. شناسه‌ها در `platform_post_ids` خروجی و
+`PlatformPublishLog.raw_response.platform_post_ids` ذخیره می‌شوند؛ شناسهٔ قدیمی حفظ شده است.
+تبدیل خودکار Rich Message یا topic به متن/General انجام نمی‌شود؛ fallback باید انتخاب صریح کاربر باشد.
+
+انتشار موفق و claim فعال در بازاجرای worker دوباره ارسال نمی‌شوند؛ retry محدود `429` با
+Celery countdown انجام می‌شود. timeout/network/invalid-response ممکن است پس از پذیرش مقصد رخ دهند؛
+بازاجرای خودکار این logها متوقف می‌شود. قبل از انتشار مجدد، نتیجه را در مقصد بررسی کنید.
+این رفتار تضمین exactly-once تلگرام نیست؛ Bot API کلید idempotency برای ارسال ندارد.

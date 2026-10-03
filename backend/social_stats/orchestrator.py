@@ -87,12 +87,22 @@ def publish_unified_post(self, unified_post_id: int):
     post.save(update_fields=['status'])
 
     for platform in targets:
-        PlatformPublishLog.objects.update_or_create(
+        log, created = PlatformPublishLog.objects.get_or_create(
             unified_post=post, platform=platform,
             defaults={'status': 'pending', 'attempted_at': None,
                       'error_code': '', 'error_message': ''},
         )
+        # Preserve completed deliveries during a partial-post retry. A worker
+        # that crashed after sending remains ambiguous and needs reconciliation.
+        if not created and (log.status in ('success', 'publishing') or
+                            log.error_code in ('timeout', 'network_error', 'invalid_response')):
+            continue
+        if not created:
+            PlatformPublishLog.objects.filter(pk=log.pk, status='failed').update(
+                status='pending', error_code='', error_message='',
+            )
         publish_to_platform.delay(post.id, platform)
+    update_unified_post_status(post.id)
 
 
 @shared_task(bind=True, max_retries=3, default_retry_delay=120, acks_late=True)
@@ -111,6 +121,8 @@ def publish_to_platform(self, unified_post_id: int, platform: str):
         return
 
     log, _ = PlatformPublishLog.objects.get_or_create(unified_post=post, platform=platform, defaults={'status': 'pending'})
+    if log.status != 'pending':
+        return
     from .authorization import post_decision
     decision = post_decision(post)
     if not decision.allowed or (decision.requires_approval and not post.approved_by_id):
@@ -122,9 +134,12 @@ def publish_to_platform(self, unified_post_id: int, platform: str):
             post.save(update_fields=['status'])
         return
 
-    log.status = 'publishing'
-    log.attempted_at = timezone.now()
-    log.save(update_fields=['status', 'attempted_at'])
+    # Atomic claim: concurrent/re-delivered tasks cannot both send this row.
+    if not PlatformPublishLog.objects.filter(pk=log.pk, status='pending').update(
+        status='publishing', attempted_at=timezone.now(),
+    ):
+        return
+    log.refresh_from_db()
 
     overrides = (post.platform_overrides or {}).get(platform, {}) or {}
     credential_query = PlatformCredential.objects.filter(
@@ -187,6 +202,10 @@ def publish_to_platform(self, unified_post_id: int, platform: str):
 
     except RateLimitError as e:
         wait = max(int(getattr(e, 'retry_after', None) or 60), 30)
+        if self.request.retries >= self.max_retries:
+            _mark_failed(log, code='rate_limited', message='Rate limit retry budget exhausted')
+            update_unified_post_status(post.id)
+            return
         log.status = 'pending'
         log.error_code = 'rate_limited'
         log.error_message = str(e)[:500]
@@ -218,6 +237,8 @@ def publish_to_platform(self, unified_post_id: int, platform: str):
     log.error_code = ''
     log.error_message = ''
     log.raw_response = result.raw_response or {}
+    if result.platform_post_ids:
+        log.raw_response = {**log.raw_response, 'platform_post_ids': result.platform_post_ids}
     log.save(update_fields=[
         'status', 'platform_post_id', 'platform_url',
         'completed_at', 'error_code', 'error_message', 'raw_response',
@@ -241,6 +262,11 @@ def _dispatch_publish(
     """Publish through a capability-aware provider/publisher entry point."""
     media_type = (media_type or 'text').lower()
     publish_kwargs = {'destination_id': destination_id} if destination_id else {}
+    platform = getattr(publisher, 'key', None) or getattr(publisher, 'platform', None)
+    if platform in ('telegram', 'bale'):
+        overrides = (getattr(post, 'platform_overrides', None) or {}).get(platform, {}) or {}
+        if 'destination_context' in overrides:
+            publish_kwargs['destination_context'] = overrides['destination_context']
     # Accept a raw legacy publisher for callers/tests during the registry
     # transition; production passes a provider.
     from .platforms.base import BasePlatformProvider

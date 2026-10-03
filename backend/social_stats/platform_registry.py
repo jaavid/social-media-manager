@@ -10,6 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from .platforms.registry import CATEGORY_REGISTRY, PLATFORM_REGISTRY, PLATFORMS_BY_KEY
+from .platforms.bot_features import bot_feature_metadata
 
 
 CAPABILITIES = (
@@ -111,7 +112,8 @@ PLATFORMS: dict[str, PlatformDefinition] = {
 def frontend_metadata() -> dict[str, dict]:
     """Serializable support-status subset used by the legacy frontend guard."""
     return {
-        key: {'label': item.label, 'capabilities': item.capabilities}
+        key: {'label': item.label, 'capabilities': item.capabilities,
+              'features': bot_feature_metadata(key)}
         for key, item in PLATFORMS.items()
     }
 
@@ -140,6 +142,7 @@ def public_registry() -> dict[str, list[dict]]:
             'auth_type': catalogue.auth_type,
             'rollout_status': catalogue.status,
             'capabilities': capabilities,
+            'features': bot_feature_metadata(catalogue.key),
         })
 
     category_order = {item['key']: item['order'] for item in categories}
