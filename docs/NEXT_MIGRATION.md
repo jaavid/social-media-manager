@@ -2,7 +2,8 @@
 
 The optional Next host uses **Next.js 16.3.8**, the highest stable `next@16`
 version returned by npm on 2026-10-03. The version is pinned in the manifest and
-lockfile. Node 20.9+ is required; both Docker images and CI use Node 20.
+lockfile. Node 20.19+ is required by the retained Vite 7 toolchain (Next itself requires
+20.9+); both Docker images and CI use Node 20.
 
 ## Route ownership
 
