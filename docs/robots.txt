@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://cbsshekhawat18-lab.github.io/social-stats-social-media-manager/sitemap.xml
