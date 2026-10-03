@@ -50,7 +50,9 @@ test('persisted English and dark theme apply after hydration', async ({ page }) 
     localStorage.setItem('theme', 'dark');
   });
   await page.goto('/login');
-  await expect(page.locator('input[type="email"]')).toBeVisible();
+  // Wait for the persisted English preference; streamed hidden SSR content
+  // can briefly coexist with the hydrated form. Assert the accessible field.
+  await expect(page.getByRole('textbox', { name: 'Email', exact: true })).toBeVisible();
   await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
 });
