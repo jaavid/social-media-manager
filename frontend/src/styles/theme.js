@@ -62,7 +62,7 @@ export const spacing = {
 };
 
 export const typography = {
-  fontFamily: "'Vazirmatn', Tahoma, Arial, sans-serif",
+  fontFamily: 'var(--font-sans)',
   h1: { fontSize: 28, fontWeight: 800, letterSpacing: 0, lineHeight: 1.35 },
   h2: { fontSize: 22, fontWeight: 700, letterSpacing: 0, lineHeight: 1.4 },
   h3: { fontSize: 17, fontWeight: 700, lineHeight: 1.5 },

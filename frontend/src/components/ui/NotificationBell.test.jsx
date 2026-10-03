@@ -1,4 +1,4 @@
-import { render, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import NotificationBell from './NotificationBell';
 import { alertsAPI, notificationAPI } from '../../services/api';
@@ -61,4 +61,11 @@ test('logout aborts requests, clears caches, and stops future polling', async ()
   expect(alertsAPI.list).toHaveBeenCalledTimes(1);
   expect(notificationAPI.list).toHaveBeenCalledTimes(1);
   jest.useRealTimers();
+});
+
+
+test('header variant fits inside the 56px top bar', () => {
+  useAuth.mockReturnValue(authenticated);
+  render(<MemoryRouter><NotificationBell variant="ghost" /></MemoryRouter>);
+  expect(screen.getByTitle('Notifications & Alerts')).toHaveStyle({ width: '36px', height: '36px', boxShadow: 'none' });
 });

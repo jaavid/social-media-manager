@@ -15,7 +15,7 @@ import { useTheme } from '../../hooks/useTheme';
  * in dark mode. The 3-way Light/Dark/System chooser lives on the Settings
  * → Appearance page.
  */
-export default function ThemeToggle({ size = 'md', className }) {
+export default function ThemeToggle({ size = 'md', className, variant = 'default' }) {
   const { theme, toggle } = useTheme();
 
   const isDark = theme === 'dark';
@@ -32,18 +32,18 @@ export default function ThemeToggle({ size = 'md', className }) {
       title={label}
       className={className}
       style={{
-        width: dim, height: dim,
+        width: dim, height: dim, flexShrink: 0,
         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
         borderRadius: 'var(--radius-md)',
-        border: '1px solid var(--border-default)',
-        background: 'var(--surface-card)',
+        border: variant === 'ghost' ? 'none' : '1px solid var(--border-default)',
+        background: variant === 'ghost' ? 'transparent' : 'var(--surface-card)',
         color: 'var(--text-secondary)',
         cursor: 'pointer',
         transition: 'var(--transition-fast)',
         padding: 0,
       }}
       onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--surface-hover)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
-      onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--surface-card)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
+      onMouseLeave={(e) => { e.currentTarget.style.background = variant === 'ghost' ? 'transparent' : 'var(--surface-card)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
     >
       <Icon size={16} strokeWidth={2} />
     </button>
