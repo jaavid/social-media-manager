@@ -47,6 +47,7 @@ RUN --mount=type=secret,id=proxy_ca \
     && useradd --system --uid 999 --create-home --home-dir /home/socialstats socialstats \
     && mkdir -p /app/backend/media /app/backend/staticfiles /var/log/supervisor \
     && chown -R socialstats:socialstats /app/backend/media /app/backend/staticfiles /home/socialstats \
+    && chmod -R a+rX /app/backend \
     && SECRET_KEY=build-only DEBUG=True python manage.py collectstatic --noinput
 COPY --from=frontend-build --chown=999:999 /runtime/ /app/
 COPY docker/ /opt/socialstats-docker/
