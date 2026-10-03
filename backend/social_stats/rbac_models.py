@@ -16,14 +16,18 @@ def validate_action_map(value):
 
 
 class RolePreset(models.Model):
-    key = models.SlugField(unique=True)
-    label = models.CharField(max_length=100)
-    permissions = models.JSONField(default=dict, blank=True)
-    approval_defaults = models.JSONField(default=dict, blank=True)
+    key = models.SlugField(verbose_name='کلید', unique=True)
+    label = models.CharField(verbose_name='عنوان نمایشی', max_length=100)
+    permissions = models.JSONField(verbose_name='مجوزهای دسترسی', default=dict, blank=True)
+    approval_defaults = models.JSONField(verbose_name='تنظیمات پیش‌فرض تأیید', default=dict, blank=True)
 
     def clean(self):
         validate_action_map(self.permissions)
         validate_action_map(self.approval_defaults)
+
+    class Meta:
+        verbose_name = 'الگوی نقش'
+        verbose_name_plural = 'الگوهای نقش'
 
 
 class WorkspaceMemberPolicy(models.Model):

@@ -14,8 +14,14 @@ from .models import (
     Client, UserProfile, SocialAccount, PlatformCredential, DailyMetric, SyncLog,
     ROISettings, ROIReport,
     CalendarPost, CalendarNote, PostingSchedule, SiteContent, LookupCollection, LookupItem,
+    MediaAsset, UnifiedPost, PlatformPublishLog, PostQueue, QueuedItem,
+    Conversation, Message, UnifiedReview, AutomationRule,
 )
 from .platforms.registry import PLATFORMS_BY_KEY, PLATFORM_REGISTRY, grouped_platform_choices
+
+admin.site.site_header = 'مدیریت سامانه شبکه‌های اجتماعی'
+admin.site.site_title = 'مدیریت بک‌اند'
+admin.site.index_title = 'مدیریت اطلاعات و تنظیمات'
 
 
 class WorkspaceLabelsMixin:
@@ -44,16 +50,16 @@ class WorkspaceLabelsMixin:
                 options['classes'] = ['collapse']
             fieldsets.append((title, options))
         if remaining:
-            fieldsets.append(('Other settings', {'fields': remaining}))
+            fieldsets.append(('سایر تنظیمات', {'fields': remaining}))
         return fieldsets
 
-    @admin.display(description='Workspace', ordering='client__company')
+    @admin.display(description='فضای کاری', ordering='client__company')
     def workspace_column(self, obj):
         return obj.client
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.remote_field.model is Client:
-            kwargs.setdefault('label', 'Workspace')
+            kwargs.setdefault('label', 'فضای کاری')
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
@@ -90,33 +96,47 @@ class ClientAdmin(WorkspaceLabelsMixin, admin.ModelAdmin):
     list_filter = ['is_active', 'onboarding_complete', 'requires_approval']
     readonly_fields = ['created_at']
     field_groups = [
-        ('Workspace and contact', ['company', 'name', 'email', 'phone', 'whatsapp_number', 'website', 'logo', 'is_active'], False),
-        ('Brand profile', ['business_category', 'business_subcategories', 'brand_description', 'usp', 'brand_tone', 'profile_image'], False),
-        ('Audience', ['target_audience', 'gender', 'business_location', 'target_locations'], True),
-        ('Publishing and access', ['timezone', 'requires_approval', 'onboarding_complete', 'whatsapp_enabled', 'features_enabled', 'owner_user', 'ownership_type', 'created_via'], False),
-        ('Assets and history', ['gmb_url', 'brand_assets', 'product_images', 'created_at'], True),
+        ('فضای کاری و اطلاعات تماس', ['company', 'name', 'email', 'phone', 'whatsapp_number', 'website', 'logo', 'is_active'], False),
+        ('پروفایل برند', ['business_category', 'business_subcategories', 'brand_description', 'usp', 'brand_tone', 'profile_image'], False),
+        ('مخاطبان هدف', ['target_audience', 'gender', 'business_location', 'target_locations'], True),
+        ('انتشار و دسترسی', ['timezone', 'requires_approval', 'onboarding_complete', 'whatsapp_enabled', 'features_enabled', 'owner_user', 'ownership_type', 'created_via'], False),
+        ('اشتراک و بازار خدمات', ['subscription_plan', 'display_name', 'industry', 'location_city', 'location_country', 'is_discoverable_in_marketplace'], True),
+        ('ربات و کنترل پردازش', ['bot_enabled', 'bot_max_msgs_per_minute', 'bot_max_msgs_per_conv', 'bot_spam_threshold', 'meta_pixel_id', 'meta_capi_test_code', 'is_processing_paused'], True),
+        ('دارایی‌ها و سوابق', ['gmb_url', 'brand_assets', 'product_images', 'created_at'], True),
     ]
 
 @admin.register(UserProfile)
 class UserProfileAdmin(WorkspaceLabelsMixin, admin.ModelAdmin):
     list_display = ['user', 'role', 'workspace_column']
-    list_filter = ['role']
+    list_filter = ['role', 'email_verified', 'account_type']
+    search_fields = ['user__username', 'user__email', 'client__company']
+    autocomplete_fields = ['client', 'assigned_clients', 'default_workspace']
+    raw_id_fields = ['user', 'agency', 'primary_agency']
+    readonly_fields = ['created_at']
 
 @admin.register(PlatformCredential)
 class CredentialAdmin(WorkspaceLabelsMixin, admin.ModelAdmin):
     form = PlatformCredentialAdminForm
-    list_display = ['workspace_column', 'platform_title', 'platform_category', 'status', 'connected_at', 'expires_at']
+    list_display = ['workspace_column', 'platform_title', 'platform_category', 'connection_status', 'connected_at', 'expires_at']
     list_filter = [PlatformCategoryFilter, 'platform', 'is_active']
     readonly_fields = ['connected_at', 'updated_at']
     search_fields = ['client__company', 'page_name', 'channel_name', 'organization_name']
     list_select_related = ['client', 'social_account']
     autocomplete_fields = ['client', 'social_account']
     field_groups = [
-        ('Connection', ['client', 'platform', 'social_account', 'auth_method', 'is_active'], False),
-        ('OAuth credentials', ['access_token', 'refresh_token', 'token_type', 'expires_at', 'scope'], True),
-        ('Provider identity', ['platform_user_id', 'page_id', 'page_name', 'instagram_account_id', 'channel_id', 'channel_name', 'organization_id', 'organization_name', 'gmb_account_id', 'gmb_location_id'], True),
-        ('History', ['connected_at', 'updated_at'], True),
+        ('اتصال', ['client', 'platform', 'social_account', 'auth_method', 'is_active'], False),
+        ('اطلاعات احراز هویت OAuth', ['access_token', 'refresh_token', 'token_type', 'expires_at', 'scope'], True),
+        ('شناسه‌های پلتفرم', ['platform_user_id', 'page_id', 'page_name', 'instagram_account_id', 'channel_id', 'channel_name', 'organization_id', 'organization_name', 'gmb_account_id', 'gmb_location_id'], True),
+        ('سوابق', ['connected_at', 'updated_at'], True),
     ]
+
+    @admin.display(description='وضعیت اتصال')
+    def connection_status(self, obj):
+        return {
+            'not_connected': 'متصل نشده',
+            'expired': 'منقضی شده',
+            'active': 'فعال',
+        }.get(obj.status, obj.status)
 
     @admin.display(description='پلتفرم', ordering='platform')
     def platform_title(self, obj):
@@ -155,7 +175,7 @@ class ROISettingsAdmin(WorkspaceLabelsMixin, admin.ModelAdmin):
 
     def total_budget_display(self, obj):
         return f"{obj.currency_symbol}{obj.total_budget:,.2f}"
-    total_budget_display.short_description = 'Total Budget'
+    total_budget_display.short_description = 'بودجه کل'
 
 
 @admin.register(ROIReport)
@@ -199,7 +219,7 @@ class SiteContentAdmin(WorkspaceLabelsMixin, admin.ModelAdmin):
     search_fields = ['key', 'title']
 
 
-class LookupItemInline(admin.TabularInline):
+class LookupItemInline(WorkspaceLabelsMixin, admin.TabularInline):
     model = LookupItem
     extra = 0
 
@@ -215,6 +235,111 @@ class LookupCollectionAdmin(WorkspaceLabelsMixin, admin.ModelAdmin):
 
 
 @admin.register(RolePreset)
-class RolePresetAdmin(admin.ModelAdmin):
+class RolePresetAdmin(WorkspaceLabelsMixin, admin.ModelAdmin):
     list_display = ('key', 'label')
     search_fields = ('key', 'label')
+
+
+class OperationalReadOnlyAdmin(WorkspaceLabelsMixin, admin.ModelAdmin):
+    """Inspect service-owned records; transitions belong to the frontend workflows."""
+    actions = None
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(MediaAsset)
+class MediaAssetAdmin(WorkspaceLabelsMixin, admin.ModelAdmin):
+    list_display = ['file', 'workspace_column', 'mime_type', 'folder', 'is_used', 'created_at']
+    list_filter = ['mime_type', 'is_used']
+    search_fields = ['client__company', 'file', 'alt_text', 'folder']
+    autocomplete_fields = ['client']
+    raw_id_fields = ['uploaded_by']
+    readonly_fields = ['created_at']
+
+
+@admin.register(UnifiedPost)
+class UnifiedPostAdmin(OperationalReadOnlyAdmin):
+    list_display = ['title', 'workspace_column', 'status', 'media_type', 'scheduled_at', 'published_at']
+    list_filter = ['status', 'media_type']
+    search_fields = ['client__company', 'title', 'content']
+    list_select_related = ['client']
+    date_hierarchy = 'created_at'
+
+
+@admin.register(PlatformPublishLog)
+class PlatformPublishLogAdmin(OperationalReadOnlyAdmin):
+    list_display = ['unified_post', 'platform', 'social_account', 'status', 'attempted_at', 'completed_at']
+    list_filter = ['platform', 'status']
+    search_fields = ['unified_post__client__company', 'unified_post__title', 'platform_post_id', 'error_message']
+    list_select_related = ['unified_post__client', 'social_account']
+    date_hierarchy = 'attempted_at'
+
+
+@admin.register(PostQueue)
+class PostQueueAdmin(WorkspaceLabelsMixin, admin.ModelAdmin):
+    list_display = ['name', 'workspace_column', 'queue_strategy', 'is_active', 'last_dispatched_at']
+    list_filter = ['is_active', 'queue_strategy']
+    search_fields = ['client__company', 'name']
+    autocomplete_fields = ['client']
+    readonly_fields = ['last_dispatched_at', 'created_at', 'updated_at']
+
+
+@admin.register(QueuedItem)
+class QueuedItemAdmin(OperationalReadOnlyAdmin):
+    list_display = ['queue', 'sort_order', 'status', 'unified_post', 'used_at']
+    list_filter = ['status']
+    search_fields = ['queue__client__company', 'queue__name', 'content']
+    list_select_related = ['queue__client', 'unified_post__client']
+
+
+@admin.register(Conversation)
+class ConversationAdmin(WorkspaceLabelsMixin, admin.ModelAdmin):
+    list_display = ['contact_name', 'workspace_column', 'platform', 'type', 'assigned_to', 'is_resolved', 'last_message_at']
+    list_filter = ['platform', 'type', 'is_resolved', 'is_archived', 'is_starred']
+    search_fields = ['client__company', 'contact_name', 'contact_handle', 'last_message_preview']
+    list_select_related = ['client', 'assigned_to']
+    raw_id_fields = ['assigned_to']
+    # Provider identities and message counters are maintained by sync services.
+    readonly_fields = [
+        field.name for field in Conversation._meta.fields
+        if field.name not in {'assigned_to', 'is_starred', 'is_archived', 'is_resolved', 'tags'}
+    ]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(Message)
+class MessageAdmin(OperationalReadOnlyAdmin):
+    list_display = ['conversation', 'direction', 'author_name', 'sent_at', 'read_at']
+    list_filter = ['direction', 'sentiment']
+    search_fields = ['conversation__client__company', 'author_name', 'content', 'platform_message_id']
+    list_select_related = ['conversation__client']
+
+
+@admin.register(UnifiedReview)
+class UnifiedReviewAdmin(OperationalReadOnlyAdmin):
+    list_display = ['reviewer_name', 'workspace_column', 'platform', 'rating', 'status', 'replied_at']
+    list_filter = ['platform', 'rating', 'status', 'sentiment']
+    search_fields = ['client__company', 'reviewer_name', 'comment', 'reply_text']
+    list_select_related = ['client']
+
+
+@admin.register(AutomationRule)
+class AutomationRuleAdmin(WorkspaceLabelsMixin, admin.ModelAdmin):
+    list_display = ['name', 'workspace_column', 'trigger_type', 'action_type', 'is_active', 'run_count', 'last_run_at']
+    list_filter = ['is_active', 'trigger_type', 'action_type']
+    search_fields = ['client__company', 'name']
+    autocomplete_fields = ['client']
+    raw_id_fields = ['created_by']
+    readonly_fields = ['run_count', 'last_run_at', 'created_at', 'updated_at']
