@@ -423,3 +423,10 @@ For responsible disclosure, see [SECURITY.md](./SECURITY.md). Please don't open
 public issues for security reports.
 
 Workspace is the canonical product/API term. See the [Workspace vocabulary and compatibility contract](docs/WORKSPACE_VOCABULARY.md) for new routes, retained Client aliases, and the deferred database rename.
+
+### Optional Next.js 16 rollout
+
+Next.js 16.3.8 is available as an incremental App Router host while the default
+Vite deployment remains supported. See [the migration guide](docs/NEXT_MIGRATION.md)
+for migrated routes, development commands, opt-in Compose deployment, validation,
+and rollback.

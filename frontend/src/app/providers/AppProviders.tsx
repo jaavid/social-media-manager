@@ -1,4 +1,5 @@
-import type { PropsWithChildren } from 'react';
+import type { ComponentType, PropsWithChildren } from 'react';
+import MigrationBoundary from '../routes/MigrationBoundary';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '../../services/queryClient';
@@ -11,9 +12,12 @@ import CookieBanner from '../../components/legal/CookieBanner';
 import PageviewTracker from '../../components/PageviewTracker';
 import { ToastProvider } from '../../components/ui/toast';
 
-export default function AppProviders({ children }: PropsWithChildren) {
+export default function AppProviders({
+  children,
+  router: HostRouter = BrowserRouter,
+}: PropsWithChildren<{ router?: ComponentType<PropsWithChildren> }>) {
   return (
-    <BrowserRouter>
+    <HostRouter>
       <PageviewTracker />
       <ErrorBoundary>
         <ThemeProvider>
@@ -21,7 +25,9 @@ export default function AppProviders({ children }: PropsWithChildren) {
             <QueryClientProvider client={queryClient}>
               <RealtimeProvider>
                 <RealtimeBridge />
-                {children}
+                {HostRouter === BrowserRouter
+                  ? <MigrationBoundary>{children}</MigrationBoundary>
+                  : children}
                 <ToastProvider />
                 <CookieBanner />
               </RealtimeProvider>
@@ -29,6 +35,6 @@ export default function AppProviders({ children }: PropsWithChildren) {
           </AuthProvider>
         </ThemeProvider>
       </ErrorBoundary>
-    </BrowserRouter>
+    </HostRouter>
   );
 }

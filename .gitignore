@@ -122,3 +122,10 @@ staticfiles/
 # Local browser review artifacts
 .playwright-cli/
 output/playwright/
+
+# Next generated compiler files
+*.tsbuildinfo
+frontend/next/next-env.d.ts
+
+frontend/test-results/
+frontend/playwright-report/

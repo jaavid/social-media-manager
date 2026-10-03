@@ -1,6 +1,6 @@
-// CRA convention: this file is auto-loaded before each test file.
-// See https://create-react-app.dev/docs/running-tests/#initializing-test-environment
+// Shared Jest setup.
 import '@testing-library/jest-dom';
+import 'whatwg-fetch';
 
 // Quiet the React 18 act() warnings that fire from zustand's external store
 // notifications when our tests assert state that was set outside a render.

@@ -121,11 +121,29 @@ jobs:
           CI: "true"
         run: npm run build
 
+      - name: Next production build
+        working-directory: frontend
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+        run: npm run build:next
+
       - name: Run Jest tests
         working-directory: frontend
         env:
           CI: "true"
         run: npm test
+
+      - name: Install browser for migration checks
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
+
+      - name: Split-host migration browser tests
+        working-directory: frontend
+        env:
+          CI: "true"
+        run: |
+          npm run build:rollout
+          npm run test:next
 
   docker:
     name: Docker — unified stack boots

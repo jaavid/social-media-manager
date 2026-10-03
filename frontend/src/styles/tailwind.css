@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @import "./primitives.css";
 
+/* Shared features live outside the optional Next project directory. */
+@source "../";
+
 /*
  * Tailwind/shadcn bridge.
  * Existing product tokens remain authoritative while shell primitives migrate

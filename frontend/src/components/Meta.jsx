@@ -6,7 +6,8 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
-import { useEffect } from 'react';
+import { useContext, useEffect } from 'react';
+import { MetadataOwnership } from '../app/metadataOwnership';
 
 /**
  * Meta — imperative document head manager. No extra dependency.
@@ -42,7 +43,9 @@ export default function Meta({
   type = 'website',
   noSuffix = false,
 }) {
+  const routeOwnsMetadata = useContext(MetadataOwnership);
   useEffect(() => {
+    if (routeOwnsMetadata) return;
     const fullTitle = title
       ? (noSuffix ? title : `${title} · ${SITE_NAME}`)
       : `${SITE_NAME} — The marketing OS for modern agencies`;
@@ -67,7 +70,7 @@ export default function Meta({
     setMetaName('twitter:description', description);
     setMetaName('twitter:image',       absUrl(image));
     setMetaName('twitter:site',        '@socialstats');
-  }, [title, description, image, url, type, noSuffix]);
+  }, [routeOwnsMetadata, title, description, image, url, type, noSuffix]);
 
   return null;
 }
