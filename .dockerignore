@@ -13,3 +13,7 @@ backend/media/
 backend/staticfiles/
 *.log
 .DS_Store
+
+**/.next
+**/node_modules
+**/*.tsbuildinfo

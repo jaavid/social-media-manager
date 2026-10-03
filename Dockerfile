@@ -5,6 +5,8 @@ WORKDIR /src/frontend
 COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci --no-audit --no-fund
 COPY frontend/ ./
+ARG REACT_APP_NEXT_ENABLED=false
+ENV REACT_APP_NEXT_ENABLED=${REACT_APP_NEXT_ENABLED}
 ARG REACT_APP_API_URL=/api
 ENV REACT_APP_API_URL=${REACT_APP_API_URL}
 RUN CI=true npm run build

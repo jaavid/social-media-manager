@@ -8,6 +8,7 @@ export default defineConfig(({ mode }) => {
   const isProduction = mode === 'production';
 
   const legacyReactEnv = {
+    REACT_APP_NEXT_ENABLED: process.env.REACT_APP_NEXT_ENABLED || env.VITE_NEXT_ENABLED || 'false',
     NODE_ENV: isProduction ? 'production' : 'development',
     REACT_APP_API_URL:
       process.env.REACT_APP_API_URL || env.VITE_API_URL || env.REACT_APP_API_URL,

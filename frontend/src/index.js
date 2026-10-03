@@ -6,6 +6,7 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
+import { applyNavigationHandoff } from './lib/runtime/navigationHandoff';
 import { isProduction } from './lib/runtime/config';
 
 import React from 'react';
@@ -16,6 +17,8 @@ import './styles/common.css';
 import './styles/legacy.css';
 import './styles/accessibility.css';
 import { bootstrapTheme } from './hooks/useTheme';
+
+applyNavigationHandoff(window.location.pathname);
 
 // Apply persisted theme before React paints, to avoid flash of wrong theme.
 bootstrapTheme();
