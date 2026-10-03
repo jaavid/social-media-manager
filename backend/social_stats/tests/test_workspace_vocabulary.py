@@ -168,10 +168,10 @@ class WorkspaceVocabularyTests(TestCase):
         request = RequestFactory().get("/backend/")
         request.user = self.user
         form = admin.site._registry[SocialAccount].get_form(request)
-        self.assertEqual(form.base_fields["client"].label, "Workspace")
-        self.assertEqual(Client._meta.verbose_name, "Workspace")
+        self.assertEqual(form.base_fields["client"].label, "فضای کاری")
+        self.assertEqual(Client._meta.verbose_name, "فضای کاری")
         self.assertEqual(Client._meta.db_table, "social_stats_client")
         self.assertEqual(
             dict(UserProfile._meta.get_field("role").choices)["client"],
-            "Workspace member",
+            "عضو فضای کاری",
         )

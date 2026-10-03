@@ -16,140 +16,140 @@ from .fields import EncryptedTextField
 from .platforms.registry import PLATFORM_CHOICES
 
 ROLE_CHOICES = [
-    ('superadmin', 'Super Admin'),
-    ('staff',      'Staff'),
-    ('client',     'Workspace member'),
+    ('superadmin', 'مدیر کل'),
+    ('staff',      'کارمند'),
+    ('client',     'عضو فضای کاری'),
 ]
 
 SYNC_STATUS = [
-    ('pending', 'Pending'),
-    ('running', 'Running'),
-    ('success', 'Success'),
-    ('failed',  'Failed'),
+    ('pending', 'در انتظار'),
+    ('running', 'در حال اجرا'),
+    ('success', 'موفق'),
+    ('failed',  'ناموفق'),
 ]
 
 
 # ── Client (Company) ──────────────────────────────────────────────────────────
 class Client(models.Model):
-    name       = models.CharField(max_length=200)
-    company    = models.CharField(max_length=200)
-    email      = models.EmailField(unique=True)
-    phone      = models.CharField(max_length=30, blank=True)
-    whatsapp_number = models.CharField(max_length=30, blank=True)
-    website    = models.URLField(blank=True)
-    gmb_url    = models.URLField(blank=True, help_text="Google My Business profile URL")
-    logo       = models.ImageField(upload_to='logos/', blank=True, null=True)
-    is_active  = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    name       = models.CharField(verbose_name='نام مسئول تماس', max_length=200)
+    company    = models.CharField(verbose_name='نام کسب‌وکار', max_length=200)
+    email      = models.EmailField(verbose_name='ایمیل', unique=True)
+    phone      = models.CharField(verbose_name='شماره تلفن', max_length=30, blank=True)
+    whatsapp_number = models.CharField(verbose_name='شماره واتس‌اپ', max_length=30, blank=True)
+    website    = models.URLField(verbose_name='نشانی وب‌سایت', blank=True)
+    gmb_url    = models.URLField(verbose_name='نشانی پروفایل کسب‌وکار در گوگل', blank=True, help_text='نشانی پروفایل کسب‌وکار در گوگل.')
+    logo       = models.ImageField(verbose_name='لوگو', upload_to='logos/', blank=True, null=True)
+    is_active  = models.BooleanField(verbose_name='فعال', default=True)
+    created_at = models.DateTimeField(verbose_name='زمان ایجاد', auto_now_add=True)
 
     # Business Profile Fields
-    business_category = models.CharField(max_length=100, blank=True, help_text="e.g., Electronics, Retail, Services")
-    business_subcategories = models.JSONField(default=list, blank=True, help_text="List of subcategories")
-    brand_description = models.TextField(blank=True)
-    usp = models.TextField(blank=True, help_text="Unique Selling Points")
-    brand_tone = models.CharField(max_length=50, blank=True, choices=[
-        ('professional', 'Professional'),
-        ('casual', 'Casual'),
-        ('funny', 'Funny'),
-        ('inspirational', 'Inspirational'),
-        ('urgent', 'Urgent'),
-        ('friendly', 'Friendly'),
+    business_category = models.CharField(verbose_name='دسته کسب‌وکار', max_length=100, blank=True, help_text='برای مثال: فروشگاه، خدمات یا صنایع الکترونیک.')
+    business_subcategories = models.JSONField(verbose_name='زیر‌دسته‌های کسب‌وکار', default=list, blank=True, help_text='فهرست زیر‌دسته‌ها در قالب JSON؛ برای مثال: ["پوشاک", "کفش"].')
+    brand_description = models.TextField(verbose_name='توضیحات برند', blank=True)
+    usp = models.TextField(verbose_name='مزیت‌های رقابتی برند', blank=True, help_text='ویژگی‌هایی که برند را از رقبا متمایز می‌کنند.')
+    brand_tone = models.CharField(verbose_name='لحن برند', max_length=50, blank=True, choices=[
+        ('professional', 'حرفه‌ای'),
+        ('casual', 'خودمانی'),
+        ('funny', 'طنز'),
+        ('inspirational', 'الهام‌بخش'),
+        ('urgent', 'فوری'),
+        ('friendly', 'دوستانه'),
     ])
-    target_audience = models.TextField(blank=True)
-    gender = models.CharField(max_length=20, blank=True, choices=[
-        ('all', 'All'),
-        ('male', 'Male'),
-        ('female', 'Female'),
-        ('non_binary', 'Non-binary'),
-        ('unspecified', 'Unspecified'),
+    target_audience = models.TextField(verbose_name='مخاطبان هدف', blank=True)
+    gender = models.CharField(verbose_name='جنسیت مخاطبان', max_length=20, blank=True, choices=[
+        ('all', 'همه'),
+        ('male', 'مرد'),
+        ('female', 'زن'),
+        ('non_binary', 'غیردودویی'),
+        ('unspecified', 'مشخص نشده'),
     ])
-    business_location = models.CharField(max_length=200, blank=True)
-    target_locations = models.JSONField(default=list, blank=True, help_text="List of target countries/cities")
-    brand_assets = models.JSONField(default=dict, blank=True, help_text="Logo URL, email, phone, etc.")
-    profile_image = models.ImageField(upload_to='profile_images/', blank=True, null=True)
-    product_images = models.JSONField(default=list, blank=True, help_text="List of product image URLs")
+    business_location = models.CharField(verbose_name='موقعیت کسب‌وکار', max_length=200, blank=True)
+    target_locations = models.JSONField(verbose_name='موقعیت‌های جغرافیایی هدف', default=list, blank=True, help_text='فهرست کشورها یا شهرهای هدف در قالب JSON.')
+    brand_assets = models.JSONField(verbose_name='دارایی‌های برند', default=dict, blank=True, help_text='اطلاعات دارایی‌های برند در قالب JSON، مانند نشانی لوگو و اطلاعات تماس.')
+    profile_image = models.ImageField(verbose_name='تصویر پروفایل', upload_to='profile_images/', blank=True, null=True)
+    product_images = models.JSONField(verbose_name='تصاویر محصولات', default=list, blank=True, help_text='فهرست نشانی تصاویر محصولات در قالب JSON.')
 
     # Onboarding status
-    onboarding_complete = models.BooleanField(default=False)
+    onboarding_complete = models.BooleanField(verbose_name='راه‌اندازی اولیه تکمیل شده', default=False)
 
     # WhatsApp module toggle (Pinbot integration)
-    whatsapp_enabled = models.BooleanField(default=False)
+    whatsapp_enabled = models.BooleanField(verbose_name='واتس‌اپ فعال', default=False)
 
     # Per-client feature flags for the unified control center.
     # Example: {"composer": true, "scheduler": true, "inbox": true,
     #           "reviews": true, "video_studio": false, "automations": true,
     #           "ai_studio": true, "audience": true, "competitors": true}
-    features_enabled = models.JSONField(default=dict, blank=True)
+    features_enabled = models.JSONField(help_text='مجوز قابلیت‌ها در قالب JSON؛ برای مثال: {"composer": true, "scheduler": true}.', verbose_name='قابلیت‌های فعال', default=dict, blank=True)
 
     # When True, all UnifiedPost rows go to status='pending_approval' before
     # publishing — used by hospitals / large brands for compliance review.
-    requires_approval = models.BooleanField(default=False)
+    requires_approval = models.BooleanField(verbose_name='انتشار نیازمند تأیید', default=False)
 
     # IANA timezone for accurate scheduled-post timing per client.
-    timezone = models.CharField(max_length=64, blank=True, default='')
+    timezone = models.CharField(help_text='نام استاندارد منطقه زمانی؛ برای مثال: Asia/Tehran.', verbose_name='منطقه زمانی', max_length=64, blank=True, default='')
 
     # ── Marketplace ownership ────────────────────────────────────
     # Who owns this workspace? Existing rows backfill to 'agency_owned' so the
     # legacy agency-managed flow stays untouched. End-user self-signups create
     # rows with 'end_user_owned' + owner_user set.
     owner_user = models.ForeignKey(
-        User, on_delete=models.SET_NULL, null=True, blank=True,
+        User, verbose_name='کاربر مالک', on_delete=models.SET_NULL, null=True, blank=True,
         related_name='owned_workspaces',
     )
     OWNERSHIP_TYPES = [
-        ('end_user_owned', 'End User Owned'),
-        ('agency_owned',   'Agency Owned'),
-        ('orphaned',       'Orphaned'),
+        ('end_user_owned', 'متعلق به کاربر نهایی'),
+        ('agency_owned',   'متعلق به آژانس'),
+        ('orphaned',       'بدون مالک'),
     ]
-    ownership_type = models.CharField(max_length=20, choices=OWNERSHIP_TYPES, default='agency_owned')
+    ownership_type = models.CharField(verbose_name='نوع مالکیت', max_length=20, choices=OWNERSHIP_TYPES, default='agency_owned')
     CREATED_VIA_CHOICES = [
-        ('end_user_signup', 'End User Self-Signup'),
-        ('agency_invite',   'Agency Created'),
-        ('marketplace',     'Marketplace Match'),
+        ('end_user_signup', 'ثبت‌نام مستقیم کاربر'),
+        ('agency_invite',   'ایجاد توسط آژانس'),
+        ('marketplace',     'اتصال از بازار خدمات'),
     ]
-    created_via = models.CharField(max_length=20, choices=CREATED_VIA_CHOICES, default='agency_invite')
+    created_via = models.CharField(verbose_name='روش ایجاد', max_length=20, choices=CREATED_VIA_CHOICES, default='agency_invite')
 
     # ── Subscription / plan ──────────────────────────────────────────────────
     SUBSCRIPTION_PLANS = [
-        ('free',           'Free'),
-        ('pro',            'Pro'),
-        ('premium',        'Premium'),
-        ('agency_managed', 'Agency Managed'),
+        ('free',           'رایگان'),
+        ('pro',            'حرفه‌ای'),
+        ('premium',        'ویژه'),
+        ('agency_managed', 'مدیریت‌شده توسط آژانس'),
     ]
-    subscription_plan = models.CharField(max_length=20, choices=SUBSCRIPTION_PLANS, default='free')
+    subscription_plan = models.CharField(verbose_name='طرح اشتراک', max_length=20, choices=SUBSCRIPTION_PLANS, default='free')
 
     # ── Marketplace listing profile ──────────────────────────────────────────
-    display_name                  = models.CharField(max_length=200, blank=True)
-    industry                      = models.CharField(max_length=50,  blank=True)
-    location_city                 = models.CharField(max_length=100, blank=True)
-    location_country              = models.CharField(max_length=2,   blank=True)
-    is_discoverable_in_marketplace = models.BooleanField(default=False)
+    display_name                  = models.CharField(verbose_name='نام نمایشی', max_length=200, blank=True)
+    industry                      = models.CharField(verbose_name='حوزه فعالیت', max_length=50,  blank=True)
+    location_city                 = models.CharField(verbose_name='شهر', max_length=100, blank=True)
+    location_country              = models.CharField(help_text='کد دوحرفی کشور؛ برای مثال: IR.', verbose_name='کد کشور', max_length=2,   blank=True)
+    is_discoverable_in_marketplace = models.BooleanField(verbose_name='قابل نمایش در بازار خدمات', default=False)
 
     # ── Meta Conversions API (— CTWA bot builder) ───────────────────
     # When set, lead-capture pushes a 'Lead' event to Meta so CTWA ads can
     # optimize on real conversions. Test code is for sandbox testing only.
-    meta_pixel_id        = models.CharField(max_length=50, blank=True)
-    meta_capi_test_code  = models.CharField(max_length=30, blank=True)
+    meta_pixel_id        = models.CharField(verbose_name='شناسه پیکسل متا', max_length=50, blank=True)
+    meta_capi_test_code  = models.CharField(verbose_name='کد آزمایش API تبدیل متا', max_length=30, blank=True)
 
     # ── — bot safety controls ───────────────────────────────────────
-    bot_enabled                = models.BooleanField(default=True)   # workspace kill switch
-    bot_max_msgs_per_minute    = models.IntegerField(default=20)     # per-contact rate limit
-    bot_max_msgs_per_conv      = models.IntegerField(default=200)    # break runaway loops
-    bot_spam_threshold         = models.IntegerField(default=5)      # auto-end at this score
+    bot_enabled                = models.BooleanField(verbose_name='ربات فعال', default=True)   # workspace kill switch
+    bot_max_msgs_per_minute    = models.IntegerField(verbose_name='حداکثر پیام ربات به هر مخاطب در دقیقه', default=20)     # per-contact rate limit
+    bot_max_msgs_per_conv      = models.IntegerField(verbose_name='حداکثر پیام ربات در هر گفتگو', default=200)    # break runaway loops
+    bot_spam_threshold         = models.IntegerField(verbose_name='آستانه امتیاز هرزنامه', default=5)      # auto-end at this score
 
     # ── — GDPR/DPDP "right to restrict processing" toggle ────────────
     # When True: batch sync fan-outs skip this client, AI calls fail with a
     # clear error (503 via AIError), and composer create/schedule/publish
     # return 423. The user can still log in to view existing data.
-    is_processing_paused = models.BooleanField(default=False)
+    is_processing_paused = models.BooleanField(help_text='با فعال شدن، همگام‌سازی، درخواست‌های هوش مصنوعی و ایجاد یا انتشار پست متوقف می‌شود.', verbose_name='پردازش داده‌ها متوقف شده', default=False)
 
     def __str__(self):
         return f"{self.company} ({self.name})"
 
     class Meta:
         ordering = ['company']
-        verbose_name = 'Workspace'
-        verbose_name_plural = 'Workspaces'
+        verbose_name = 'فضای کاری'
+        verbose_name_plural = 'فضاهای کاری'
 
 
 # ── Competitors ───────────────────────────────────────────────────────────────
@@ -177,38 +177,38 @@ class Competitor(models.Model):
 
 # ── User Profile (roles) ──────────────────────────────────────────────────────
 class UserProfile(models.Model):
-    user              = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
-    role              = models.CharField(max_length=20, choices=ROLE_CHOICES, default='client')
-    client            = models.ForeignKey(Client, null=True, blank=True, on_delete=models.SET_NULL)
-    assigned_clients  = models.ManyToManyField(Client, blank=True, related_name='staff_assigned')
-    avatar            = models.ImageField(upload_to='avatars/', blank=True, null=True)
-    created_at        = models.DateTimeField(auto_now_add=True)
-    terms_accepted    = models.BooleanField(default=False)
-    terms_accepted_at = models.DateTimeField(null=True, blank=True)
-    is_self_registered = models.BooleanField(default=False)
-    email_verified     = models.BooleanField(default=True)   # False for email/password signups until verified
-    agency             = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='managed_clients')
+    user              = models.OneToOneField(User, verbose_name='کاربر', on_delete=models.CASCADE, related_name='profile')
+    role              = models.CharField(verbose_name='نقش', max_length=20, choices=ROLE_CHOICES, default='client')
+    client            = models.ForeignKey(Client, verbose_name='فضای کاری', null=True, blank=True, on_delete=models.SET_NULL)
+    assigned_clients  = models.ManyToManyField(Client, verbose_name='فضاهای کاری تخصیص‌یافته', blank=True, related_name='staff_assigned')
+    avatar            = models.ImageField(verbose_name='تصویر کاربر', upload_to='avatars/', blank=True, null=True)
+    created_at        = models.DateTimeField(verbose_name='زمان ایجاد', auto_now_add=True)
+    terms_accepted    = models.BooleanField(verbose_name='شرایط استفاده پذیرفته شده', default=False)
+    terms_accepted_at = models.DateTimeField(verbose_name='زمان پذیرش شرایط استفاده', null=True, blank=True)
+    is_self_registered = models.BooleanField(verbose_name='ثبت‌نام توسط خود کاربر', default=False)
+    email_verified     = models.BooleanField(verbose_name='ایمیل تأیید شده', default=True)   # False for email/password signups until verified
+    agency             = models.ForeignKey(User, verbose_name='کاربر مدیر آژانس', null=True, blank=True, on_delete=models.SET_NULL, related_name='managed_clients')
 
     # ── Marketplace account type ────────────────────────────────
     # 'legacy' is the default for everyone existing pre-marketplace; the
     # signup flows (end-user vs agency) set the right value going forward.
     ACCOUNT_TYPES = [
-        ('end_user',      'End User'),       # B2C, owns one or more workspaces
-        ('agency_member', 'Agency Member'),  # works at an agency
-        ('legacy',        'Legacy'),         # pre-marketplace, mapped on migration
+        ('end_user',      'کاربر نهایی'),       # B2C, owns one or more workspaces
+        ('agency_member', 'عضو آژانس'),  # works at an agency
+        ('legacy',        'حساب قدیمی'),         # pre-marketplace, mapped on migration
     ]
-    account_type      = models.CharField(max_length=20, choices=ACCOUNT_TYPES, default='legacy')
+    account_type      = models.CharField(verbose_name='نوع حساب', max_length=20, choices=ACCOUNT_TYPES, default='legacy')
     primary_agency    = models.ForeignKey(
-        'Agency', null=True, blank=True, on_delete=models.SET_NULL,
+        'Agency', verbose_name='آژانس اصلی', null=True, blank=True, on_delete=models.SET_NULL,
         related_name='primary_members',
     )
     default_workspace = models.ForeignKey(
-        Client, null=True, blank=True, on_delete=models.SET_NULL,
+        Client, verbose_name='فضای کاری پیش‌فرض', null=True, blank=True, on_delete=models.SET_NULL,
         related_name='+',
     )
 
     def __str__(self):
-        return f"{self.user.email} ({self.role})"
+        return f"{self.user.email} ({self.get_role_display()})"
 
     def can_access_client(self, client_id):
         from .authorization import accessible_workspaces
@@ -216,6 +216,10 @@ class UserProfile(models.Model):
             return accessible_workspaces(self.user).filter(pk=int(client_id)).exists()
         except (TypeError, ValueError):
             return False
+
+    class Meta:
+        verbose_name = 'پروفایل کاربر'
+        verbose_name_plural = 'پروفایل‌های کاربران'
 
 
 class EmailVerificationToken(models.Model):
@@ -296,18 +300,20 @@ def ensure_client_profile(profile):
 # ── OAuth Credentials per client per platform ─────────────────────────────────
 class SocialAccount(models.Model):
     """Public provider identity, intentionally separated from secret tokens."""
-    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='social_accounts')
-    platform = models.CharField(max_length=30, choices=PLATFORM_CHOICES)
-    external_id = models.CharField(max_length=200)
-    display_name = models.CharField(max_length=200, blank=True)
-    username = models.CharField(max_length=200, blank=True)
-    avatar_url = models.URLField(max_length=500, blank=True)
-    metadata = models.JSONField(default=dict, blank=True)
-    is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    client = models.ForeignKey(Client, verbose_name='فضای کاری', on_delete=models.CASCADE, related_name='social_accounts')
+    platform = models.CharField(verbose_name='پلتفرم', max_length=30, choices=PLATFORM_CHOICES)
+    external_id = models.CharField(verbose_name='شناسه در پلتفرم', max_length=200)
+    display_name = models.CharField(verbose_name='نام نمایشی', max_length=200, blank=True)
+    username = models.CharField(verbose_name='نام کاربری', max_length=200, blank=True)
+    avatar_url = models.URLField(verbose_name='نشانی تصویر پروفایل', max_length=500, blank=True)
+    metadata = models.JSONField(verbose_name='اطلاعات تکمیلی', default=dict, blank=True)
+    is_active = models.BooleanField(verbose_name='فعال', default=True)
+    created_at = models.DateTimeField(verbose_name='زمان ایجاد', auto_now_add=True)
+    updated_at = models.DateTimeField(verbose_name='آخرین ویرایش', auto_now=True)
 
     class Meta:
+        verbose_name_plural = 'حساب‌های شبکه‌های اجتماعی'
+        verbose_name = 'حساب شبکه اجتماعی'
         ordering = ['platform', 'display_name', 'id']
         constraints = [
             models.UniqueConstraint(
@@ -321,47 +327,49 @@ class SocialAccount(models.Model):
 
 
 class PlatformCredential(models.Model):
-    client        = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='credentials')
-    platform      = models.CharField(max_length=30, choices=PLATFORM_CHOICES)
+    client        = models.ForeignKey(Client, verbose_name='فضای کاری', on_delete=models.CASCADE, related_name='credentials')
+    platform      = models.CharField(verbose_name='پلتفرم', max_length=30, choices=PLATFORM_CHOICES)
     social_account = models.OneToOneField(
-        SocialAccount, on_delete=models.CASCADE, related_name='credential',
+        SocialAccount, verbose_name='حساب شبکه اجتماعی', on_delete=models.CASCADE, related_name='credential',
         null=True, blank=True,
     )
 
     # OAuth tokens (AES-encrypted at rest)
-    access_token  = EncryptedTextField(blank=True)
-    refresh_token = EncryptedTextField(blank=True)
-    token_type    = models.CharField(max_length=50, blank=True, default='Bearer')
-    expires_at    = models.DateTimeField(null=True, blank=True)
-    scope         = models.TextField(blank=True)
+    access_token  = EncryptedTextField(verbose_name='توکن دسترسی', blank=True)
+    refresh_token = EncryptedTextField(verbose_name='توکن تمدید دسترسی', blank=True)
+    token_type    = models.CharField(verbose_name='نوع توکن', max_length=50, blank=True, default='Bearer')
+    expires_at    = models.DateTimeField(verbose_name='زمان انقضا', null=True, blank=True)
+    scope         = models.TextField(verbose_name='دامنه دسترسی', blank=True)
 
-    platform_user_id = models.CharField(max_length=80, blank=True, db_index=True)
+    platform_user_id = models.CharField(verbose_name='شناسه کاربر در پلتفرم', max_length=80, blank=True, db_index=True)
 
     # Platform-specific IDs (auto-fetched after OAuth)
-    page_id              = models.CharField(max_length=200, blank=True)   # Facebook Page ID
-    page_name            = models.CharField(max_length=200, blank=True)   # Facebook Page Name
-    instagram_account_id = models.CharField(max_length=200, blank=True)   # IG Business Account ID
-    channel_id           = models.CharField(max_length=200, blank=True)   # YouTube Channel ID
-    channel_name         = models.CharField(max_length=200, blank=True)   # YouTube Channel Name
-    organization_id      = models.CharField(max_length=200, blank=True)   # LinkedIn Org ID
-    organization_name    = models.CharField(max_length=200, blank=True)   # LinkedIn Org Name
-    gmb_account_id       = models.CharField(max_length=200, blank=True)   # GMB Account
-    gmb_location_id      = models.CharField(max_length=200, blank=True)   # GMB Location
+    page_id              = models.CharField(verbose_name='شناسه صفحه فیسبوک', max_length=200, blank=True)   # Facebook Page ID
+    page_name            = models.CharField(verbose_name='نام صفحه فیسبوک', max_length=200, blank=True)   # Facebook Page Name
+    instagram_account_id = models.CharField(verbose_name='شناسه حساب اینستاگرام', max_length=200, blank=True)   # IG Business Account ID
+    channel_id           = models.CharField(verbose_name='شناسه کانال یوتیوب', max_length=200, blank=True)   # YouTube Channel ID
+    channel_name         = models.CharField(verbose_name='نام کانال یوتیوب', max_length=200, blank=True)   # YouTube Channel Name
+    organization_id      = models.CharField(verbose_name='شناسه سازمان لینکدین', max_length=200, blank=True)   # LinkedIn Org ID
+    organization_name    = models.CharField(verbose_name='نام سازمان لینکدین', max_length=200, blank=True)   # LinkedIn Org Name
+    gmb_account_id       = models.CharField(verbose_name='شناسه حساب کسب‌وکار گوگل', max_length=200, blank=True)   # GMB Account
+    gmb_location_id      = models.CharField(verbose_name='شناسه موقعیت کسب‌وکار گوگل', max_length=200, blank=True)   # GMB Location
 
-    is_active    = models.BooleanField(default=True)
-    connected_at = models.DateTimeField(auto_now_add=True)
-    updated_at   = models.DateTimeField(auto_now=True)
+    is_active    = models.BooleanField(verbose_name='فعال', default=True)
+    connected_at = models.DateTimeField(verbose_name='زمان اتصال', auto_now_add=True)
+    updated_at   = models.DateTimeField(verbose_name='آخرین ویرایش', auto_now=True)
 
     # How the credential was provisioned. 'oauth' = via Social Stats-owned OAuth app.
     # 'manual_token' = client pasted their own token from their dev account.
     # 'system_user' = Meta System User token (long-lived, ideal for prod).
     auth_method  = models.CharField(
-        max_length=20,
-        choices=[('oauth', 'OAuth'), ('manual_token', 'Manual Token'), ('system_user', 'System User')],
+        verbose_name='روش احراز هویت', max_length=20,
+        choices=[('oauth', 'احراز هویت OAuth'), ('manual_token', 'توکن دستی'), ('system_user', 'کاربر سیستمی')],
         default='oauth',
     )
 
     class Meta:
+        verbose_name_plural = 'اطلاعات اتصال پلتفرم‌ها'
+        verbose_name = 'اطلاعات اتصال پلتفرم'
         ordering = ['platform']
 
     def __str__(self):
@@ -405,64 +413,66 @@ class ManualCredentialExtras(models.Model):
 
 # ── Daily Aggregated Metrics ───────────────────────────────────────────────────
 class DailyMetric(models.Model):
-    client    = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='metrics')
-    social_account = models.ForeignKey(SocialAccount, on_delete=models.CASCADE, related_name='metrics', null=True, blank=True)
-    platform  = models.CharField(max_length=30, choices=PLATFORM_CHOICES)
-    date      = models.DateField()
+    client    = models.ForeignKey(Client, verbose_name='فضای کاری', on_delete=models.CASCADE, related_name='metrics')
+    social_account = models.ForeignKey(SocialAccount, verbose_name='حساب شبکه اجتماعی', on_delete=models.CASCADE, related_name='metrics', null=True, blank=True)
+    platform  = models.CharField(verbose_name='پلتفرم', max_length=30, choices=PLATFORM_CHOICES)
+    date      = models.DateField(verbose_name='تاریخ', )
 
     # Universal metrics
-    impressions  = models.BigIntegerField(default=0)
-    reach        = models.BigIntegerField(default=0)
-    clicks       = models.BigIntegerField(default=0)
-    likes        = models.BigIntegerField(default=0)
-    comments     = models.BigIntegerField(default=0)
-    shares       = models.BigIntegerField(default=0)
-    saves        = models.BigIntegerField(default=0)
-    video_views  = models.BigIntegerField(default=0)
-    followers    = models.BigIntegerField(default=0)
-    profile_views= models.BigIntegerField(default=0)
+    impressions  = models.BigIntegerField(verbose_name='تعداد نمایش', default=0)
+    reach        = models.BigIntegerField(verbose_name='دسترسی (تعداد مخاطبان یکتا)', default=0)
+    clicks       = models.BigIntegerField(verbose_name='تعداد کلیک', default=0)
+    likes        = models.BigIntegerField(verbose_name='تعداد پسندیدن', default=0)
+    comments     = models.BigIntegerField(verbose_name='تعداد دیدگاه', default=0)
+    shares       = models.BigIntegerField(verbose_name='تعداد اشتراک‌گذاری', default=0)
+    saves        = models.BigIntegerField(verbose_name='تعداد ذخیره', default=0)
+    video_views  = models.BigIntegerField(verbose_name='تعداد بازدید ویدئو', default=0)
+    followers    = models.BigIntegerField(verbose_name='تعداد دنبال‌کنندگان', default=0)
+    profile_views= models.BigIntegerField(verbose_name='تعداد بازدید پروفایل', default=0)
 
     # Google / Ads specific
-    sessions             = models.BigIntegerField(default=0)
-    users                = models.BigIntegerField(default=0)
-    page_views           = models.BigIntegerField(default=0)
-    website_clicks       = models.BigIntegerField(default=0)
-    direction_requests   = models.BigIntegerField(default=0)
-    phone_calls          = models.BigIntegerField(default=0)
+    sessions             = models.BigIntegerField(verbose_name='تعداد نشست وب‌سایت', default=0)
+    users                = models.BigIntegerField(verbose_name='تعداد کاربران وب‌سایت', default=0)
+    page_views           = models.BigIntegerField(verbose_name='تعداد بازدید صفحه', default=0)
+    website_clicks       = models.BigIntegerField(verbose_name='تعداد کلیک وب‌سایت', default=0)
+    direction_requests   = models.BigIntegerField(verbose_name='تعداد درخواست مسیریابی', default=0)
+    phone_calls          = models.BigIntegerField(verbose_name='تعداد تماس تلفنی', default=0)
 
     # GMB-specific extended metrics
-    maps_impressions     = models.BigIntegerField(default=0)   # impressions on Google Maps
-    search_impressions   = models.BigIntegerField(default=0)   # impressions on Google Search
-    photo_views          = models.BigIntegerField(default=0)   # business photo views
-    business_conversations = models.BigIntegerField(default=0) # messages/Q&A
+    maps_impressions     = models.BigIntegerField(verbose_name='تعداد نمایش در نقشه گوگل', default=0)   # impressions on Google Maps
+    search_impressions   = models.BigIntegerField(verbose_name='تعداد نمایش در جستجوی گوگل', default=0)   # impressions on Google Search
+    photo_views          = models.BigIntegerField(verbose_name='تعداد بازدید تصاویر', default=0)   # business photo views
+    business_conversations = models.BigIntegerField(verbose_name='تعداد گفتگوهای کسب‌وکار', default=0) # messages/Q&A
 
     # YouTube-specific
-    watch_time_minutes  = models.BigIntegerField(default=0)   # estimatedMinutesWatched
-    avg_view_duration   = models.FloatField(default=0)        # averageViewDuration (seconds)
-    subscribers_lost    = models.BigIntegerField(default=0)   # subscribersLost
+    watch_time_minutes  = models.BigIntegerField(verbose_name='مدت تماشای ویدئو (دقیقه)', default=0)   # estimatedMinutesWatched
+    avg_view_duration   = models.FloatField(verbose_name='میانگین مدت تماشا (ثانیه)', default=0)        # averageViewDuration (seconds)
+    subscribers_lost    = models.BigIntegerField(verbose_name='تعداد مشترکان ازدست‌رفته', default=0)   # subscribersLost
 
     # Facebook-specific
-    followers_lost      = models.BigIntegerField(default=0)   # page_fan_removes (unfollows)
-    negative_feedback   = models.BigIntegerField(default=0)   # page_negative_feedback (hides/spam)
-    fb_video_views      = models.BigIntegerField(default=0)   # page_video_views
-    fb_video_watch_time = models.BigIntegerField(default=0)   # page_video_view_time (ms → seconds)
-    reactions           = models.JSONField(default=dict, blank=True)  # {like,love,haha,wow,sad,angry}
+    followers_lost      = models.BigIntegerField(verbose_name='تعداد دنبال‌کنندگان ازدست‌رفته فیسبوک', default=0)   # page_fan_removes (unfollows)
+    negative_feedback   = models.BigIntegerField(verbose_name='تعداد بازخوردهای منفی', default=0)   # page_negative_feedback (hides/spam)
+    fb_video_views      = models.BigIntegerField(verbose_name='تعداد بازدید ویدئوی فیسبوک', default=0)   # page_video_views
+    fb_video_watch_time = models.BigIntegerField(verbose_name='مدت تماشای ویدئوی فیسبوک (ثانیه)', default=0)   # page_video_view_time (ms → seconds)
+    reactions           = models.JSONField(verbose_name='واکنش‌ها', default=dict, blank=True)  # {like,love,haha,wow,sad,angry}
 
     # Instagram-specific
-    accounts_engaged    = models.BigIntegerField(default=0)   # accounts that engaged
-    total_interactions  = models.BigIntegerField(default=0)   # likes+comments+shares+saves
-    email_contacts      = models.BigIntegerField(default=0)   # email button clicks
-    phone_call_clicks   = models.BigIntegerField(default=0)   # call button clicks
-    direction_clicks    = models.BigIntegerField(default=0)   # get directions clicks
-    ig_followers_lost   = models.BigIntegerField(default=0)   # unfollows
+    accounts_engaged    = models.BigIntegerField(verbose_name='تعداد حساب‌های تعامل‌کننده', default=0)   # accounts that engaged
+    total_interactions  = models.BigIntegerField(verbose_name='مجموع تعاملات', default=0)   # likes+comments+shares+saves
+    email_contacts      = models.BigIntegerField(verbose_name='تعداد کلیک دکمه ایمیل', default=0)   # email button clicks
+    phone_call_clicks   = models.BigIntegerField(verbose_name='تعداد کلیک دکمه تماس', default=0)   # call button clicks
+    direction_clicks    = models.BigIntegerField(verbose_name='تعداد کلیک دکمه مسیریابی', default=0)   # get directions clicks
+    ig_followers_lost   = models.BigIntegerField(verbose_name='تعداد دنبال‌کنندگان ازدست‌رفته اینستاگرام', default=0)   # unfollows
 
     # Calculated
-    engagement_rate = models.FloatField(default=0)
-    ctr             = models.FloatField(default=0)
+    engagement_rate = models.FloatField(verbose_name='نرخ تعامل (درصد)', default=0)
+    ctr             = models.FloatField(verbose_name='نرخ کلیک (درصد)', default=0)
 
-    synced_at = models.DateTimeField(auto_now=True)
+    synced_at = models.DateTimeField(verbose_name='زمان همگام‌سازی', auto_now=True)
 
     class Meta:
+        verbose_name_plural = 'آمارهای روزانه'
+        verbose_name = 'آمار روزانه'
         unique_together = ('client', 'platform', 'social_account', 'date')
         ordering = ['-date']
         indexes = [
@@ -800,138 +810,148 @@ def mark_set_goals(sender, instance, created, **kwargs):
 
 # ── ROI Settings ──────────────────────────────────────────────────────────────
 class ROISettings(models.Model):
-    client              = models.OneToOneField(Client, on_delete=models.CASCADE, related_name='roi_settings')
-    facebook_budget     = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    instagram_budget    = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    youtube_budget      = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    linkedin_budget     = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    gmb_budget          = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    agency_fee          = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    avg_sale_value      = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    conversion_rate     = models.DecimalField(max_digits=5, decimal_places=2, default=2.5)
-    lead_to_sale_rate   = models.DecimalField(max_digits=5, decimal_places=2, default=20.0)
-    currency            = models.CharField(max_length=10, default='USD')
-    currency_symbol     = models.CharField(max_length=5, default='$')
-    monthly_revenue_goal = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    monthly_leads_goal  = models.IntegerField(default=0)
-    updated_at          = models.DateTimeField(auto_now=True)
+    client              = models.OneToOneField(Client, verbose_name='فضای کاری', on_delete=models.CASCADE, related_name='roi_settings')
+    facebook_budget     = models.DecimalField(verbose_name='بودجه فیسبوک', max_digits=10, decimal_places=2, default=0)
+    instagram_budget    = models.DecimalField(verbose_name='بودجه اینستاگرام', max_digits=10, decimal_places=2, default=0)
+    youtube_budget      = models.DecimalField(verbose_name='بودجه یوتیوب', max_digits=10, decimal_places=2, default=0)
+    linkedin_budget     = models.DecimalField(verbose_name='بودجه لینکدین', max_digits=10, decimal_places=2, default=0)
+    gmb_budget          = models.DecimalField(verbose_name='بودجه کسب‌وکار گوگل', max_digits=10, decimal_places=2, default=0)
+    agency_fee          = models.DecimalField(verbose_name='حق‌الزحمه آژانس', max_digits=10, decimal_places=2, default=0)
+    avg_sale_value      = models.DecimalField(verbose_name='میانگین ارزش هر فروش', max_digits=10, decimal_places=2, default=0)
+    conversion_rate     = models.DecimalField(verbose_name='نرخ تبدیل کلیک به سرنخ (درصد)', max_digits=5, decimal_places=2, default=2.5)
+    lead_to_sale_rate   = models.DecimalField(verbose_name='نرخ تبدیل سرنخ به فروش (درصد)', max_digits=5, decimal_places=2, default=20.0)
+    currency            = models.CharField(verbose_name='کد ارز', max_length=10, default='USD')
+    currency_symbol     = models.CharField(verbose_name='نماد ارز', max_length=5, default='$')
+    monthly_revenue_goal = models.DecimalField(verbose_name='هدف درآمد ماهانه', max_digits=12, decimal_places=2, default=0)
+    monthly_leads_goal  = models.IntegerField(verbose_name='هدف تعداد سرنخ ماهانه', default=0)
+    updated_at          = models.DateTimeField(verbose_name='آخرین ویرایش', auto_now=True)
 
     def __str__(self):
-        return f"ROI Settings — {self.client.company}"
+        return f"تنظیمات بازگشت سرمایه — {self.client.company}"
 
     @property
     def total_budget(self):
         return (self.facebook_budget + self.instagram_budget + self.youtube_budget +
                 self.linkedin_budget + self.gmb_budget + self.agency_fee)
 
+    class Meta:
+        verbose_name = 'تنظیمات بازگشت سرمایه'
+        verbose_name_plural = 'تنظیمات بازگشت سرمایه'
+
 
 # ── ROI Report ────────────────────────────────────────────────────────────────
 class ROIReport(models.Model):
-    client            = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='roi_reports')
-    month             = models.IntegerField()
-    year              = models.IntegerField()
-    total_investment  = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    agency_fee        = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    total_clicks      = models.BigIntegerField(default=0)
-    total_impressions = models.BigIntegerField(default=0)
-    total_reach       = models.BigIntegerField(default=0)
-    website_clicks    = models.BigIntegerField(default=0)
-    estimated_leads   = models.IntegerField(default=0)
-    estimated_sales   = models.IntegerField(default=0)
-    estimated_revenue = models.DecimalField(max_digits=14, decimal_places=2, default=0)
-    roi_percentage    = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    cost_per_click    = models.DecimalField(max_digits=10, decimal_places=4, default=0)
-    cost_per_lead     = models.DecimalField(max_digits=10, decimal_places=4, default=0)
-    cost_per_sale     = models.DecimalField(max_digits=10, decimal_places=4, default=0)
-    platform_breakdown = models.JSONField(default=dict)
-    generated_at      = models.DateTimeField(auto_now_add=True)
+    client            = models.ForeignKey(Client, verbose_name='فضای کاری', on_delete=models.CASCADE, related_name='roi_reports')
+    month             = models.IntegerField(verbose_name='ماه', )
+    year              = models.IntegerField(verbose_name='سال', )
+    total_investment  = models.DecimalField(verbose_name='مجموع سرمایه‌گذاری', max_digits=12, decimal_places=2, default=0)
+    agency_fee        = models.DecimalField(verbose_name='حق‌الزحمه آژانس', max_digits=10, decimal_places=2, default=0)
+    total_clicks      = models.BigIntegerField(verbose_name='مجموع کلیک‌ها', default=0)
+    total_impressions = models.BigIntegerField(verbose_name='مجموع نمایش‌ها', default=0)
+    total_reach       = models.BigIntegerField(verbose_name='مجموع دسترسی مخاطبان', default=0)
+    website_clicks    = models.BigIntegerField(verbose_name='تعداد کلیک وب‌سایت', default=0)
+    estimated_leads   = models.IntegerField(verbose_name='تعداد سرنخ تخمینی', default=0)
+    estimated_sales   = models.IntegerField(verbose_name='تعداد فروش تخمینی', default=0)
+    estimated_revenue = models.DecimalField(verbose_name='درآمد تخمینی', max_digits=14, decimal_places=2, default=0)
+    roi_percentage    = models.DecimalField(verbose_name='بازگشت سرمایه (درصد)', max_digits=10, decimal_places=2, default=0)
+    cost_per_click    = models.DecimalField(verbose_name='هزینه هر کلیک', max_digits=10, decimal_places=4, default=0)
+    cost_per_lead     = models.DecimalField(verbose_name='هزینه هر سرنخ', max_digits=10, decimal_places=4, default=0)
+    cost_per_sale     = models.DecimalField(verbose_name='هزینه هر فروش', max_digits=10, decimal_places=4, default=0)
+    platform_breakdown = models.JSONField(verbose_name='تفکیک آمار پلتفرم‌ها', default=dict)
+    generated_at      = models.DateTimeField(verbose_name='زمان تولید گزارش', auto_now_add=True)
 
     class Meta:
+        verbose_name_plural = 'گزارش‌های بازگشت سرمایه'
+        verbose_name = 'گزارش بازگشت سرمایه'
         unique_together = ('client', 'month', 'year')
         ordering = ['-year', '-month']
 
     def __str__(self):
-        return f"ROI Report — {self.client.company} {self.month}/{self.year}"
+        return f"گزارش بازگشت سرمایه — {self.client.company} {self.month}/{self.year}"
 
 
 # ── Sync Log ──────────────────────────────────────────────────────────────────
 class SyncLog(models.Model):
-    client         = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='sync_logs', null=True)
-    social_account = models.ForeignKey(SocialAccount, on_delete=models.SET_NULL, related_name='sync_logs', null=True, blank=True)
-    platform       = models.CharField(max_length=30, choices=PLATFORM_CHOICES)
-    status         = models.CharField(max_length=20, choices=SYNC_STATUS, default='pending')
-    records_synced = models.IntegerField(default=0)
-    error_message  = models.TextField(blank=True)
-    started_at     = models.DateTimeField(auto_now_add=True)
-    finished_at    = models.DateTimeField(null=True, blank=True)
+    client         = models.ForeignKey(Client, verbose_name='فضای کاری', on_delete=models.CASCADE, related_name='sync_logs', null=True)
+    social_account = models.ForeignKey(SocialAccount, verbose_name='حساب شبکه اجتماعی', on_delete=models.SET_NULL, related_name='sync_logs', null=True, blank=True)
+    platform       = models.CharField(verbose_name='پلتفرم', max_length=30, choices=PLATFORM_CHOICES)
+    status         = models.CharField(verbose_name='وضعیت', max_length=20, choices=SYNC_STATUS, default='pending')
+    records_synced = models.IntegerField(verbose_name='تعداد رکوردهای همگام‌شده', default=0)
+    error_message  = models.TextField(verbose_name='شرح خطا', blank=True)
+    started_at     = models.DateTimeField(verbose_name='زمان شروع', auto_now_add=True)
+    finished_at    = models.DateTimeField(verbose_name='زمان پایان', null=True, blank=True)
 
     class Meta:
+        verbose_name_plural = 'گزارش‌های همگام‌سازی'
+        verbose_name = 'گزارش همگام‌سازی'
         ordering = ['-started_at']
 
     def __str__(self):
-        return f"{self.platform} | {self.status} | {self.started_at:%Y-%m-%d %H:%M}"
+        return f"{self.platform} | {self.get_status_display()} | {self.started_at:%Y-%m-%d %H:%M}"
 
 
 # ── Content Calendar ───────────────────────────────────────────────────────────
 
 POST_TYPE_CHOICES = [
-    ('image',    'Image'),
-    ('video',    'Video'),
-    ('reel',     'Reel'),
-    ('story',    'Story'),
-    ('carousel', 'Carousel'),
-    ('text',     'Text'),
-    ('article',  'Article'),
-    ('short',    'Short'),
+    ('image',    'تصویر'),
+    ('video',    'ویدئو'),
+    ('reel',     'ریل'),
+    ('story',    'استوری'),
+    ('carousel', 'چنداسلایدی'),
+    ('text',     'متن'),
+    ('article',  'مقاله'),
+    ('short',    'ویدئوی کوتاه'),
 ]
 
 CALENDAR_STATUS_CHOICES = [
-    ('published', 'Published'),
-    ('scheduled', 'Scheduled'),
-    ('draft',     'Draft'),
-    ('failed',    'Failed'),
+    ('published', 'منتشر شده'),
+    ('scheduled', 'زمان‌بندی شده'),
+    ('draft',     'پیش‌نویس'),
+    ('failed',    'ناموفق'),
 ]
 
 
 class CalendarPost(models.Model):
-    client      = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='calendar_posts')
-    platform    = models.CharField(max_length=30, choices=PLATFORM_CHOICES)
-    post_type   = models.CharField(max_length=20, choices=POST_TYPE_CHOICES, default='image')
-    status      = models.CharField(max_length=20, choices=CALENDAR_STATUS_CHOICES, default='draft')
-    title       = models.CharField(max_length=200, blank=True)
-    caption     = models.TextField(blank=True)
-    hashtags    = models.TextField(blank=True)
-    media_url   = models.URLField(blank=True)
-    post_url    = models.URLField(blank=True)
-    scheduled_at  = models.DateTimeField(null=True, blank=True)
-    published_at  = models.DateTimeField(null=True, blank=True)
+    client      = models.ForeignKey(Client, verbose_name='فضای کاری', on_delete=models.CASCADE, related_name='calendar_posts')
+    platform    = models.CharField(verbose_name='پلتفرم', max_length=30, choices=PLATFORM_CHOICES)
+    post_type   = models.CharField(verbose_name='نوع پست', max_length=20, choices=POST_TYPE_CHOICES, default='image')
+    status      = models.CharField(verbose_name='وضعیت', max_length=20, choices=CALENDAR_STATUS_CHOICES, default='draft')
+    title       = models.CharField(verbose_name='عنوان', max_length=200, blank=True)
+    caption     = models.TextField(verbose_name='متن کپشن', blank=True)
+    hashtags    = models.TextField(verbose_name='هشتگ‌ها', blank=True)
+    media_url   = models.URLField(verbose_name='نشانی رسانه', blank=True)
+    post_url    = models.URLField(verbose_name='نشانی پست', blank=True)
+    scheduled_at  = models.DateTimeField(verbose_name='زمان انتشار برنامه‌ریزی‌شده', null=True, blank=True)
+    published_at  = models.DateTimeField(verbose_name='زمان انتشار', null=True, blank=True)
     post_metric   = models.OneToOneField(
-        'PostMetric', on_delete=models.SET_NULL,
+        'PostMetric', verbose_name='آمار پست', on_delete=models.SET_NULL,
         null=True, blank=True, related_name='calendar_post'
     )
 
     # Performance snapshot
-    impressions     = models.BigIntegerField(default=0)
-    reach           = models.BigIntegerField(default=0)
-    likes           = models.BigIntegerField(default=0)
-    comments        = models.BigIntegerField(default=0)
-    shares          = models.BigIntegerField(default=0)
-    saves           = models.BigIntegerField(default=0)
-    video_views     = models.BigIntegerField(default=0)
-    engagement_rate = models.DecimalField(max_digits=8, decimal_places=4, default=0)
+    impressions     = models.BigIntegerField(verbose_name='تعداد نمایش', default=0)
+    reach           = models.BigIntegerField(verbose_name='دسترسی (تعداد مخاطبان یکتا)', default=0)
+    likes           = models.BigIntegerField(verbose_name='تعداد پسندیدن', default=0)
+    comments        = models.BigIntegerField(verbose_name='تعداد دیدگاه', default=0)
+    shares          = models.BigIntegerField(verbose_name='تعداد اشتراک‌گذاری', default=0)
+    saves           = models.BigIntegerField(verbose_name='تعداد ذخیره', default=0)
+    video_views     = models.BigIntegerField(verbose_name='تعداد بازدید ویدئو', default=0)
+    engagement_rate = models.DecimalField(verbose_name='نرخ تعامل (درصد)', max_digits=8, decimal_places=4, default=0)
 
     # Meta
-    created_by  = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='created_calendar_posts')
-    created_at  = models.DateTimeField(auto_now_add=True)
-    updated_at  = models.DateTimeField(auto_now=True)
-    external_id = models.CharField(max_length=300, blank=True)
-    notes       = models.TextField(blank=True)
+    created_by  = models.ForeignKey(User, verbose_name='ایجادکننده', on_delete=models.SET_NULL, null=True, blank=True, related_name='created_calendar_posts')
+    created_at  = models.DateTimeField(verbose_name='زمان ایجاد', auto_now_add=True)
+    updated_at  = models.DateTimeField(verbose_name='آخرین ویرایش', auto_now=True)
+    external_id = models.CharField(verbose_name='شناسه در پلتفرم', max_length=300, blank=True)
+    notes       = models.TextField(verbose_name='یادداشت‌ها', blank=True)
 
     class Meta:
+        verbose_name_plural = 'پست‌های تقویم محتوا'
+        verbose_name = 'پست تقویم محتوا'
         ordering = ['-scheduled_at', '-published_at']
 
     def __str__(self):
-        return f"{self.client.company} | {self.platform} | {self.status} | {self.title or self.caption[:40]}"
+        return f"{self.client.company} | {self.platform} | {self.get_status_display()} | {self.title or self.caption[:40]}"
 
     @property
     def best_time(self):
@@ -939,16 +959,18 @@ class CalendarPost(models.Model):
 
 
 class CalendarNote(models.Model):
-    client            = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='calendar_notes')
-    date              = models.DateField()
-    title             = models.CharField(max_length=200)
-    note              = models.TextField(blank=True)
-    color             = models.CharField(max_length=7, default='#2563EB')
-    is_client_visible = models.BooleanField(default=False)
-    created_by        = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='created_calendar_notes')
-    created_at        = models.DateTimeField(auto_now_add=True)
+    client            = models.ForeignKey(Client, verbose_name='فضای کاری', on_delete=models.CASCADE, related_name='calendar_notes')
+    date              = models.DateField(verbose_name='تاریخ', )
+    title             = models.CharField(verbose_name='عنوان', max_length=200)
+    note              = models.TextField(verbose_name='یادداشت', blank=True)
+    color             = models.CharField(verbose_name='رنگ', max_length=7, default='#2563EB')
+    is_client_visible = models.BooleanField(verbose_name='قابل مشاهده برای اعضای فضای کاری', default=False)
+    created_by        = models.ForeignKey(User, verbose_name='ایجادکننده', on_delete=models.SET_NULL, null=True, blank=True, related_name='created_calendar_notes')
+    created_at        = models.DateTimeField(verbose_name='زمان ایجاد', auto_now_add=True)
 
     class Meta:
+        verbose_name_plural = 'یادداشت‌های تقویم'
+        verbose_name = 'یادداشت تقویم'
         ordering = ['date', 'id']
 
     def __str__(self):
@@ -956,20 +978,22 @@ class CalendarNote(models.Model):
 
 
 class PostingSchedule(models.Model):
-    client      = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='posting_schedules')
-    platform    = models.CharField(max_length=30, choices=PLATFORM_CHOICES)
-    day_of_week = models.IntegerField()   # 0=Monday … 6=Sunday
-    hour        = models.IntegerField()
-    minute      = models.IntegerField(default=0)
-    is_active   = models.BooleanField(default=True)
-    note        = models.CharField(max_length=100, blank=True)
+    client      = models.ForeignKey(Client, verbose_name='فضای کاری', on_delete=models.CASCADE, related_name='posting_schedules')
+    platform    = models.CharField(verbose_name='پلتفرم', max_length=30, choices=PLATFORM_CHOICES)
+    day_of_week = models.IntegerField(help_text='شماره روز هفته: دوشنبه ۰، سه‌شنبه ۱، چهارشنبه ۲، پنجشنبه ۳، جمعه ۴، شنبه ۵، یکشنبه ۶.', verbose_name='روز هفته', )   # 0=Monday … 6=Sunday
+    hour        = models.IntegerField(verbose_name='ساعت', )
+    minute      = models.IntegerField(verbose_name='دقیقه', default=0)
+    is_active   = models.BooleanField(verbose_name='فعال', default=True)
+    note        = models.CharField(verbose_name='یادداشت', max_length=100, blank=True)
 
     class Meta:
+        verbose_name_plural = 'زمان‌بندی‌های انتشار'
+        verbose_name = 'زمان‌بندی انتشار'
         unique_together = ('client', 'platform', 'day_of_week', 'hour', 'minute')
         ordering = ['platform', 'day_of_week', 'hour']
 
     def __str__(self):
-        days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+        days = ['دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'شنبه', 'یکشنبه']
         return f"{self.client.company} | {self.platform} | {days[self.day_of_week]} {self.hour:02d}:{self.minute:02d}"
 
 
@@ -1291,32 +1315,34 @@ class HashtagSet(models.Model):
 
 
 class SiteContent(models.Model):
-    key = models.SlugField(max_length=120, unique=True)
-    title = models.CharField(max_length=255)
-    effective_date = models.DateField(null=True, blank=True)
-    last_updated = models.DateField(null=True, blank=True)
-    content = models.JSONField(default=dict, blank=True)
-    is_public = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    key = models.SlugField(verbose_name='کلید', max_length=120, unique=True)
+    title = models.CharField(verbose_name='عنوان', max_length=255)
+    effective_date = models.DateField(verbose_name='تاریخ اجرا', null=True, blank=True)
+    last_updated = models.DateField(verbose_name='تاریخ آخرین بازنگری', null=True, blank=True)
+    content = models.JSONField(verbose_name='محتوا', default=dict, blank=True)
+    is_public = models.BooleanField(verbose_name='عمومی', default=True)
+    created_at = models.DateTimeField(verbose_name='زمان ایجاد', auto_now_add=True)
+    updated_at = models.DateTimeField(verbose_name='آخرین ویرایش', auto_now=True)
 
     class Meta:
         ordering = ['key']
-        verbose_name = 'Site Content'
-        verbose_name_plural = 'Site Content'
+        verbose_name = 'محتوای سایت'
+        verbose_name_plural = 'محتواهای سایت'
 
     def __str__(self):
         return f"{self.key} — {self.title}"
 
 
 class LookupCollection(models.Model):
-    key = models.SlugField(max_length=120, unique=True)
-    title = models.CharField(max_length=255)
-    is_public = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    key = models.SlugField(verbose_name='کلید', max_length=120, unique=True)
+    title = models.CharField(verbose_name='عنوان', max_length=255)
+    is_public = models.BooleanField(verbose_name='عمومی', default=True)
+    created_at = models.DateTimeField(verbose_name='زمان ایجاد', auto_now_add=True)
+    updated_at = models.DateTimeField(verbose_name='آخرین ویرایش', auto_now=True)
 
     class Meta:
+        verbose_name_plural = 'مجموعه‌های داده مرجع'
+        verbose_name = 'مجموعه داده مرجع'
         ordering = ['key']
 
     def __str__(self):
@@ -1324,16 +1350,18 @@ class LookupCollection(models.Model):
 
 
 class LookupItem(models.Model):
-    collection = models.ForeignKey(LookupCollection, on_delete=models.CASCADE, related_name='items')
-    key = models.CharField(max_length=120)
-    label = models.CharField(max_length=255)
-    value = models.CharField(max_length=255, blank=True)
-    parent_key = models.CharField(max_length=120, blank=True)
-    sort_order = models.PositiveIntegerField(default=0)
-    is_active = models.BooleanField(default=True)
-    metadata = models.JSONField(default=dict, blank=True)
+    collection = models.ForeignKey(LookupCollection, verbose_name='مجموعه داده مرجع', on_delete=models.CASCADE, related_name='items')
+    key = models.CharField(verbose_name='کلید', max_length=120)
+    label = models.CharField(verbose_name='عنوان نمایشی', max_length=255)
+    value = models.CharField(verbose_name='مقدار', max_length=255, blank=True)
+    parent_key = models.CharField(verbose_name='کلید والد', max_length=120, blank=True)
+    sort_order = models.PositiveIntegerField(verbose_name='ترتیب نمایش', default=0)
+    is_active = models.BooleanField(verbose_name='فعال', default=True)
+    metadata = models.JSONField(verbose_name='اطلاعات تکمیلی', default=dict, blank=True)
 
     class Meta:
+        verbose_name_plural = 'گزینه‌های داده مرجع'
+        verbose_name = 'گزینه داده مرجع'
         ordering = ['collection__key', 'sort_order', 'label']
         unique_together = [('collection', 'key')]
 
@@ -1718,110 +1746,112 @@ class WhatsAppWebhookLog(models.Model):
 
 # ── Choice tuples ─────────────────────────────────────────────────────────────
 UNIFIED_POST_STATUS_CHOICES = [
-    ('draft',             'Draft'),
-    ('pending_approval',  'Pending Approval'),
-    ('scheduled',         'Scheduled'),
-    ('queued',            'Queued'),
-    ('publishing',        'Publishing'),
-    ('published',         'Published'),
-    ('partial',           'Partially Published'),
-    ('failed',            'Failed'),
-    ('cancelled',         'Cancelled'),
+    ('draft',             'پیش‌نویس'),
+    ('pending_approval',  'در انتظار تأیید'),
+    ('scheduled',         'زمان‌بندی شده'),
+    ('queued',            'در صف انتشار'),
+    ('publishing',        'در حال انتشار'),
+    ('published',         'منتشر شده'),
+    ('partial',           'انتشار ناقص'),
+    ('failed',            'ناموفق'),
+    ('cancelled',         'لغو شده'),
 ]
 
 UNIFIED_MEDIA_TYPE_CHOICES = [
-    ('text',     'Text only'),
-    ('image',    'Image'),
-    ('video',    'Video'),
-    ('carousel', 'Carousel'),
-    ('reel',     'Reel'),
-    ('story',    'Story'),
+    ('text',     'فقط متن'),
+    ('image',    'تصویر'),
+    ('video',    'ویدئو'),
+    ('carousel', 'چنداسلایدی'),
+    ('reel',     'ریل'),
+    ('story',    'استوری'),
 ]
 
 PUBLISH_LOG_STATUS_CHOICES = [
-    ('pending',    'Pending'),
-    ('publishing', 'Publishing'),
-    ('success',    'Success'),
-    ('failed',     'Failed'),
-    ('skipped',    'Skipped'),
+    ('pending',    'در انتظار'),
+    ('publishing', 'در حال انتشار'),
+    ('success',    'موفق'),
+    ('failed',     'ناموفق'),
+    ('skipped',    'رد شده'),
 ]
 
 CONVERSATION_TYPE_CHOICES = [
-    ('comment',  'Comment'),
-    ('dm',       'Direct message'),
-    ('mention',  'Mention'),
-    ('review',   'Review'),
+    ('comment',  'دیدگاه'),
+    ('dm',       'پیام مستقیم'),
+    ('mention',  'اشاره به حساب'),
+    ('review',   'نظر مشتری'),
 ]
 
 MESSAGE_DIRECTION_CHOICES = [
-    ('inbound',  'Inbound'),
-    ('outbound', 'Outbound'),
+    ('inbound',  'دریافتی'),
+    ('outbound', 'ارسالی'),
 ]
 
 SENTIMENT_CHOICES = [
-    ('positive', 'Positive'),
-    ('neutral',  'Neutral'),
-    ('negative', 'Negative'),
-    ('unknown',  'Unknown'),
+    ('positive', 'مثبت'),
+    ('neutral',  'خنثی'),
+    ('negative', 'منفی'),
+    ('unknown',  'نامشخص'),
 ]
 
 QUEUE_STRATEGY_CHOICES = [
-    ('round_robin', 'Round robin'),
-    ('random',      'Random'),
-    ('sequential',  'Sequential'),
+    ('round_robin', 'چرخشی'),
+    ('random',      'تصادفی'),
+    ('sequential',  'به‌ترتیب'),
 ]
 
 QUEUED_ITEM_STATUS_CHOICES = [
-    ('waiting', 'Waiting'),
-    ('used',    'Used'),
-    ('skipped', 'Skipped'),
+    ('waiting', 'در انتظار استفاده'),
+    ('used',    'استفاده شده'),
+    ('skipped', 'رد شده'),
 ]
 
 REVIEW_STATUS_CHOICES = [
-    ('new',     'New'),
-    ('replied', 'Replied'),
-    ('flagged', 'Flagged'),
+    ('new',     'جدید'),
+    ('replied', 'پاسخ داده شده'),
+    ('flagged', 'علامت‌گذاری شده'),
 ]
 
 AUTOMATION_TRIGGER_CHOICES = [
-    ('new_comment',         'New comment'),
-    ('new_dm',              'New direct message'),
-    ('new_review',          'New review'),
-    ('keyword_mention',     'Keyword mention'),
-    ('negative_sentiment',  'Negative sentiment detected'),
-    ('viral_post',          'Post going viral'),
-    ('new_follower',        'New follower'),
+    ('new_comment',         'دیدگاه جدید'),
+    ('new_dm',              'پیام مستقیم جدید'),
+    ('new_review',          'نظر جدید مشتری'),
+    ('keyword_mention',     'اشاره به کلیدواژه'),
+    ('negative_sentiment',  'تشخیص احساس منفی'),
+    ('viral_post',          'افزایش سریع بازدید پست'),
+    ('new_follower',        'دنبال‌کننده جدید'),
 ]
 
 AUTOMATION_ACTION_CHOICES = [
-    ('auto_reply',     'Auto-reply'),
-    ('ai_smart_reply', 'AI smart reply'),
-    ('notify',         'Send notification'),
-    ('assign',         'Assign to user'),
-    ('add_tag',        'Add tag'),
-    ('webhook',        'Call webhook'),
+    ('auto_reply',     'پاسخ خودکار'),
+    ('ai_smart_reply', 'پاسخ هوشمند با هوش مصنوعی'),
+    ('notify',         'ارسال اعلان'),
+    ('assign',         'تخصیص به کاربر'),
+    ('add_tag',        'افزودن برچسب'),
+    ('webhook',        'فراخوانی وب‌هوک'),
 ]
 
 
 # ── Composer & Publishing ─────────────────────────────────────────────────────
 class MediaAsset(models.Model):
     """Uploaded media library — photos, videos, gifs available to the composer."""
-    client       = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='media_assets')
-    uploaded_by  = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='uploaded_media')
-    file         = models.FileField(upload_to='media_assets/%Y/%m/')
-    thumbnail    = models.ImageField(upload_to='media_assets/thumbs/%Y/%m/', null=True, blank=True)
-    mime_type    = models.CharField(max_length=100, blank=True)
-    file_size    = models.BigIntegerField(default=0)
-    width        = models.IntegerField(default=0)
-    height       = models.IntegerField(default=0)
-    duration_seconds = models.FloatField(default=0)
-    alt_text     = models.CharField(max_length=500, blank=True)
-    tags         = models.JSONField(default=list, blank=True)
-    folder       = models.CharField(max_length=100, blank=True)
-    is_used      = models.BooleanField(default=False)
-    created_at   = models.DateTimeField(auto_now_add=True)
+    client       = models.ForeignKey(Client, verbose_name='فضای کاری', on_delete=models.CASCADE, related_name='media_assets')
+    uploaded_by  = models.ForeignKey(User, verbose_name='بارگذاری‌کننده', on_delete=models.SET_NULL, null=True, blank=True, related_name='uploaded_media')
+    file         = models.FileField(verbose_name='فایل', upload_to='media_assets/%Y/%m/')
+    thumbnail    = models.ImageField(verbose_name='تصویر بندانگشتی', upload_to='media_assets/thumbs/%Y/%m/', null=True, blank=True)
+    mime_type    = models.CharField(verbose_name='نوع فایل (MIME)', max_length=100, blank=True)
+    file_size    = models.BigIntegerField(verbose_name='حجم فایل (بایت)', default=0)
+    width        = models.IntegerField(verbose_name='عرض (پیکسل)', default=0)
+    height       = models.IntegerField(verbose_name='ارتفاع (پیکسل)', default=0)
+    duration_seconds = models.FloatField(verbose_name='مدت رسانه (ثانیه)', default=0)
+    alt_text     = models.CharField(verbose_name='متن جایگزین تصویر', max_length=500, blank=True)
+    tags         = models.JSONField(verbose_name='برچسب‌ها', default=list, blank=True)
+    folder       = models.CharField(verbose_name='پوشه', max_length=100, blank=True)
+    is_used      = models.BooleanField(verbose_name='استفاده شده', default=False)
+    created_at   = models.DateTimeField(verbose_name='زمان ایجاد', auto_now_add=True)
 
     class Meta:
+        verbose_name_plural = 'فایل‌های رسانه‌ای'
+        verbose_name = 'فایل رسانه‌ای'
         ordering = ['-created_at']
         indexes = [
             models.Index(fields=['client', '-created_at']),
@@ -1834,30 +1864,32 @@ class MediaAsset(models.Model):
 
 class UnifiedPost(models.Model):
     """A post composed in Social Stats, fanned out to one or more platforms."""
-    client            = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='unified_posts')
-    publish_action = models.CharField(max_length=20, default='publish_posts', choices=[('publish_posts', 'Publish'), ('schedule_posts', 'Schedule')])
-    publish_requested_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='requested_post_publications')
-    created_by        = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='created_unified_posts')
-    title             = models.CharField(max_length=200, blank=True, help_text='Optional internal label')
-    content           = models.TextField(blank=True)
-    media_urls        = models.JSONField(default=list, blank=True, help_text='Ordered list of media URLs')
-    media_assets      = models.ManyToManyField(MediaAsset, blank=True, related_name='used_in_posts')
-    media_type        = models.CharField(max_length=20, choices=UNIFIED_MEDIA_TYPE_CHOICES, default='text')
-    target_platforms  = models.JSONField(default=list, blank=True, help_text='List of platform keys to publish to')
-    platform_overrides = models.JSONField(default=dict, blank=True, help_text='{platform: {content, media_urls, hashtags}}')
-    status            = models.CharField(max_length=20, choices=UNIFIED_POST_STATUS_CHOICES, default='draft')
-    scheduled_at      = models.DateTimeField(null=True, blank=True)
-    published_at      = models.DateTimeField(null=True, blank=True)
-    created_at        = models.DateTimeField(auto_now_add=True)
-    updated_at        = models.DateTimeField(auto_now=True)
-    ai_generated      = models.BooleanField(default=False)
-    ai_prompt         = models.TextField(blank=True)
-    is_recurring      = models.BooleanField(default=False)
-    recurrence_rule   = models.CharField(max_length=500, blank=True, help_text='RFC 5545 RRULE')
-    approved_by       = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='approved_unified_posts')
-    approved_at       = models.DateTimeField(null=True, blank=True)
+    client            = models.ForeignKey(Client, verbose_name='فضای کاری', on_delete=models.CASCADE, related_name='unified_posts')
+    publish_action = models.CharField(verbose_name='نوع درخواست انتشار', max_length=20, default='publish_posts', choices=[('publish_posts', 'انتشار'), ('schedule_posts', 'زمان‌بندی')])
+    publish_requested_by = models.ForeignKey(User, verbose_name='درخواست‌کننده انتشار', on_delete=models.SET_NULL, null=True, blank=True, related_name='requested_post_publications')
+    created_by        = models.ForeignKey(User, verbose_name='ایجادکننده', on_delete=models.SET_NULL, null=True, blank=True, related_name='created_unified_posts')
+    title             = models.CharField(verbose_name='عنوان', max_length=200, blank=True, help_text='عنوان داخلی اختیاری برای شناسایی پست.')
+    content           = models.TextField(verbose_name='محتوا', blank=True)
+    media_urls        = models.JSONField(verbose_name='نشانی‌های رسانه', default=list, blank=True, help_text='فهرست مرتب‌شده نشانی رسانه‌ها در قالب JSON.')
+    media_assets      = models.ManyToManyField(MediaAsset, verbose_name='فایل‌های رسانه‌ای', blank=True, related_name='used_in_posts')
+    media_type        = models.CharField(verbose_name='نوع رسانه', max_length=20, choices=UNIFIED_MEDIA_TYPE_CHOICES, default='text')
+    target_platforms  = models.JSONField(verbose_name='پلتفرم‌های مقصد', default=list, blank=True, help_text='فهرست کلید پلتفرم‌های مقصد در قالب JSON؛ برای مثال: ["instagram", "telegram"].')
+    platform_overrides = models.JSONField(verbose_name='تنظیمات اختصاصی هر پلتفرم', default=dict, blank=True, help_text='تنظیمات اختصاصی با ساختار {"platform": {"content": "...", "media_urls": [], "hashtags": []}}.')
+    status            = models.CharField(verbose_name='وضعیت', max_length=20, choices=UNIFIED_POST_STATUS_CHOICES, default='draft')
+    scheduled_at      = models.DateTimeField(verbose_name='زمان انتشار برنامه‌ریزی‌شده', null=True, blank=True)
+    published_at      = models.DateTimeField(verbose_name='زمان انتشار', null=True, blank=True)
+    created_at        = models.DateTimeField(verbose_name='زمان ایجاد', auto_now_add=True)
+    updated_at        = models.DateTimeField(verbose_name='آخرین ویرایش', auto_now=True)
+    ai_generated      = models.BooleanField(verbose_name='تولیدشده با هوش مصنوعی', default=False)
+    ai_prompt         = models.TextField(verbose_name='دستور هوش مصنوعی', blank=True)
+    is_recurring      = models.BooleanField(verbose_name='انتشار تکرارشونده', default=False)
+    recurrence_rule   = models.CharField(verbose_name='قاعده تکرار انتشار', max_length=500, blank=True, help_text='قاعده تکرار مطابق استاندارد RFC 5545 (RRULE).')
+    approved_by       = models.ForeignKey(User, verbose_name='تأییدکننده', on_delete=models.SET_NULL, null=True, blank=True, related_name='approved_unified_posts')
+    approved_at       = models.DateTimeField(verbose_name='زمان تأیید', null=True, blank=True)
 
     class Meta:
+        verbose_name_plural = 'پست‌های یکپارچه'
+        verbose_name = 'پست یکپارچه'
         ordering = ['-created_at']
         indexes = [
             models.Index(fields=['client', '-created_at']),
@@ -1866,25 +1898,27 @@ class UnifiedPost(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.client.company} | {self.status} | {self.title or self.content[:40]}"
+        return f"{self.client.company} | {self.get_status_display()} | {self.title or self.content[:40]}"
 
 
 class PlatformPublishLog(models.Model):
     """One row per (UnifiedPost × target platform) — tracks per-platform outcome."""
-    unified_post       = models.ForeignKey(UnifiedPost, on_delete=models.CASCADE, related_name='publish_logs')
-    platform           = models.CharField(max_length=30, choices=PLATFORM_CHOICES)
-    social_account     = models.ForeignKey(SocialAccount, on_delete=models.SET_NULL, related_name='publish_logs', null=True, blank=True)
-    status             = models.CharField(max_length=20, choices=PUBLISH_LOG_STATUS_CHOICES, default='pending')
-    platform_post_id   = models.CharField(max_length=300, blank=True, db_index=True)
-    platform_url       = models.URLField(blank=True)
-    error_code         = models.CharField(max_length=80, blank=True)
-    error_message      = models.TextField(blank=True)
-    attempted_at       = models.DateTimeField(null=True, blank=True)
-    completed_at       = models.DateTimeField(null=True, blank=True)
-    engagement_synced_at = models.DateTimeField(null=True, blank=True)
-    raw_response       = models.JSONField(default=dict, blank=True)
+    unified_post       = models.ForeignKey(UnifiedPost, verbose_name='پست یکپارچه', on_delete=models.CASCADE, related_name='publish_logs')
+    platform           = models.CharField(verbose_name='پلتفرم', max_length=30, choices=PLATFORM_CHOICES)
+    social_account     = models.ForeignKey(SocialAccount, verbose_name='حساب شبکه اجتماعی', on_delete=models.SET_NULL, related_name='publish_logs', null=True, blank=True)
+    status             = models.CharField(verbose_name='وضعیت', max_length=20, choices=PUBLISH_LOG_STATUS_CHOICES, default='pending')
+    platform_post_id   = models.CharField(verbose_name='شناسه پست در پلتفرم', max_length=300, blank=True, db_index=True)
+    platform_url       = models.URLField(verbose_name='نشانی پست در پلتفرم', blank=True)
+    error_code         = models.CharField(verbose_name='کد خطا', max_length=80, blank=True)
+    error_message      = models.TextField(verbose_name='شرح خطا', blank=True)
+    attempted_at       = models.DateTimeField(verbose_name='زمان تلاش برای انتشار', null=True, blank=True)
+    completed_at       = models.DateTimeField(verbose_name='زمان تکمیل', null=True, blank=True)
+    engagement_synced_at = models.DateTimeField(verbose_name='زمان همگام‌سازی تعاملات', null=True, blank=True)
+    raw_response       = models.JSONField(verbose_name='پاسخ خام پلتفرم', default=dict, blank=True)
 
     class Meta:
+        verbose_name_plural = 'گزارش‌های انتشار پلتفرم‌ها'
+        verbose_name = 'گزارش انتشار پلتفرم'
         unique_together = ('unified_post', 'platform')
         ordering = ['-attempted_at']
         indexes = [
@@ -1893,7 +1927,7 @@ class PlatformPublishLog(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.unified_post_id} → {self.platform} ({self.status})"
+        return f"{self.unified_post_id} → {self.platform} ({self.get_status_display()})"
 
 
 class PostEngagement(models.Model):
@@ -1916,17 +1950,19 @@ class PostEngagement(models.Model):
 
 class PostQueue(models.Model):
     """A reusable schedule (e.g. 'every weekday 10am') that drains QueuedItems."""
-    client          = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='post_queues')
-    name            = models.CharField(max_length=200)
-    platforms       = models.JSONField(default=list, blank=True)
-    schedule_rule   = models.CharField(max_length=500, blank=True, help_text='RFC 5545 RRULE or simple cron')
-    queue_strategy  = models.CharField(max_length=20, choices=QUEUE_STRATEGY_CHOICES, default='sequential')
-    is_active       = models.BooleanField(default=True)
-    last_dispatched_at = models.DateTimeField(null=True, blank=True)
-    created_at      = models.DateTimeField(auto_now_add=True)
-    updated_at      = models.DateTimeField(auto_now=True)
+    client          = models.ForeignKey(Client, verbose_name='فضای کاری', on_delete=models.CASCADE, related_name='post_queues')
+    name            = models.CharField(verbose_name='نام', max_length=200)
+    platforms       = models.JSONField(verbose_name='پلتفرم‌ها', default=list, blank=True)
+    schedule_rule   = models.CharField(verbose_name='قاعده زمان‌بندی', max_length=500, blank=True, help_text='قاعده زمان‌بندی مطابق RFC 5545 (RRULE) یا عبارت cron.')
+    queue_strategy  = models.CharField(verbose_name='روش انتخاب از صف', max_length=20, choices=QUEUE_STRATEGY_CHOICES, default='sequential')
+    is_active       = models.BooleanField(verbose_name='فعال', default=True)
+    last_dispatched_at = models.DateTimeField(verbose_name='زمان آخرین ارسال از صف', null=True, blank=True)
+    created_at      = models.DateTimeField(verbose_name='زمان ایجاد', auto_now_add=True)
+    updated_at      = models.DateTimeField(verbose_name='آخرین ویرایش', auto_now=True)
 
     class Meta:
+        verbose_name_plural = 'صف‌های انتشار'
+        verbose_name = 'صف انتشار'
         ordering = ['-created_at']
 
     def __str__(self):
@@ -1935,52 +1971,56 @@ class PostQueue(models.Model):
 
 class QueuedItem(models.Model):
     """A pre-written post sitting in a PostQueue waiting to be dispatched."""
-    requested_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='requested_queue_items')
-    queue        = models.ForeignKey(PostQueue, on_delete=models.CASCADE, related_name='items')
-    content      = models.TextField(blank=True)
-    media_urls   = models.JSONField(default=list, blank=True)
-    hashtags     = models.JSONField(default=list, blank=True)
-    sort_order   = models.IntegerField(default=0)
-    status       = models.CharField(max_length=20, choices=QUEUED_ITEM_STATUS_CHOICES, default='waiting')
-    used_at      = models.DateTimeField(null=True, blank=True)
-    unified_post = models.ForeignKey(UnifiedPost, on_delete=models.SET_NULL, null=True, blank=True, related_name='source_queue_item')
-    created_at   = models.DateTimeField(auto_now_add=True)
+    requested_by = models.ForeignKey(User, verbose_name='درخواست‌کننده', on_delete=models.SET_NULL, null=True, blank=True, related_name='requested_queue_items')
+    queue        = models.ForeignKey(PostQueue, verbose_name='صف انتشار', on_delete=models.CASCADE, related_name='items')
+    content      = models.TextField(verbose_name='محتوا', blank=True)
+    media_urls   = models.JSONField(verbose_name='نشانی‌های رسانه', default=list, blank=True)
+    hashtags     = models.JSONField(verbose_name='هشتگ‌ها', default=list, blank=True)
+    sort_order   = models.IntegerField(verbose_name='ترتیب نمایش', default=0)
+    status       = models.CharField(verbose_name='وضعیت', max_length=20, choices=QUEUED_ITEM_STATUS_CHOICES, default='waiting')
+    used_at      = models.DateTimeField(verbose_name='زمان استفاده', null=True, blank=True)
+    unified_post = models.ForeignKey(UnifiedPost, verbose_name='پست یکپارچه', on_delete=models.SET_NULL, null=True, blank=True, related_name='source_queue_item')
+    created_at   = models.DateTimeField(verbose_name='زمان ایجاد', auto_now_add=True)
 
     class Meta:
+        verbose_name_plural = 'آیتم‌های صف انتشار'
+        verbose_name = 'آیتم صف انتشار'
         ordering = ['queue', 'sort_order', 'id']
         indexes = [models.Index(fields=['queue', 'status', 'sort_order'])]
 
     def __str__(self):
-        return f"{self.queue.name} #{self.sort_order} ({self.status})"
+        return f"{self.queue.name} #{self.sort_order} ({self.get_status_display()})"
 
 
 # ── Inbox & Engagement ────────────────────────────────────────────────────────
 class Conversation(models.Model):
     """A thread on any platform — DM, comment thread, mention, or review."""
-    client              = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='conversations')
-    platform            = models.CharField(max_length=30, choices=PLATFORM_CHOICES)
-    social_account      = models.ForeignKey(SocialAccount, on_delete=models.SET_NULL, related_name='conversations', null=True, blank=True)
-    platform_thread_id  = models.CharField(max_length=300, db_index=True)
-    type                = models.CharField(max_length=20, choices=CONVERSATION_TYPE_CHOICES, default='comment')
-    contact_name        = models.CharField(max_length=200, blank=True)
-    contact_handle      = models.CharField(max_length=200, blank=True)
-    contact_avatar_url  = models.URLField(blank=True)
-    last_message_preview = models.CharField(max_length=500, blank=True)
-    last_message_at     = models.DateTimeField(null=True, blank=True)
-    last_outbound_at    = models.DateTimeField(null=True, blank=True)
-    unread_count        = models.IntegerField(default=0)
-    is_starred          = models.BooleanField(default=False)
-    is_archived         = models.BooleanField(default=False)
-    is_resolved         = models.BooleanField(default=False)
-    assigned_to         = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_conversations')
-    sentiment           = models.CharField(max_length=20, choices=SENTIMENT_CHOICES, default='unknown')
-    linked_publish_log  = models.ForeignKey(PlatformPublishLog, on_delete=models.SET_NULL, null=True, blank=True, related_name='conversations')
-    linked_flow         = models.ForeignKey('social_stats.BotFlow', on_delete=models.SET_NULL, null=True, blank=True, related_name='inbox_conversations')
-    tags                = models.JSONField(default=list, blank=True)
-    created_at          = models.DateTimeField(auto_now_add=True)
-    updated_at          = models.DateTimeField(auto_now=True)
+    client              = models.ForeignKey(Client, verbose_name='فضای کاری', on_delete=models.CASCADE, related_name='conversations')
+    platform            = models.CharField(verbose_name='پلتفرم', max_length=30, choices=PLATFORM_CHOICES)
+    social_account      = models.ForeignKey(SocialAccount, verbose_name='حساب شبکه اجتماعی', on_delete=models.SET_NULL, related_name='conversations', null=True, blank=True)
+    platform_thread_id  = models.CharField(verbose_name='شناسه گفتگو در پلتفرم', max_length=300, db_index=True)
+    type                = models.CharField(verbose_name='نوع گفتگو', max_length=20, choices=CONVERSATION_TYPE_CHOICES, default='comment')
+    contact_name        = models.CharField(verbose_name='نام مخاطب', max_length=200, blank=True)
+    contact_handle      = models.CharField(verbose_name='نام کاربری مخاطب', max_length=200, blank=True)
+    contact_avatar_url  = models.URLField(verbose_name='نشانی تصویر مخاطب', blank=True)
+    last_message_preview = models.CharField(verbose_name='پیش‌نمایش آخرین پیام', max_length=500, blank=True)
+    last_message_at     = models.DateTimeField(verbose_name='زمان آخرین پیام', null=True, blank=True)
+    last_outbound_at    = models.DateTimeField(verbose_name='زمان آخرین پیام ارسالی', null=True, blank=True)
+    unread_count        = models.IntegerField(verbose_name='تعداد پیام‌های خوانده‌نشده', default=0)
+    is_starred          = models.BooleanField(verbose_name='ستاره‌دار', default=False)
+    is_archived         = models.BooleanField(verbose_name='بایگانی شده', default=False)
+    is_resolved         = models.BooleanField(verbose_name='رسیدگی شده', default=False)
+    assigned_to         = models.ForeignKey(User, verbose_name='مسئول رسیدگی', on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_conversations')
+    sentiment           = models.CharField(verbose_name='احساس متن', max_length=20, choices=SENTIMENT_CHOICES, default='unknown')
+    linked_publish_log  = models.ForeignKey(PlatformPublishLog, verbose_name='گزارش انتشار مرتبط', on_delete=models.SET_NULL, null=True, blank=True, related_name='conversations')
+    linked_flow         = models.ForeignKey('social_stats.BotFlow', verbose_name='جریان ربات مرتبط', on_delete=models.SET_NULL, null=True, blank=True, related_name='inbox_conversations')
+    tags                = models.JSONField(verbose_name='برچسب‌ها', default=list, blank=True)
+    created_at          = models.DateTimeField(verbose_name='زمان ایجاد', auto_now_add=True)
+    updated_at          = models.DateTimeField(verbose_name='آخرین ویرایش', auto_now=True)
 
     class Meta:
+        verbose_name_plural = 'گفتگوها'
+        verbose_name = 'گفتگو'
         unique_together = ('client', 'platform', 'social_account', 'platform_thread_id')
         ordering = ['-last_message_at']
         indexes = [
@@ -1995,31 +2035,33 @@ class Conversation(models.Model):
 
 class Message(models.Model):
     """An individual message inside a Conversation."""
-    conversation         = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name='messages')
-    platform_message_id  = models.CharField(max_length=300, blank=True, db_index=True)
-    direction            = models.CharField(max_length=10, choices=MESSAGE_DIRECTION_CHOICES, default='inbound')
-    author_name          = models.CharField(max_length=200, blank=True)
-    author_handle        = models.CharField(max_length=200, blank=True)
-    author_avatar_url    = models.URLField(blank=True)
-    content              = models.TextField(blank=True)
-    media_urls           = models.JSONField(default=list, blank=True)
-    sent_at              = models.DateTimeField(null=True, blank=True)
-    read_at              = models.DateTimeField(null=True, blank=True)
-    replied_at           = models.DateTimeField(null=True, blank=True)
-    sentiment            = models.CharField(max_length=20, choices=SENTIMENT_CHOICES, default='unknown')
-    ai_suggested_reply   = models.TextField(blank=True)
-    sent_by              = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='sent_messages', help_text='User who composed an outbound reply')
-    linked_bot_step      = models.ForeignKey('social_stats.BotConversationStep', on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
-    created_at           = models.DateTimeField(auto_now_add=True)
+    conversation         = models.ForeignKey(Conversation, verbose_name='گفتگو', on_delete=models.CASCADE, related_name='messages')
+    platform_message_id  = models.CharField(verbose_name='شناسه پیام در پلتفرم', max_length=300, blank=True, db_index=True)
+    direction            = models.CharField(verbose_name='جهت پیام', max_length=10, choices=MESSAGE_DIRECTION_CHOICES, default='inbound')
+    author_name          = models.CharField(verbose_name='نام نویسنده', max_length=200, blank=True)
+    author_handle        = models.CharField(verbose_name='نام کاربری نویسنده', max_length=200, blank=True)
+    author_avatar_url    = models.URLField(verbose_name='نشانی تصویر نویسنده', blank=True)
+    content              = models.TextField(verbose_name='محتوا', blank=True)
+    media_urls           = models.JSONField(verbose_name='نشانی‌های رسانه', default=list, blank=True)
+    sent_at              = models.DateTimeField(verbose_name='زمان ارسال', null=True, blank=True)
+    read_at              = models.DateTimeField(verbose_name='زمان خواندن', null=True, blank=True)
+    replied_at           = models.DateTimeField(verbose_name='زمان پاسخ', null=True, blank=True)
+    sentiment            = models.CharField(verbose_name='احساس متن', max_length=20, choices=SENTIMENT_CHOICES, default='unknown')
+    ai_suggested_reply   = models.TextField(verbose_name='پاسخ پیشنهادی هوش مصنوعی', blank=True)
+    sent_by              = models.ForeignKey(User, verbose_name='ارسال‌کننده', on_delete=models.SET_NULL, null=True, blank=True, related_name='sent_messages', help_text='کاربری که پاسخ خروجی را نوشته است.')
+    linked_bot_step      = models.ForeignKey('social_stats.BotConversationStep', verbose_name='مرحله مرتبط ربات', on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    created_at           = models.DateTimeField(verbose_name='زمان ایجاد', auto_now_add=True)
 
     class Meta:
+        verbose_name_plural = 'پیام‌ها'
+        verbose_name = 'پیام'
         ordering = ['sent_at', 'id']
         indexes = [
             models.Index(fields=['conversation', 'sent_at']),
         ]
 
     def __str__(self):
-        return f"{self.conversation_id} | {self.direction} | {self.content[:40]}"
+        return f"{self.conversation_id} | {self.get_direction_display()} | {self.content[:40]}"
 
 
 class UnifiedReview(models.Model):
@@ -2028,24 +2070,26 @@ class UnifiedReview(models.Model):
     Distinct from the existing GMBReview so we can extend without disturbing the
     legacy GMB sync. New review syncs populate this; existing GMBReview stays.
     """
-    client              = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='unified_reviews')
-    platform            = models.CharField(max_length=30, choices=PLATFORM_CHOICES, default='google_my_business')
-    social_account      = models.ForeignKey(SocialAccount, on_delete=models.SET_NULL, related_name='reviews', null=True, blank=True)
-    platform_review_id  = models.CharField(max_length=300, db_index=True)
-    reviewer_name       = models.CharField(max_length=200, blank=True)
-    reviewer_avatar_url = models.URLField(blank=True)
-    rating              = models.PositiveSmallIntegerField(default=5)
-    comment             = models.TextField(blank=True)
-    language            = models.CharField(max_length=10, blank=True)
-    sentiment           = models.CharField(max_length=20, choices=SENTIMENT_CHOICES, default='unknown')
-    status              = models.CharField(max_length=20, choices=REVIEW_STATUS_CHOICES, default='new')
-    reply_text          = models.TextField(blank=True)
-    replied_at          = models.DateTimeField(null=True, blank=True)
-    replied_by          = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='replied_reviews')
-    created_at_platform = models.DateTimeField(null=True, blank=True)
-    synced_at           = models.DateTimeField(auto_now=True)
+    client              = models.ForeignKey(Client, verbose_name='فضای کاری', on_delete=models.CASCADE, related_name='unified_reviews')
+    platform            = models.CharField(verbose_name='پلتفرم', max_length=30, choices=PLATFORM_CHOICES, default='google_my_business')
+    social_account      = models.ForeignKey(SocialAccount, verbose_name='حساب شبکه اجتماعی', on_delete=models.SET_NULL, related_name='reviews', null=True, blank=True)
+    platform_review_id  = models.CharField(verbose_name='شناسه نظر در پلتفرم', max_length=300, db_index=True)
+    reviewer_name       = models.CharField(verbose_name='نام ثبت‌کننده نظر', max_length=200, blank=True)
+    reviewer_avatar_url = models.URLField(verbose_name='نشانی تصویر ثبت‌کننده نظر', blank=True)
+    rating              = models.PositiveSmallIntegerField(verbose_name='امتیاز', default=5)
+    comment             = models.TextField(verbose_name='متن نظر', blank=True)
+    language            = models.CharField(verbose_name='زبان', max_length=10, blank=True)
+    sentiment           = models.CharField(verbose_name='احساس متن', max_length=20, choices=SENTIMENT_CHOICES, default='unknown')
+    status              = models.CharField(verbose_name='وضعیت', max_length=20, choices=REVIEW_STATUS_CHOICES, default='new')
+    reply_text          = models.TextField(verbose_name='متن پاسخ', blank=True)
+    replied_at          = models.DateTimeField(verbose_name='زمان پاسخ', null=True, blank=True)
+    replied_by          = models.ForeignKey(User, verbose_name='پاسخ‌دهنده', on_delete=models.SET_NULL, null=True, blank=True, related_name='replied_reviews')
+    created_at_platform = models.DateTimeField(verbose_name='زمان ثبت در پلتفرم', null=True, blank=True)
+    synced_at           = models.DateTimeField(verbose_name='زمان همگام‌سازی', auto_now=True)
 
     class Meta:
+        verbose_name_plural = 'نظرهای مشتریان'
+        verbose_name = 'نظر مشتری'
         unique_together = ('client', 'platform', 'social_account', 'platform_review_id')
         ordering = ['-created_at_platform']
         indexes = [
@@ -2123,20 +2167,22 @@ class AIReplyTemplate(models.Model):
 
 class AutomationRule(models.Model):
     """IF (trigger + filters) THEN action — runs on inbox/engagement events."""
-    client          = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='automation_rules')
-    name            = models.CharField(max_length=200)
-    trigger_type    = models.CharField(max_length=40, choices=AUTOMATION_TRIGGER_CHOICES)
-    trigger_filters = models.JSONField(default=dict, blank=True, help_text='{platforms, keywords, sentiment, ...}')
-    action_type     = models.CharField(max_length=40, choices=AUTOMATION_ACTION_CHOICES)
-    action_config   = models.JSONField(default=dict, blank=True)
-    is_active       = models.BooleanField(default=True)
-    run_count       = models.IntegerField(default=0)
-    last_run_at     = models.DateTimeField(null=True, blank=True)
-    created_by      = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='created_automation_rules')
-    created_at      = models.DateTimeField(auto_now_add=True)
-    updated_at      = models.DateTimeField(auto_now=True)
+    client          = models.ForeignKey(Client, verbose_name='فضای کاری', on_delete=models.CASCADE, related_name='automation_rules')
+    name            = models.CharField(verbose_name='نام', max_length=200)
+    trigger_type    = models.CharField(verbose_name='نوع محرک', max_length=40, choices=AUTOMATION_TRIGGER_CHOICES)
+    trigger_filters = models.JSONField(verbose_name='شرط‌های محرک', default=dict, blank=True, help_text='شرط‌ها در قالب JSON با کلیدهایی مانند platforms، keywords و sentiment.')
+    action_type     = models.CharField(verbose_name='نوع عملیات', max_length=40, choices=AUTOMATION_ACTION_CHOICES)
+    action_config   = models.JSONField(verbose_name='تنظیمات عملیات', default=dict, blank=True)
+    is_active       = models.BooleanField(verbose_name='فعال', default=True)
+    run_count       = models.IntegerField(verbose_name='تعداد اجرا', default=0)
+    last_run_at     = models.DateTimeField(verbose_name='زمان آخرین اجرا', null=True, blank=True)
+    created_by      = models.ForeignKey(User, verbose_name='ایجادکننده', on_delete=models.SET_NULL, null=True, blank=True, related_name='created_automation_rules')
+    created_at      = models.DateTimeField(verbose_name='زمان ایجاد', auto_now_add=True)
+    updated_at      = models.DateTimeField(verbose_name='آخرین ویرایش', auto_now=True)
 
     class Meta:
+        verbose_name_plural = 'قانون‌های خودکارسازی'
+        verbose_name = 'قانون خودکارسازی'
         ordering = ['-created_at']
         indexes = [
             models.Index(fields=['client', 'is_active', 'trigger_type']),
