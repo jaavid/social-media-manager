@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import toast from '../../components/ui/toast';
 
+import TelegramComposer, { emptyRich, RichPreview } from '../../components/TelegramComposer';
 import PageHeader from '../../components/layout/PageHeader';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
@@ -26,6 +27,9 @@ import usePlatformConnections from '../../hooks/usePlatformConnections';
 import { connectedPlatforms, getPlatformRegistry } from '../../services/platforms';
 
 const MEDIA_TYPES = [
+  { id: 'album', label: 'Telegram Album / Gallery', icon: Layers },
+  { id: 'rich', label: 'Telegram Rich Article / Slideshow', icon: Layers },
+  { id: 'poll', label: 'Telegram Poll', icon: null },
   { id: 'text',     label: 'Text only', icon: null },
   { id: 'image',    label: 'Image',     icon: ImageIcon },
   { id: 'video',    label: 'Video',     icon: Video },
@@ -49,6 +53,7 @@ export default function ComposerPage() {
   const [mediaType, setMediaType] = useState('text');
   const [mediaAssets, setMediaAssets] = useState([]);   // [{id, file_url, thumbnail_url, mime_type}]
   const [targetPlatforms, setTargetPlatforms] = useState([]);
+  const [telegramContent, setTelegramContent] = useState({ rich_message: emptyRich });
   const [destinationOverrides, setDestinationOverrides] = useState({});
   const [socialAccounts, setSocialAccounts] = useState([]);
   const [accountTargets, setAccountTargets] = useState({});
@@ -77,6 +82,9 @@ export default function ComposerPage() {
       setTitle(existing.title || '');
       setContent(existing.content || '');
       setMediaType(existing.media_type || 'text');
+      setTelegramContent(existing.platform_overrides?.telegram || { rich_message: emptyRich });
+      setMediaAssets((existing.media_urls || []).map((url, index) => ({ id: String(url).startsWith('asset:') ? Number(String(url).slice(6)) : `existing-${index}`, source_url: url, file_url: String(url).startsWith('asset:') ? '' : url, mime_type: 'image/jpeg' })));
+      if (existing.platform_overrides?.telegram?.media_items) setMediaAssets(existing.platform_overrides.telegram.media_items.map((item, index) => ({ id: item.media.startsWith('asset:') ? Number(item.media.slice(6)) : `existing-${index}`, source_url: item.media, caption: item.caption, mime_type: item.type === 'video' ? 'video/mp4' : 'image/jpeg', file_url: item.media.startsWith('asset:') ? '' : item.media })));
       setTargetPlatforms(existing.target_platforms || []);
       setDestinationOverrides(Object.fromEntries(destinationPlatforms.map(platform => [
         platform.key, existing.platform_overrides?.[platform.key]?.destination_id || '',
@@ -168,6 +176,16 @@ export default function ComposerPage() {
       };
     });
 
+    if (targetPlatforms.includes('telegram')) {
+      const extra = {};
+      if (mediaType === 'album') extra.media_items = mediaAssets.map(a => ({ type: a.mime_type?.startsWith('video/') ? 'video' : 'photo', media: a.source_url || `asset:${a.id}`, ...(a.caption !== undefined && a.caption !== '' ? { caption: a.caption } : {}) }));
+      if (mediaType === 'rich') { extra.rich_message = telegramContent.rich_message || emptyRich; extra.rich_fallback = !!telegramContent.rich_fallback; }
+      if (mediaType === 'poll') extra.poll = telegramContent.poll || { question: '', options: ['', ''] };
+      if (mediaType === 'text' && telegramContent.buttons?.length) extra.buttons = telegramContent.buttons;
+      const current = { ...(platformOverrides.telegram || {}) };
+      for (const key of ['media_items', 'rich_message', 'rich_fallback', 'poll', 'buttons']) delete current[key];
+      platformOverrides.telegram = { ...current, ...extra };
+    }
     return {
       title: title.trim(),
       content,
@@ -176,7 +194,7 @@ export default function ComposerPage() {
       platform_overrides: platformOverrides,
       // Reference assets via "asset:<id>" so the orchestrator resolves to S3
       // presigned URLs at publish time.
-      media_urls: mediaAssets.map((a) => `asset:${a.id}`),
+      media_urls: mediaAssets.map((a) => a.source_url || `asset:${a.id}`),
     };
   }
 
@@ -258,9 +276,10 @@ export default function ComposerPage() {
     if (mediaType === 'text' && !content.trim()) {
       toast.error('Add some text first'); return false;
     }
-    if (mediaType !== 'text' && mediaAssets.length === 0) {
+    if (!['text', 'rich', 'poll'].includes(mediaType) && mediaAssets.length === 0) {
       toast.error('Upload at least one media file'); return false;
     }
+    if (mediaType === 'album' && (mediaAssets.length < 2 || mediaAssets.length > 10)) { toast.error('Telegram albums need 2–10 photos/videos'); return false; }
     if (targetPlatforms.length === 0) {
       toast.error('Pick at least one platform'); return false;
     }
@@ -498,7 +517,7 @@ export default function ComposerPage() {
               action={<MediaUploadButton onUpload={uploadFile} />}
             />
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', margin: '8px 0 12px' }}>
-              {MEDIA_TYPES.map((m) => (
+              {MEDIA_TYPES.filter(m => !['album', 'rich', 'poll'].includes(m.id) || socialAccounts.some(a => a.platform === 'telegram')).map((m) => (
                 <button
                   key={m.id}
                   type="button"
@@ -512,6 +531,8 @@ export default function ComposerPage() {
             </div>
             <MediaGrid assets={mediaAssets} onRemove={removeAsset} />
           </Card>
+
+          {targetPlatforms.includes('telegram') && ['text', 'album', 'rich', 'poll'].includes(mediaType) && <TelegramComposer mode={mediaType} value={telegramContent} onChange={setTelegramContent} assets={mediaAssets} onCaption={(i, caption) => setMediaAssets(current => current.map((a, j) => i === j ? { ...a, caption } : a))} onMove={i => setMediaAssets(current => { const next = [...current]; [next[i - 1], next[i]] = [next[i], next[i - 1]]; return next; })} />}
 
           {/* Scheduling */}
           <Card padding="md">
@@ -616,6 +637,7 @@ export default function ComposerPage() {
             </div>
             <div style={{ padding: 20, background: 'var(--surface-sunken)' }}>
               <PlatformPreview
+                telegramContent={telegramContent}
                 platform={activePreview}
                 content={content}
                 mediaAssets={mediaAssets}
@@ -741,7 +763,7 @@ function MediaGrid({ assets, onRemove }) {
   );
 }
 
-function PlatformPreview({ platform, content, mediaAssets, mediaType, user }) {
+function PlatformPreview({ platform, content, mediaAssets, mediaType, user, telegramContent }) {
   const platforms = getPlatformRegistry();
   const meta = platforms.find((item) => item.key === platform) || platforms[0];
   const handle = user?.first_name || user?.email?.split('@')[0] || 'You';
@@ -772,13 +794,15 @@ function PlatformPreview({ platform, content, mediaAssets, mediaType, user }) {
         </div>
       </div>
 
-      {platform !== 'instagram' && content && (
+      {platform === 'telegram' && mediaType === 'rich' && <div style={{ padding: 14 }}><RichPreview value={telegramContent?.rich_message || emptyRich} /></div>}
+      {platform === 'telegram' && mediaType === 'poll' && <div style={{ padding: 14 }}><strong>{telegramContent?.poll?.question}</strong>{(telegramContent?.poll?.options || []).map((x, i) => <p key={i}>○ {typeof x === 'string' ? x : x.text}</p>)}</div>}
+      {platform !== 'instagram' && !['rich', 'poll'].includes(mediaType) && content && (
         <div style={{ padding: '0 14px 12px', whiteSpace: 'pre-wrap', fontSize: 14, lineHeight: 1.5 }}>
           {content}
         </div>
       )}
 
-      {mediaAssets.length > 0 && mediaType !== 'text' && (
+      {mediaAssets.length > 0 && !['text', 'rich', 'poll'].includes(mediaType) && (
         <PreviewMedia assets={mediaAssets} mediaType={mediaType} platform={platform} />
       )}
 
@@ -823,7 +847,7 @@ function PreviewMedia({ assets, mediaType, platform }) {
     );
   }
 
-  if (mediaType === 'carousel' && assets.length > 1) {
+  if (['carousel', 'album'].includes(mediaType) && assets.length > 1) {
     return (
       <div style={{ display: 'flex', overflowX: 'auto', scrollSnapType: 'x mandatory' }}>
         {assets.map((a) => (

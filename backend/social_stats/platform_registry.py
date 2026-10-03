@@ -86,8 +86,8 @@ PLATFORMS: dict[str, PlatformDefinition] = {
     'telegram': _definition('telegram', _caps(
         connection='supported', disconnect='supported', publish_text='supported',
         publish_image='supported', publish_video='supported', scheduling='supported',
-        analytics='not_available', inbox='planned', comments='not_available',
-        reviews='not_available', webhooks='planned'),
+        analytics='not_available', inbox='supported', comments='not_available',
+        reviews='not_available', webhooks='supported'),
         'social_stats.publishers.telegram.TelegramPublisher', 'telegram',
         'social_stats.bot_channel_views.bot_channel_connection'),
     'bale': _definition('bale', _caps(

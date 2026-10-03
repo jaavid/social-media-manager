@@ -265,12 +265,30 @@ def _dispatch_publish(
     platform = getattr(publisher, 'key', None) or getattr(publisher, 'platform', None)
     if platform in ('telegram', 'bale'):
         overrides = (getattr(post, 'platform_overrides', None) or {}).get(platform, {}) or {}
-        if 'destination_context' in overrides:
-            publish_kwargs['destination_context'] = overrides['destination_context']
+        for key in ('destination_context', 'media_items', 'rich_message', 'rich_fallback', 'poll', 'buttons'):
+            if key in overrides:
+                publish_kwargs[key] = overrides[key]
+        if platform == 'telegram':
+            from copy import deepcopy
+            publish_kwargs = deepcopy(publish_kwargs)
+            def resolve(value):
+                if isinstance(value, dict):
+                    for key, item in value.items():
+                        if key == 'media' and isinstance(item, str) and item.startswith('asset:'):
+                            urls = _resolve_media_urls(post, [item])
+                            if urls == [item]:
+                                raise PublishError('Media asset is missing from this workspace', code='media_invalid')
+                            value[key] = urls[0]
+                        else:
+                            resolve(item)
+                elif isinstance(value, list):
+                    for item in value:
+                        resolve(item)
+            resolve(publish_kwargs)
     # Accept a raw legacy publisher for callers/tests during the registry
     # transition; production passes a provider.
     from .platforms.base import BasePlatformProvider
-    if not isinstance(publisher, BasePlatformProvider):
+    if not isinstance(publisher, BasePlatformProvider) and platform != 'telegram':
         from .publishers.base import BasePublisher
         return BasePublisher.publish(
             publisher, credential, media_type=media_type, content=content,

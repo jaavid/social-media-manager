@@ -285,6 +285,8 @@ CELERY_TASK_EAGER_PROPAGATES = DEBUG
 
 from celery.schedules import crontab
 CELERY_BEAT_SCHEDULE = {
+    'telegram-recover-jobs': {'task': 'social_stats.telegram_tasks.recover_telegram_jobs', 'schedule': 60.0},
+    'telegram-prune-updates': {'task': 'social_stats.telegram_tasks.prune_telegram_updates', 'schedule': 86400.0},
     'check-alerts-every-6-hours': {
         'task':     'social_stats.tasks.check_alerts',
         'schedule': crontab(minute=0, hour='*/6'),

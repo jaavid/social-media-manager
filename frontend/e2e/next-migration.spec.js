@@ -103,7 +103,9 @@ test('dynamic public pages render content and per-slug metadata on the server', 
   const errors = [];
   page.on('pageerror', e => errors.push(e.message));
   await page.reload();
-  await expect(page.locator('h1')).toBeVisible();
+  // Next may retain hidden streamed content while hydration replaces it.
+  // Check the accessible page heading, excluding that temporary hidden copy.
+  await expect(page.getByRole('heading', { level: 1, name: 'See everything across 5 platforms', exact: true })).toBeVisible();
   expect(errors).toEqual([]);
 });
 

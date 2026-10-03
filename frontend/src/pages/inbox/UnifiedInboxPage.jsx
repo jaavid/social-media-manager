@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import toast from '../../components/ui/toast';
 
+import TelegramSuggestions from '../../components/TelegramSuggestions';
 import PageHeader from '../../components/layout/PageHeader';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -34,6 +35,7 @@ const TYPE_FILTERS = [
 
 const PLATFORM_PILLS = [
   { id: '',                   label: 'All',   color: 'var(--text-tertiary)' },
+  { id: 'telegram', label: 'Telegram', color: '#229ED9' },
   { id: 'facebook',           label: 'FB',    color: '#1877F2' },
   { id: 'instagram',          label: 'IG',    color: '#E1306C' },
   { id: 'youtube',            label: 'YT',    color: '#FF0000' },
@@ -89,6 +91,7 @@ export default function UnifiedInboxPage() {
   return (
     <div style={{ paddingBottom: 0 }}>
       <PageHeader title="Inbox" subtitle="Comments, DMs and mentions across every platform" />
+      <TelegramSuggestions />
 
       <div className="inbox-grid" style={{
         display: 'grid',
