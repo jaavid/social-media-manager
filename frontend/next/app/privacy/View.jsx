@@ -1,3 +1,5 @@
 'use client';
-import PrivacyPolicyPage from '../../../src/pages/PrivacyPolicyPage';
-export default function View() { return <PrivacyPolicyPage />; }
+import Feature from '../../../src/pages/PrivacyPolicyPage.jsx';
+export default function View() {
+  return <Feature />;
+}

@@ -178,7 +178,7 @@ for the full picture.
 | Database | SQLite for local dev, PostgreSQL for everything else |
 | Encryption | Fernet for OAuth/bot tokens at rest |
 | AI | Anthropic Claude (captions, replies, insights, assistant) |
-| Frontend | React 18 + React Router v6 |
+| Frontend | Next.js 16.3.8 App Router + React 18 |
 | Data fetching | TanStack Query + Zustand |
 | Animations | framer-motion |
 | Charts | Recharts |
@@ -424,9 +424,9 @@ public issues for security reports.
 
 Workspace is the canonical product/API term. See the [Workspace vocabulary and compatibility contract](docs/WORKSPACE_VOCABULARY.md) for new routes, retained Client aliases, and the deferred database rename.
 
-### Optional Next.js 16 rollout
+### Next.js frontend
 
-Next.js 16.3.8 is available as an incremental App Router host while the default
-Vite deployment remains supported. See [the migration guide](docs/NEXT_MIGRATION.md)
-for migrated routes, development commands, opt-in Compose deployment, validation,
-and rollback.
+Next.js **16.3.8** is the sole frontend runtime. All existing URL families use
+native App Router pages; the unified Docker image runs Next, Django and nginx.
+See [the cutover guide](docs/NEXT_MIGRATION.md) for route ownership, local
+commands, validation, deployment and image rollback.

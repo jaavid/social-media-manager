@@ -20,7 +20,6 @@ import Logo from '../ui/Logo';
 import Button from '../ui/Button';
 import ThemeToggle from '../ui/ThemeToggle';
 import SkipLink from '../ui/SkipLink';
-import { prefetchRoute } from '../../utils/prefetchRoute';
 
 /**
  * MarketingLayout — public site shell. Wraps every public/marketing page.
@@ -100,8 +99,7 @@ function MarketingNav() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openMenu, setOpenMenu] = useState(null);  // 'product' | 'solutions' | 'resources'
-  const [isMobile, setIsMobile] = useState(() =>
-    typeof window !== 'undefined' ? window.innerWidth < 1200 : false);
+  const [isMobile, setIsMobile] = useState(false);
   const location = useLocation();
   const headerRef = useRef(null);
 
@@ -134,6 +132,7 @@ function MarketingNav() {
       setMobileOpen(false);
       setOpenMenu(null);
     };
+    onResize();
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
   }, []);
@@ -317,9 +316,7 @@ function NavLink({ to, active, children, onMouseEnter }) {
   return (
     <Link
       to={to}
-      onMouseEnter={(e) => { prefetchRoute(to); onMouseEnter?.(e); }}
-      onTouchStart={() => prefetchRoute(to)}
-      onFocus={() => prefetchRoute(to)}
+      onMouseEnter={(e) => { onMouseEnter?.(e); }}
       style={{
         padding: '8px 12px',
         fontSize: 14, fontWeight: 500,

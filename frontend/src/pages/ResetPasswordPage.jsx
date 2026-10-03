@@ -1,3 +1,4 @@
+import { useAppSearchParams } from '../app/navigation';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -22,7 +23,8 @@ import Input from '../components/ui/Input';
 import { authAPI } from '../services/api';
 
 export default function ResetPasswordPage() {
-  const token = new URLSearchParams(window.location.search).get('token');
+  const [params] = useAppSearchParams();
+  const token = params.get('token');
   return token ? <ResetForm token={token} /> : <ForgotForm />;
 }
 

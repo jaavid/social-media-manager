@@ -1,14 +1,13 @@
 # UI modernization (#58–#63)
 
-The app still runs on Vite and React Router. This change prepares its shared
-interfaces for a later Next.js migration without changing existing URLs or
-backend workspace compatibility.
+The frontend now runs exclusively on Next.js App Router. The shared interfaces
+introduced in #58–#63 remain in use; see [the completed cutover](NEXT_MIGRATION.md).
 
 ## Ownership
 
 - `src/app/providers`: router, theme, authentication, query cache, realtime,
   global notifications and legal consent composition.
-- `src/app/routes`: lazy page catalog, guards and host-specific module routers.
+- `src/app/routes`: reviewed URL inventory and client session guards.
 - `src/app/layout`: loading states and authenticated layout composition.
 - `src/features`: management, workspace list and settings implementations.
   Former page/module paths re-export these implementations for compatibility.
@@ -20,9 +19,8 @@ backend workspace compatibility.
 Feature views import `AppLink`, `AppNavLink`, `useAppNavigate`, `useAppParams`,
 `useAppLocation` and `useAppSearchParams` from `app/navigation`. Authentication
 is exposed through `app/session`; endpoint contracts remain in `services/api`.
-React Router route declarations belong to `app/routes` and `app/layout`.
-A Next.js host can replace the navigation, session/provider and runtime adapters
-while retaining feature/component APIs.
+Native page and layout declarations belong to `frontend/next/app`; generated
+feature wrappers retain these component APIs.
 
 ## Shared component contracts
 
@@ -48,7 +46,7 @@ interoperability remains enabled, with `checkJs: false` to avoid a forced rewrit
 The legacy auth provider is narrowed through one typed session adapter. No broad
 `any` escape is used in new TypeScript modules. Run `npm run typecheck`; CI runs
 it alongside the build and Jest tests. TypeScript 4.9 remains compatible with
-the current react-scripts Jest runner; Vite handles TS/TSX and legacy JS JSX.
+Jest 29 with Babel; Next builds TS/TSX and legacy JS JSX.
 
 ## RTL, responsive and accessibility audit
 
@@ -65,8 +63,8 @@ the current react-scripts Jest runner; Vite handles TS/TSX and legacy JS JSX.
 
 Browser screenshots use local mock API responses and a fixture superadmin.
 No production accounts or provider credentials are included. Live publishing,
-OAuth and service connectivity are outside this visual audit. Existing
-React Router future-flag warnings and large feature bundle warnings remain.
+OAuth and service connectivity are outside this visual audit. Large feature modules remain candidates for further splitting. React Router
+and its compatibility warnings were removed by the Next cutover.
 
 ## Django Admin
 

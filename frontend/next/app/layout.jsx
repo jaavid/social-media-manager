@@ -1,11 +1,13 @@
 import { Suspense } from 'react';
-import BrowserBoundary from './BrowserBoundary';
+import AppProviders from '../../src/app/providers/AppProviders';
 import '../../src/styles/tokens.css';
 import '../../src/styles/common.css';
 import '../../src/styles/legacy.css';
 import '../../src/styles/accessibility.css';
 import '../../src/styles/tailwind.css';
 
+// Navigation/search state is request-specific; public content still renders on the server.
+export const dynamic = 'force-dynamic';
 export const metadata = {
   title: { default: 'Social Stats — The marketing OS for modern teams', template: '%s · Social Stats' },
   description: 'Manage analytics, content, conversations, and ads across your workspaces.',
@@ -35,6 +37,6 @@ export default function RootLayout({ children }) {
     <script dangerouslySetInnerHTML={{ __html: bootstrap }} />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@300;400;500;600;700;800;900&display=swap" />
   </head><body><Suspense fallback={<div role="status" aria-busy="true" />}>
-    <BrowserBoundary>{children}</BrowserBoundary>
+    <AppProviders>{children}</AppProviders>
   </Suspense></body></html>;
 }

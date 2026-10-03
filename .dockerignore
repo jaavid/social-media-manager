@@ -17,3 +17,6 @@ backend/staticfiles/
 **/.next
 **/node_modules
 **/*.tsbuildinfo
+
+frontend/test-results/
+frontend/playwright-report/

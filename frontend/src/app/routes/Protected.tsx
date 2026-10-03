@@ -10,16 +10,18 @@ export default function Protected({
   const { user, loading } = useSession();
   if (loading) return <Loader />;
   if (!user) return <AppRedirect to="/login" replace />;
+  const landing = ['superadmin', 'staff'].includes(user.role) ? '/admin'
+    : user.account_type === 'end_user' ? '/u' : '/dashboard';
   if (roles && !roles.includes(user.role))
     return (
       <AppRedirect
         to={
-          ['superadmin', 'staff'].includes(user.role) ? '/admin' : '/dashboard'
+          landing
         }
         replace
       />
     );
   if (accountTypes && !accountTypes.includes(user.account_type))
-    return <AppRedirect to="/dashboard" replace />;
+    return <AppRedirect to={landing} replace />;
   return <>{children}</>;
 }

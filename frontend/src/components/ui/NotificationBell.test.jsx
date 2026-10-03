@@ -1,5 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { NavigationProvider } from '../../app/navigation';
 import NotificationBell from './NotificationBell';
 import { alertsAPI, notificationAPI } from '../../services/api';
 import { useAuth } from '../../hooks/useAuth';
@@ -17,7 +17,7 @@ const authenticated = {
 };
 
 function mount() {
-  return render(<MemoryRouter><NotificationBell /></MemoryRouter>);
+  return render(<NavigationProvider><NotificationBell /></NavigationProvider>);
 }
 
 beforeEach(() => {
@@ -54,7 +54,7 @@ test('logout aborts requests, clears caches, and stops future polling', async ()
   const notificationSignal = notificationAPI.list.mock.calls[0][0].signal;
 
   useAuth.mockReturnValue({ status: 'anonymous', user: null, refreshAuth: jest.fn() });
-  view.rerender(<MemoryRouter><NotificationBell /></MemoryRouter>);
+  view.rerender(<NavigationProvider><NotificationBell /></NavigationProvider>);
   expect(alertSignal.aborted).toBe(true);
   expect(notificationSignal.aborted).toBe(true);
   jest.advanceTimersByTime(120000);
@@ -66,6 +66,6 @@ test('logout aborts requests, clears caches, and stops future polling', async ()
 
 test('header variant fits inside the 56px top bar', () => {
   useAuth.mockReturnValue(authenticated);
-  render(<MemoryRouter><NotificationBell variant="ghost" /></MemoryRouter>);
+  render(<NavigationProvider><NotificationBell variant="ghost" /></NavigationProvider>);
   expect(screen.getByTitle('Notifications & Alerts')).toHaveStyle({ width: '36px', height: '36px', boxShadow: 'none' });
 });

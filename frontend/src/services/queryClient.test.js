@@ -4,11 +4,11 @@
  * producing stable, predictable keys. Catch any rename / shape regression
  * here so cache invalidation never silently misses.
  */
-import { queryClient, QK } from './queryClient';
+import { createQueryClient, QK } from './queryClient';
 
 describe('QueryClient defaults', () => {
   test('has SPA-tuned defaults applied', () => {
-    const opts = queryClient.getDefaultOptions();
+    const opts = createQueryClient().getDefaultOptions();
     expect(opts.queries.staleTime).toBe(30_000);
     expect(opts.queries.gcTime).toBe(5 * 60_000);
     expect(opts.queries.retry).toBe(1);
@@ -49,4 +49,14 @@ describe('QK key factory', () => {
     expect(QK.dashboardCounts(42)).toEqual(['dashboard.counts', 42]);
     expect(QK.search(42, 'mumbai')).toEqual(['search', 42, 'mumbai']);
   });
+});
+
+test('independent render roots never share query or mutation caches', () => {
+  const first = createQueryClient();
+  const second = createQueryClient();
+  first.setQueryData(QK.posts(42), ['private account data']);
+  expect(second.getQueryData(QK.posts(42))).toBeUndefined();
+  expect(first.getMutationCache()).not.toBe(second.getMutationCache());
+  first.clear();
+  second.clear();
 });

@@ -1,3 +1,4 @@
+import { useAppSearchParams } from '../app/navigation';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -24,7 +25,8 @@ import { useSession as useAuth } from '../app/session';
 export default function VerifyEmailPage() {
   const navigate = useNavigate();
   const { refreshAuth } = useAuth();
-  const token = new URLSearchParams(window.location.search).get('token');
+  const [params] = useAppSearchParams();
+  const token = params.get('token');
 
   const [status, setStatus] = useState('loading');
   const [message, setMessage] = useState('');

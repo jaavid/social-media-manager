@@ -52,15 +52,24 @@ function apply(resolved) {
 const ThemeContext = createContext(null);
 
 export function ThemeProvider({ children }) {
-  const [preference, setPreference] = useState(readPref);
-  const [resolved,   setResolved]   = useState(() => resolve(readPref()));
+  const [preference, setPreference] = useState(DEFAULT_PREFERENCE);
+  const [resolved,   setResolved]   = useState('light');
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
+    const pref = readPref();
+    setPreference(pref);
+    setResolved(resolve(pref));
+    setReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (!ready) return;
     const next = resolve(preference);
     setResolved(next);
     apply(next);
     try { persistentStorage.setItem(STORAGE_KEY, preference); } catch {}
-  }, [preference]);
+  }, [preference, ready]);
 
   // Track OS theme changes when preference is "system"
   useEffect(() => {

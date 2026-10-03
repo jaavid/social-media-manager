@@ -7,7 +7,7 @@ This is the temporary source of truth while GitHub Issues are disabled for the r
 - Keep schema/auth/reliability work separate from visual-only refactors when possible.
 - Merge 2–4 tightly related items into one deployable batch instead of deploying every small patch independently.
 - Every batch must pass backend, frontend, Docker integration, and security CI before deploy.
-- Preserve the UI modernization path: Vite + Tailwind/shadcn now, decomposition next, then route-by-route Next.js App Router migration.
+- The UI modernization and full Next.js App Router cutover are complete; keep native route ownership and shared feature boundaries.
 
 ## Batch A — runtime reliability and OAuth log safety
 

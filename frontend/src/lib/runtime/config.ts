@@ -1,6 +1,6 @@
-/** Vite maps these public keys today; a Next host can supply the same contract. */
+/** Explicit public configuration shared by browser features and the Next host. */
 export function apiBaseUrl(): string {
-  return (process.env.REACT_APP_API_URL || 'http://localhost:8000/api').replace(
+  return (process.env.REACT_APP_API_URL || '/api').replace(
     /\/$/,
     '',
   );

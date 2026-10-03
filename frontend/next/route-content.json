@@ -1,0 +1,140 @@
+{
+  "product": {
+    "analytics": {
+      "title": "Cross-platform analytics",
+      "description": "Track Facebook, Instagram, YouTube, LinkedIn, and Google Business Profile in one unified dashboard. AI insights surface what to do next."
+    },
+    "composer": {
+      "title": "Multi-platform composer",
+      "description": "Write one post. Social Stats auto-formats for Facebook, Instagram, LinkedIn, YouTube. Schedule, queue, or recur."
+    },
+    "inbox": {
+      "title": "Unified inbox",
+      "description": "DMs, comments, mentions, and reviews from Facebook, Instagram, WhatsApp, YouTube, and Google Business Profile — all in one inbox."
+    },
+    "whatsapp": {
+      "title": "WhatsApp Business at agency scale",
+      "description": "Templates, broadcast campaigns, two-way chat, opt-in compliance — everything you need to run WhatsApp Business across 100+ clients via Pinbot."
+    },
+    "bot-builder": {
+      "title": "CTWA Bot Builder",
+      "description": "Visual drag-drop flow editor for click-to-WhatsApp ad funnels. Capture, qualify, and convert leads 24/7."
+    },
+    "ai": {
+      "title": "Social Stats Studio",
+      "description": "AI-powered content generation, brand voice, replies, insights, forecasting — across every Social Stats module."
+    },
+    "ai-assistant": {
+      "title": "Social Stats Assistant",
+      "description": "Press Cmd+J anywhere. Talk to your marketing data. Social Stats with tool use — creates posts, schedules, generates reports."
+    },
+    "reports": {
+      "title": "Reports that write themselves",
+      "description": "Auto-generated PDF reports with AI narration, scheduled delivery, white-label branding for agencies."
+    },
+    "automations": {
+      "title": "Automation engine",
+      "description": "IF this happens, do that. Triggers from keywords, sentiment, intent, mentions, milestones. Actions: notify, reply, assign, tag, webhook."
+    },
+    "marketplace-product": {
+      "title": "Two-sided marketplace",
+      "description": "Built-in agency-client marketplace. End users find vetted agencies; agencies get discovered. Granular permissions + approvals."
+    }
+  },
+  "solutions": {
+    "agencies": {
+      "title": "For agencies",
+      "description": "Manage 100+ clients without hiring. Multi-client workspaces, team roles, white-label reports, AI per client, marketplace exposure."
+    },
+    "businesses": {
+      "title": "For businesses",
+      "description": "Take control of your social media. Free forever for end users — invite an agency to help anytime."
+    },
+    "real-estate": {
+      "title": "For real estate",
+      "description": "Sell more properties on social. Listing carousels, site-visit reminders, CTWA lead capture, AI property descriptions, open-house automation."
+    },
+    "clinics": {
+      "title": "For clinics + hospitals",
+      "description": "Engage patients across every platform. Appointment reminders, lab-report delivery, awareness campaigns, HIPAA-aligned content checker."
+    },
+    "restaurants": {
+      "title": "For restaurants",
+      "description": "Fill more tables. Reservation bots, daily specials posts, review management for Zomato + Google, festival campaigns."
+    },
+    "creators": {
+      "title": "For creators",
+      "description": "Track your creator economy. YouTube + Instagram + LinkedIn analytics, brand-deal tracking, audience insights, posting optimization."
+    },
+    "ecommerce": {
+      "title": "For e-commerce",
+      "description": "Drive sales from social. Product catalog integration, Shop tab insights, WhatsApp commerce, cart abandonment campaigns."
+    }
+  },
+  "customers": {
+    "acme-realty": {
+      "title": "acme-realty",
+      "description": ""
+    },
+    "sunrise-clinics": {
+      "title": "sunrise-clinics",
+      "description": ""
+    },
+    "bluewave-agency": {
+      "title": "bluewave-agency",
+      "description": ""
+    }
+  },
+  "blog": {
+    "unified-marketing-os-is-here": {
+      "title": "The unified marketing OS is here.",
+      "description": "Why we rebuilt Social Stats into a single platform — and what it means for your agency workflow."
+    },
+    "how-we-train-brand-voice": {
+      "title": "How we train brand voice without leaking your data.",
+      "description": "A peek under the hood at our zero-retention AI pipeline and the engineering behind brand-voice profiles."
+    },
+    "whatsapp-engagement-2026": {
+      "title": "The 2026 WhatsApp engagement playbook for agencies.",
+      "description": "Templates, opt-in flows, and the automation patterns we see top-performing agencies using."
+    },
+    "designing-a-design-system": {
+      "title": "Designing a design system in public.",
+      "description": "Notes on the visual refresh — tokens, dark mode, and the components we kept rebuilding until they felt right."
+    },
+    "agency-roi-blueprint": {
+      "title": "The agency ROI blueprint: showing your value in 5 charts.",
+      "description": "A repeatable reporting structure that turns one-off campaigns into multi-year retainers."
+    },
+    "composer-design-decisions": {
+      "title": "Why our Composer is a single-pane editor (not tabs).",
+      "description": "How we landed on a unified compose flow that maps to every platform without losing platform-native nuance."
+    }
+  },
+  "agencies": {
+    "bluewave-agency": {
+      "title": "BlueWave Agency",
+      "description": ""
+    },
+    "halcyon": {
+      "title": "Halcyon",
+      "description": ""
+    },
+    "verve": {
+      "title": "Verve",
+      "description": ""
+    },
+    "lumen": {
+      "title": "Lumen",
+      "description": ""
+    },
+    "ember": {
+      "title": "Ember",
+      "description": ""
+    },
+    "apex-marketing": {
+      "title": "Apex Marketing",
+      "description": ""
+    }
+  }
+}

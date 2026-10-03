@@ -14,6 +14,12 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_SITE_URL: "${APP_URL:-http://localhost:3000}"
+        NEXT_PUBLIC_API_URL: "${NEXT_PUBLIC_API_URL:-/api}"
+        NEXT_PUBLIC_WS_URL: "${NEXT_PUBLIC_WS_URL:-}"
+        NEXT_PUBLIC_PLAUSIBLE_DOMAIN: "${NEXT_PUBLIC_PLAUSIBLE_DOMAIN:-}"
+        NEXT_PUBLIC_PLAUSIBLE_HOST: "${NEXT_PUBLIC_PLAUSIBLE_HOST:-}"
     env_file:
       - .env
     environment:

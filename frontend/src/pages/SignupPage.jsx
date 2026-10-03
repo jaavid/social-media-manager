@@ -6,6 +6,7 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
+import { useAppSearchParams } from '../app/navigation';
 import { apiBaseUrl } from '../lib/runtime/config';
 import { persistentStorage } from '../lib/runtime/storage';
 
@@ -33,7 +34,7 @@ const API_BASE = apiBaseUrl();
 export default function SignupPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const params = new URLSearchParams(window.location.search);
+  const [params] = useAppSearchParams();
   const inviteToken = params.get('invite');
 
   const [inv, setInv] = useState(null);
