@@ -1,8 +1,3 @@
-:root {
-  --font-sans: 'Vazirmatn', Tahoma, Arial, sans-serif;
-  --font-display: 'Vazirmatn', Tahoma, Arial, sans-serif;
-}
-
 html,
 body,
 button,
@@ -12,7 +7,7 @@ textarea {
   font-family: var(--font-sans);
 }
 
-/* Product typography: Vazirmatn is loaded once from index.html with real
+/* Product typography: Noto Sans Arabic is loaded once from index.html with real
    300–900 weights. Keep body copy calm and use stronger weights for controls
    and headings so Persian UI hierarchy stays clear without synthetic bold. */
 body {

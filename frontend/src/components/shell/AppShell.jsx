@@ -276,7 +276,7 @@ function MobileTopBar({ onMenuOpen, onOpenPalette }) {
           '[display:inline-flex]',
           '[align-items:center]',
           '[justify-content:center]',
-          '[border:1px_solid_var(--border-subtle)]',
+          '[border:0]',
           '[border-radius:var(--radius-md)]',
           '[background:var(--surface-card)]',
           '[color:var(--text-primary)]',
@@ -302,7 +302,7 @@ function MobileTopBar({ onMenuOpen, onOpenPalette }) {
           '[gap:8px]',
           '[padding:0_12px]',
           '[background:var(--surface-sunken)]',
-          '[border:1px_solid_var(--border-subtle)]',
+          '[border:0]',
           '[border-radius:var(--radius-md)]',
           '[color:var(--text-tertiary)]',
           '[font-size:13px]',
@@ -312,8 +312,8 @@ function MobileTopBar({ onMenuOpen, onOpenPalette }) {
       >
         {t('common.search', 'Search anything…')}
       </button>
-      <LanguageToggle />
-      <ThemeToggle size="sm" />
+      <LanguageToggle variant="ghost" />
+      <ThemeToggle variant="ghost" />
       <div
         className={cn(
           '[width:32px]',

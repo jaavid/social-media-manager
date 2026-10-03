@@ -56,34 +56,14 @@
   align-items: center;
 }
 
-/* Page header sticky behavior — pins under MobileHeader on mobile,
-   pins to viewport top on desktop. */
+/* Keep page titles aligned with content and below the fixed shell header. */
 .page-header-sticky {
   position: sticky;
-  top: 0;
+  top: var(--topbar-height);
   z-index: 10;
-  margin-inline: 0;
-  padding: 20px 24px 16px;
-  border-bottom: 1px solid transparent;
-  transition: border-color 0.18s ease, box-shadow 0.18s ease;
-}
-
-.page-header-sticky.is-pinned {
-  border-bottom-color: var(--border-default);
-  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
-}
-
-@media (max-width: 768px) {
-  .page-header-sticky {
-    top: 56px;
-    padding-inline: 16px;
-  }
-}
-
-@media (max-width: 480px) {
-  .page-header-sticky {
-    padding-inline: 12px;
-  }
+  margin: 0 0 24px;
+  padding: 16px 0;
+  background: var(--surface-page);
 }
 
 @media (max-width: 768px) {

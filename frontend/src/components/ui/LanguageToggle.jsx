@@ -1,21 +1,22 @@
 import { Languages } from 'lucide-react';
 import { useLanguage } from '../../i18n';
 
-export default function LanguageToggle() {
+export default function LanguageToggle({ variant = 'default' }) {
   const { language, setLanguage, t } = useLanguage();
 
   return (
     <label
       title={t('common.language', 'Language')}
       style={{
-        height: 34,
+        height: 36,
+        flexShrink: 0,
         display: 'inline-flex',
         alignItems: 'center',
         gap: 6,
         padding: '0 8px',
-        border: '1px solid var(--border-subtle)',
+        border: variant === 'ghost' ? 'none' : '1px solid var(--border-subtle)',
         borderRadius: 'var(--radius-md)',
-        background: 'var(--surface-card)',
+        background: variant === 'ghost' ? 'transparent' : 'var(--surface-card)',
         color: 'var(--text-secondary)',
         fontSize: 12,
         fontWeight: 600,

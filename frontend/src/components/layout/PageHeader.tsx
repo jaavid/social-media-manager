@@ -6,7 +6,6 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
-import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useAppNavigate } from '../../app/navigation';
 import { ChevronLeft } from 'lucide-react';
@@ -32,19 +31,11 @@ export default function PageHeader({
 }: PageHeaderProps) {
   const navigate = useAppNavigate();
   const { tr, isPersian } = useLanguage();
-  const [pinned, setPinned] = useState(false);
   const localize = (v: ReactNode) => (typeof v === 'string' ? tr(v) : v);
-  useEffect(() => {
-    const onScroll = () => setPinned(window.scrollY > 4);
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
   return (
     <div
       className={cn(
         'page-header-sticky flex min-w-0 flex-wrap items-start justify-between gap-4',
-        pinned && 'is-pinned',
       )}
     >
       <div className="flex min-w-0 flex-1 items-start gap-3">
@@ -64,7 +55,7 @@ export default function PageHeader({
               {localize(eyebrow)}
             </div>
           )}
-          <h1 className="m-0 break-words text-[22px] font-semibold leading-tight text-foreground">
+          <h1 className="m-0 break-words text-[22px] font-semibold leading-snug text-foreground">
             {localize(title)}
           </h1>
           {subtitle && (
