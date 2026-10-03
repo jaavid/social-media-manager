@@ -1,148 +1,45 @@
----
-title: "Configuration Reference — Every Environment Variable"
-description: "Every environment variable Social Stats reads: database, Redis/Celery, OAuth apps for Facebook, Instagram, YouTube, LinkedIn and Google Business, WhatsApp, email, AI models, and security settings."
----
+# پیکربندی
 
-# Configuration Reference
+| روش اجرا | فایل |
+| --- | --- |
+| Compose | کپی [`.env.example`](../.env.example) به `.env` در ریشه |
+| Django محلی | کپی [`backend/.env.example`](../backend/.env.example) به `backend/.env` |
+| Next محلی | مقادیر [`frontend/.env.example`](../frontend/.env.example) در `frontend/next/.env.local` یا محیط زمان build |
 
-Every variable in [`backend/.env.example`](../backend/.env.example), what it does,
-whether it's required, how to generate it, and what breaks if it's unset.
+مقادیر نمونهٔ credential را خالی یا واقعی کنید؛ placeholder به معنی اتصال آماده نیست. اسرار فقط در سرور باشند. نام متغیرها و پیش‌فرض‌های دقیق در [settings.py](../backend/dashboard/settings.py) است.
 
-Copy the template first:
+## تنظیمات اصلی
 
-```bash
-cd backend && cp .env.example .env
+| متغیر | کاربرد |
+| --- | --- |
+| `SECRET_KEY` | کلید تصادفی امضای Django |
+| `FIELD_ENCRYPTION_KEYS` | کلیدهای Fernet جداشده با کاما؛ اولی برای نوشتن، همه برای خواندن |
+| `DEBUG`، `ALLOWED_HOSTS` | حالت توسعه و hostnameهای مجاز |
+| `APP_URL`، `APP_BIND`، `APP_PORT` | آدرس عمومی و bind/port در Compose |
+| `FRONTEND_URL`، `CORS_ALLOWED_ORIGINS` | آدرس رابط برای اجرای مستقیم Django؛ Compose از `APP_URL` می‌سازد |
+| `POSTGRES_DB/USER/PASSWORD` | دیتابیس Compose؛ host و port خودکار تنظیم می‌شوند |
+| `DB_NAME/USER/PASSWORD/HOST/PORT` | اتصال PostgreSQL در اجرای مستقیم؛ بدون `DB_NAME` از SQLite استفاده می‌شود |
+| `CELERY_BROKER_URL`، `CELERY_RESULT_BACKEND` | Redis تسک‌ها؛ Compose خودکار تنظیم می‌کند |
+| `CHANNEL_LAYERS_REDIS_URL` | Redis ارتباط زنده؛ Compose خودکار تنظیم می‌کند |
+| `EMAIL_HOST/PORT/HOST_USER/HOST_PASSWORD`، `DEFAULT_FROM_EMAIL` | SMTP برای ایمیل‌ها |
+| `ANTHROPIC_API_KEY` | قابلیت‌های AI؛ بدون کلید واقعی استفاده نکنید |
+| `OAUTH_APPS_APPROVED` | فعال‌سازی Quick Connect؛ تا دریافت تأییدها `False` بماند |
+| `NEXT_PUBLIC_API_URL`، `NEXT_PUBLIC_WS_URL`، `NEXT_PUBLIC_SITE_URL` | آدرس عمومی API، WebSocket و canonical؛ نیازمند build مجدد |
+
+تولید کلید؛ دستور دوم پس از نصب وابستگی‌های Python:
+
+```sh
+python -c "import secrets; print(secrets.token_urlsafe(64))"
+python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
 ```
 
-The defaults are tuned for **local development** — you can run the app and the
-demo seed with the file almost untouched. Set `ANTHROPIC_API_KEY` to enable AI,
-and the platform credentials only when you want to connect real accounts.
+کلیدهای رمزگذاری را همراه بکاپ، جدا و امن نگه دارید. تعویض مستقیم کلید می‌تواند توکن‌های موجود را ناخوانا کند؛ کلید جدید را ابتدا اضافه کنید و تا بازرمزگذاری و بررسی داده، قدیمی را نگه دارید.
 
----
+## HTTP محلی و HTTPS واقعی
 
-## Django core
+برای Django محلی با `DEBUG=False` و HTTP: `SECURE_SSL_REDIRECT=False`، `SESSION_COOKIE_SECURE=False`، `CSRF_COOKIE_SECURE=False` و `SECURE_HSTS_SECONDS=0` تنظیم کنید.
+در محیط واقعی از HTTPS، `DEBUG=False` و cookieهای امن استفاده کنید. proxy باید `X-Forwarded-Proto` را درست ارسال کند. `TRUST_PROXY_CLIENT_IP=True` فقط وقتی origin صرفاً از proxy قابل دسترسی است.
 
-| Variable | Required | Default | What it does / how to set |
-|---|---|---|---|
-| `SECRET_KEY` | **Yes (prod)** | dev fallback | Django cryptographic signing key. Dev has an insecure fallback; in production set a long random value. Generate: `python -c "import secrets; print(secrets.token_urlsafe(50))"`. |
-| `DEBUG` | No | `False` | `True` enables Django debug pages. **Keep `False` in production.** |
-| `ALLOWED_HOSTS` | **Yes (prod)** | `app.example.com,api.example.com` | Comma-separated hostnames Django will serve. For local dev add `localhost,127.0.0.1`. Requests to other hosts are rejected. |
-| `FRONTEND_URL` | **Yes** | `https://app.example.com` | Base URL of the React app. Used to build links in emails and OAuth redirects back to the UI. For local dev set `http://localhost:3000`. |
+SSO با `SSO_OIDC_ISSUER/CLIENT_ID/CLIENT_SECRET/REDIRECT_URI` تنظیم می‌شود. پیش‌فرض `SSO_OIDC_REQUIRE_VERIFIED_EMAIL=True` را حفظ کنید و claim ایمیل تأییدشده را در IdP فراهم کنید. بازگشت: `/api/auth/sso/callback/`.
 
-## Field-level encryption
-
-OAuth tokens and manual credentials are encrypted at rest using these keys.
-
-| Variable | Required | Default | What it does / how to set |
-|---|---|---|---|
-| `FIELD_ENCRYPTION_KEYS` | **Yes (prod)** | empty | Comma-separated Fernet keys. The **first** key encrypts new writes; every key can decrypt (supports rotation). Generate: `python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"`. |
-| `FIELD_ENCRYPTION_KEY` | No | empty | Legacy single-key fallback used only if `FIELD_ENCRYPTION_KEYS` is empty. |
-
-> If both are empty, `SECRET_KEY` is stretched into a key (dev-only fallback).
-> **Production must set `FIELD_ENCRYPTION_KEYS`** — otherwise rotating `SECRET_KEY`
-> would make stored tokens undecryptable. Affected fields:
-> `PlatformCredential.access_token` / `refresh_token`,
-> `ManualCredentialExtras.oauth_client_id` / `oauth_client_secret` / `api_key`.
-
-## Database
-
-| Variable | Required | Default | What it does |
-|---|---|---|---|
-| `DB_NAME` / `DB_USER` / `DB_PASSWORD` / `DB_HOST` / `DB_PORT` | No (dev) / **Yes (prod)** | SQLite when `DB_NAME` unset | Postgres connection parts. If `DB_NAME` is unset, dev falls back to SQLite. (There is no `DATABASE_URL` parser.) |
-
-## Redis / Celery
-
-| Variable | Required | Default | What it does |
-|---|---|---|---|
-| `CELERY_BROKER_URL` | **Yes (for background tasks)** | `redis://localhost:6379/0` | Where Celery queues jobs. Without Redis + this, scheduled publishing, metric sync, and notifications won't run. |
-| `CELERY_RESULT_BACKEND` | No | `redis://localhost:6379/0` | Where task results are stored. |
-
-## Meta (Facebook + Instagram)
-
-Get these from [developers.facebook.com](https://developers.facebook.com) → Create
-App (Business type) → add **Pages API** + **Instagram Graph API**. See
-[CONNECT_ACCOUNTS.md](CONNECT_ACCOUNTS.md).
-
-| Variable | Required | Default | What it does |
-|---|---|---|---|
-| `META_APP_ID` | For Quick Connect | placeholder | Meta App ID (Settings → Basic). |
-| `META_APP_SECRET` | For Quick Connect | placeholder | Meta App Secret. |
-| `META_REDIRECT_URI` | For Quick Connect | `http://localhost:8000/api/oauth/facebook/callback/` | Must match the redirect URI registered in the Meta app exactly. |
-
-## Google (YouTube + Google Business Profile)
-
-Get these from [console.cloud.google.com](https://console.cloud.google.com) →
-enable **YouTube Data API v3**, **YouTube Analytics API**, **Business Profile API**.
-
-| Variable | Required | Default | What it does |
-|---|---|---|---|
-| `GOOGLE_CLIENT_ID` | For Quick Connect | placeholder | OAuth 2.0 Web Application client ID (ends `.apps.googleusercontent.com`). |
-| `GOOGLE_CLIENT_SECRET` | For Quick Connect | placeholder | OAuth client secret. |
-| `GOOGLE_REDIRECT_URI` | For Quick Connect | `http://localhost:8000/api/oauth/google/callback/` | Must match the Authorized redirect URI in Google Cloud exactly. |
-
-## LinkedIn
-
-Get these from [linkedin.com/developers](https://www.linkedin.com/developers).
-
-| Variable | Required | Default | What it does |
-|---|---|---|---|
-| `LINKEDIN_CLIENT_ID` | For Quick Connect | placeholder | LinkedIn app client ID (Auth tab). |
-| `LINKEDIN_CLIENT_SECRET` | For Quick Connect | placeholder | LinkedIn app client secret. |
-| `LINKEDIN_REDIRECT_URI` | For Quick Connect | `http://localhost:8000/api/oauth/linkedin/callback/` | Must match the redirect URI in the LinkedIn app exactly. |
-
-## Email
-
-| Variable | Required | Default | What it does |
-|---|---|---|---|
-| `EMAIL_HOST` | For email | `smtp.gmail.com` | SMTP host for report/notification emails. |
-| `EMAIL_PORT` | For email | `587` | SMTP port. |
-| `EMAIL_HOST_USER` | For email | placeholder | SMTP username. For Gmail, enable 2FA → App Passwords. |
-| `EMAIL_HOST_PASSWORD` | For email | placeholder | SMTP password / Gmail App Password. |
-| `DEFAULT_FROM_EMAIL` | No | `Social Stats <noreply@example.com>` | From address on outgoing email. |
-
-> Without email config, the app still runs; email-dependent features (report
-> delivery, some notifications) simply won't send.
-
-## Anthropic (AI features)
-
-| Variable | Required | Default | What it does |
-|---|---|---|---|
-| `ANTHROPIC_API_KEY` | For AI | placeholder | Powers AI captions, replies, insights, the Cmd/Ctrl+J assistant, and AI-narrated reports. Get one at [console.anthropic.com](https://console.anthropic.com). **Without it, AI surfaces are disabled; everything else works.** |
-
-## WhatsApp (Pinbot Partners API v3)
-
-See [CONNECT_WHATSAPP.md](CONNECT_WHATSAPP.md) for the full setup.
-
-| Variable | Required | Default | What it does |
-|---|---|---|---|
-| `PINBOT_BASE_URL` | For WhatsApp | `https://partnersv1.pinbot.ai/v3` | Pinbot Partners API base URL. |
-| `WHATSAPP_ENCRYPTION_KEY` | For WhatsApp | empty | Fernet key encrypting WhatsApp credentials at rest. Generate like `FIELD_ENCRYPTION_KEYS`. |
-| `WHATSAPP_WEBHOOK_SECRET` | For WhatsApp | empty | Random 32+ char string. Verifies inbound webhook calls to `/api/whatsapp/webhook/` (sent as `X-Webhook-Secret` header, or matched as `hub.verify_token` on the GET handshake). |
-| `WHATSAPP_RATE_LIMIT_PER_SEC` | No | `20` | Outbound WhatsApp send rate cap. |
-
-## Quick Connect toggle
-
-| Variable | Required | Default | What it does |
-|---|---|---|---|
-| `OAUTH_APPS_APPROVED` | No | `False` | `False` → Quick Connect (one-click OAuth) buttons are disabled and labelled "Coming Soon"; users are routed to the **Manual Setup wizard**. `True` → Quick Connect is enabled. Flip to `True` only after Meta/Google have approved your OAuth apps in production. |
-
----
-
-## Advanced / optional (read from `settings.py`, not in `.env.example`)
-
-These have working defaults and rarely need changing:
-
-| Variable | Default | What it does |
-|---|---|---|
-| `AXES_FAILURE_LIMIT` | `5` | Failed logins before lockout (django-axes). |
-| `AXES_COOLOFF_HOURS` | `1` | Lockout duration in hours. |
-| `JWT_ACCESS_MIN` | `15` | Access-token lifetime (minutes). |
-| `JWT_REFRESH_DAYS` | `7` | Refresh-token lifetime (days). |
-| `JWT_AUDIENCE` / `JWT_ISSUER` | `socialstats-app` / `socialstats.com` | JWT claims. |
-| `SESSION_COOKIE_SAMESITE` / `CSRF_COOKIE_SAMESITE` | `Lax` | Cookie SameSite policy. |
-| `FACEBOOK_SOCIAL_APP_ID` / `FACEBOOK_SOCIAL_APP_SECRET` | falls back to `META_APP_ID` / `META_APP_SECRET` | App credentials for "Sign in with Facebook" (app login, separate from connecting a Page). |
-| `AI_MONTHLY_BUDGET_USD` | `500` | Monthly AI spend cap. |
-| `AI_PER_CLIENT_DAILY_LIMIT` | `100` | Per-client daily AI request cap. |
-| `AI_DEFAULT_MODEL` | `claude-sonnet-4-6` | Default Claude model. |
-| `AI_FAST_MODEL` | `claude-haiku-4-5-20251001` | Fast/cheap model for light tasks. |
-| `AI_DEEP_MODEL` | `claude-opus-4-7` | Highest-capability model for deep tasks. |
+پس از تغییر محیط Compose: `docker compose up -d --force-recreate app`. متغیرهای عمومی فرانت‌اند زمان build خوانده می‌شوند؛ برای آن‌ها image را دوباره بسازید.

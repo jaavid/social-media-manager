@@ -18,8 +18,8 @@
 
 ## Checklist
 
-- [ ] I read [CONTRIBUTING.md](../CONTRIBUTING.md)
-- [ ] Backend tests pass (`python manage.py test social_stats`)
+- [ ] I read [CONTRIBUTING.md](../docs/CONTRIBUTING.md)
+- [ ] Backend tests pass (`python manage.py test social_stats.tests`)
 - [ ] Frontend tests pass (`CI=true npm test`)
 - [ ] I added/updated tests where it made sense
 - [ ] Docs/README updated if behavior or setup changed

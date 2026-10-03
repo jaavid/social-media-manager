@@ -18,7 +18,7 @@ Use Python 3.12 and Node 20, matching CI. Run commands from the indicated direct
 
 ## Coding Style & Naming Conventions
 
-Use four-space Python indentation and two-space JavaScript/JSX indentation. Follow surrounding conventions: Python `snake_case`, React components `PascalCase`, and hooks named `useSomething`. Prefer functional components, TanStack Query for server data, and Zustand for local state. Preserve existing copyright notices. Use “workspace” in new product/API vocabulary and follow `docs/WORKSPACE_VOCABULARY.md` for retained Client compatibility.
+Use four-space Python indentation and two-space JavaScript/JSX indentation. Follow surrounding conventions: Python `snake_case`, React components `PascalCase`, and hooks named `useSomething`. Prefer functional components, TanStack Query for server data, and Zustand for local state. Preserve existing copyright notices. Use “workspace” in new product/API vocabulary and follow `docs/ACCESS.md` for retained Client compatibility.
 
 ## Testing Guidelines
 
@@ -26,7 +26,7 @@ Name backend tests `test_*.py` under `backend/social_stats/tests/`; frontend tes
 
 ## Commit & Pull Request Guidelines
 
-History uses scoped messages such as `feat(workspaces): ...` and `fix(accounts): ...`. Keep each PR focused. Follow `.github/pull_request_template.md`: explain the change and motivation, link related issues, report validation, update affected docs, and attach before/after screenshots for UI changes.
+History uses scoped messages such as `feat(workspaces): ...` and `fix(accounts): ...`. Keep each PR focused. Follow `.github/PULL_REQUEST_TEMPLATE.md`: explain the change and motivation, link related issues, report validation, update affected docs, and attach before/after screenshots for UI changes.
 
 ## Security & Configuration Tips
 
