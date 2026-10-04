@@ -1,2 +1,8 @@
 node_modules
 build
+next/.next
+**/.env
+**/.env.*
+!**/.env.example
+test-results
+playwright-report

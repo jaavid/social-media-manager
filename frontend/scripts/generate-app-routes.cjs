@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const { parse } = require('@babel/parser');
 const root = path.resolve(__dirname, '..');
-const source = path.join(root, 'src');
+const source = path.join(root, 'next/src');
 const app = path.join(root, 'next/app');
 const inventory = JSON.parse(fs.readFileSync(path.join(source, 'app/routes/routeInventory.json'), 'utf8'));
 const walk = (node, visit) => {
@@ -56,11 +56,11 @@ function contentTable(file, variable) {
   return result;
 }
 const content = {
-  product: contentTable('pages/marketing/productPages.js', 'productPages'),
-  solutions: contentTable('pages/marketing/solutionPages.js', 'solutionPages'),
-  customers: contentTable('pages/marketing/caseStudies.js', 'STUDIES'),
-  blog: contentTable('pages/marketing/blogPosts.js', 'POSTS'),
-  agencies: contentTable('pages/marketing/agencyProfiles.js', 'AGENCIES'),
+  product: contentTable('screens/marketing/productPages.js', 'productPages'),
+  solutions: contentTable('screens/marketing/solutionPages.js', 'solutionPages'),
+  customers: contentTable('screens/marketing/caseStudies.js', 'STUDIES'),
+  blog: contentTable('screens/marketing/blogPosts.js', 'POSTS'),
+  agencies: contentTable('screens/marketing/agencyProfiles.js', 'AGENCIES'),
 };
 write(path.join(root, 'next/route-content.json'), JSON.stringify(content, null, 2) + '\n');
 for (const route of inventory.routes) {
@@ -78,7 +78,7 @@ for (const route of inventory.routes) {
   const metaImport = importPath(page, path.join(root, 'next/metadata.mjs'));
   if (route.redirect) {
     const href = JSON.stringify(route.redirect);
-    write(page, `// Generated from src/app/routes/routeInventory.json.\nimport { redirect } from 'next/navigation';\nexport default function Page() { redirect(${href}); }\n`);
+    write(page, `// Generated from next/src/app/routes/routeInventory.json.\nimport { redirect } from 'next/navigation';\nexport default function Page() { redirect(${href}); }\n`);
     continue;
   }
   const view = path.join(folder, 'View.jsx');
@@ -104,7 +104,7 @@ for (const route of inventory.routes) {
   const meta = staticMeta(route);
   const family = route.path.split('/')[1];
   const dynamicContent = route.path === `/${family}/:slug` && content[family];
-  let pageText = `// Generated from src/app/routes/routeInventory.json.\nimport View from './View';\nimport { publicMetadata } from '${metaImport}';\n`;
+  let pageText = `// Generated from next/src/app/routes/routeInventory.json.\nimport View from './View';\nimport { publicMetadata } from '${metaImport}';\n`;
   if (dynamicContent) {
     const tableImport = importPath(page, path.join(root, 'next/route-content.json'));
     pageText += `import content from '${tableImport}';\nimport { notFound } from 'next/navigation';\nconst entries = content[${JSON.stringify(family)}];\nexport const dynamicParams = false;\nexport function generateStaticParams() { return Object.keys(entries).map(slug => ({ slug })); }\nexport async function generateMetadata({ params }) {\n  const { slug } = await params;\n  const data = entries[slug];\n  if (!data) notFound();\n  return publicMetadata(data.title, data.description, '/${family}/' + slug);\n}\nexport default async function Page({ params }) {\n  const { slug } = await params;\n  if (!entries[slug]) notFound();\n  return <View />;\n}\n`;

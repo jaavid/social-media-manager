@@ -18,11 +18,12 @@ ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL} REACT_APP_API_URL=${REACT_APP_API
     NEXT_PUBLIC_PLAUSIBLE_DOMAIN=${NEXT_PUBLIC_PLAUSIBLE_DOMAIN} \
     NEXT_PUBLIC_PLAUSIBLE_HOST=${NEXT_PUBLIC_PLAUSIBLE_HOST} NEXT_TELEMETRY_DISABLED=1
 RUN CI=true npm run build \
-    && mkdir -p /runtime/frontend/next/.next /runtime/bin \
+    && mkdir -p /runtime/frontend/next/.next /runtime/frontend/next/src/services /runtime/bin \
     && cp /usr/local/bin/node /runtime/bin/node \
     && cp -a next/.next/standalone/. /runtime/frontend/ \
     && cp -a next/.next/static /runtime/frontend/next/.next/static \
-    && cp -a public /runtime/frontend/next/public \
+    && cp -a next/public /runtime/frontend/next/public \
+    && cp next/src/services/platformCapabilities.json /runtime/frontend/next/src/services/ \
     && rm -rf next/.next/cache
 
 FROM python:3.12-slim-bookworm AS runtime
@@ -50,6 +51,7 @@ RUN --mount=type=secret,id=proxy_ca \
     && chmod -R a+rX /app/backend \
     && SECRET_KEY=build-only DEBUG=True python manage.py collectstatic --noinput
 COPY --from=frontend-build --chown=999:999 /runtime/ /app/
+COPY --chown=999:999 docs/PLATFORM_SUPPORT.md /app/docs/PLATFORM_SUPPORT.md
 COPY docker/ /opt/socialstats-docker/
 RUN cp /opt/socialstats-docker/nginx.conf /etc/nginx/conf.d/default.conf \
     && cp /opt/socialstats-docker/supervisord.conf /etc/supervisor/conf.d/socialstats.conf \

@@ -1,5 +1,5 @@
 'use client';
-import Feature from '../../../../src/pages/OAuthCallbackPage.jsx';
+import Feature from '../../../src/screens/OAuthCallbackPage.jsx';
 export default function View() {
   return <Feature />;
 }

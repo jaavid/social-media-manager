@@ -1,10 +1,10 @@
 import { Suspense } from 'react';
-import AppProviders from '../../src/app/providers/AppProviders';
-import '../../src/styles/tokens.css';
-import '../../src/styles/common.css';
-import '../../src/styles/legacy.css';
-import '../../src/styles/accessibility.css';
-import '../../src/styles/tailwind.css';
+import AppProviders from '../src/app/providers/AppProviders';
+import '../src/styles/tokens.css';
+import '../src/styles/common.css';
+import '../src/styles/legacy.css';
+import '../src/styles/accessibility.css';
+import '../src/styles/tailwind.css';
 
 // Navigation/search state is request-specific; public content still renders on the server.
 export const dynamic = 'force-dynamic';

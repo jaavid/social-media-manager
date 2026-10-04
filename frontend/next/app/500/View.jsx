@@ -1,5 +1,5 @@
 'use client';
-import Feature from '../../../src/pages/ServerErrorPage.jsx';
+import Feature from '../../src/screens/ServerErrorPage.jsx';
 export default function View() {
   return <Feature />;
 }

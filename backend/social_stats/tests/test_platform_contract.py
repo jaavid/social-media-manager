@@ -30,7 +30,7 @@ class PlatformCapabilityContractTests(SimpleTestCase):
     def test_checked_outputs_are_derived_from_registry(self):
         root = Path(__file__).resolve().parents[3]
         import json
-        frontend = json.loads((root / 'frontend/src/services/platformCapabilities.json').read_text())
+        frontend = json.loads((root / 'frontend/next/src/services/platformCapabilities.json').read_text())
         self.assertEqual(frontend, frontend_metadata())
         docs = (root / 'docs/PLATFORM_SUPPORT.md').read_text()
         documented = docs.split('<!-- platform-matrix:start -->', 1)[1].split(

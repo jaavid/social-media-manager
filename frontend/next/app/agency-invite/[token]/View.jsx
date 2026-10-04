@@ -1,5 +1,5 @@
 'use client';
-import Feature from '../../../../src/pages/marketplace/AgencyInviteResponsePage.jsx';
+import Feature from '../../../src/screens/marketplace/AgencyInviteResponsePage.jsx';
 export default function View() {
   return <Feature />;
 }

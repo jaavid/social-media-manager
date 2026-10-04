@@ -4,7 +4,10 @@
 | --- | --- |
 | `backend/dashboard/` | تنظیمات Django، مسیریابی اصلی، ASGI و Celery |
 | `backend/social_stats/` | مدل‌ها، API، اتصال‌ها، انتشار، AI، مجوزها و تست‌ها |
-| `frontend/src/` | صفحات React، مسیریابی، UI، ترجمه، hooks و سرویس API |
+| `frontend/next/app/` | صفحات و layoutهای Next App Router |
+| `frontend/next/public/` | منابع عمومی مستقل Next |
+| `archive/legacy-frontend/` | snapshot تاریخی فرانت قبلی؛ مستقل از build و قابل حذف |
+| `frontend/next/src/` | صفحات React، مسیریابی، UI، ترجمه، hooks و سرویس API |
 | `frontend/next/` | App Router، layoutها و صفحات native Next.js |
 | `docker/` | nginx، راه‌اندازی و Supervisor |
 | `infra/` | نمونه‌های زیرساخت؛ قبل از استفاده با محیط خود تطبیق دهید |

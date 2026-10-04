@@ -1,0 +1,34 @@
+@layer components {
+  .ds-field-label { @apply mb-1.5 block text-xs font-medium text-[var(--text-secondary)]; }
+  .ds-field-message { @apply mt-1.5 text-xs text-muted-foreground; }
+  .ds-input-frame { @apply flex min-h-11 items-center rounded-xl border border-input bg-card text-foreground shadow-xs transition-colors focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/25; }
+  .ds-input-control { @apply min-h-11 min-w-0 flex-1 border-0 bg-transparent px-3 text-base text-start text-foreground outline-none disabled:cursor-not-allowed disabled:opacity-50; }
+  .ds-textarea { @apply block w-full min-w-0 rounded-xl border border-input bg-card px-3 py-2.5 text-base text-start text-foreground shadow-xs outline-none focus:border-ring focus:ring-2 focus:ring-ring/25 disabled:opacity-50; }
+  .ds-field-invalid { @apply border-destructive focus-within:border-destructive focus-within:ring-destructive/25; }
+  .ds-icon-button { @apply inline-flex size-11 shrink-0 items-center justify-center rounded-lg border-0 bg-transparent text-[var(--text-secondary)] hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring; }
+  .ds-overlay { @apply fixed inset-0 z-[1000] bg-black/45 backdrop-blur-sm; }
+  .ds-dialog { @apply fixed start-1/2 top-1/2 z-[1001] flex max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border border-border bg-card text-foreground shadow-xl; }
+  .ds-dialog:dir(rtl) { @apply translate-x-1/2; }
+  .ds-dialog-heading { @apply relative shrink-0 border-b border-border p-5 pe-16; }
+  .ds-dialog-close { @apply absolute end-2 top-2; }
+  .ds-dialog-body { @apply min-h-0 overflow-y-auto overscroll-contain p-5; }
+  .ds-dialog-footer { @apply flex shrink-0 flex-wrap items-center justify-end gap-2 border-t border-border bg-muted p-4; }
+  .ds-sheet { @apply fixed z-[1001] flex max-h-dvh max-w-full flex-col border border-border bg-card text-foreground shadow-xl; }
+  .ds-sheet-start { inset-block: 0; inset-inline-start: 0; width: min(var(--sheet-size), 90vw); }
+  .ds-sheet-end { inset-block: 0; inset-inline-end: 0; width: min(var(--sheet-size), 90vw); }
+  .ds-sheet-top { inset-inline: 0; inset-block-start: 0; max-height: min(var(--sheet-size), 90dvh); }
+  .ds-sheet-bottom { inset-inline: 0; inset-block-end: 0; max-height: min(var(--sheet-size), 90dvh); padding-bottom: env(safe-area-inset-bottom); }
+  .ds-tooltip { @apply z-[1100] max-w-[min(20rem,90vw)] rounded-lg bg-[var(--text-primary)] px-3 py-2 text-xs text-[var(--surface-card)] shadow-lg; }
+  .ds-dropdown { @apply z-[1100] min-w-44 max-w-[calc(100vw-2rem)] rounded-xl border border-border bg-popover p-1 text-popover-foreground shadow-lg; }
+  .ds-dropdown-item { @apply flex min-h-11 cursor-default items-center gap-2 rounded-lg px-3 py-2 text-sm outline-none data-[highlighted]:bg-accent data-[disabled]:pointer-events-none data-[disabled]:opacity-50; }
+  .ds-tabs { @apply flex max-w-full items-center gap-1 overflow-x-auto rounded-xl bg-muted p-1; }
+  .ds-tab { @apply inline-flex min-h-11 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-lg border-0 bg-transparent px-3 py-2 text-sm font-medium text-[var(--text-secondary)] outline-none focus-visible:ring-2 focus-visible:ring-ring data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-xs disabled:opacity-50; }
+  .ds-tabs-underline { @apply rounded-none border-b border-border bg-transparent; }
+  .ds-select-popup { @apply absolute inset-x-0 top-full z-[200] mt-1 max-h-80 overflow-auto rounded-xl border border-border bg-popover p-1 text-popover-foreground shadow-lg; }
+  .ds-select-option { @apply flex min-h-11 cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-sm text-start; }
+  .ds-toast { background: var(--surface-elevated) !important; color: var(--text-primary) !important; border-color: var(--border-default) !important; font-family: inherit !important; }
+}
+.ds-skeleton { display: inline-block; background: linear-gradient(90deg, var(--surface-sunken) 25%, var(--surface-hover) 50%, var(--surface-sunken) 75%); background-size: 200% 100%; animation: ds-skeleton-shimmer 1.5s ease-in-out infinite; }
+@keyframes ds-skeleton-shimmer { from { background-position: -200% 0; } to { background-position: 200% 0; } }
+
+.ds-select-popup-top { top: auto; bottom: 100%; margin-top: 0; margin-bottom: 4px; }

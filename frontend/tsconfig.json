@@ -6,5 +6,5 @@
     "esModuleInterop": true, "skipLibCheck": true, "resolveJsonModule": true,
     "types": ["node"]
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx"]
+  "include": ["next/src/**/*.ts", "next/src/**/*.tsx"]
 }

@@ -1,5 +1,5 @@
 'use client';
-import Feature from '../../../../../../../src/pages/AdminOverview.jsx';
+import Feature from '../../../../../../src/screens/AdminOverview.jsx';
 export default function View() {
   return <Feature />;
 }

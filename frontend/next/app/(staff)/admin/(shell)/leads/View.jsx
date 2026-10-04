@@ -1,5 +1,5 @@
 'use client';
-import Feature from '../../../../../../src/pages/leads/LeadsPage.jsx';
+import Feature from '../../../../../src/screens/leads/LeadsPage.jsx';
 export default function View() {
   return <Feature />;
 }

@@ -3,12 +3,12 @@
 ## Project Structure & Module Organization
 
 - `backend/dashboard/` contains Django settings, routing, and Celery configuration. `backend/social_stats/` implements APIs, models, publishing adapters, AI helpers, and security features; migrations and backend tests live inside this app.
-- `frontend/src/` contains React pages, components, hooks, services, stores, and translations. Reuse `components/ui/` primitives and `styles/` design tokens. Static assets live in `frontend/public/`; Jest tests sit beside their source files.
+- `frontend/next/src/` contains Next-owned screens, components, hooks, services, stores, and translations. Reuse `components/ui/` primitives and `styles/` design tokens. Static assets live in `frontend/next/public/`; Jest tests sit beside their source files.
 - `docs/` holds product and deployment documentation. `docker/`, `infra/`, and `scripts/` contain container configuration, infrastructure examples, and operational utilities.
 
 ## Build, Test, and Development Commands
 
-Use Python 3.12 and Node 20, matching CI. Run commands from the indicated directory.
+Use Python 3.12 and Node 20, matching CI. Run commands from the indicated directory. `archive/legacy-frontend/` is a historical snapshot, excluded from active builds and tests; do not import it.
 
 - Backend: `pip install -r requirements-dev.txt` installs runtime and analysis dependencies; `python manage.py migrate` applies migrations; `python manage.py runserver` starts the development API.
 - Backend: `python manage.py test social_stats.tests` runs Django tests; `python manage.py makemigrations social_stats --check --dry-run` checks migration drift.

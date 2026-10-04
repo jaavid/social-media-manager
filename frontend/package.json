@@ -61,7 +61,7 @@
   "scripts": {
     "start": "node scripts/start-next.mjs",
     "dev": "next dev next --webpack --hostname 0.0.0.0 --port 3000",
-    "build": "node scripts/generate-app-routes.cjs && next build next --webpack",
+    "build": "node scripts/generate-app-routes.cjs && node scripts/check-next-independence.cjs && next build next --webpack",
     "preview": "node scripts/start-next.mjs",
     "test": "jest --watchAll=false",
     "test:watch": "jest --watch",
@@ -69,7 +69,8 @@
     "i18n:check": "node scripts/check-user-facing-strings.js --check",
     "typecheck": "tsc --noEmit",
     "test:next": "playwright test",
-    "routes:generate": "node scripts/generate-app-routes.cjs"
+    "routes:generate": "node scripts/generate-app-routes.cjs",
+    "check:next": "node scripts/check-next-independence.cjs"
   },
   "browserslist": {
     "production": [
@@ -85,14 +86,14 @@
   "jest": {
     "moduleNameMapper": {
       "^@radix-ui/primitive/is-development$": "<rootDir>/node_modules/@radix-ui/primitive/dist/internal/is-development.true.js",
-      "\\.(css|less|scss)$": "<rootDir>/src/testStyleMock.js"
+      "\\.(css|less|scss)$": "<rootDir>/next/src/testStyleMock.js"
     },
     "testEnvironment": "jsdom",
     "setupFilesAfterEnv": [
-      "<rootDir>/src/setupTests.js"
+      "<rootDir>/next/src/setupTests.js"
     ],
     "testMatch": [
-      "<rootDir>/src/**/*.test.[jt]s?(x)"
+      "<rootDir>/next/src/**/*.test.[jt]s?(x)"
     ],
     "transform": {
       "^.+\\.[jt]sx?$": [
@@ -119,7 +120,7 @@
       ]
     },
     "roots": [
-      "<rootDir>/src"
+      "<rootDir>/next/src"
     ]
   },
   "engines": {

@@ -1,5 +1,5 @@
 'use client';
-import Feature from '../../../../../../src/pages/composer/QueueManagerPage.jsx';
+import Feature from '../../../../../src/screens/composer/QueueManagerPage.jsx';
 export default function View() {
   return <Feature />;
 }

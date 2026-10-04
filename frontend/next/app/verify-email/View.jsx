@@ -1,5 +1,5 @@
 'use client';
-import Feature from '../../../src/pages/VerifyEmailPage.jsx';
+import Feature from '../../src/screens/VerifyEmailPage.jsx';
 export default function View() {
   return <Feature />;
 }

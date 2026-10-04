@@ -1,5 +1,5 @@
 'use client';
-import Feature from '../../../src/pages/PrivacyPolicyPage.jsx';
+import Feature from '../../src/screens/PrivacyPolicyPage.jsx';
 export default function View() {
   return <Feature />;
 }

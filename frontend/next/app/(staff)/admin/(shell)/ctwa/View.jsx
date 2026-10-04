@@ -1,5 +1,5 @@
 'use client';
-import Feature from '../../../../../../src/pages/ctwa/CTWACampaignsPage.jsx';
+import Feature from '../../../../../src/screens/ctwa/CTWACampaignsPage.jsx';
 export default function View() {
   return <Feature />;
 }

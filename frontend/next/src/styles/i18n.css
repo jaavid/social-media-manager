@@ -1,0 +1,81 @@
+html,
+body,
+button,
+input,
+select,
+textarea {
+  font-family: var(--font-sans);
+}
+
+/* Product typography: Noto Sans Arabic is loaded once from index.html with real
+   300–900 weights. Keep body copy calm and use stronger weights for controls
+   and headings so Persian UI hierarchy stays clear without synthetic bold. */
+body {
+  font-weight: 400;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  font-weight: 600;
+}
+
+label {
+  font-weight: 500;
+}
+
+h1,
+h2 {
+  font-weight: 800;
+}
+
+h3,
+h4,
+h5,
+h6,
+strong,
+b {
+  font-weight: 700;
+}
+
+html[lang='fa'] h1,
+html[lang='fa'] h2,
+html[lang='fa'] h3,
+html[lang='fa'] h4,
+html[lang='fa'] h5,
+html[lang='fa'] h6,
+html[lang='fa'] button {
+  letter-spacing: 0;
+}
+
+html[dir='rtl'] body {
+  direction: rtl;
+  text-align: start;
+}
+
+html[dir='rtl'] input,
+html[dir='rtl'] textarea,
+html[dir='rtl'] select {
+  direction: rtl;
+  text-align: start;
+}
+
+/* Technical values should remain readable in their natural LTR order. */
+html[dir='rtl'] code,
+html[dir='rtl'] pre,
+html[dir='rtl'] kbd,
+html[dir='rtl'] [data-ltr='true'] {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+/* Keep numeric badges compact and stable regardless of surrounding direction. */
+html[dir='rtl'] .ds-module-rail [aria-current='page'],
+html[dir='rtl'] .ds-mobile-nav {
+  unicode-bidi: plaintext;
+}

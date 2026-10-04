@@ -1,4 +1,27 @@
 import { test, expect } from '@playwright/test';
+import inventory from '../next/src/app/routes/routeInventory.json' with { type: 'json' };
+import content from '../next/route-content.json' with { type: 'json' };
+
+test('every inventoried route is served by the standalone Next application', async ({ request }) => {
+  test.setTimeout(120000);
+  for (const route of inventory.routes) {
+    const family = route.path.split('/')[1];
+    const url = route.path.replace(/:([A-Za-z]+)/g, (_, param) =>
+      param === 'slug' && content[family] ? Object.keys(content[family])[0] : '42');
+    const response = await request.get(url, { maxRedirects: 0 });
+    // Next assigns HTTP 500 to the intentional /500 error page.
+    expect(url === '/500' ? [500] : [200, 307, 308], url).toContain(response.status());
+    if (url === '/500') expect(await response.text()).toContain('Something went wrong on our end.');
+    // Private layouts can render a session-loading shell with HTTP 200.
+    if (route.redirect && response.status() !== 200) expect(response.headers().location, url).toBe(route.redirect);
+  }
+});
+
+test('public assets are owned and served by Next', async ({ request }) => {
+  for (const url of ['/manifest.json', '/icons/icon-192.png', '/icons/icon-512.png', '/brand-mark.svg', '/sw.js', '/.well-known/security.txt']) {
+    expect((await request.get(url)).status(), url).toBe(200);
+  }
+});
 test.beforeEach(async ({ page }) => {
   await page.route('**/api/**', route => {
     const path = new URL(route.request().url()).pathname;
