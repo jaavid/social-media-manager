@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "brand": {
+    "name": "Ravinta",
+    "nameFa": "راوینتا",
+    "taglineFa": "از ایده تا اثر",
+    "taglineEn": "From idea to impact",
+    "status": "proposed-name"
+  },
+  "colors": {
+    "petrol": "#123D3A",
+    "signal": "#D6F268",
+    "background": "#F7F9F8",
+    "surface": "#FFFFFF",
+    "surfaceMuted": "#E8EFEC",
+    "ink": "#172A28"
+  },
+  "themes": {
+    "light": {
+      "surfacePage": "#F7F9F8",
+      "surfaceCard": "#FFFFFF",
+      "surfaceSunken": "#E8EFEC",
+      "textPrimary": "#172A28",
+      "textSecondary": "#49615C",
+      "primary": "#123D3A",
+      "onPrimary": "#FFFFFF",
+      "focus": "#21694B",
+      "success": "#21694B",
+      "warning": "#8A5700",
+      "danger": "#B93832",
+      "info": "#245C99"
+    },
+    "dark": {
+      "surfacePage": "#102B29",
+      "surfaceCard": "#173A35",
+      "surfaceSunken": "#0D2422",
+      "textPrimary": "#F7F9F8",
+      "textSecondary": "#B8CDC4",
+      "primary": "#D6F268",
+      "onPrimary": "#123D3A",
+      "focus": "#D6F268",
+      "success": "#8DDBAE",
+      "warning": "#F4CF77",
+      "danger": "#FFA59C",
+      "info": "#A5CBFA"
+    }
+  },
+  "typography": {
+    "arabicFamily": "Noto Sans Arabic",
+    "latinFamily": "Noto Sans",
+    "weights": {
+      "body": 400,
+      "control": 500,
+      "section": 600,
+      "pageTitle": 700,
+      "display": 800
+    },
+    "lineHeight": {
+      "arabicBody": 1.8,
+      "arabicHeading": 1.45,
+      "latinBody": 1.55,
+      "latinHeading": 1.2
+    }
+  },
+  "geometry": {
+    "controlRadiusPx": 10,
+    "cardRadiusPx": 14,
+    "panelRadiusPx": 20,
+    "spacingPx": [
+      4,
+      8,
+      12,
+      16,
+      20,
+      24,
+      32,
+      40,
+      48,
+      64
+    ]
+  },
+  "note": "Design specification only. Runtime source of truth remains frontend/src/styles/tokens.css; do not import this as a second theme."
+}
