@@ -600,7 +600,7 @@ export default function ROICalculatorPage({ clientId: propClientId }) {
                   Return on Investment
                 </div>
                 <div style={{
-                  fontSize: 72, fontWeight: 900, fontFamily: 'monospace',
+                  fontSize: 72, fontWeight: 800, fontFamily: 'monospace',
                   color: roiColor(roi), lineHeight: 1, animation: 'countUp 0.6s ease',
                 }}>
                   {animatedROI.toFixed(0)}%

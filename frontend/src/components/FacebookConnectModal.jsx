@@ -577,7 +577,7 @@ const styles = {
     display: 'flex', alignItems: 'center', justifyContent: 'center',
   },
   title: { margin: '0 0 6px', fontSize: 20, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.01em' },
-  subtitle: { margin: 0, fontSize: 13.5, color: 'var(--text-tertiary)', lineHeight: 1.55 },
+  subtitle: { margin: 0, fontSize: 13.5, color: 'var(--text-tertiary)', lineHeight: 'var(--line-height-body)' },
   body: { flex: 1, overflowY: 'auto', padding: '18px 24px' },
   sectionLabel: { margin: 0, fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-tertiary)' },
   list: { listStyle: 'none', padding: 0, margin: '8px 0 0', display: 'flex', flexDirection: 'column', gap: 8 },
@@ -600,10 +600,10 @@ const styles = {
     borderRadius: 999, cursor: 'pointer', color: 'var(--text-tertiary)',
     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
   },
-  rowDesc: { margin: '4px 0 0', fontSize: 12.5, color: 'var(--text-tertiary)', lineHeight: 1.5 },
+  rowDesc: { margin: '4px 0 0', fontSize: 12.5, color: 'var(--text-tertiary)', lineHeight: 'var(--line-height-body)' },
   tooltip: {
     margin: '8px 0 0', padding: '8px 10px', background: '#0f172a',
-    color: '#e2e8f0', fontSize: 11.5, lineHeight: 1.55, borderRadius: 8,
+    color: '#e2e8f0', fontSize: 11.5, lineHeight: 'var(--line-height-body)', borderRadius: 8,
   },
   divider: { display: 'flex', alignItems: 'center', gap: 12, margin: '20px 0' },
   dividerLine: { flex: 1, height: 1, background: '#e2e8f0' },
@@ -629,7 +629,7 @@ const styles = {
     borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: 'not-allowed',
     display: 'inline-flex', alignItems: 'center', gap: 8,
   },
-  legalNote: { margin: '12px 0 0', fontSize: 11, color: 'var(--text-tertiary)', lineHeight: 1.55, textAlign: 'center' },
+  legalNote: { margin: '12px 0 0', fontSize: 11, color: 'var(--text-tertiary)', lineHeight: 'var(--line-height-body)', textAlign: 'center' },
   legalLink: { color: '#2563eb', textDecoration: 'underline' },
 };
 

@@ -170,7 +170,7 @@ def log_bot_conversation_started(event):
 
     payload contract: {'conversation_id': int, 'flow_id': int, 'contact_phone': str}.
     """
-    from social_stats.bot_models import BotConversation
+    from social_stats.models.bot import BotConversation
     conv_id = event.payload.get('conversation_id')
     if not conv_id:
         return
@@ -203,7 +203,7 @@ def log_lead_captured(event):
 
     payload contract: {'lead_id': int, 'source': str ('bot'|'csv'|'manual'|'organic')}.
     """
-    from social_stats.bot_models import Lead
+    from social_stats.models.bot import Lead
     lead_id = event.payload.get('lead_id')
     if not lead_id:
         return
@@ -236,7 +236,7 @@ def log_lead_status_changed(event):
 
     payload contract: {'lead_id': int, 'from_status': str, 'to_status': str}.
     """
-    from social_stats.bot_models import Lead
+    from social_stats.models.bot import Lead
     lead_id = event.payload.get('lead_id')
     if not lead_id:
         return
@@ -264,7 +264,7 @@ def log_lead_converted(event):
 
     payload contract: {'lead_id': int, 'value': decimal_str (optional)}.
     """
-    from social_stats.bot_models import Lead
+    from social_stats.models.bot import Lead
     lead_id = event.payload.get('lead_id')
     if not lead_id:
         return

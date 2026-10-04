@@ -23,7 +23,7 @@ from social_stats.models import (
     WhatsAppContact, ApprovalRequest,
     Agency, AgencyMembership, AgencyClientRelation,
 )
-from social_stats.bot_models import Lead, BotFlow, BotConversation
+from social_stats.models.bot import Lead, BotFlow, BotConversation
 
 
 def _client(label='c'):
@@ -364,7 +364,7 @@ class DashboardTodayTests(TestCase):
     # ── leads ─────────────────────────────────────────────────────────
     def test_leads_pipeline_value_sums_open_pipeline(self):
         from social_stats.models import WhatsAppContact
-        from social_stats.bot_models import Lead
+        from social_stats.models.bot import Lead
         contact = WhatsAppContact.objects.create(
             client=self.client_obj, phone='+919999000000',
             name='c', opt_in_status='opted_in',
@@ -385,7 +385,7 @@ class DashboardTodayTests(TestCase):
 
     def test_converted_today_counts_only_today_conversions(self):
         from social_stats.models import WhatsAppContact
-        from social_stats.bot_models import Lead
+        from social_stats.models.bot import Lead
         contact = WhatsAppContact.objects.create(
             client=self.client_obj, phone='+919999000000',
             name='c', opt_in_status='opted_in',
@@ -432,7 +432,7 @@ class DashboardTodayTests(TestCase):
 
     # ── activity + approvals ──────────────────────────────────────────
     def test_recent_activity_returns_max_10_for_this_client(self):
-        from social_stats.marketplace_models import ActivityLog
+        from social_stats.models.marketplace import ActivityLog
         for i in range(15):
             ActivityLog.objects.create(
                 client=self.client_obj, actor_user=self.owner,

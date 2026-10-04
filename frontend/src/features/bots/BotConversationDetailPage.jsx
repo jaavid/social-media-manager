@@ -325,7 +325,7 @@ function Step({ step }) {
         background: isUser ? 'var(--surface-sunken)' : '#dcf8c6',
         color: isUser ? 'var(--text-primary)' : '#1f2c34',
         borderRadius: isUser ? '8px 8px 2px 8px' : '8px 8px 8px 2px',
-        fontSize: 13, lineHeight: 1.45,
+        fontSize: 13, lineHeight: 'var(--line-height-body)',
         whiteSpace: 'pre-wrap', wordBreak: 'break-word',
       }}>
         <div style={{ fontSize: 10, fontWeight: 600, opacity: 0.6, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>
@@ -407,7 +407,7 @@ function AISuggestions({ conversationId }) {
               border: '1px solid var(--border-default)',
               borderRadius: 'var(--radius-sm)',
               fontSize: 12, color: 'var(--text-primary)', fontFamily: 'inherit',
-              cursor: 'pointer', lineHeight: 1.4,
+              cursor: 'pointer', lineHeight: 'var(--line-height-body)',
               display: 'flex', alignItems: 'flex-start', gap: 6,
             }}>
               <Copy size={11} style={{ flexShrink: 0, marginTop: 2, color: 'var(--text-tertiary)' }} />

@@ -24,7 +24,7 @@ from social_stats.ai.tools import (
 from social_stats.models import (
     Client, UserProfile, EventLog, WhatsAppContact,
 )
-from social_stats.bot_models import Lead, BotFlow, BotConversation
+from social_stats.models.bot import Lead, BotFlow, BotConversation
 
 
 def _client(label='c'):

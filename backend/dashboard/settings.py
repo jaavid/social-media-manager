@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     # daphne replaces the runserver with a Channels-aware ASGI dev server.
     # Must be first so it patches `runserver`.
     'daphne',
+    'unfold',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -424,3 +425,16 @@ PINBOT_BASE_URL              = os.environ.get('PINBOT_BASE_URL', 'https://partne
 WHATSAPP_ENCRYPTION_KEY      = os.environ.get('WHATSAPP_ENCRYPTION_KEY', '')
 WHATSAPP_WEBHOOK_SECRET      = os.environ.get('WHATSAPP_WEBHOOK_SECRET', '')
 WHATSAPP_RATE_LIMIT_PER_SEC  = int(os.environ.get('WHATSAPP_RATE_LIMIT_PER_SEC', '20'))
+
+# Unfold uses Django model permissions and the existing /backend/ routes.
+UNFOLD = {
+    'SITE_TITLE': 'مدیریت بک‌اند',
+    'SITE_HEADER': 'مدیریت سامانه شبکه‌های اجتماعی',
+    'SITE_SUBHEADER': 'فضاهای کاری، محتوا و اتصال‌ها',
+    'SHOW_HISTORY': True,
+    'SIDEBAR': {
+        'show_search': True,
+        'show_all_applications': True,
+        'navigation': 'social_stats.admin.navigation.sidebar_navigation',
+    },
+}

@@ -148,7 +148,7 @@ export default function AgencyShowcasePage({ slug }) {
                 margin: 0,
                 fontSize: 'clamp(18px, 2vw, 22px)',
                 color: 'rgba(255,255,255,0.78)',
-                lineHeight: 1.4,
+                lineHeight: 'var(--line-height-body)',
                 maxWidth: 540,
               }}>
                 {tagline}
@@ -369,7 +369,7 @@ export default function AgencyShowcasePage({ slug }) {
                         margin: '6px 0 0',
                         fontSize: 13,
                         color: 'rgba(255,255,255,0.65)',
-                        lineHeight: 1.55,
+                        lineHeight: 'var(--line-height-body)',
                       }}>
                         {s.body}
                       </p>
@@ -461,7 +461,7 @@ export default function AgencyShowcasePage({ slug }) {
                         fontSize: 14,
                         fontStyle: 'italic',
                         color: 'rgba(255,255,255,0.78)',
-                        lineHeight: 1.55,
+                        lineHeight: 'var(--line-height-body)',
                       }}>
                         &quot;{r.body}&quot;
                       </p>
@@ -550,7 +550,7 @@ export default function AgencyShowcasePage({ slug }) {
             maxWidth: 480,
             fontSize: 17,
             color: 'rgba(255,255,255,0.75)',
-            lineHeight: 1.55,
+            lineHeight: 'var(--line-height-body)',
           }}>
             همه آژانس‌های همکار راوینتا از همان محصولی که شما استفاده می‌کنید استفاده می‌کنند. شما کنترل داده ها، مجوزها و دسترسی خود را حفظ می‌کنید.
           </p>
@@ -588,13 +588,13 @@ const sectionH2 = {
   fontWeight: 700,
   color: '#fff',
   letterSpacing: '-0.02em',
-  lineHeight: 1.2,
+  lineHeight: 'var(--line-height-body)',
 };
 
 const paraStyle = {
   margin: '0 0 16px',
   fontSize: 16,
-  lineHeight: 1.65,
+  lineHeight: 'var(--line-height-body)',
   color: 'rgba(255,255,255,0.78)',
 };
 

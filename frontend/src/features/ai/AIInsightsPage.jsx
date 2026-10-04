@@ -232,7 +232,7 @@ function InsightCard({ insight, onDismiss, onActed }) {
           <h3 style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
             {insight.title}
           </h3>
-          <p style={{ margin: '0 0 10px', fontSize: 13, lineHeight: 1.6, color: 'var(--text-secondary)' }}>
+          <p style={{ margin: '0 0 10px', fontSize: 13, lineHeight: 'var(--line-height-body)', color: 'var(--text-secondary)' }}>
             {insight.description}
           </p>
           {insight.action_recommended && (

@@ -218,7 +218,7 @@ export default function AIReplySuggestions({
                 )}
               </div>
               <div style={{
-                fontSize: 13, lineHeight: 1.5,
+                fontSize: 13, lineHeight: 'var(--line-height-body)',
                 color: 'var(--text-primary)',
               }}>
                 {s.text}

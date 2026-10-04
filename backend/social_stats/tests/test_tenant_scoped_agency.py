@@ -217,7 +217,7 @@ class WorkflowC_HTTPPathReinstated(TestCase):
     via the standard request flow."""
 
     def test_agency_delete_intercepted_via_http_with_202(self):
-        from social_stats.marketplace_models import default_relation_permissions
+        from social_stats.models.marketplace import default_relation_permissions
 
         client = _client('wf-c')
         owner = _user(role='client', client_obj=client)

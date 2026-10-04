@@ -69,7 +69,7 @@ export default function MyConnectionsPage() {
           <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
             Connections
           </h1>
-          <p style={{ margin: '4px 0 0', color: 'var(--text-secondary)', fontSize: 14, lineHeight: 1.55 }}>
+          <p style={{ margin: '4px 0 0', color: 'var(--text-secondary)', fontSize: 14, lineHeight: 'var(--line-height-body)' }}>
             Plug Social Stats into your social accounts to start tracking posts, engagement, and DMs.
             You can disconnect any platform at any time — even if an agency is managing your workspace.
           </p>

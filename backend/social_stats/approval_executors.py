@@ -246,7 +246,7 @@ def _exec_delete_post(approval) -> tuple[bool, str, dict]:
 
 def _exec_publish_bot(approval) -> tuple[bool, str, dict]:
     """publish_bot — agency wanted to activate a bot flow on the workspace."""
-    from .bot_models import BotFlow
+    from social_stats.models.bot import BotFlow
     payload = _payload(approval)
     flow_id = payload.get('flow_id') or approval.target_object_id
     if not flow_id:
@@ -264,7 +264,7 @@ def _exec_publish_bot(approval) -> tuple[bool, str, dict]:
 
 def _exec_unpublish_bot(approval) -> tuple[bool, str, dict]:
     """unpublish_bot — agency wanted to deactivate a live bot flow."""
-    from .bot_models import BotFlow
+    from social_stats.models.bot import BotFlow
     payload = _payload(approval)
     flow_id = payload.get('flow_id') or approval.target_object_id
     if not flow_id:
@@ -283,7 +283,7 @@ def _exec_edit_post(approval):
     post = UnifiedPost.objects.filter(pk=payload.get('post_id'), client=approval.client).first()
     if not post:
         return False, 'post no longer exists', {}
-    from .composer_serializers import UnifiedPostSerializer
+    from social_stats.serializers.composer import UnifiedPostSerializer
     serializer = UnifiedPostSerializer(post, data=payload, partial=True)
     serializer.is_valid(raise_exception=True)
     extra = {'approved_by': None, 'approved_at': None, 'publish_requested_by': None}
@@ -313,7 +313,7 @@ def _exec_schedule_post(approval):
 def _exec_telegram_suggestion(approval):
     from types import SimpleNamespace
     from .models import TelegramSuggestion
-    from .telegram_views import apply_suggestion_decision
+    from social_stats.views.telegram import apply_suggestion_decision
     from .authorization import evaluate
     payload = _payload(approval)
     suggestion = TelegramSuggestion.objects.filter(pk=payload.get('suggestion_id'), client=approval.client).first()

@@ -145,7 +145,7 @@ export default function MyAgencyPage() {
           </span>
           <div style={{ flex: 1 }}>
             <strong style={{ color: 'var(--text-primary)', fontSize: 15 }}>Invite an agency to manage your account</strong>
-            <p style={{ margin: '4px 0 10px', color: 'var(--text-secondary)', fontSize: 13, lineHeight: 1.55 }}>
+            <p style={{ margin: '4px 0 10px', color: 'var(--text-secondary)', fontSize: 13, lineHeight: 'var(--line-height-body)' }}>
               Already work with someone? Send them an invite by email or pick from the marketplace.
               You stay in full control of permissions and access.
             </p>
@@ -232,7 +232,7 @@ export default function MyAgencyPage() {
             </div>
 
             {current.agency.description && (
-              <p style={{ marginTop: 12, marginBottom: 0, color: 'var(--text-secondary)', fontSize: 13, lineHeight: 1.6 }}>
+              <p style={{ marginTop: 12, marginBottom: 0, color: 'var(--text-secondary)', fontSize: 13, lineHeight: 'var(--line-height-body)' }}>
                 {current.agency.description}
               </p>
             )}
@@ -424,7 +424,7 @@ const btnDangerGhost = {
 };
 
 const hintText = {
-  fontSize: 12, color: 'var(--text-tertiary)', lineHeight: 1.55,
+  fontSize: 12, color: 'var(--text-tertiary)', lineHeight: 'var(--line-height-body)',
 };
 
 const activityRow = {

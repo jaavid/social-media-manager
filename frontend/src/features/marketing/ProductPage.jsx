@@ -144,7 +144,7 @@ function Hero({ data }) {
             style={{
               margin: '20px 0 0',
               fontSize: 'clamp(15px, 1.6vw, 18px)',
-              lineHeight: 1.55,
+              lineHeight: 'var(--line-height-body)',
               color: 'rgba(255,255,255,0.72)',
               maxWidth: 480,
             }}
@@ -241,7 +241,7 @@ function FeatureStripe({ data, reverse }) {
               }}>{data.title}</h2>
               <p style={{
                 margin: '14px 0 0',
-                fontSize: 16, lineHeight: 1.6,
+                fontSize: 16, lineHeight: 'var(--line-height-body)',
                 color: 'var(--text-secondary)',
                 maxWidth: 460,
               }}>{data.description}</p>
@@ -251,7 +251,7 @@ function FeatureStripe({ data, reverse }) {
                     <li key={b} style={{
                       display: 'flex', alignItems: 'flex-start', gap: 10,
                       padding: '7px 0',
-                      fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.55,
+                      fontSize: 14, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)',
                     }}>
                       <Check size={14} style={{ color: '#00CCF5', flexShrink: 0, marginTop: 4 }}
                              strokeWidth={2.5} />
@@ -304,7 +304,7 @@ function CapabilityGrid({ data }) {
             {data.subtitle && (
               <p style={{
                 margin: '12px 0 0',
-                fontSize: 15, lineHeight: 1.6,
+                fontSize: 15, lineHeight: 'var(--line-height-body)',
                 color: 'var(--text-secondary)',
               }}>{data.subtitle}</p>
             )}
@@ -343,7 +343,7 @@ function CapabilityGrid({ data }) {
                   color: 'var(--text-primary)',
                 }}>{item.title}</h3>
                 <p style={{
-                  margin: 0, fontSize: 13, lineHeight: 1.55,
+                  margin: 0, fontSize: 13, lineHeight: 'var(--line-height-body)',
                   color: 'var(--text-secondary)',
                 }}>{item.description}</p>
               </div>
@@ -383,7 +383,7 @@ function CustomerQuote({ data }) {
             margin: '8px 0 0',
             fontSize: 'clamp(20px, 2.4vw, 28px)',
             fontWeight: 600,
-            lineHeight: 1.4,
+            lineHeight: 'var(--line-height-body)',
             color: 'var(--text-primary)',
             letterSpacing: '-0.01em',
           }}>{data.quote}</p>

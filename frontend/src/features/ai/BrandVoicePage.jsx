@@ -320,7 +320,7 @@ export default function BrandVoicePage({ clientId: propClientId = null }) {
               {profile.style_rules?.length > 0 && (
                 <div>
                   <BlockLabel icon={Wand2} label="Style rules" />
-                  <ul style={{ margin: 0, paddingLeft: 22, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.55 }}>
+                  <ul style={{ margin: 0, paddingLeft: 22, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>
                     {profile.style_rules.map((r, i) => <li key={i}>{r}</li>)}
                   </ul>
                 </div>
@@ -356,7 +356,7 @@ export default function BrandVoicePage({ clientId: propClientId = null }) {
                 background: 'var(--surface-sunken)',
                 border: '1px solid var(--border-subtle)',
                 borderRadius: 'var(--radius-md)',
-                fontSize: 13, lineHeight: 1.6,
+                fontSize: 13, lineHeight: 'var(--line-height-body)',
                 color: 'var(--text-primary)',
                 whiteSpace: 'pre-wrap',
               }}>
@@ -403,7 +403,7 @@ export default function BrandVoicePage({ clientId: propClientId = null }) {
                 </span>
               </div>
               <div style={{
-                fontSize: 14, lineHeight: 1.6,
+                fontSize: 14, lineHeight: 'var(--line-height-body)',
                 color: 'var(--text-primary)',
                 whiteSpace: 'pre-wrap',
               }}>
@@ -434,7 +434,7 @@ function ProfileBlock({ icon: Icon, label, body }) {
   return (
     <div>
       <BlockLabel icon={Icon} label={label} />
-      <p style={{ margin: 0, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+      <p style={{ margin: 0, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>
         {body}
       </p>
     </div>

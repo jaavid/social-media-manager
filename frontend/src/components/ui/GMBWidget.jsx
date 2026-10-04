@@ -235,11 +235,11 @@ const s = {
   reviewDate: { fontSize: 11, color: 'var(--text-tertiary)' },
   comment: {
     margin: '4px 0 0', fontSize: 12, color: '#374151',
-    lineHeight: 1.5,
+    lineHeight: 'var(--line-height-body)',
   },
   ownerReply: {
     marginTop: 6, padding: '6px 10px',
     background: 'var(--surface-sunken)', borderLeft: '3px solid #4285f4',
-    fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5, borderRadius: '0 6px 6px 0',
+    fontSize: 12, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)', borderRadius: '0 6px 6px 0',
   },
 };

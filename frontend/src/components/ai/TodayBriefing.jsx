@@ -189,7 +189,7 @@ export default function TodayBriefing({ clientId, basePath = '/dashboard' }) {
                       {it.title}
                     </div>
                     {isOpen && (
-                      <div style={{ marginTop: 6, fontSize: 12, lineHeight: 1.55, color: 'var(--text-secondary)' }}>
+                      <div style={{ marginTop: 6, fontSize: 12, lineHeight: 'var(--line-height-body)', color: 'var(--text-secondary)' }}>
                         {it.description}
                         {it.action_recommended && (
                           <div style={{

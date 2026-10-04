@@ -83,7 +83,7 @@ export default function FAQ({ items = [], singleOpen = false }) {
               >
                 <div style={{
                   paddingBottom: 20,
-                  fontSize: 14, lineHeight: 1.65,
+                  fontSize: 14, lineHeight: 'var(--line-height-body)',
                   color: 'var(--text-secondary)',
                   maxWidth: 720,
                 }}>

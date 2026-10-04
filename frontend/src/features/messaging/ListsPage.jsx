@@ -85,7 +85,7 @@ function ListCard({ list, onChange }) {
         {list.name}
       </div>
       {list.description && (
-        <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: 12 }}>
+        <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)', marginBottom: 12 }}>
           {list.description}
         </div>
       )}

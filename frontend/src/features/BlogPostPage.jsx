@@ -148,7 +148,7 @@ export default function BlogPostPage({ slug }) {
             )}
 
             {/* Body */}
-            <div className="blog-body" style={{ fontSize: 16, lineHeight: 1.75, color: 'var(--text-secondary)' }}>
+            <div className="blog-body" style={{ fontSize: 16, lineHeight: 'var(--line-height-body)', color: 'var(--text-secondary)' }}>
               {post.body.map((node, i) => <BodyNode key={i} node={node} accent={post.accent} />)}
             </div>
 
@@ -189,7 +189,7 @@ export default function BlogPostPage({ slug }) {
                 <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginBottom: 6 }}>
                   {post.author.role}
                 </div>
-                <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6, color: 'var(--text-secondary)' }}>
+                <p style={{ margin: 0, fontSize: 13, lineHeight: 'var(--line-height-body)', color: 'var(--text-secondary)' }}>
                   می‌نویسد {post.tags?.slice(0, 2).join("و").toLowerCase() || post.category.toLowerCase()} در مجله راوینتا.
                 </p>
               </div>
@@ -267,7 +267,7 @@ export default function BlogPostPage({ slug }) {
           <h3 style={{ margin: 0, fontSize: 22, fontWeight: 600, letterSpacing: '-0.015em', color: 'var(--text-primary)' }}>
             امروز سیستم عامل بازاریابی یکپارچه خود را بسازید.
           </h3>
-          <p style={{ margin: '8px auto 18px', maxWidth: 480, fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+          <p style={{ margin: '8px auto 18px', maxWidth: 480, fontSize: 14, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>
             طرح رایگان، بدون کارت. اکثر تیم ها قبل از اتمام قهوه صبح خود، 4 تا 6 سکو را به هم متصل می‌کنند.
           </p>
           <div style={{ display: 'flex', justifyContent: 'center', gap: 10, flexWrap: 'wrap' }}>
@@ -303,7 +303,7 @@ function BodyNode({ node, accent }) {
     case 'lead':
       return (
         <p style={{
-          fontSize: 18, lineHeight: 1.65,
+          fontSize: 18, lineHeight: 'var(--line-height-body)',
           color: 'var(--text-primary)',
           margin: '0 0 24px',
           fontWeight: 500,
@@ -356,7 +356,7 @@ function BodyNode({ node, accent }) {
           borderRadius: 'var(--radius-md)',
           fontSize: 15,
           color: 'var(--text-primary)',
-          lineHeight: 1.6,
+          lineHeight: 'var(--line-height-body)',
         }}>
           {node.children || node.text}
         </aside>
@@ -402,10 +402,10 @@ function RelatedCard({ post }) {
       />
       <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 6, flex: 1 }}>
         <Badge variant="default" size="sm">{post.category}</Badge>
-        <h3 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.3 }}>
+        <h3 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', lineHeight: 'var(--line-height-body)' }}>
           {post.title}
         </h3>
-        <p style={{ margin: 0, fontSize: 12, lineHeight: 1.55, color: 'var(--text-secondary)', flex: 1 }}>
+        <p style={{ margin: 0, fontSize: 12, lineHeight: 'var(--line-height-body)', color: 'var(--text-secondary)', flex: 1 }}>
           {post.excerpt}
         </p>
         <span style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 4 }}>
@@ -436,7 +436,7 @@ function NotFoundState({ slug }) {
           }}>
             ما نتوانستیم آن پست را پیدا کنیم.
           </h1>
-          <p style={{ margin: '0 0 24px', fontSize: 15, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+          <p style={{ margin: '0 0 24px', fontSize: 15, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>
             راب <code style={{
               padding: '2px 8px', background: 'var(--surface-card)',
               border: '1px solid var(--border-subtle)', borderRadius: 4,

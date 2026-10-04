@@ -2,7 +2,7 @@
   .ds-field-label { @apply mb-1.5 block text-xs font-medium text-[var(--text-secondary)]; }
   .ds-field-message { @apply mt-1.5 text-xs text-muted-foreground; }
   .ds-input-frame { @apply flex min-h-11 items-center rounded-xl border border-input bg-card text-foreground shadow-xs transition-colors focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/25; }
-  .ds-input-control { @apply min-h-11 min-w-0 flex-1 border-0 bg-transparent px-3 text-base text-start text-foreground outline-none disabled:cursor-not-allowed disabled:opacity-50; }
+  .ds-input-control { @apply min-h-11 min-w-0 flex-1 border-0 bg-transparent px-3 py-2 text-base text-start text-foreground outline-none disabled:cursor-not-allowed disabled:opacity-50; }
   .ds-textarea { @apply block w-full min-w-0 rounded-xl border border-input bg-card px-3 py-2.5 text-base text-start text-foreground shadow-xs outline-none focus:border-ring focus:ring-2 focus:ring-ring/25 disabled:opacity-50; }
   .ds-field-invalid { @apply border-destructive focus-within:border-destructive focus-within:ring-destructive/25; }
   .ds-icon-button { @apply inline-flex size-11 shrink-0 items-center justify-center rounded-lg border-0 bg-transparent text-[var(--text-secondary)] hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring; }

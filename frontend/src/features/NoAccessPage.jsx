@@ -64,7 +64,7 @@ const styles = {
   sub: {
     fontSize: 14,
     color: 'var(--text-secondary)',
-    lineHeight: 1.7,
+    lineHeight: 'var(--line-height-body)',
     margin: '0 0 28px',
   },
   btn: {

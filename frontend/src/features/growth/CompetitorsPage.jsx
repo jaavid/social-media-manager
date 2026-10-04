@@ -309,7 +309,7 @@ function CompetitorDetail({ competitor, onChange }) {
         />
         {insights ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <div style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--text-primary)' }}>
+            <div style={{ fontSize: 14, lineHeight: 'var(--line-height-body)', color: 'var(--text-primary)' }}>
               {insights.summary}
             </div>
             <InsightList title="Strengths" items={insights.strengths} variant="success" />

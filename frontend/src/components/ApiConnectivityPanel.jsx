@@ -172,7 +172,7 @@ const styles = {
   header: { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 18, flexWrap: 'wrap' },
   eyebrow: { display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 800, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--text-tertiary)' },
   heading: { margin: '6px 0', fontSize: 20, fontWeight: 800, color: 'var(--text-primary)' },
-  copy: { margin: 0, maxWidth: 760, color: 'var(--text-tertiary)', fontSize: 13, lineHeight: 1.6 },
+  copy: { margin: 0, maxWidth: 760, color: 'var(--text-tertiary)', fontSize: 13, lineHeight: 'var(--line-height-body)' },
   button: { display: 'inline-flex', alignItems: 'center', gap: 7, border: '1px solid var(--border-default)', borderRadius: 10, background: 'var(--surface-card)', color: 'var(--text-primary)', padding: '9px 12px', cursor: 'pointer', fontWeight: 700 },
   smallButton: { border: '1px solid var(--border-default)', borderRadius: 8, background: 'var(--surface-card)', color: 'var(--text-primary)', padding: '6px 9px', cursor: 'pointer', fontSize: 12, fontWeight: 700 },
   gatewayCard: { marginTop: 18, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', padding: 14, borderRadius: 12, border: '1px solid var(--border-subtle)', background: 'var(--surface-sunken)' },

@@ -438,7 +438,7 @@ class RBACPolicyTests(TestCase):
     def test_audit_failure_rolls_back_policy_change(self):
         url = f"/api/management/workspaces/{self.workspace.pk}/team-policy/{self.actor.pk}/"
         with patch(
-            "social_stats.rbac_views.ActionLog.objects.create",
+            "social_stats.views.rbac.ActionLog.objects.create",
             side_effect=RuntimeError("audit unavailable"),
         ):
             with self.assertRaises(RuntimeError):
@@ -465,7 +465,7 @@ class RBACPolicyTests(TestCase):
         enqueue.assert_called_once_with(post.pk)
 
     def test_delegated_post_approver_cannot_approve_non_post_or_agency_request(self):
-        from social_stats.approval_views import _user_owns_approval
+        from social_stats.views.approval import _user_owns_approval
 
         approver = User.objects.create_user(username="senior-editor")
         WorkspaceMemberPolicy.objects.create(
@@ -580,7 +580,7 @@ class RBACPolicyTests(TestCase):
         from social_stats.authorization import acting_context
 
         with patch(
-            "social_stats.rbac_views.acting_context", wraps=acting_context
+            "social_stats.views.rbac.acting_context", wraps=acting_context
         ) as resolve:
             res = self.api.get(
                 f"/api/management/workspaces/{self.workspace.pk}/team-policy/"

@@ -75,7 +75,7 @@ function Hero() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          style={{ margin: '0 auto', maxWidth: 640, fontSize: 18, lineHeight: 1.6, color: 'var(--text-secondary)' }}
+          style={{ margin: '0 auto', maxWidth: 640, fontSize: 18, lineHeight: 'var(--line-height-body)', color: 'var(--text-secondary)' }}
         >
           نمایندگان املاک، کلینیک‌ها، رستوران‌ها، سازندگان - حساب‌های خود را در 5 دقیقه به هم متصل کنید و شروع به پست کردن، پاسخ دادن و ردیابی آنچه در حال انجام است، کنید. رایگان برای همیشه برای افراد.
         </MotionP>
@@ -124,7 +124,7 @@ function ValueProps() {
                 <it.icon size={18} strokeWidth={2.2} />
               </span>
               <h3 style={{ margin: '0 0 6px', fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>{it.title}</h3>
-              <p style={{ margin: 0, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.55 }}>{it.body}</p>
+              <p style={{ margin: 0, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>{it.body}</p>
             </article>
           ))}
         </div>
@@ -143,7 +143,7 @@ function AgencyOptional() {
           <h2 style={{ margin: '14px 0 10px', fontSize: 28, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
             قبلاً با آژانس کار می‌کنید؟ آنها می‌توانند به صورت رایگان به شما بپیوندند.
           </h2>
-          <p style={{ margin: '0 0 20px', fontSize: 15, color: 'var(--text-secondary)', lineHeight: 1.65 }}>
+          <p style={{ margin: '0 0 20px', fontSize: 15, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>
             آنها را از طریق ایمیل دعوت کنید - آنها بدون هیچ هزینه ای یک حساب کاربری در راوینتا دریافت می‌کنند. شما مجوزها را تنظیم می‌کنید، اقدامات حساس را علامت گذاری می‌کنید "اول از من بپرس" و دسترسی را با یک کلیک لغو می‌کنید. دیگر هیچ ورود مشترکی وجود ندارد.
           </p>
           <Button as={Link} to="/agencies" variant="secondary" size="md" icon={Search}>
@@ -185,7 +185,7 @@ function PrivacyTrust() {
         <h2 style={{ margin: '0 0 10px', fontSize: 28, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
           داده‌های شما از آن شما می ماند.
         </h2>
-        <p style={{ margin: 0, fontSize: 15, color: 'var(--text-secondary)', lineHeight: 1.65 }}>
+        <p style={{ margin: 0, fontSize: 15, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>
           ما هرگز داده‌های شما را نمی فروشیم. ما هرگز در پست‌های خصوصی شما آموزش نمی‌دهیم. قطع ارتباط یک پلتفرم یک کلیک طول می کشد - حتی اگر آژانسی حساب شما را مدیریت کند. صادرات در هر زمان. در هر زمان حذف کنید.
         </p>
       </div>
@@ -222,7 +222,7 @@ const sectionH = {
 const sectionSub = {
   margin: '8px auto 0', maxWidth: 580,
   fontSize: 15, color: 'var(--text-secondary)',
-  textAlign: 'center', lineHeight: 1.6,
+  textAlign: 'center', lineHeight: 'var(--line-height-body)',
 };
 const featureCard = {
   padding: 20,

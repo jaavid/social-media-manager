@@ -602,7 +602,7 @@ class TelegramAssistantExecutionTests(TelegramFixture):
         self.assertEqual(call.call_args.kwargs["data"]["message_thread_id"], 7)
 
     def test_rich_draft_serializer_preserves_payload_and_blocks_other_platforms(self):
-        from social_stats.composer_serializers import UnifiedPostSerializer
+        from social_stats.serializers.composer import UnifiedPostSerializer
 
         rich = {"is_rtl": True, "blocks": [{"type": "paragraph", "text": "متن"}]}
         serializer = UnifiedPostSerializer(

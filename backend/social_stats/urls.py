@@ -1,5 +1,5 @@
 from .browser_session import browser_session
-from . import rbac_views
+import social_stats.views.rbac as rbac_views
 # ============================================================================
 #  Social Stats — Social Media Management & Marketing Platform
 #  Author    : Chandrabhan Shekhawat
@@ -12,8 +12,8 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
 
-from .telegram_views import TelegramAccountViewSet, TelegramSuggestionViewSet, telegram_webhook
-from .views import (
+from social_stats.views.telegram import TelegramAccountViewSet, TelegramSuggestionViewSet, telegram_webhook
+from social_stats.views.core import (
     LoginView, me, ClientViewSet, SocialAccountViewSet, CredentialViewSet,
     SyncLogViewSet, GoalViewSet, AlertViewSet, AIInsightViewSet, WeeklyTopPostViewSet,
     SharedReportViewSet, public_report, public_report_verify,
@@ -21,34 +21,34 @@ from .views import (
     OverviewView, PublicSiteContentView, PublicLookupView, create_client_user,
     gmb_info, gmb_reviews, setup_solo_client, sync_all_clients,
 )
-from .roi_views import ROISettingsView, ROICalculateView, ROIReportView, ROILiveView
-from .calendar_views import (
+from social_stats.views.roi import ROISettingsView, ROICalculateView, ROIReportView, ROILiveView
+from social_stats.views.calendar import (
     CalendarPostViewSet, CalendarNoteViewSet,
     PostingScheduleViewSet, SuggestTimesView,
 )
-from .oauth_views import (
+from social_stats.views.oauth import (
     facebook_oauth_start, facebook_oauth_callback, facebook_consumer_callback,
     google_oauth_start, google_oauth_callback,
     linkedin_oauth_start, linkedin_oauth_callback,
     oauth_status, oauth_disconnect, oauth_debug,
 )
-from .social_auth_views import (
+from social_stats.views.social_auth import (
     google_social_start, google_social_callback,
     microsoft_social_start, microsoft_social_callback,
     facebook_social_start, facebook_social_callback,
 )
-from .management_views import (
+from social_stats.views.management import (
     StaffListView, StaffDetailView, StaffPermissionsView, StaffClientsView,
     ClientManagementListView, ClientManagementDetailView,
     ClientPermissionsView, ClientPortalConfigView,
     PermissionListView, RoleDefaultsView,
 )
-from .invitation_views import (
+from social_stats.views.invitation import (
     send_invitation, get_invitation, respond_invitation,
     list_invitations, cancel_invitation,
     list_notifications, mark_read, mark_all_read,
 )
-from .auth_views import signup, verify_email, resend_verification, password_reset_request, password_reset_confirm
+from social_stats.views.auth import signup, verify_email, resend_verification, password_reset_request, password_reset_confirm
 from .security.views import (
     list_sessions      as security_list_sessions,
     revoke_one         as security_revoke_session,
@@ -66,50 +66,50 @@ from .security.platform_compliance_views import (
     meta_data_deletion_callback, meta_deauth_callback,
     google_data_deletion_callback, platform_deletion_status,
 )
-from .end_user_views import (
+from social_stats.views.end_user import (
     end_user_signup, end_user_me, end_user_update_profile, end_user_workspace,
 )
-from .manage_request_views import (
+from social_stats.views.manage_request import (
     send_manage_request, list_sent_requests, cancel_manage_request,
     get_manage_invite, accept_manage_invite, decline_manage_invite,
     list_incoming_requests,
 )
-from .relation_views import (
+from social_stats.views.relation import (
     list_relations, get_relation, update_relation_permissions,
     pause_relation, resume_relation, terminate_relation, flag_relation,
     relation_agency_profile,
 )
-from .activity_views import (
+from social_stats.views.activity import (
     list_activity, flag_activity, revert_activity, export_activity_csv,
 )
-from .approval_views import (
+from social_stats.views.approval import (
     list_pending, list_history, get_approval, approve_approval, reject_approval,
 )
-from .agency_invite_views import (
+from social_stats.views.agency_invite import (
     send_agency_invite, list_sent_agency_invites,
     get_agency_invite, accept_agency_invite, decline_agency_invite,
     agency_incoming_invites,
 )
-from .marketplace_views import (
+from social_stats.views.marketplace import (
     list_marketplace_agencies, get_marketplace_agency, list_featured,
     list_categories, contact_agency, agency_profile,
 )
-from .review_views import (
+from social_stats.views.review import (
     list_reviews, review_detail,
     respond_to_review, mark_review_helpful,
 )
-from .verification_views import (
+from social_stats.views.verification import (
     submit_verification, list_pending_verifications, get_verification,
     approve_verification, reject_verification,
 )
-from .dispute_views import (
+from social_stats.views.dispute import (
     file_dispute, list_disputes, get_dispute, resolve_dispute,
 )
-from .profile_views import user_profile, change_password, agency_info, disconnect_agency, delete_account
-from .caption_views import caption_view
-from .post_ideas_views import post_ideas_view, approve_all, update_idea, add_to_calendar
-from .hashtag_views import hashtag_view, save_set, get_saved_sets
-from .ai_views import (
+from social_stats.views.profile import user_profile, change_password, agency_info, disconnect_agency, delete_account
+from social_stats.views.caption import caption_view
+from social_stats.views.post_ideas import post_ideas_view, approve_all, update_idea, add_to_calendar
+from social_stats.views.hashtag import hashtag_view, save_set, get_saved_sets
+from social_stats.views.ai import (
     compose_post, suggest_hashtags, best_time_to_post, suggest_reply,
     rewrite, translate, generate_image_caption, content_calendar,
     train_brand_voice, get_brand_voice,
@@ -178,49 +178,49 @@ from .ai.usage_views import (
     usage_quota      as ai_v2_usage_quota,
     usage_audit      as ai_v2_usage_audit,
 )
-from .automation_views import AutomationRuleViewSet
-from .video_views import (
+from social_stats.views.automation import AutomationRuleViewSet
+from social_stats.views.video import (
     upload_video, trim_video, resize_video, extract_thumbnail,
     add_captions, youtube_upload,
 )
-from .webhooks_views import meta_webhook, youtube_webhook
-from .competitor_views import CompetitorViewSet, BenchmarkView
-from .audience_views import UnifiedAudienceView
+from social_stats.views.webhooks import meta_webhook, youtube_webhook
+from social_stats.views.competitor import CompetitorViewSet, BenchmarkView
+from social_stats.views.audience import UnifiedAudienceView
 from .audit import ActionLogViewSet
-from .notification_views import notification_preferences, approval_queue
-from .whatsapp_views import (
+from social_stats.views.notification import notification_preferences, approval_queue
+from social_stats.views.whatsapp import (
     WhatsAppAccountViewSet, WhatsAppContactViewSet, WhatsAppContactListViewSet,
     WhatsAppTemplateViewSet, WhatsAppCampaignViewSet, WhatsAppMessageViewSet,
     WhatsAppDashboardView, WhatsAppInboxView, WhatsAppInboxThreadView, WhatsAppSendDirectView,
 )
-from .whatsapp_webhook_views import pinbot_webhook
-from .bot_views import (
+from social_stats.views.whatsapp_webhook import pinbot_webhook
+from social_stats.views.bot import (
     BotFlowViewSet, BotTemplateViewSet, BotConversationViewSet, CTWACampaignViewSet,
     bot_settings,
 )
-from .bot_ai_views import (
+from social_stats.views.bot_ai import (
     generate_flow_with_ai as bot_generate_flow_with_ai,
     suggest_reply        as bot_suggest_reply,
     build_persona        as bot_build_persona,
 )
-from .lead_views import LeadViewSet
-from .meta_ads_views import (
+from social_stats.views.lead import LeadViewSet
+from social_stats.views.meta_ads import (
     list_ad_accounts, list_ad_campaigns, list_ads, meta_ads_health,
 )
-from .ads_views import notify_ads
-from .composer_views import (
+from social_stats.views.ads import notify_ads
+from social_stats.views.composer import (
     UnifiedPostViewSet, MediaAssetViewSet, PostQueueViewSet, PreflightCheckView,
 )
-from .inbox_views import (
+from social_stats.views.inbox import (
     ConversationViewSet, MessageViewSet, UnifiedReviewViewSet, InboxStatsView,
 )
-from .manual_token_views import (
+from social_stats.views.manual_token import (
     connect_facebook_manual, connect_instagram_manual,
     connect_youtube_manual, connect_linkedin_manual, connect_gmb_manual,
     test_credential, get_setup_instructions,
 )
-from .health_views import services_health
-from .dashboard_views import dashboard_counts, unified_search, dashboard_today
+from social_stats.views.health import services_health
+from social_stats.views.dashboard import dashboard_counts, unified_search, dashboard_today
 
 router = DefaultRouter()
 router.register(r'workspaces', ClientViewSet, basename='workspace')

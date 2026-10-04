@@ -168,7 +168,7 @@ export default function InvitationPage() {
                 fontSize: 13,
                 fontStyle: 'italic',
                 color: 'var(--text-secondary)',
-                lineHeight: 1.55,
+                lineHeight: 'var(--line-height-body)',
               }}
             >
               "{inv.message}"
@@ -277,6 +277,6 @@ const titleStyle = {
 
 const subStyle = {
   margin: '8px 0 0',
-  fontSize: 14, lineHeight: 1.6,
+  fontSize: 14, lineHeight: 'var(--line-height-body)',
   color: 'var(--text-secondary)',
 };

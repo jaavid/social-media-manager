@@ -241,7 +241,7 @@ function StepRow({ step }) {
       <div style={{
         maxWidth: '75%',
         padding: '8px 12px',
-        fontSize: 13, lineHeight: 1.45,
+        fontSize: 13, lineHeight: 'var(--line-height-body)',
         background: isUser ? 'var(--surface-card)' : '#dcf8c6',
         color: isUser ? 'var(--text-primary)' : '#1f2c34',
         border: `1px solid ${isUser ? 'var(--border-subtle)' : 'transparent'}`,

@@ -4,7 +4,7 @@ from unittest.mock import patch
 from django.test import TestCase
 
 from social_stats.models import Client, DailyMetric, PlatformCredential, SocialAccount
-from social_stats.oauth_views import _save_credential
+from social_stats.views.oauth import _save_credential
 from social_stats.tasks import sync_all
 
 
@@ -258,7 +258,7 @@ class LegacyAccountIdentityTests(TestCase):
         for endpoint, record in objects:
             with (
                 self.subTest(endpoint=endpoint),
-                patch("social_stats.inbox_views.get_publisher") as publisher,
+                patch("social_stats.views.inbox.get_publisher") as publisher,
             ):
                 response = self.api.post(
                     f"/api/inbox/{endpoint}/{record.pk}/reply/",

@@ -87,7 +87,7 @@ export default function MaintenancePage({ expectedReturn }) {
         }}>
           ما در حال ارتقاء راوینتا هستیم.
         </h1>
-        <p style={{ margin: '12px auto 24px', maxWidth: 380, fontSize: 15, lineHeight: 1.65, color: 'var(--text-secondary)' }}>
+        <p style={{ margin: '12px auto 24px', maxWidth: 380, fontSize: 15, lineHeight: 'var(--line-height-body)', color: 'var(--text-secondary)' }}>
           ما کارها را سریع‌تر و روان‌تر می‌کنیم. سفت بنشین - به زودی برمی گردیم.
         </p>
 

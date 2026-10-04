@@ -651,7 +651,7 @@ function HighlightTile({ icon, label, value, bg, border }) {
       }}>{icon}</div>
       <div>
         <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '.06em' }}>{label}</div>
-        <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1.2 }}>{value}</div>
+        <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-primary)', lineHeight: 'var(--line-height-body)' }}>{value}</div>
       </div>
     </div>
   );
@@ -873,7 +873,7 @@ const S = {
   },
   brandBox: { background: 'var(--surface-sunken)', borderRadius: 10, padding: '10px 14px', border: '1px solid var(--border-default)' },
   brandLabel: { display: 'block', fontSize: 10, fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 5 },
-  brandText: { margin: 0, fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.6 },
+  brandText: { margin: 0, fontSize: 12, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' },
 
   // Control bar
   controlBar: {
@@ -991,7 +991,7 @@ const S = {
   },
   postCaption: {
     margin: '0 0 8px', fontSize: 11, color: 'var(--text-secondary)',
-    lineHeight: 1.5, minHeight: 32,
+    lineHeight: 'var(--line-height-body)', minHeight: 32,
     display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
   },
   postStats: { display: 'flex', gap: 8, flexWrap: 'wrap' },

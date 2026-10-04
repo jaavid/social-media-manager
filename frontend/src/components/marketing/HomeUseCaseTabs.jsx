@@ -114,14 +114,14 @@ export default function UseCaseTabs() {
             <div>
               <h3 style={{
                 margin: 0, fontSize: 24, fontWeight: 700,
-                color: 'var(--text-primary)', letterSpacing: '-0.01em', lineHeight: 1.25,
+                color: 'var(--text-primary)', letterSpacing: '-0.01em', lineHeight: 'var(--line-height-body)',
               }}>{current.headline}</h3>
               <ul style={{ margin: '20px 0 0', padding: 0, listStyle: 'none' }}>
                 {current.bullets.map((b) => (
                   <li key={b} style={{
                     display: 'flex', alignItems: 'flex-start', gap: 10,
                     padding: '8px 0',
-                    fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.55,
+                    fontSize: 14, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)',
                   }}>
                     <Check size={14} style={{ color: '#00CCF5', flexShrink: 0, marginTop: 4 }} strokeWidth={2.5} />
                     <span>{b}</span>
@@ -175,7 +175,7 @@ function SectionHeading({ eyebrow, title, subtitle, cta }) {
         <p style={{
           margin: '14px auto 0',
           fontSize: 'clamp(15px, 1.5vw, 17px)',
-          lineHeight: 1.6,
+          lineHeight: 'var(--line-height-body)',
           color: 'var(--text-secondary)', maxWidth: 600,
         }}>{subtitle}</p>
       )}

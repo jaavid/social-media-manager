@@ -232,7 +232,7 @@ export default function CalendarStats({
                 <div style={{
                   fontSize: 12, color: 'var(--text-secondary)', background: 'var(--surface-sunken)',
                   borderRadius: 6, padding: '8px 10px', marginBottom: 10,
-                  lineHeight: 1.5,
+                  lineHeight: 'var(--line-height-body)',
                 }}>
                   {best.caption.slice(0, 120)}{best.caption.length > 120 ? '…' : ''}
                 </div>

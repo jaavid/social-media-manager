@@ -25,7 +25,7 @@ from social_stats.events.publisher import EventPublisher
 from social_stats.models import (
     Client, UserProfile, Notification, NotificationPreference, UnifiedPost,
 )
-from social_stats.bot_models import BotFlow, BotConversation, Lead
+from social_stats.models.bot import BotFlow, BotConversation, Lead
 
 
 def _client(label='c'):

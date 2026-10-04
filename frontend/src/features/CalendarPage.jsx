@@ -139,7 +139,7 @@ function ListView({
                     </span>
                   </div>
                   <div style={{
-                    fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.4,
+                    fontSize: 12, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)',
                     overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2,
                     WebkitBoxOrient: 'vertical', marginBottom: 4,
                   }}>

@@ -34,7 +34,7 @@ export default function SamplePreviewBanner({ kind = 'agency' }) {
         fontSize: 12,
         fontWeight: 600,
         letterSpacing: 0.2,
-        lineHeight: 1.5,
+        lineHeight: 'var(--line-height-body)',
       }}
     >
       <span style={{

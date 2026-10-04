@@ -173,7 +173,7 @@ const s = {
   },
   header: { display: 'flex', gap: 10, alignItems: 'flex-start' },
   title: { fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' },
-  subtitle: { marginTop: 2, fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5 },
+  subtitle: { marginTop: 2, fontSize: 12, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' },
   advanced: { marginTop: 12 },
   actions: {
     marginTop: 14,

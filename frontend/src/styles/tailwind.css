@@ -30,7 +30,7 @@
   --color-border: var(--border-default);
   --color-input: var(--control-border);
   --color-ring: var(--border-focus);
-  --font-sans: var(--font-product-arabic, "Noto Sans Arabic"), var(--font-product-latin, Arial), sans-serif;
+  --font-sans: var(--product-font-family);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-sidebar: var(--surface-card);
   --color-sidebar-foreground: var(--text-secondary);

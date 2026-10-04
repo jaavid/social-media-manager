@@ -99,7 +99,7 @@ export default function ComingSoonPage() {
             margin: '20px auto 0',
             fontSize: 'clamp(16px, 1.8vw, 19px)',
             color: 'rgba(255,255,255,0.75)',
-            lineHeight: 1.55,
+            lineHeight: 'var(--line-height-body)',
             maxWidth: 540,
           }}>
             {meta.blurb}
@@ -109,7 +109,7 @@ export default function ComingSoonPage() {
             margin: '24px auto 0',
             fontSize: 14,
             color: 'rgba(255,255,255,0.55)',
-            maxWidth: 540, lineHeight: 1.6,
+            maxWidth: 540, lineHeight: 'var(--line-height-body)',
           }}>
             ما در حال ساخت این صفحه هستیم. در عین حال، برای یک حساب کاربری رایگان ثبت نام کنید و محصول زنده را کاوش کنید - همه ویژگی‌های موجود در منو در حال ارسال هستند.
           </p>

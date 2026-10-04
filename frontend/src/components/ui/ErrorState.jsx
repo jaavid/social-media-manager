@@ -77,7 +77,7 @@ export default function ErrorState({
           fontSize: 13,
           color: 'var(--text-secondary)',
           maxWidth: 380,
-          lineHeight: 1.5,
+          lineHeight: 'var(--line-height-body)',
         }}>
           {description}
         </div>

@@ -73,7 +73,7 @@ function Card({ item }) {
 
       <p style={{
         margin: '0 0 16px',
-        fontSize: 14, lineHeight: 1.65,
+        fontSize: 14, lineHeight: 'var(--line-height-body)',
         color: 'var(--text-primary)',
       }}>“{quote}”</p>
 

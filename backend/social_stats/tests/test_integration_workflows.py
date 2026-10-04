@@ -35,7 +35,7 @@ from social_stats.models import (
     Conversation, ActivityLog, ApprovalRequest, WhatsAppContact,
     Agency, AgencyMembership, AgencyClientRelation,
 )
-from social_stats.bot_models import (
+from social_stats.models.bot import (
     BotFlow, BotConversation, Lead,
 )
 
@@ -74,7 +74,7 @@ def _agency_pair(client_obj, *, perms_override=None):
     """Build an agency, an agency member, and an active relation. The member
     is the test subject. Their UserProfile.role is 'client' (NOT superadmin) —
     superadmins bypass marketplace gates and would defeat workflow C."""
-    from social_stats.marketplace_models import default_relation_permissions
+    from social_stats.models.marketplace import default_relation_permissions
 
     owner = _user(role='superadmin')
     agency = Agency.objects.create(

@@ -147,7 +147,7 @@ export default function AgencyProfilePage() {
         {/* About */}
         {agency.description && (
           <Section title={"درباره ما"}>
-            <p style={{ margin: 0, fontSize: 14, color: 'var(--text-primary)', lineHeight: 1.65, whiteSpace: 'pre-wrap' }}>
+            <p style={{ margin: 0, fontSize: 14, color: 'var(--text-primary)', lineHeight: 'var(--line-height-body)', whiteSpace: 'pre-wrap' }}>
               {agency.description}
             </p>
           </Section>
@@ -213,7 +213,7 @@ export default function AgencyProfilePage() {
         {/* Trust footer */}
         <div style={trustBox}>
           <Sparkles size={16} style={{ color: 'var(--brand-primary-hover)' }} />
-          <p style={{ margin: 0, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.55 }}>
+          <p style={{ margin: 0, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>
             راوینتا شما را در کنترل کامل نگه می دارد. هر آژانسی که انتخاب کنید، می‌توانید دسترسی را موقتاً متوقف کنید، مجوزها را لغو کنید یا رابطه را در هر زمانی خاتمه دهید - و هر اقدام برای ممیزی ثبت می‌شود.
           </p>
         </div>
@@ -322,7 +322,7 @@ function ReviewItem({ review, isAgencyMember, onHelpful, onDelete, onRespond, on
       </div>
 
       {review.title && <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>{review.title}</div>}
-      <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.55, whiteSpace: 'pre-wrap' }}>
+      <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)', whiteSpace: 'pre-wrap' }}>
         {review.body}
       </p>
 

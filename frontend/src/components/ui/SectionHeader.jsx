@@ -69,7 +69,7 @@ export default function SectionHeader({
             fontWeight: s.titleWeight,
             letterSpacing: '-0.02em',
             color: 'var(--text-primary)',
-            lineHeight: 1.2,
+            lineHeight: 'var(--line-height-body)',
           }}>
             {title}
           </Tag>
@@ -79,7 +79,7 @@ export default function SectionHeader({
             margin: `${s.gap}px 0 0`,
             fontSize: s.descSize,
             color: 'var(--text-secondary)',
-            lineHeight: 1.5,
+            lineHeight: 'var(--line-height-body)',
             maxWidth: align === 'center' ? 600 : undefined,
           }}>
             {description}

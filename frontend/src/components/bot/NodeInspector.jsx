@@ -936,7 +936,7 @@ function PersonaWizard({ onClose, onApply }) {
  </Field>
  <p style={{
  margin: 0, fontSize: 11, color: 'var(--text-tertiary)',
- lineHeight: 1.5,
+ lineHeight: 'var(--line-height-body)',
  }}>
  Social Stats drafts a system prompt suited to your business. You can edit it before applying.
  </p>
@@ -954,7 +954,7 @@ function PersonaWizard({ onClose, onApply }) {
  <textarea
  value={draft} onChange={(e) => setDraft(e.target.value)}
  rows={9}
- style={{ ...inputStyle, resize: 'vertical', fontSize: 13, lineHeight: 1.5 }}
+ style={{ ...inputStyle, resize: 'vertical', fontSize: 13, lineHeight: 'var(--line-height-body)' }}
  />
  <p style={{ margin: 0, fontSize: 11, color: 'var(--text-tertiary)' }}>
  Tweak it inline, then apply — or regenerate with different inputs.
@@ -1076,7 +1076,7 @@ function Hint({ children }) {
  return (
  <p style={{
  margin: '0 0 14px', fontSize: 12, color: 'var(--text-tertiary)',
- lineHeight: 1.55, padding: 10,
+ lineHeight: 'var(--line-height-body)', padding: 10,
  background: 'var(--surface-sunken)', borderRadius: 'var(--radius-sm)',
  }}>{children}</p>
 );
@@ -1110,7 +1110,7 @@ function WhatsAppPreview({ body, buttons }) {
  background: '#dcf8c6', color: '#1f2c34',
  borderRadius: '8px 8px 8px 2px',
  maxWidth: 240,
- fontSize: 13, lineHeight: 1.45,
+ fontSize: 13, lineHeight: 'var(--line-height-body)',
  whiteSpace: 'pre-wrap',
  }}>
  {body}

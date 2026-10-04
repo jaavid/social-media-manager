@@ -115,7 +115,7 @@ export default function AnimatedChat({
           background: 'var(--brand-primary-soft)',
           color: 'var(--brand-primary-hover)',
           borderRadius: '14px 14px 2px 14px',
-          fontSize: 13.5, lineHeight: 1.5,
+          fontSize: 13.5, lineHeight: 'var(--line-height-body)',
         }}>
           {userMessage}
         </div>
@@ -128,7 +128,7 @@ export default function AnimatedChat({
           background: 'var(--surface-sunken)',
           color: 'var(--text-primary)',
           borderRadius: '14px 14px 14px 2px',
-          fontSize: 13.5, lineHeight: 1.65,
+          fontSize: 13.5, lineHeight: 'var(--line-height-body)',
           minHeight: 24,
         }}>
           {typed}

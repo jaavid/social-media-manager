@@ -61,7 +61,7 @@ export default function CanvasNode({ data, selected }) {
       {summary && (
         <div style={{
           padding: '0 12px 10px', fontSize: 12, color: 'var(--text-secondary)',
-          lineHeight: 1.4,
+          lineHeight: 'var(--line-height-body)',
           overflow: 'hidden', display: '-webkit-box',
           WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
         }}>

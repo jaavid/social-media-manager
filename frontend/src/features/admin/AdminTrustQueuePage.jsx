@@ -257,7 +257,7 @@ function Disputes() {
                 </div>
               </header>
 
-              <p style={{ margin: '10px 0 0', fontSize: 13, color: 'var(--text-primary)', lineHeight: 1.55, whiteSpace: 'pre-wrap' }}>
+              <p style={{ margin: '10px 0 0', fontSize: 13, color: 'var(--text-primary)', lineHeight: 'var(--line-height-body)', whiteSpace: 'pre-wrap' }}>
                 {d.reason}
               </p>
 

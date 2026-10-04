@@ -95,7 +95,7 @@ function BriefingCard({ briefing }) {
       </div>
       <pre style={{
         margin: 0, fontFamily: 'inherit',
-        fontSize: 14, lineHeight: 1.6,
+        fontSize: 14, lineHeight: 'var(--line-height-body)',
         color: 'var(--text-primary)',
         whiteSpace: 'pre-wrap',
         wordBreak: 'break-word',

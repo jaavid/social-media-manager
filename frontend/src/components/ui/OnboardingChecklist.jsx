@@ -248,7 +248,7 @@ const stepRow    = {
   transition: 'opacity 0.3s',
 };
 const stepLabel  = { fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 2 };
-const stepDesc   = { margin: 0, fontSize: 12, color: 'var(--text-tertiary)', lineHeight: 1.5 };
+const stepDesc   = { margin: 0, fontSize: 12, color: 'var(--text-tertiary)', lineHeight: 'var(--line-height-body)' };
 const markBtn    = {
   padding: '5px 12px', borderRadius: 8, border: '1px solid #6366f1',
   background: 'var(--surface-card)', color: '#6366f1', fontSize: 12, fontWeight: 600,

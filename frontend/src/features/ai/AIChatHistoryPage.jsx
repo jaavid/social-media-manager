@@ -298,7 +298,7 @@ const userBubbleStyle = {
   border: '1px solid var(--brand-primary-glow)',
   color: 'var(--text-primary)',
   borderRadius: 'var(--radius-md)',
-  fontSize: 13, lineHeight: 1.55,
+  fontSize: 13, lineHeight: 'var(--line-height-body)',
   whiteSpace: 'pre-wrap',
 };
 
@@ -314,7 +314,7 @@ const avatarStyle = {
 
 const assistantTextStyle = {
   flex: 1,
-  fontSize: 13, lineHeight: 1.6,
+  fontSize: 13, lineHeight: 'var(--line-height-body)',
   color: 'var(--text-primary)',
   whiteSpace: 'pre-wrap',
   padding: '2px 0',

@@ -82,7 +82,7 @@ export default function BlogIndexPage() {
           }}>
             مجله راوینتا.
           </h1>
-          <p style={{ margin: 0, fontSize: 16, lineHeight: 1.6, color: 'var(--text-secondary)' }}>
+          <p style={{ margin: 0, fontSize: 16, lineHeight: 'var(--line-height-body)', color: 'var(--text-secondary)' }}>
             به‌روزرسانی‌های محصول، کتاب‌های بازی آژانس، آزمایش‌های هوش مصنوعی، تصمیم‌گیری‌های طراحی - نوشته‌شده توسط راوینتا ساختمان تیم.
           </p>
 
@@ -206,7 +206,7 @@ export default function BlogIndexPage() {
                   fontSize: 'clamp(28px, 4vw, 40px)',
                   fontWeight: 600,
                   letterSpacing: '-0.02em',
-                  lineHeight: 1.2,
+                  lineHeight: 'var(--line-height-body)',
                   textAlign: 'center',
                   color: 'var(--text-primary)',
                   opacity: 0.85,
@@ -227,11 +227,11 @@ export default function BlogIndexPage() {
                   fontWeight: 600,
                   letterSpacing: '-0.02em',
                   color: 'var(--text-primary)',
-                  lineHeight: 1.2,
+                  lineHeight: 'var(--line-height-body)',
                 }}>
                   {featured.title}
                 </h2>
-                <p style={{ margin: 0, fontSize: 15, lineHeight: 1.65, color: 'var(--text-secondary)' }}>
+                <p style={{ margin: 0, fontSize: 15, lineHeight: 'var(--line-height-body)', color: 'var(--text-secondary)' }}>
                   {featured.excerpt}
                 </p>
                 <div style={{ marginTop: 18, display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -343,7 +343,7 @@ export default function BlogIndexPage() {
           <h3 style={{ margin: 0, fontSize: 22, fontWeight: 600, letterSpacing: '-0.015em', color: 'var(--text-primary)' }}>
             بهترین کتاب های بازی ما را به صورت ماهانه دریافت کنید.
           </h3>
-          <p style={{ margin: '8px auto 18px', maxWidth: 480, fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+          <p style={{ margin: '8px auto 18px', maxWidth: 480, fontSize: 14, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>
             یک ایمیل در ماه. چارچوب های واقعی بدون کرک. لغو اشتراک با یک کلیک
           </p>
           <form
@@ -423,10 +423,10 @@ function PostCard({ post }) {
       />
       <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
         <Badge variant="default" size="sm">{post.category}</Badge>
-        <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600, letterSpacing: '-0.01em', color: 'var(--text-primary)', lineHeight: 1.3 }}>
+        <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600, letterSpacing: '-0.01em', color: 'var(--text-primary)', lineHeight: 'var(--line-height-body)' }}>
           {post.title}
         </h3>
-        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.55, color: 'var(--text-secondary)', flex: 1 }}>
+        <p style={{ margin: 0, fontSize: 13, lineHeight: 'var(--line-height-body)', color: 'var(--text-secondary)', flex: 1 }}>
           {post.excerpt}
         </p>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>

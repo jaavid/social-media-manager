@@ -33,3 +33,5 @@ django-axes==7.1.0
 user-agents==2.2.0
 pyotp==2.10.0
 qrcode[pil]==8.2
+
+django-unfold==0.108.0

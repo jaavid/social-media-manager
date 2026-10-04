@@ -41,7 +41,7 @@ class SocialLoginStateValidationTests(TestCase):
     def setUp(self):
         self.http = DjangoClient()
 
-    @patch('social_stats.social_auth_views.http_requests')
+    @patch('social_stats.views.social_auth.http_requests')
     def test_callback_without_session_state_is_rejected(self, mock_http):
         res = self.http.get('/api/auth/social/google/callback/',
                             {'code': 'attacker-code', 'state': 'forged'})
@@ -50,7 +50,7 @@ class SocialLoginStateValidationTests(TestCase):
         # The authorization code must never be exchanged
         mock_http.post.assert_not_called()
 
-    @patch('social_stats.social_auth_views.http_requests')
+    @patch('social_stats.views.social_auth.http_requests')
     def test_callback_with_mismatched_state_is_rejected(self, mock_http):
         start = self.http.get('/api/auth/social/google/start/')
         self.assertEqual(start.status_code, 302)  # session now holds a state
@@ -59,7 +59,7 @@ class SocialLoginStateValidationTests(TestCase):
         self.assertIn('/login?error=', res['Location'])
         mock_http.post.assert_not_called()
 
-    @patch('social_stats.social_auth_views.http_requests')
+    @patch('social_stats.views.social_auth.http_requests')
     def test_callback_with_matching_state_proceeds(self, mock_http):
         self.http.get('/api/auth/social/google/start/')
         state = self.http.session['social_state']
@@ -71,7 +71,7 @@ class SocialLoginStateValidationTests(TestCase):
         self.assertIn('_auth_user_id', self.http.session)
         mock_http.post.assert_called_once()
 
-    @patch('social_stats.social_auth_views.http_requests')
+    @patch('social_stats.views.social_auth.http_requests')
     def test_state_is_single_use(self, mock_http):
         self.http.get('/api/auth/social/google/start/')
         state = self.http.session['social_state']
@@ -84,7 +84,7 @@ class SocialLoginStateValidationTests(TestCase):
                                {'code': 'good-code', 'state': state})
         self.assertIn('/login?error=', replay['Location'])
 
-    @patch('social_stats.social_auth_views.http_requests')
+    @patch('social_stats.views.social_auth.http_requests')
     def test_facebook_and_microsoft_callbacks_also_guarded(self, mock_http):
         for path in ('/api/auth/social/facebook/callback/',
                      '/api/auth/social/microsoft/callback/'):
@@ -109,7 +109,7 @@ class SocialLoginMFATests(TestCase):
         UserMFA.objects.create(user=self.user, is_enabled=True,
                                totp_secret='JBSWY3DPEHPK3PXP')
 
-    @patch('social_stats.social_auth_views.http_requests')
+    @patch('social_stats.views.social_auth.http_requests')
     def test_mfa_user_gets_handshake_not_tokens(self, mock_http):
         self.http.get('/api/auth/social/google/start/')
         state = self.http.session['social_state']
@@ -123,7 +123,7 @@ class SocialLoginMFATests(TestCase):
         self.assertNotIn('access=', res['Location'])
         self.assertNotIn('refresh=', res['Location'])
 
-    @patch('social_stats.social_auth_views.http_requests')
+    @patch('social_stats.views.social_auth.http_requests')
     def test_handshake_token_completes_via_mfa_login(self, mock_http):
         import pyotp
         self.http.get('/api/auth/social/google/start/')
@@ -143,7 +143,7 @@ class SocialLoginMFATests(TestCase):
         self.assertIn('access', verify.data)
         self.assertIn('refresh', verify.data)
 
-    @patch('social_stats.social_auth_views.http_requests')
+    @patch('social_stats.views.social_auth.http_requests')
     def test_non_mfa_user_gets_cookie_session(self, mock_http):
         UserMFA.objects.filter(user=self.user).update(is_enabled=False)
         self.http.get('/api/auth/social/google/start/')

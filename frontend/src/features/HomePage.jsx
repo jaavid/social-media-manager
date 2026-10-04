@@ -158,7 +158,7 @@ async function Hero() {
           style={{
             margin: '24px auto 0',
             fontSize: 'clamp(16px, 1.8vw, 19px)',
-            color: 'rgba(255,255,255,0.72)', lineHeight: 1.55,
+            color: 'rgba(255,255,255,0.72)', lineHeight: 'var(--line-height-body)',
             maxWidth: 640,
           }}
         >
@@ -248,7 +248,7 @@ function NotificationCard() {
         <span style={floatLabel}>پیام جدید · اینستاگرام</span>
       </div>
       <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)' }}>پریا شارما</div>
-      <div style={{ marginTop: 2, fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.4 }}>
+      <div style={{ marginTop: 2, fontSize: 11, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>
         آیا آپارتمان سه‌خوابه هنوز در دسترس است؟ آیا می‌توانم شنبه مراجعه کنم؟
       </div>
     </div>
@@ -300,7 +300,7 @@ function AIPopupCard() {
         </span>
         <span style={floatLabel}>پیشنهاد هوش مصنوعی</span>
       </div>
-      <div style={{ fontSize: 12, color: 'var(--text-primary)', lineHeight: 1.5 }}>
+      <div style={{ fontSize: 12, color: 'var(--text-primary)', lineHeight: 'var(--line-height-body)' }}>
         سعی کنید حلقه‌ها را در سه‌شنبه 7 بعدازظهر پست کنید - مخاطبان شما 2.4× فعال‌تر هستند.
       </div>
     </div>
@@ -421,7 +421,7 @@ function ThreePillars() {
                   }}>{p.title}</h3>
                   <p style={{
                     margin: '8px 0 0',
-                    fontSize: 14, lineHeight: 1.55,
+                    fontSize: 14, lineHeight: 'var(--line-height-body)',
                     color: 'var(--text-secondary)',
                   }}>{p.blurb}</p>
                 </div>
@@ -553,7 +553,7 @@ function HowItWorks() {
                 <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: 'var(--text-primary)' }}>{s.title}</h3>
                 <p style={{
                   margin: '6px 0 0',
-                  fontSize: 13, lineHeight: 1.55,
+                  fontSize: 13, lineHeight: 'var(--line-height-body)',
                   color: 'var(--text-secondary)',
                   maxWidth: 220, marginInline: 'auto',
                 }}>{s.blurb}</p>
@@ -602,7 +602,7 @@ function AIEverywhere() {
             }}>هوش مصنوعی در هر گوشه ای</h2>
             <p style={{
               margin: '14px 0 0',
-              fontSize: 16, lineHeight: 1.6,
+              fontSize: 16, lineHeight: 'var(--line-height-body)',
               color: 'var(--text-secondary)', maxWidth: 480,
             }}>
               راوینتا یک "ویژگی هوش مصنوعی" نیست. این یک محصول بومی هوش مصنوعی است - راوینتا هر جا که گیر کرده اید نشان داده می‌شود.
@@ -735,7 +735,7 @@ function MarketplaceTeaser() {
                   letterSpacing: '-0.01em',
                 }}>{s.title}</h3>
                 <p style={{
-                  margin: 0, fontSize: 13, lineHeight: 1.55,
+                  margin: 0, fontSize: 13, lineHeight: 'var(--line-height-body)',
                   color: 'var(--text-secondary)',
                 }}>{s.body}</p>
               </div>
@@ -850,7 +850,7 @@ function SectionHeading({ eyebrow, title, subtitle, cta }) {
         <p style={{
           margin: '14px auto 0',
           fontSize: 'clamp(15px, 1.5vw, 17px)',
-          lineHeight: 1.6,
+          lineHeight: 'var(--line-height-body)',
           color: 'var(--text-secondary)', maxWidth: 600,
         }}>{subtitle}</p>
       )}

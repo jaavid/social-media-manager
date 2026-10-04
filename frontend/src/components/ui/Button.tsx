@@ -7,11 +7,11 @@ import { useLanguage } from '../../i18n';
 import { cn } from '../../lib/utils';
 
 const SIZE_CLASSES = {
-  xs: 'h-6 px-2.5 text-[11px]',
-  sm: 'h-7 px-3 text-xs',
-  md: 'h-9 px-3.5 text-[13px]',
-  lg: 'h-11 px-[18px] text-sm',
-  xl: 'h-[52px] px-[22px] text-[15px]',
+  xs: 'min-h-6 py-1 px-2.5 text-[11px]',
+  sm: 'min-h-7 py-1 px-3 text-xs',
+  md: 'min-h-9 py-1.5 px-3.5 text-[13px]',
+  lg: 'min-h-11 py-2 px-[18px] text-sm',
+  xl: 'min-h-[52px] py-2.5 px-[22px] text-[15px]',
 };
 
 const ICON_ONLY_CLASSES = {
@@ -87,7 +87,7 @@ const Button = forwardRef<HTMLElement, ButtonProps>(function Button(
       aria-disabled={isDisabled || undefined}
       aria-busy={loading || undefined}
       className={cn(
-        'inline-flex min-h-0 min-w-0 select-none items-center justify-center gap-1.5 whitespace-nowrap rounded-[var(--radius-md)] border font-medium leading-none no-underline transition-[background-color,border-color,color,box-shadow,transform,opacity] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-60 aria-disabled:pointer-events-none aria-disabled:opacity-60',
+        'inline-flex min-h-0 min-w-0 select-none items-center justify-center gap-1.5 max-w-full whitespace-normal break-words rounded-[var(--radius-md)] border font-medium leading-[var(--line-height-body)] no-underline transition-[background-color,border-color,color,box-shadow,transform,opacity] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-60 aria-disabled:pointer-events-none aria-disabled:opacity-60',
         iconOnly ? ICON_ONLY_CLASSES[resolvedSize] : SIZE_CLASSES[resolvedSize],
         VARIANT_CLASSES[variant] || VARIANT_CLASSES.primary,
         fullWidth && 'w-full',

@@ -32,7 +32,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
 
-from .auth_views import _email_html
+from social_stats.views.auth import _email_html
 from .models import (
     NOTIFICATION_CHANNEL_CHOICES,
     SMART_NOTIFICATION_EVENT_CHOICES,

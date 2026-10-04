@@ -636,7 +636,7 @@ def _t_generate_report(ti, *, client, user):
 # ─────────────────────────────────────────────────────────────────────────
 
 def _t_get_lead(ti, *, client, user):
-    from ..bot_models import Lead, LeadActivity
+    from social_stats.models.bot import Lead, LeadActivity
     lead_id = int(ti.get('lead_id') or 0)
     if not lead_id:
         return {'error': 'lead_id is required'}
@@ -677,7 +677,7 @@ def _t_get_lead(ti, *, client, user):
 
 
 def _t_update_lead_status(ti, *, client, user):
-    from ..bot_models import Lead, LeadActivity
+    from social_stats.models.bot import Lead, LeadActivity
     from ..events.publisher import EventPublisher
 
     lead_id  = int(ti.get('lead_id') or 0)
@@ -829,7 +829,7 @@ def _t_reply_to_message(ti, *, client, user):
 
 
 def _t_list_bot_flows(ti, *, client, user):
-    from ..bot_models import BotFlow
+    from social_stats.models.bot import BotFlow
     active_only = bool(ti.get('active_only', False))
     limit = max(1, min(int(ti.get('limit') or 20), 100))
 

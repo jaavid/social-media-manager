@@ -50,7 +50,7 @@ class TenantScopedMixin:
         agency_id = getattr(profile, 'primary_agency_id', None)
         if not agency_id:
             return []
-        from .marketplace_models import AgencyClientRelation, AgencyMembership
+        from social_stats.models.marketplace import AgencyClientRelation, AgencyMembership
 
         if not AgencyMembership.objects.filter(
             user=self.request.user, agency_id=agency_id, is_active=True,

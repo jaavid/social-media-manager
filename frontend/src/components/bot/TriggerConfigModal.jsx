@@ -92,7 +92,7 @@ export default function TriggerConfigModal({ flow, onClose, onPublished }) {
                   <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>
                     {t.label}
                   </div>
-                  <div style={{ marginTop: 2, fontSize: 11, color: 'var(--text-tertiary)', lineHeight: 1.4 }}>
+                  <div style={{ marginTop: 2, fontSize: 11, color: 'var(--text-tertiary)', lineHeight: 'var(--line-height-body)' }}>
                     {t.desc}
                   </div>
                 </button>
@@ -297,7 +297,7 @@ function Hint({ children }) {
   return (
     <p style={{
       margin: 0, padding: 12, fontSize: 13,
-      color: 'var(--text-secondary)', lineHeight: 1.55,
+      color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)',
       background: 'var(--surface-sunken)', borderRadius: 'var(--radius-sm)',
     }}>{children}</p>
   );

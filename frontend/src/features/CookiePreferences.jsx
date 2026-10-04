@@ -126,7 +126,7 @@ function CategoryTable({ categories, prefs, onToggle }) {
                 </span>
               )}
             </div>
-            <div style={{ marginTop: 4, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.55 }}>
+            <div style={{ marginTop: 4, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>
               {c.description}
             </div>
           </div>

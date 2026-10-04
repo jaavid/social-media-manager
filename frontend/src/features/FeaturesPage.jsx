@@ -170,7 +170,7 @@ export default function FeaturesPage() {
           }}>
             یک سکو. هر گردش کار
           </h1>
-          <p style={{ margin: 0, fontSize: 18, lineHeight: 1.65, color: 'var(--text-secondary)' }}>
+          <p style={{ margin: 0, fontSize: 18, lineHeight: 'var(--line-height-body)', color: 'var(--text-secondary)' }}>
             همه آنچه برای اداره یک آژانس مدرن نیاز دارید. از اولین اتصال OAuth به گزارش مشتری صیقلی - راوینتا کل حلقه رشد را کنترل می‌کند.
           </p>
         </div>
@@ -233,7 +233,7 @@ export default function FeaturesPage() {
         <h2 style={{ margin: 0, fontSize: 'clamp(28px, 3.4vw, 40px)', fontWeight: 600, letterSpacing: '-0.025em', color: 'var(--text-primary)' }}>
           آن را در گردش کار خود ببینید.
         </h2>
-        <p style={{ margin: '12px auto 28px', maxWidth: 480, fontSize: 16, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+        <p style={{ margin: '12px auto 28px', maxWidth: 480, fontSize: 16, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>
           رایگان و منبع باز. خود میزبانی کنید یا آن را به صورت محلی اجرا کنید - بدون کارت اعتباری.
         </p>
         <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -292,7 +292,7 @@ function FeatureBlock({ feature, flip }) {
         }}>
           {feature.title}
         </h2>
-        <p style={{ margin: '14px 0 20px', fontSize: 15, lineHeight: 1.7, color: 'var(--text-secondary)' }}>
+        <p style={{ margin: '14px 0 20px', fontSize: 15, lineHeight: 'var(--line-height-body)', color: 'var(--text-secondary)' }}>
           {feature.body}
         </p>
         <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 10 }}>

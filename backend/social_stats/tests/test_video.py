@@ -117,7 +117,7 @@ class TrimTests(TestCase):
         self.api = _api(self.u)
         self.asset = _seed_video_asset(self.c, duration=10.0)
 
-    @patch('social_stats.video_views._moviepy_or_503')
+    @patch('social_stats.views.video._moviepy_or_503')
     def test_trim_creates_derived_asset(self, mock_lazy):
         # Build a fake VideoFileClip class whose constructor returns our fake clip
         clip = _fake_clip(duration=10.0)
@@ -137,7 +137,7 @@ class TrimTests(TestCase):
         self.assertIsNotNone(new_asset)
         self.assertAlmostEqual(new_asset.duration_seconds, 3.0, places=1)
 
-    @patch('social_stats.video_views._moviepy_or_503')
+    @patch('social_stats.views.video._moviepy_or_503')
     def test_trim_invalid_range(self, mock_lazy):
         # Even though moviepy returns OK, the validation should reject end <= start
         mock_lazy.return_value = (MagicMock(return_value=_fake_clip()), None)
@@ -154,7 +154,7 @@ class ResizeTests(TestCase):
         self.api = _api(self.u)
         self.asset = _seed_video_asset(self.c)
 
-    @patch('social_stats.video_views._moviepy_or_503')
+    @patch('social_stats.views.video._moviepy_or_503')
     def test_resize_to_9_16(self, mock_lazy):
         clip = _fake_clip(size=(1920, 1080))
         # clip.crop() returns the same clip (mock); .write_videofile is a no-op
@@ -185,8 +185,8 @@ class ThumbnailTests(TestCase):
         self.api = _api(self.u)
         self.asset = _seed_video_asset(self.c, duration=10.0)
 
-    @patch('social_stats.video_views._moviepy_or_503')
-    @patch('social_stats.video_views.Image')
+    @patch('social_stats.views.video._moviepy_or_503')
+    @patch('social_stats.views.video.Image')
     def test_extract_thumbnail_creates_image_asset(self, mock_Image, mock_lazy):
         clip = _fake_clip(duration=10.0)
         VideoFileClipFake = MagicMock(return_value=clip)

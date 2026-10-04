@@ -393,7 +393,7 @@ const previewStyle = {
   borderRadius: 'var(--radius-sm)',
   fontSize: 13, color: 'var(--text-primary)',
   whiteSpace: 'pre-wrap',
-  lineHeight: 1.55,
+  lineHeight: 'var(--line-height-body)',
 };
 
 const pillStyle = {
@@ -417,7 +417,7 @@ const textareaStyle = {
   background: 'var(--surface-sunken)',
   border: '1px solid var(--border-default)',
   borderRadius: 'var(--radius-sm)',
-  fontSize: 13, lineHeight: 1.5,
+  fontSize: 13, lineHeight: 'var(--line-height-body)',
   color: 'var(--text-primary)',
   fontFamily: 'inherit',
   outline: 'none', resize: 'vertical', boxSizing: 'border-box',

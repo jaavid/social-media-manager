@@ -90,7 +90,7 @@ const styles = {
   modal: { width: 'min(520px, 100%)', background: 'var(--surface-card, #fff)', color: 'var(--text-primary, #0f172a)', borderRadius: 18, padding: 24, position: 'relative', boxShadow: '0 24px 70px rgba(0,0,0,.2)' },
   close: { position: 'absolute', right: 14, top: 14, border: 0, background: 'transparent', cursor: 'pointer', color: 'inherit' },
   title: { margin: '0 0 6px', fontSize: 22 },
-  sub: { margin: '0 0 20px', color: 'var(--text-tertiary, #64748b)', fontSize: 13, lineHeight: 1.55 },
+  sub: { margin: '0 0 20px', color: 'var(--text-tertiary, #64748b)', fontSize: 13, lineHeight: 'var(--line-height-body)' },
   label: { display: 'block', fontWeight: 700, fontSize: 13, marginBottom: 6 },
   input: { width: '100%', boxSizing: 'border-box', padding: '11px 12px', border: '1px solid var(--border-subtle, #cbd5e1)', borderRadius: 10, marginBottom: 16, background: 'var(--surface-card, #fff)', color: 'inherit' },
   error: { color: '#b91c1c', background: '#fef2f2', borderRadius: 8, padding: 10, fontSize: 13, marginBottom: 12 },

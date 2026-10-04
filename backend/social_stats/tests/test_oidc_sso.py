@@ -103,7 +103,7 @@ class OIDCSSOTests(TestCase):
             'social_stats.oidc_sso.http_requests.post',
             return_value=MockResponse({'access_token': 'provider-access'}),
         ) as token_post, patch(
-            'social_stats.social_auth_views.FRONTEND_CALLBACK',
+            'social_stats.views.social_auth.FRONTEND_CALLBACK',
             'https://social.example.test/auth/callback',
         ):
             response = self.client.get(

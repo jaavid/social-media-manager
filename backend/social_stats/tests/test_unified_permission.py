@@ -27,7 +27,7 @@ from social_stats.models import (
     Client, UserProfile, UnifiedPost, CalendarPost,
     Agency, AgencyMembership, AgencyClientRelation, ApprovalRequest,
 )
-from social_stats.bot_models import BotFlow
+from social_stats.models.bot import BotFlow
 from social_stats.approval_executors import execute_approval
 
 
@@ -61,7 +61,7 @@ def _agency_relation(client, *, perms_override=None):
     defeat the test. Agency identity is established via AgencyMembership +
     primary_agency, not via UserProfile.role.
     """
-    from social_stats.marketplace_models import default_relation_permissions
+    from social_stats.models.marketplace import default_relation_permissions
 
     owner = _user(role='superadmin')  # agency owner only — not the test subject
     agency = Agency.objects.create(
@@ -373,7 +373,7 @@ class ApprovalExecutorTests(TestCase):
 # ══════════════════════════════════════════════════════════════════════
 class PermissionKeyRegistryTests(TestCase):
     def test_manage_bots_key_present(self):
-        from social_stats.marketplace_models import AGENCY_CLIENT_PERMISSIONS
+        from social_stats.models.marketplace import AGENCY_CLIENT_PERMISSIONS
         self.assertIn('manage_bots', AGENCY_CLIENT_PERMISSIONS)
         meta = AGENCY_CLIENT_PERMISSIONS['manage_bots']
         self.assertEqual(meta['risk'], 'high')

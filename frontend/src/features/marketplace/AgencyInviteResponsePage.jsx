@@ -145,7 +145,7 @@ export default function AgencyInviteResponsePage() {
               <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--brand-primary-hover)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
                 پیام
               </div>
-              <p style={{ margin: '4px 0 0', fontSize: 14, color: 'var(--text-primary)', lineHeight: 1.55, whiteSpace: 'pre-wrap' }}>
+              <p style={{ margin: '4px 0 0', fontSize: 14, color: 'var(--text-primary)', lineHeight: 'var(--line-height-body)', whiteSpace: 'pre-wrap' }}>
                 {invite.message}
               </p>
             </div>
@@ -276,7 +276,7 @@ const sectionHead = {
   fontSize: 14, fontWeight: 700, color: 'var(--text-primary)',
 };
 
-const hintText = { margin: 0, fontSize: 12, color: 'var(--text-tertiary)', lineHeight: 1.55 };
+const hintText = { margin: 0, fontSize: 12, color: 'var(--text-tertiary)', lineHeight: 'var(--line-height-body)' };
 
 const errorBox = {
   display: 'flex', gap: 12,

@@ -336,7 +336,7 @@ function ChatMessage({ msg }) {
               border: '1px solid var(--brand-primary-glow)',
               color: 'var(--text-primary)',
               borderRadius: 'var(--radius-md)',
-              fontSize: 13, lineHeight: 1.55,
+              fontSize: 13, lineHeight: 'var(--line-height-body)',
               whiteSpace: 'pre-wrap',
             }}>
               {text}
@@ -361,7 +361,7 @@ function ChatMessage({ msg }) {
             <div style={{
               flex: 1, minWidth: 0,
               padding: '4px 0',
-              fontSize: 13, lineHeight: 1.6,
+              fontSize: 13, lineHeight: 'var(--line-height-body)',
               color: 'var(--text-primary)',
               whiteSpace: 'pre-wrap',
             }}>
@@ -462,7 +462,7 @@ function ConfirmationCard({ confirmation, onConfirm, onCancel }) {
           <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--warning)' }}>
             Confirm action
           </div>
-          <div style={{ marginTop: 4, fontSize: 13, color: 'var(--text-primary)', lineHeight: 1.55 }}>
+          <div style={{ marginTop: 4, fontSize: 13, color: 'var(--text-primary)', lineHeight: 'var(--line-height-body)' }}>
             {confirmation.summary || confirmation.tool_name}
           </div>
           <div style={{ marginTop: 4, fontSize: 11, color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)' }}>
@@ -497,7 +497,7 @@ function EmptyChat({ onPick }) {
         <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>
           Hi, I&apos;m Social Stats
         </div>
-        <p style={{ margin: '6px auto 0', maxWidth: 280, fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.55 }}>
+        <p style={{ margin: '6px auto 0', maxWidth: 280, fontSize: 12, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>
           Ask me about your data, draft posts, reply to your inbox, or get a daily briefing.
         </p>
       </div>

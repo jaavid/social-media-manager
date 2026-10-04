@@ -37,7 +37,7 @@ from rest_framework.response import Response
 from ..models import (
     AIInsight, Client, PostMetric, Competitor, CompetitorSnapshot,
 )
-from ..ai_views import _resolved_client
+from social_stats.views.ai import _resolved_client
 from . import AIClient, AIError, RateLimited, prompts
 from .content_views import _ai_call_json, _error_response
 from .prompts import insight_generator, anomaly_detector, trend_analyzer, forecaster

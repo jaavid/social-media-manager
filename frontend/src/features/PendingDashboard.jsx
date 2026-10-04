@@ -229,7 +229,7 @@ const s = {
     fontWeight: 700,
     borderRadius: 999,
     padding: '1px 5px',
-    lineHeight: 1.4,
+    lineHeight: 'var(--line-height-body)',
   },
   logoutBtn: {
     display: 'flex',
@@ -316,7 +316,7 @@ const s = {
     border: '1px solid #e8edf2',
   },
   cardTitle: { margin: 0, fontSize: 19, fontWeight: 700, color: 'var(--text-primary)' },
-  cardDesc:  { margin: 0, fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6, flex: 1 },
+  cardDesc:  { margin: 0, fontSize: 14, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)', flex: 1 },
   primaryBtn: {
     marginTop: 8,
     display: 'flex',

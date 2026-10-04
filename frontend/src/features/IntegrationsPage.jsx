@@ -173,7 +173,7 @@ export default function IntegrationsPage() {
             maxWidth: 560,
             fontSize: 'clamp(16px, 1.8vw, 19px)',
             color: 'rgba(255,255,255,0.75)',
-            lineHeight: 1.55,
+            lineHeight: 'var(--line-height-body)',
           }}>
             بیش از ۴۰ اتصال یکپارچه برای شبکه‌های اجتماعی، پیام‌رسانی، تحلیل و آمار، مدیریت ارتباط با مشتری، تجارت و هوش مصنوعی. این اتصال‌ها را تیم ما توسعه می‌دهد و نگهداری می‌کند.
           </p>
@@ -394,7 +394,7 @@ export default function IntegrationsPage() {
             maxWidth: 480,
             fontSize: 17,
             color: 'rgba(255,255,255,0.75)',
-            lineHeight: 1.55,
+            lineHeight: 'var(--line-height-body)',
           }}>
             اکثر مشتریان قبل از اینکه قهوه صبح خود را تمام کنند، 4-6 پلتفرم را به هم متصل می‌کنند. طرح رایگان، بدون کارت.
           </p>
@@ -460,7 +460,7 @@ function FeaturedCard({ i }) {
         margin: 0, flex: 1,
         fontSize: 14,
         color: 'rgba(255,255,255,0.75)',
-        lineHeight: 1.55,
+        lineHeight: 'var(--line-height-body)',
       }}>
         {i.tagline}
       </p>
@@ -539,7 +539,7 @@ function IntegrationCard({ i }) {
         margin: 0, flex: 1,
         fontSize: 12,
         color: 'rgba(255,255,255,0.65)',
-        lineHeight: 1.5,
+        lineHeight: 'var(--line-height-body)',
       }}>
         {i.tagline}
       </p>
@@ -594,7 +594,7 @@ function Tile({ icon: Icon, title, body, cta }) {
           margin: '8px 0 16px', flex: 1,
           fontSize: 14,
           color: 'rgba(255,255,255,0.65)',
-          lineHeight: 1.55,
+          lineHeight: 'var(--line-height-body)',
         }}>
           {body}
         </p>

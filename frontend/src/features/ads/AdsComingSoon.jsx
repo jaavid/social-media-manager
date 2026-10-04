@@ -72,7 +72,7 @@ export default function AdsComingSoon() {
         <p style={{
           marginTop: 12, marginBottom: 28,
           maxWidth: 540,
-          fontSize: 14, lineHeight: 1.6,
+          fontSize: 14, lineHeight: 'var(--line-height-body)',
           color: 'var(--text-secondary)',
         }}>
           Run Meta and Google ad campaigns alongside your social analytics and
@@ -171,7 +171,7 @@ function FeatureCard({ icon: Icon, title, body }) {
       <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>
         {title}
       </div>
-      <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+      <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>
         {body}
       </div>
     </Card>

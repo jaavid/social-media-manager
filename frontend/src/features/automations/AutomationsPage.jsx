@@ -243,7 +243,7 @@ function TemplatesSidebar({ onPick }) {
             <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>
               {t.name}
             </div>
-            <div style={{ fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.4 }}>
+            <div style={{ fontSize: 11, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>
               {t.description}
             </div>
           </button>
@@ -577,5 +577,5 @@ const infoBoxStyle = {
   display: 'flex', alignItems: 'center', gap: 8,
   padding: '10px 12px', borderRadius: 'var(--radius-md)',
   background: 'var(--brand-primary-glow)', color: 'var(--text-primary)',
-  fontSize: 12, lineHeight: 1.5,
+  fontSize: 12, lineHeight: 'var(--line-height-body)',
 };

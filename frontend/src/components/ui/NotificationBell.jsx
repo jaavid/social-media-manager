@@ -353,7 +353,7 @@ const s = {
   badge: {
     position: 'absolute', top: -8, right: -8,
     background: '#dc2626', color: '#fff', borderRadius: 20,
-    fontSize: 11, fontWeight: 800, padding: '2px 7px', lineHeight: 1.35,
+    fontSize: 11, fontWeight: 800, padding: '2px 7px', lineHeight: 'var(--line-height-body)',
     minWidth: 28, textAlign: 'center', border: '3px solid #f8fafc',
   },
   dropdown: {
@@ -399,7 +399,7 @@ const s = {
   tabBadge: {
     background: '#ef4444', color: '#fff',
     fontSize: 12, fontWeight: 800, borderRadius: 999,
-    padding: '2px 7px', lineHeight: 1.4,
+    padding: '2px 7px', lineHeight: 'var(--line-height-body)',
   },
   list:    { overflowY: 'auto', flex: 1 },
   empty:   { padding: 40, textAlign: 'center', color: '#94a3b8', fontSize: 14 },
@@ -420,18 +420,18 @@ const s = {
     display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 2,
   },
   itemBody: { flex: 1, minWidth: 0 },
-  itemMsg:  { fontSize: 15, color: '#1e293b', lineHeight: 1.4, marginBottom: 4 },
+  itemMsg:  { fontSize: 15, color: '#1e293b', lineHeight: 'var(--line-height-body)', marginBottom: 4 },
   itemTitle: {
     fontSize: 16,
     color: '#334155',
-    lineHeight: 1.35,
+    lineHeight: 'var(--line-height-body)',
     fontWeight: 500,
     marginBottom: 6,
   },
   itemBodyText: {
     color: '#64748b',
     fontSize: 13,
-    lineHeight: 1.45,
+    lineHeight: 'var(--line-height-body)',
     marginBottom: 6,
   },
   itemMeta: { display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' },

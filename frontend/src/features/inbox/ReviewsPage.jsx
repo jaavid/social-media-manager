@@ -198,7 +198,7 @@ function ReviewCard({ review, onChange }) {
           background: 'var(--surface-sunken)',
           borderLeft: `3px solid ${sent.color}`,
           borderRadius: 'var(--radius-sm)',
-          fontSize: 13, lineHeight: 1.5,
+          fontSize: 13, lineHeight: 'var(--line-height-body)',
           color: 'var(--text-primary)',
           whiteSpace: 'pre-wrap',
         }}>
@@ -211,7 +211,7 @@ function ReviewCard({ review, onChange }) {
           marginTop: 12, padding: '10px 12px',
           background: 'var(--brand-primary-glow)',
           borderRadius: 'var(--radius-sm)',
-          fontSize: 13, lineHeight: 1.5,
+          fontSize: 13, lineHeight: 'var(--line-height-body)',
           color: 'var(--text-primary)',
         }}>
           <div style={{

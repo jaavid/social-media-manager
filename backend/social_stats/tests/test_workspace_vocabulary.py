@@ -5,7 +5,7 @@ from django.test import TestCase
 from django.urls import reverse, resolve
 from rest_framework.test import APIClient
 from social_stats.models import Client, ClientGoal, UserProfile
-from social_stats.views import CustomTokenSerializer
+from social_stats.views.core import CustomTokenSerializer
 from social_stats.workspace_vocabulary import (
     add_workspace_output,
     normalize_workspace_input,

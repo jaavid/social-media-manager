@@ -80,7 +80,7 @@ export default function SecurityPage() {
           }}>
             امنیت بر اساس طراحی.
           </h1>
-          <p style={{ margin: 0, fontSize: 18, lineHeight: 1.65, color: 'var(--text-secondary)' }}>
+          <p style={{ margin: 0, fontSize: 18, lineHeight: 'var(--line-height-body)', color: 'var(--text-secondary)' }}>
             راوینتا بر اساس همان امنیت اولیه ای است که بانک ها و بیمارستان ها به آن تکیه می‌کنند. ما با داده‌های شما - و داده‌های مشتریانتان - طوری رفتار می‌کنیم که مانند داده‌های ما باشد.
           </p>
         </div>
@@ -122,7 +122,7 @@ export default function SecurityPage() {
               <h3 style={{ margin: 0, fontSize: 18, fontWeight: 600, letterSpacing: '-0.01em', color: 'var(--text-primary)' }}>
                 {c.title}
               </h3>
-              <p style={{ margin: '8px 0 0', fontSize: 14, lineHeight: 1.65, color: 'var(--text-secondary)' }}>
+              <p style={{ margin: '8px 0 0', fontSize: 14, lineHeight: 'var(--line-height-body)', color: 'var(--text-secondary)' }}>
                 {c.body}
               </p>
             </article>
@@ -140,7 +140,7 @@ export default function SecurityPage() {
             <h2 style={{ margin: 0, fontSize: 'clamp(28px, 3.4vw, 36px)', fontWeight: 600, letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
               گواهینامه ها و انطباق.
             </h2>
-            <p style={{ margin: '12px auto 0', maxWidth: 560, fontSize: 15, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+            <p style={{ margin: '12px auto 0', maxWidth: 560, fontSize: 15, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>
               امروز کجا هستیم و به کجا می رویم.
             </p>
           </div>
@@ -184,7 +184,7 @@ export default function SecurityPage() {
                     {({ Compliant: 'مطابق الزامات', 'In progress': 'در حال انجام', Roadmap: 'در برنامه توسعه' })[cert.status] || cert.status}
                   </Badge>
                 </div>
-                <p style={{ margin: '8px 0 0', fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                <p style={{ margin: '8px 0 0', fontSize: 12, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>
                   {cert.description}
                 </p>
               </div>
@@ -227,7 +227,7 @@ export default function SecurityPage() {
             <h3 style={{ margin: 0, fontSize: 22, fontWeight: 600, letterSpacing: '-0.015em', color: 'var(--text-primary)' }}>
               آسیب پذیری پیدا کردید؟
             </h3>
-            <p style={{ margin: '8px 0 16px', fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.65 }}>
+            <p style={{ margin: '8px 0 16px', fontSize: 14, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>
               ما یک برنامه پاداش باگ خصوصی را با پرداخت تا سقف اجرا می کنیم <strong>₹1,00,000</strong> برای مسائل بحرانی. گزارش خصوصی از طریق <a href="https://github.com/cbsshekhawat18-lab/social-stats-social-media-manager/security/advisories/new" target="_blank" rel="noreferrer" style={{ color: 'var(--text-link)' }}>توصیه های امنیتی گیت‌هاب</a>{' '}
               با مراحل بازتولید و ارزیابی تاثیر. ما ظرف 24 ساعت تأیید می کنیم و در 72 ساعت تریاژ می کنیم.
             </p>

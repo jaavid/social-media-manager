@@ -177,3 +177,53 @@ class PersianAdminTests(TestCase):
         )
         self.assertFalse(model_admin.has_add_permission(request))
         self.assertFalse(model_admin.has_delete_permission(request))
+
+
+class UnfoldAdminTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_superuser(
+            username='unfold-admin', password='test'
+        )
+        self.client.force_login(self.user)
+
+    def test_backend_index_uses_unfold_assets_and_persian_layout(self):
+        response = self.client.get('/backend/')
+        self.assertContains(response, 'unfold/css/styles.css')
+        self.assertContains(response, 'dir="rtl"')
+        self.assertContains(response, 'مدیریت سامانه شبکه‌های اجتماعی')
+
+    def test_auth_change_forms_and_password_form_render(self):
+        from django.contrib.auth.models import Group
+
+        group = Group.objects.create(name='Operators')
+        for path in (
+            f'/backend/auth/user/{self.user.pk}/change/',
+            '/backend/auth/user/add/',
+            f'/backend/auth/user/{self.user.pk}/password/',
+            f'/backend/auth/group/{group.pk}/change/',
+        ):
+            with self.subTest(path=path):
+                response = self.client.get(path)
+                self.assertEqual(response.status_code, 200)
+                self.assertContains(response, 'unfold/css/styles.css')
+
+    def test_sidebar_uses_model_permissions(self):
+        from social_stats.admin.navigation import sidebar_navigation
+
+        staff = get_user_model().objects.create_user(
+            username='unfold-staff', password='test', is_staff=True
+        )
+        request = RequestFactory().get('/backend/')
+        request.user = staff
+        self.assertEqual(sidebar_navigation(request), [])
+        staff.user_permissions.add(Permission.objects.get(
+            content_type__app_label='social_stats', codename='view_unifiedpost'
+        ))
+        # Django caches permissions on the user instance. Re-read after the grant.
+        request.user = get_user_model().objects.get(pk=staff.pk)
+        groups = sidebar_navigation(request)
+        self.assertEqual(len(groups), 1)
+        self.assertEqual(
+            [item['link'] for group in groups for item in group['items']],
+            ['/backend/social_stats/unifiedpost/'],
+        )

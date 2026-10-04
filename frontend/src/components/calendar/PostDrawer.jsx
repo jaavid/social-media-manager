@@ -122,7 +122,7 @@ export default function PostDrawer({ post, isOpen, onClose, onEdit, onDelete, on
           {post.caption && (
             <div style={{
               background: 'var(--surface-sunken)', borderRadius: 8, padding: '12px 14px',
-              fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: 12,
+              fontSize: 13, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)', marginBottom: 12,
               whiteSpace: 'pre-wrap',
             }}>
               {post.caption}

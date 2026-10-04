@@ -9,6 +9,7 @@ import '../styles/common.css';
 import '../styles/legacy.css';
 import '../styles/accessibility.css';
 import '../styles/tailwind.css';
+import '../styles/i18n.css';
 
 export const metadata = {
   title: { default: 'راوینتا؛ از ایده تا اثرگذاری', template: '%s · Ravinta' },
@@ -42,6 +43,8 @@ export default async function RootLayout({ children }) {
   const preference = ['light', 'dark', 'system'].includes(storedTheme) ? storedTheme : 'light';
   const theme = preference === 'dark' ? 'dark' : 'light';
   return <html lang={language} dir={language === 'fa' ? 'rtl' : 'ltr'}
+    style={{ '--font-arabic-face': arabicFont.style.fontFamily.split(',')[0],
+      '--font-latin-face': latinFont.style.fontFamily.split(',')[0] }}
     data-preference={preference} data-theme={theme}
     className={`${arabicFont.variable} ${latinFont.variable}${theme === 'dark' ? ' dark' : ''}`} suppressHydrationWarning>
     <head><script dangerouslySetInnerHTML={{ __html: bootstrap }} /></head>

@@ -17,7 +17,7 @@ export default function TableOfContents({ sections, compact = false }) {
       color: active === section.id ? 'var(--text-primary)' : 'var(--text-secondary)',
       background: active === section.id ? 'var(--brand-primary-soft)' : 'transparent',
       boxShadow: active === section.id ? 'inset 2px 0 0 var(--brand-primary)' : 'none',
-      borderRadius: 'var(--radius-sm)', textDecoration: 'none', lineHeight: 1.4, transition: 'var(--transition-fast)',
+      borderRadius: 'var(--radius-sm)', textDecoration: 'none', lineHeight: 'var(--line-height-body)', transition: 'var(--transition-fast)',
     }}>{section.title}</a>)}
   </nav>;
 }

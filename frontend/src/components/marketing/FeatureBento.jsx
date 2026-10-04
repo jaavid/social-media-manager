@@ -122,7 +122,7 @@ function BentoTile({
             {description && (
               <p style={{
                 margin: '4px 0 0',
-                fontSize: 13, lineHeight: 1.5,
+                fontSize: 13, lineHeight: 'var(--line-height-body)',
                 color: 'var(--text-secondary)',
               }}>{description}</p>
             )}

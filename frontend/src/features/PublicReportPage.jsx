@@ -356,7 +356,7 @@ export default function PublicReportPage() {
                         )}
                       </div>
                       {post.caption && (
-                        <p style={{ margin: '0 0 6px', fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                        <p style={{ margin: '0 0 6px', fontSize: 13, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>
                           {post.caption.length > 120 ? post.caption.slice(0, 120) + '…' : post.caption}
                         </p>
                       )}

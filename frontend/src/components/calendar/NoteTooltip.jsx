@@ -35,7 +35,7 @@ export default function NoteTooltip({ note }) {
         {note.title}
       </div>
       {note.note && (
-        <div style={{ color: '#94a3b8', lineHeight: 1.4 }}>{note.note}</div>
+        <div style={{ color: '#94a3b8', lineHeight: 'var(--line-height-body)' }}>{note.note}</div>
       )}
       <div style={{ color: '#475569', fontSize: 11, marginTop: 4 }}>
         {new Date(note.date + 'T00:00:00').toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })}

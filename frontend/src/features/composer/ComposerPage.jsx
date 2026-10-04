@@ -484,7 +484,7 @@ export default function ComposerPage() {
                 fontFamily: 'inherit',
                 color: 'var(--text-primary)',
                 outline: 'none',
-                lineHeight: 1.6,
+                lineHeight: 'var(--line-height-body)',
                 boxSizing: 'border-box',
                 minHeight: 'unset',
               }}
@@ -797,7 +797,7 @@ function PlatformPreview({ platform, content, mediaAssets, mediaType, user, tele
       {platform === 'telegram' && mediaType === 'rich' && <div style={{ padding: 14 }}><RichPreview value={telegramContent?.rich_message || emptyRich} /></div>}
       {platform === 'telegram' && mediaType === 'poll' && <div style={{ padding: 14 }}><strong>{telegramContent?.poll?.question}</strong>{(telegramContent?.poll?.options || []).map((x, i) => <p key={i}>○ {typeof x === 'string' ? x : x.text}</p>)}</div>}
       {platform !== 'instagram' && !['rich', 'poll'].includes(mediaType) && content && (
-        <div style={{ padding: '0 14px 12px', whiteSpace: 'pre-wrap', fontSize: 14, lineHeight: 1.5 }}>
+        <div style={{ padding: '0 14px 12px', whiteSpace: 'pre-wrap', fontSize: 14, lineHeight: 'var(--line-height-body)' }}>
           {content}
         </div>
       )}
@@ -807,7 +807,7 @@ function PlatformPreview({ platform, content, mediaAssets, mediaType, user, tele
       )}
 
       {platform === 'instagram' && content && (
-        <div style={{ padding: '12px 14px', fontSize: 13, lineHeight: 1.5 }}>
+        <div style={{ padding: '12px 14px', fontSize: 13, lineHeight: 'var(--line-height-body)' }}>
           <strong>{handle}</strong> {content}
         </div>
       )}
@@ -966,7 +966,7 @@ const inputStyle = {
 };
 
 const ulStyle = {
-  margin: '6px 0 0', paddingLeft: 18, fontSize: 12, lineHeight: 1.5,
+  margin: '6px 0 0', paddingLeft: 18, fontSize: 12, lineHeight: 'var(--line-height-body)',
 };
 
 function toLocalInput(iso) {

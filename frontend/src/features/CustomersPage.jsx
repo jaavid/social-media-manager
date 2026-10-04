@@ -161,7 +161,7 @@ export default function CustomersPage() {
           <p style={{
             margin: '20px auto 0', maxWidth: 620,
             fontSize: 'clamp(15px, 1.6vw, 17px)',
-            lineHeight: 1.55,
+            lineHeight: 'var(--line-height-body)',
             color: 'rgba(255,255,255,0.78)',
           }}>
             ما در حال انتشار راوینتا برای اولین گروه از شرکای راه اندازی هستیم. با انتشار عمومی آن شرکا، داستان‌های واقعی مشتریان، با تیم‌های نام‌گذاری شده و اعداد واقعی، در اینجا ظاهر می‌شوند. تا آن زمان، در اینجا نحوه ساخت محصول برای استفاده آمده است.
@@ -217,7 +217,7 @@ export default function CustomersPage() {
               }}>چگونه راوینتا برای استفاده ساخته شده است</h2>
               <p style={{
                 margin: '14px auto 0', maxWidth: 620,
-                fontSize: 16, lineHeight: 1.55,
+                fontSize: 16, lineHeight: 'var(--line-height-body)',
                 color: 'var(--text-secondary)',
               }}>
                 اینها نمونه گردش کار هستند، نه داستانهای واقعی مشتری. هر کدام یک راه‌اندازی معمولی برای آن صنعت را توصیف می‌کنند - کانال‌ها، ویژگی‌های هوش مصنوعی، و جریان‌های تأیید مناسب.
@@ -257,12 +257,12 @@ export default function CustomersPage() {
 
                     <h3 style={{
                       margin: 0, fontSize: 17, fontWeight: 700,
-                      color: 'var(--text-primary)', lineHeight: 1.3,
+                      color: 'var(--text-primary)', lineHeight: 'var(--line-height-body)',
                       letterSpacing: '-0.01em',
                     }}>{w.headline}</h3>
 
                     <p style={{
-                      margin: 0, fontSize: 13, lineHeight: 1.55,
+                      margin: 0, fontSize: 13, lineHeight: 'var(--line-height-body)',
                       color: 'var(--text-secondary)',
                     }}>{w.body}</p>
 
@@ -320,13 +320,13 @@ export default function CustomersPage() {
             margin: 0,
             fontSize: 'clamp(24px, 3.6vw, 32px)',
             fontWeight: 700, letterSpacing: '-0.02em',
-            color: 'var(--text-primary)', lineHeight: 1.2,
+            color: 'var(--text-primary)', lineHeight: 'var(--line-height-body)',
           }}>
             اولین داستان مشتری در این صفحه باشید
           </h2>
           <p style={{
             margin: '14px auto 0', maxWidth: 520,
-            fontSize: 15, lineHeight: 1.55,
+            fontSize: 15, lineHeight: 'var(--line-height-body)',
             color: 'var(--text-secondary)',
           }}>
             تیم‌های شریک راه‌اندازی زمانی که آماده به اشتراک گذاشتن شماره‌هایشان هستند، به صورت عملی، یک خط مستقیم به تیم، و یک نقطه ویژگی در اینجا دریافت می‌کنند.

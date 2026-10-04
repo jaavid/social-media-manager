@@ -73,7 +73,7 @@ export default function LegalPageLayout({
             </div>
           )}
           {intro && (
-            <p style={{ margin: '20px auto 0', maxWidth: 660, fontSize: 16, lineHeight: 1.65, color: 'var(--text-secondary)' }}>
+            <p style={{ margin: '20px auto 0', maxWidth: 660, fontSize: 16, lineHeight: 'var(--line-height-body)', color: 'var(--text-secondary)' }}>
               {intro}
             </p>
           )}
@@ -126,7 +126,7 @@ export default function LegalPageLayout({
               borderRadius: 'var(--radius-xl)',
               boxShadow: 'var(--shadow-sm)',
               color: 'var(--text-primary)',
-              lineHeight: 1.7,
+              lineHeight: 'var(--line-height-body)',
               fontSize: 15,
             }}
             className="legal-article"

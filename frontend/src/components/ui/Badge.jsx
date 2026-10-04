@@ -13,7 +13,7 @@ const VARIANT_CLASSES = {
 };
 
 const SIZE_CLASSES = {
-  sm: 'px-1.5 py-px text-[10px]',
+  sm: 'px-1.5 py-0.5 text-[10px]',
   md: 'px-2 py-0.5 text-[11px]',
 };
 
@@ -28,11 +28,11 @@ export default function Badge({
   variant = 'default',
   size = 'md',
   dot = false,
-  icon: Icon,
-  iconElement,
+  icon: Icon = undefined,
+  iconElement = undefined,
   children,
-  className,
-  style,
+  className = undefined,
+  style = undefined,
   ...rest
 }) {
   const { tr } = useLanguage();
@@ -42,7 +42,7 @@ export default function Badge({
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border font-medium leading-[1.4] tracking-[0.1px]',
+        'inline-flex items-center gap-1.5 max-w-full whitespace-normal break-words rounded-full border font-medium leading-[var(--line-height-body)]',
         VARIANT_CLASSES[variant] || VARIANT_CLASSES.default,
         SIZE_CLASSES[resolvedSize],
         className,

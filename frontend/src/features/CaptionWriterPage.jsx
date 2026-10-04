@@ -137,10 +137,10 @@ function CaptionCard({ platform, caption, hashtags, bestTime, onAddToCalendar })
             value={text}
             onChange={e => setText(e.target.value)}
             rows={6}
-            style={{ width: '100%', padding: '10px 12px', border: `2px solid ${cfg.color}`, borderRadius: 10, fontSize: 14, lineHeight: 1.7, resize: 'vertical', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }}
+            style={{ width: '100%', padding: '10px 12px', border: `2px solid ${cfg.color}`, borderRadius: 10, fontSize: 14, lineHeight: 'var(--line-height-body)', resize: 'vertical', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }}
           />
         ) : (
-          <p style={{ fontSize: 14, lineHeight: 1.8, color: 'var(--text-primary)', whiteSpace: 'pre-wrap', margin: 0 }}>{text}</p>
+          <p style={{ fontSize: 14, lineHeight: 'var(--line-height-body)', color: 'var(--text-primary)', whiteSpace: 'pre-wrap', margin: 0 }}>{text}</p>
         )}
       </div>
 
@@ -253,7 +253,7 @@ function RecommendedSetCard({ rec, onCopy, copied }) {
         {rec.caption && (
           <div style={{ marginBottom: 12 }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 }}>Caption hashtags</div>
-            <p style={{ fontSize: 13, color: 'var(--text-primary)', lineHeight: 1.7, margin: '0 0 8px', wordBreak: 'break-word' }}>{rec.caption}</p>
+            <p style={{ fontSize: 13, color: 'var(--text-primary)', lineHeight: 'var(--line-height-body)', margin: '0 0 8px', wordBreak: 'break-word' }}>{rec.caption}</p>
             <button onClick={() => onCopy(rec.caption, 'rec-caption')} style={cardStyles.ghostBtn}>
               <Copy size={12} />
               {copied === 'rec-caption' ? '✓ Copied!' : 'Copy'}
@@ -263,7 +263,7 @@ function RecommendedSetCard({ rec, onCopy, copied }) {
         {rec.first_comment && (
           <div style={{ marginBottom: 12, paddingTop: 12, borderTop: '1px solid #e6fbff' }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 }}>First comment hashtags</div>
-            <p style={{ fontSize: 13, color: 'var(--text-primary)', lineHeight: 1.7, margin: '0 0 8px', wordBreak: 'break-word' }}>{rec.first_comment}</p>
+            <p style={{ fontSize: 13, color: 'var(--text-primary)', lineHeight: 'var(--line-height-body)', margin: '0 0 8px', wordBreak: 'break-word' }}>{rec.first_comment}</p>
             <button onClick={() => onCopy(rec.first_comment, 'rec-comment')} style={cardStyles.ghostBtn}>
               <Copy size={12} />
               {copied === 'rec-comment' ? '✓ Copied!' : 'Copy'}
@@ -272,7 +272,7 @@ function RecommendedSetCard({ rec, onCopy, copied }) {
         )}
         {rec.mix_explanation && (
           <div style={{ paddingTop: 10, borderTop: '1px solid #e6fbff' }}>
-            <span style={{ fontSize: 12, color: '#00d7ff', lineHeight: 1.6 }}>{rec.mix_explanation}</span>
+            <span style={{ fontSize: 12, color: '#00d7ff', lineHeight: 'var(--line-height-body)' }}>{rec.mix_explanation}</span>
           </div>
         )}
       </div>
@@ -865,7 +865,7 @@ export default function CaptionWriterPage({ defaultTab = 'caption' }) {
                   {hashResult.strategy && (
                     <div style={{ background: 'linear-gradient(135deg,#00d7ff15,#00d7ff15)', border: '1px solid #99eeff', borderRadius: 14, padding: '14px 16px', marginBottom: 16, display: 'flex', alignItems: 'flex-start', gap: 10 }}>
                       <Sparkles size={16} color="#00d7ff" style={{ flexShrink: 0, marginTop: 1 }} />
-                      <p style={{ fontSize: 14, color: '#4c1d95', fontWeight: 500, margin: 0, lineHeight: 1.6 }}>{hashResult.strategy}</p>
+                      <p style={{ fontSize: 14, color: '#4c1d95', fontWeight: 500, margin: 0, lineHeight: 'var(--line-height-body)' }}>{hashResult.strategy}</p>
                     </div>
                   )}
 
@@ -889,7 +889,7 @@ export default function CaptionWriterPage({ defaultTab = 'caption' }) {
                         <SocialPlatformIcon platform={hPlatform} size={14} />
                         {HASHTAG_PLATFORMS[hPlatform]?.label} Tips
                       </div>
-                      <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.7 }}>{hashResult.platform_tips}</p>
+                      <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0, lineHeight: 'var(--line-height-body)' }}>{hashResult.platform_tips}</p>
                     </div>
                   )}
 
@@ -899,7 +899,7 @@ export default function CaptionWriterPage({ defaultTab = 'caption' }) {
                       <div style={{ fontSize: 11, fontWeight: 700, color: '#dc2626', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Tags to Avoid</div>
                       <ul style={{ margin: 0, padding: '0 0 0 16px', display: 'flex', flexDirection: 'column', gap: 4 }}>
                         {hashResult.avoid.map((item, i) => (
-                          <li key={i} style={{ fontSize: 13, color: '#7f1d1d', lineHeight: 1.5 }}>{item}</li>
+                          <li key={i} style={{ fontSize: 13, color: '#7f1d1d', lineHeight: 'var(--line-height-body)' }}>{item}</li>
                         ))}
                       </ul>
                     </div>
@@ -1013,7 +1013,7 @@ export default function CaptionWriterPage({ defaultTab = 'caption' }) {
 // ── Styles ─────────────────────────────────────────────────────────────────────
 const styles = {
   header: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28, flexWrap: 'wrap', gap: 16 },
-  title: { fontSize: 24, fontWeight: 800, color: 'var(--text-primary)', margin: 0, fontFamily: "'Plus Jakarta Sans', sans-serif" },
+  title: { fontSize: 24, fontWeight: 800, color: 'var(--text-primary)', margin: 0, fontFamily: 'var(--font-sans)' },
   sub: { fontSize: 14, color: 'var(--text-secondary)', marginTop: 4, marginBottom: 0 },
   clientSelect: { padding: '9px 14px', border: '1.5px solid var(--border-default)', borderRadius: 10, fontSize: 13, color: 'var(--text-primary)', background: 'var(--surface-card)', outline: 'none', minWidth: 200 },
   layout: { display: 'flex', gap: 24, alignItems: 'flex-start' },
@@ -1022,7 +1022,7 @@ const styles = {
   formCard: { background: 'var(--surface-card)', border: '1px solid var(--border-default)', borderRadius: 18, padding: 24 },
   fieldGroup: { marginBottom: 20 },
   label: { fontSize: 13, fontWeight: 700, color: 'var(--text-secondary)', display: 'block' },
-  textarea: { width: '100%', padding: '10px 14px', border: '1.5px solid var(--border-default)', borderRadius: 10, fontSize: 14, lineHeight: 1.6, resize: 'vertical', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box', color: 'var(--text-primary)' },
+  textarea: { width: '100%', padding: '10px 14px', border: '1.5px solid var(--border-default)', borderRadius: 10, fontSize: 14, lineHeight: 'var(--line-height-body)', resize: 'vertical', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box', color: 'var(--text-primary)' },
   select: { width: '100%', padding: '10px 14px', border: '1.5px solid var(--border-default)', borderRadius: 10, fontSize: 14, color: 'var(--text-primary)', background: 'var(--surface-card)', outline: 'none', marginTop: 6 },
   input: { width: '100%', padding: '10px 14px', border: '1.5px solid var(--border-default)', borderRadius: 10, fontSize: 14, color: 'var(--text-primary)', background: 'var(--surface-card)', outline: 'none', boxSizing: 'border-box' },
   toneBtn: { display: 'inline-flex', alignItems: 'center', gap: 5, padding: '7px 14px', borderRadius: 10, border: '1.5px solid var(--border-default)', background: 'var(--surface-card)', color: 'var(--text-secondary)', fontSize: 13, fontWeight: 600, cursor: 'pointer' },

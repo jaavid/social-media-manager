@@ -439,7 +439,7 @@ function CaptionsTool({ asset }) {
           background: 'var(--warning-bg)', color: 'var(--warning)',
           border: '1px solid var(--border-subtle)',
           borderRadius: 'var(--radius-md)',
-          fontSize: 12, lineHeight: 1.5,
+          fontSize: 12, lineHeight: 'var(--line-height-body)',
         }}>
           <strong>Not configured.</strong> {error}
         </div>

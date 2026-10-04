@@ -444,9 +444,9 @@ function MegaItem({ to, label, desc, icon: Icon }) {
         </span>
       )}
       <div style={{ minWidth: 0 }}>
-        <div style={{ fontSize: 14, lineHeight: 1.7, fontWeight: 600, color: 'var(--text-primary)' }}>{label}</div>
+        <div style={{ fontSize: 14, lineHeight: 'var(--line-height-body)', fontWeight: 600, color: 'var(--text-primary)' }}>{label}</div>
         {desc && (
-          <div style={{ marginTop: 2, fontSize: 12, color: 'var(--text-tertiary)', lineHeight: 1.4 }}>
+          <div style={{ marginTop: 2, fontSize: 12, color: 'var(--text-tertiary)', lineHeight: 'var(--line-height-body)' }}>
             {desc}
           </div>
         )}

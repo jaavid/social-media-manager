@@ -192,7 +192,7 @@ export default function ManageInvitePage() {
               <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--brand-primary-hover)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
                 پیام از {invite.agency.name}
               </div>
-              <p style={{ margin: '4px 0 0', fontSize: 14, color: 'var(--text-primary)', lineHeight: 1.55, whiteSpace: 'pre-wrap' }}>
+              <p style={{ margin: '4px 0 0', fontSize: 14, color: 'var(--text-primary)', lineHeight: 'var(--line-height-body)', whiteSpace: 'pre-wrap' }}>
                 {invite.proposed_message}
               </p>
             </div>
@@ -405,7 +405,7 @@ const permRow = {
 
 const hintStyle = {
   margin: 0, fontSize: 12,
-  color: 'var(--text-tertiary)', lineHeight: 1.55,
+  color: 'var(--text-tertiary)', lineHeight: 'var(--line-height-body)',
 };
 
 const errorBox = {

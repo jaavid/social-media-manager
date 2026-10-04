@@ -244,7 +244,7 @@ const styles = {
   },
   stepMain: { display: 'flex', gap: 12, minWidth: 0, flex: 1 },
   stepLabel: { fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 },
-  stepDescription: { fontSize: 13, lineHeight: 1.55, color: 'var(--text-secondary)' },
+  stepDescription: { fontSize: 13, lineHeight: 'var(--line-height-body)', color: 'var(--text-secondary)' },
   stepMeta: { marginTop: 6, fontSize: 12, color: 'var(--text-tertiary)' },
   stepAction: {
     display: 'inline-flex',

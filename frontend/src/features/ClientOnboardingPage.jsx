@@ -1091,7 +1091,7 @@ const styles = {
   heroTitle: {
     margin: '10px 0 6px',
     fontSize: 20,
-    lineHeight: 1.2,
+    lineHeight: 'var(--line-height-body)',
     fontWeight: 800,
     color: 'var(--text-primary)',
     maxWidth: 700,
@@ -1100,7 +1100,7 @@ const styles = {
     margin: 0,
     color: 'var(--text-secondary)',
     fontSize: 13,
-    lineHeight: 1.6,
+    lineHeight: 'var(--line-height-body)',
     maxWidth: 720,
   },
   heroMeter: {
@@ -1118,7 +1118,7 @@ const styles = {
     alignItems: 'center',
   },
   heroMeterLabel: { fontSize: 12, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '.08em' },
-  heroMeterValue: { fontSize: 22, fontWeight: 900, color: 'var(--text-primary)' },
+  heroMeterValue: { fontSize: 22, fontWeight: 800, color: 'var(--text-primary)' },
   heroProgressTrack: { height: 12, borderRadius: 999, background: 'var(--border-default)', overflow: 'hidden' },
   heroProgressFill: { height: '100%', borderRadius: 999, background: 'linear-gradient(90deg, #00d7ff 0%, #38bdf8 45%, #34d399 100%)' },
   heroMeterFoot: { fontSize: 13, color: 'var(--text-secondary)', fontWeight: 600 },
@@ -1230,14 +1230,14 @@ const styles = {
     margin: '10px 0 6px',
     fontSize: 20,
     fontWeight: 800,
-    lineHeight: 1.2,
+    lineHeight: 'var(--line-height-body)',
     color: 'var(--text-primary)',
     maxWidth: 760,
   },
   stepSummary: {
     margin: 0,
     fontSize: 13,
-    lineHeight: 1.6,
+    lineHeight: 'var(--line-height-body)',
     color: 'var(--text-secondary)',
     maxWidth: 760,
   },
@@ -1258,7 +1258,7 @@ const styles = {
     color: 'var(--text-primary)',
   },
   featureTitle: { fontSize: 14, fontWeight: 800, marginBottom: 2 },
-  featureText: { fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5 },
+  featureText: { fontSize: 12, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' },
   panelGrid: {
     display: 'grid',
     gap: 18,
@@ -1418,7 +1418,7 @@ const styles = {
     border: '1px solid var(--border-default)',
   },
   assetCardTitle: { fontSize: 18, fontWeight: 800, color: 'var(--text-primary)' },
-  assetCardText: { fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6 },
+  assetCardText: { fontSize: 13, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' },
   singlePreviewCard: {
     padding: 14,
     borderRadius: 18,
@@ -1467,7 +1467,7 @@ const styles = {
     color: '#be123c',
     fontSize: 12,
     fontWeight: 700,
-    lineHeight: 1.4,
+    lineHeight: 'var(--line-height-body)',
     maxWidth: '100%',
   },
   submitBanner: {
@@ -1501,9 +1501,9 @@ const styles = {
     gap: 10,
   },
   connectMiniStat: { display: 'grid', gap: 4 },
-  connectMiniValue: { fontSize: 26, fontWeight: 900, color: 'var(--text-primary)' },
+  connectMiniValue: { fontSize: 26, fontWeight: 800, color: 'var(--text-primary)' },
   connectMiniLabel: { fontSize: 12, color: 'var(--text-secondary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em' },
-  connectMiniNote: { fontSize: 13, lineHeight: 1.6, color: 'var(--text-secondary)' },
+  connectMiniNote: { fontSize: 13, lineHeight: 'var(--line-height-body)', color: 'var(--text-secondary)' },
   connectTitle: {
     fontSize: 20,
     fontWeight: 800,
@@ -1513,7 +1513,7 @@ const styles = {
   connectDesc: {
     color: 'var(--text-secondary)',
     marginBottom: 18,
-    lineHeight: 1.6,
+    lineHeight: 'var(--line-height-body)',
   },
   connectChecklist: { display: 'grid', gap: 10 },
   connectPoint: {

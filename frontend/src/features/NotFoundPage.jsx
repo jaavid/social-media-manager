@@ -82,7 +82,7 @@ export default function NotFoundPage() {
           }}>
             صفحه یافت نشد
           </h1>
-          <p style={{ margin: '12px auto 28px', maxWidth: 440, fontSize: 16, lineHeight: 1.65, color: 'var(--text-secondary)' }}>
+          <p style={{ margin: '12px auto 28px', maxWidth: 440, fontSize: 16, lineHeight: 'var(--line-height-body)', color: 'var(--text-secondary)' }}>
             صفحه ای که به دنبال آن هستید وجود ندارد، منتقل شده است یا هرگز اینجا نبوده است. صفحه اصلی را امتحان کنید یا مرکز راهنمایی ما را جستجو کنید.
           </p>
 

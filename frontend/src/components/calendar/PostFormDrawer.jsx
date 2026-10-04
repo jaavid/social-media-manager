@@ -324,7 +324,7 @@ export default function PostFormDrawer({ date, post, isOpen, onClose, onSave, cl
               onChange={event => { setCaption(event.target.value); clearFieldError('caption'); }}
               placeholder={`${tr('Write your')} ${selectedPlatform.label} ${tr('caption')}…`}
               rows={5}
-              style={{ ...inputStyle, ...(errors.caption ? inputErrorStyle : {}), resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.5 }}
+              style={{ ...inputStyle, ...(errors.caption ? inputErrorStyle : {}), resize: 'vertical', fontFamily: 'inherit', lineHeight: 'var(--line-height-body)' }}
             />
             <CharCounter text={caption} limit={charLimit} formatNumber={formatNumber} />
           </Field>
@@ -403,7 +403,7 @@ export default function PostFormDrawer({ date, post, isOpen, onClose, onSave, cl
               display: 'flex', alignItems: 'flex-start', gap: 10,
               background: '#FEF2F2', border: '1px solid #FECACA',
               borderRadius: 8, padding: '12px 14px',
-              color: '#B91C1C', fontSize: 13, marginBottom: 12, lineHeight: 1.5,
+              color: '#B91C1C', fontSize: 13, marginBottom: 12, lineHeight: 'var(--line-height-body)',
             }}>
               <AlertCircle size={16} style={{ flexShrink: 0, marginTop: 1 }} />
               <span>{error}</span>

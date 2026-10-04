@@ -368,7 +368,7 @@ export default function StatusPage() {
                       </Badge>
                     </div>
                     <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginBottom: 8 }}>{inc.date}</div>
-                    <p style={{ margin: 0, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+                    <p style={{ margin: 0, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>
                       {inc.summary}
                     </p>
                   </article>

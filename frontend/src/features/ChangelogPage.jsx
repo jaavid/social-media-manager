@@ -103,7 +103,7 @@ export default function ChangelogPage() {
           }}>
             آنچه در راوینتا جدید است.
           </h1>
-          <p style={{ margin: '0 auto', maxWidth: 560, fontSize: 16, lineHeight: 1.65, color: 'var(--text-secondary)' }}>
+          <p style={{ margin: '0 auto', maxWidth: 560, fontSize: 16, lineHeight: 'var(--line-height-body)', color: 'var(--text-secondary)' }}>
             هر انتشار، هر اصلاح. تماشا کنید <a href="https://github.com/cbsshekhawat18-lab/social-stats-social-media-manager/releases" target="_blank" rel="noreferrer" style={{ color: 'var(--text-link)', fontWeight: 500 }}>در گیت‌هاب منتشر می‌شود</a> برای دریافت خبر.
           </p>
         </div>
@@ -201,7 +201,7 @@ export default function ChangelogPage() {
                         <Icon size={10} strokeWidth={2.4} />
                         {t.label}
                       </span>
-                      <span style={{ lineHeight: 1.55, color: 'var(--text-secondary)' }}>
+                      <span style={{ lineHeight: 'var(--line-height-body)', color: 'var(--text-secondary)' }}>
                         {entry.text}
                       </span>
                     </li>

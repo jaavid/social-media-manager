@@ -86,7 +86,8 @@
   --space-12: 48px; --space-16: 64px; --space-20: 80px; --space-24: 96px;
 
   /* ── Typography ───────────────────────────────────────────────────────── */
-  --font-sans:    var(--font-product-arabic, 'Noto Sans Arabic'), var(--font-product-latin, Arial), sans-serif;
+  --product-font-family: var(--font-arabic-face, 'Noto Sans Arabic'), var(--font-latin-face, 'Noto Sans'), var(--font-product-arabic, Arial), sans-serif;
+  --font-sans: var(--product-font-family);
   --font-display: var(--font-sans);
   --font-mono:    'JetBrains Mono', 'SF Mono', Menlo, monospace;
 
@@ -235,7 +236,14 @@ textarea:focus-visible,
   --control-border: #7c8799; --destructive-foreground: #ffffff;
 }
 [data-theme="dark"] { --control-border: #8BA49B; --destructive-foreground: #102B29; }
-:lang(fa), :lang(ar) { --line-height-body: 1.8; --line-height-heading: 1.45; letter-spacing: 0; }
+:lang(en) {
+  --font-sans: var(--product-font-family);
+  --product-font-family: var(--font-latin-face, 'Noto Sans'), var(--font-arabic-face, 'Noto Sans Arabic'), var(--font-product-latin, Arial), sans-serif;
+  --line-height-body: 1.55; --line-height-heading: 1.2;
+}
+:lang(fa), :lang(ar) {
+  --font-sans: var(--product-font-family);
+  --product-font-family: var(--font-arabic-face, 'Noto Sans Arabic'), var(--font-latin-face, 'Noto Sans'), var(--font-product-arabic, Arial), sans-serif; --line-height-body: 1.8; --line-height-heading: 1.45; letter-spacing: 0; }
 :disabled, [aria-disabled="true"] { cursor: not-allowed; }
 .bidi-isolate { direction: ltr; unicode-bidi: isolate; }
 

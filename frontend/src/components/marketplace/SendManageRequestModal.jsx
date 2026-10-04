@@ -365,7 +365,7 @@ const iconBtn = {
 
 const hintStyle = {
   margin: '0 0 12px', fontSize: 12,
-  color: 'var(--text-tertiary)', lineHeight: 1.55,
+  color: 'var(--text-tertiary)', lineHeight: 'var(--line-height-body)',
 };
 
 const catLabel = {

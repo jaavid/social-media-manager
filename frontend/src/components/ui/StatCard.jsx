@@ -72,7 +72,7 @@ export default function StatCard({ label, value, icon: Icon, color = '#00CCF5', 
           color: 'var(--text-tertiary)',
           textTransform: 'uppercase',
           letterSpacing: 0.4,
-          lineHeight: 1.3,
+          lineHeight: 'var(--line-height-body)',
         }}>
           {label}
         </span>

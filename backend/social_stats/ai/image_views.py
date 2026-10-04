@@ -34,7 +34,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from ..ai_helpers import brand_voice_prompt
-from ..ai_views import _resolved_client
+from social_stats.views.ai import _resolved_client
 from . import AIClient, AIError, RateLimited, prompts
 from .client import _parse_json_loose
 

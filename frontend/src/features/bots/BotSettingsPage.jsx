@@ -153,7 +153,7 @@ export default function BotSettingsPage() {
         color: 'var(--brand-primary-hover)',
         borderRadius: 'var(--radius-md)',
         display: 'flex', gap: 8, alignItems: 'flex-start',
-        fontSize: 12, lineHeight: 1.5,
+        fontSize: 12, lineHeight: 'var(--line-height-body)',
       }}>
         <Sparkles size={14} style={{ flexShrink: 0, marginTop: 1 }} />
         <div>
@@ -223,7 +223,7 @@ function Row({ label, help, children }) {
     }}>
       <div style={{ flex: 1 }}>
         <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{label}</div>
-        {help && <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--text-tertiary)', lineHeight: 1.5 }}>{help}</p>}
+        {help && <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--text-tertiary)', lineHeight: 'var(--line-height-body)' }}>{help}</p>}
       </div>
       <div style={{ flexShrink: 0 }}>{children}</div>
     </div>

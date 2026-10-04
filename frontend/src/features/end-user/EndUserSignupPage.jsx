@@ -152,7 +152,7 @@ export default function EndUserSignupPage() {
         {step === 3 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <Summary form={form} />
-            <label style={{ display: 'flex', gap: 8, alignItems: 'flex-start', fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+            <label style={{ display: 'flex', gap: 8, alignItems: 'flex-start', fontSize: 12, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>
               <input
                 type="checkbox"
                 checked={form.terms}

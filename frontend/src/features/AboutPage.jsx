@@ -87,7 +87,7 @@ export default function AboutPage() {
           }}>
             ما در حال ساختن سیستم عامل بازاریابی مورد نظر خود در آخرین شرکت خود هستیم.
           </h1>
-          <p style={{ margin: 0, fontSize: 18, lineHeight: 1.65, color: 'var(--text-secondary)' }}>
+          <p style={{ margin: 0, fontSize: 18, lineHeight: 'var(--line-height-body)', color: 'var(--text-secondary)' }}>
             راوینتا با یک تیم موسس ناامید و یک لیست طولانی از ابزارهای بازاریابی شکسته شروع شد. ما در حال ساختن محصول یکپارچه ای که می خواستیم در آخرین شرکت خود هستیم.
           </p>
         </div>
@@ -111,7 +111,7 @@ export default function AboutPage() {
             fontWeight: 500,
             letterSpacing: '-0.015em',
             color: 'var(--text-primary)',
-            lineHeight: 1.4,
+            lineHeight: 'var(--line-height-body)',
           }}>
             به هر تیم بازاریابی - از سازندگان انفرادی گرفته تا آژانس‌های جهانی - یک پلتفرم واحد و زیبا بدهید <span style={{ color: 'var(--brand-primary-hover)' }}>درک کنید، ایجاد کنید و رشد کنید</span>.
           </p>
@@ -125,7 +125,7 @@ export default function AboutPage() {
             <h2 style={{ margin: 0, fontSize: 'clamp(28px, 3.4vw, 40px)', fontWeight: 600, letterSpacing: '-0.025em', color: 'var(--text-primary)' }}>
               چگونه کار می کنیم.
             </h2>
-            <p style={{ margin: '12px auto 0', maxWidth: 540, fontSize: 15, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+            <p style={{ margin: '12px auto 0', maxWidth: 540, fontSize: 15, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>
               چهار ارزشی که در هر تصمیم محصول نشان داده می‌شود.
             </p>
           </div>
@@ -165,7 +165,7 @@ export default function AboutPage() {
                 <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: 'var(--text-primary)' }}>
                   {v.title}
                 </h3>
-                <p style={{ margin: '6px 0 0', fontSize: 13, lineHeight: 1.6, color: 'var(--text-secondary)' }}>
+                <p style={{ margin: '6px 0 0', fontSize: 13, lineHeight: 'var(--line-height-body)', color: 'var(--text-secondary)' }}>
                   {v.body}
                 </p>
               </MotionDiv>
@@ -186,7 +186,7 @@ export default function AboutPage() {
             <h2 style={{ margin: '14px 0 12px', fontSize: 'clamp(28px, 3.4vw, 40px)', fontWeight: 600, letterSpacing: '-0.025em', color: 'var(--text-primary)' }}>
               انسان های پشت راوینتا.
             </h2>
-            <p style={{ margin: '0 auto', maxWidth: 540, fontSize: 15, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+            <p style={{ margin: '0 auto', maxWidth: 540, fontSize: 15, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>
               ما یک تیم کوچک و با تجربه در بنگلور و از راه دور هستیم.
             </p>
           </div>
@@ -219,7 +219,7 @@ export default function AboutPage() {
                   <div style={{ minWidth: 0, flex: 1 }}>
                     <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>{m.name}</div>
                     <div style={{ fontSize: 12, color: 'var(--brand-primary-hover)', fontWeight: 500, marginBottom: 2 }}>{m.role}</div>
-                    <div style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{m.bio}</div>
+                    <div style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>{m.bio}</div>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                     <SocialChip icon={Linkedin} label={`${m.name} در لینکدین`} />
@@ -237,7 +237,7 @@ export default function AboutPage() {
               textAlign: 'center',
               maxWidth: 560, margin: '0 auto',
             }}>
-              <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: 'var(--text-secondary)' }}>
+              <p style={{ margin: 0, fontSize: 14, lineHeight: 'var(--line-height-body)', color: 'var(--text-secondary)' }}>
                 با عمومی شدن نمایه های تیمی در اینجا ظاهر می‌شود. در این میان، ساده‌ترین راه برای ارتباط با ما از طریق ایمیل است{' '}
                 <a href="https://github.com/cbsshekhawat18-lab/social-stats-social-media-manager" target="_blank" rel="noreferrer" style={{ color: 'var(--text-link)', fontWeight: 600 }}>
                   github.com/cbsshekhawat18-lab/social-stats-social-media-manager
@@ -303,7 +303,7 @@ export default function AboutPage() {
                 <h3 style={{ margin: '4px 0 6px', fontSize: 17, fontWeight: 600, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
                   {t.title}
                 </h3>
-                <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: 'var(--text-secondary)' }}>
+                <p style={{ margin: 0, fontSize: 14, lineHeight: 'var(--line-height-body)', color: 'var(--text-secondary)' }}>
                   {t.body}
                 </p>
               </li>
@@ -317,7 +317,7 @@ export default function AboutPage() {
         <h2 style={{ margin: 0, fontSize: 'clamp(28px, 3.4vw, 40px)', fontWeight: 600, letterSpacing: '-0.025em', color: 'var(--text-primary)' }}>
           آیا می خواهید با ما بسازید؟
         </h2>
-        <p style={{ margin: '12px auto 28px', maxWidth: 480, fontSize: 16, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+        <p style={{ margin: '12px auto 28px', maxWidth: 480, fontSize: 16, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>
           ما در سراسر پشته استخدام می کنیم. یا فقط سلام کنید
         </p>
         <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>

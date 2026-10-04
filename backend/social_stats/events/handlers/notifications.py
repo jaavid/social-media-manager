@@ -290,7 +290,7 @@ def notify_human_handoff(event):
 
     payload contract: {'conversation_id': int, 'reason': str}.
     """
-    from social_stats.bot_models import BotConversation
+    from social_stats.models.bot import BotConversation
     conv_id = event.payload.get('conversation_id')
     if not conv_id:
         return
@@ -324,7 +324,7 @@ def notify_new_lead(event):
 
     payload contract: {'lead_id': int, 'source': str}.
     """
-    from social_stats.bot_models import Lead
+    from social_stats.models.bot import Lead
     lead_id = event.payload.get('lead_id')
     if not lead_id:
         return
@@ -364,7 +364,7 @@ def notify_lead_assigned(event):
 
     payload contract: {'lead_id': int, 'assigned_to_user_id': int|None}.
     """
-    from social_stats.bot_models import Lead
+    from social_stats.models.bot import Lead
     if not event.payload.get('assigned_to_changed'):
         return  # not an assignment event; another handler (lead.captured) covers initial
 

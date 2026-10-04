@@ -419,5 +419,5 @@ const agencyAvatar = {
 
 const hintText = {
   margin: 0, fontSize: 12,
-  color: 'var(--text-tertiary)', lineHeight: 1.55,
+  color: 'var(--text-tertiary)', lineHeight: 'var(--line-height-body)',
 };

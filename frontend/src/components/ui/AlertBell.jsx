@@ -109,7 +109,7 @@ const styles = {
   badge: {
     position: 'absolute', top: -6, right: -6,
     background: '#dc2626', color: '#fff', borderRadius: 20,
-    fontSize: 10, fontWeight: 700, padding: '1px 5px', lineHeight: 1.4,
+    fontSize: 10, fontWeight: 700, padding: '1px 5px', lineHeight: 'var(--line-height-body)',
     minWidth: 18, textAlign: 'center',
   },
 
@@ -144,7 +144,7 @@ const styles = {
     display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 2,
   },
   itemBody: { flex: 1, minWidth: 0 },
-  itemMsg:  { fontSize: 13, color: 'var(--text-primary)', lineHeight: 1.4, marginBottom: 4 },
+  itemMsg:  { fontSize: 13, color: 'var(--text-primary)', lineHeight: 'var(--line-height-body)', marginBottom: 4 },
   itemMeta: { display: 'flex', alignItems: 'center', gap: 6 },
   clientTag: {
     fontSize: 11, background: '#ede9fe', color: '#6d28d9',

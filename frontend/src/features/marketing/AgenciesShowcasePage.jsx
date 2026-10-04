@@ -115,7 +115,7 @@ export default function AgenciesShowcasePage() {
             maxWidth: 560,
             fontSize: 'clamp(16px, 1.8vw, 19px)',
             color: 'rgba(255,255,255,0.75)',
-            lineHeight: 1.55,
+            lineHeight: 'var(--line-height-body)',
           }}>
             بیش از 50 آژانس بررسی شده در سراسر هند. اعتبار تایید شده نظرات مشتریان واقعی آژانسی که در اینجا استخدام می‌کنید از همان ابزارهایی استفاده می‌کند که برای نظارت بر آنها استفاده می‌کنید.
           </p>
@@ -334,7 +334,7 @@ export default function AgenciesShowcasePage() {
                 margin: '14px 0 24px',
                 fontSize: 16,
                 color: 'rgba(255,255,255,0.75)',
-                lineHeight: 1.55,
+                lineHeight: 'var(--line-height-body)',
               }}>
                 آژانس‌های موجود در برنامه شریک راوینتا در این فهرست فهرست می‌شوند، 30 درصد از مشتریان ارجاع‌شده کسب می‌کنند و پشتیبانی اولویت‌دار را دریافت می‌کنند.
               </p>
@@ -420,7 +420,7 @@ export default function AgenciesShowcasePage() {
             maxWidth: 480,
             fontSize: 17,
             color: 'rgba(255,255,255,0.75)',
-            lineHeight: 1.55,
+            lineHeight: 'var(--line-height-body)',
           }}>
             راوینتا طوری ساخته شده است که یک تیم 1 نفره بتواند کاری را که یک آژانس 5 نفره انجام می‌دهد انجام دهد. رایگان شروع کنید و خودتان ببینید.
           </p>
@@ -539,7 +539,7 @@ function FeaturedCard({ a }) {
           margin: 0,
           fontSize: 14,
           color: 'rgba(255,255,255,0.75)',
-          lineHeight: 1.55,
+          lineHeight: 'var(--line-height-body)',
           flex: 1,
         }}>
           {a.tagline}
@@ -612,7 +612,7 @@ function AgencyCard({ a }) {
           margin: 0, flex: 1,
           fontSize: 13,
           color: 'rgba(255,255,255,0.65)',
-          lineHeight: 1.55,
+          lineHeight: 'var(--line-height-body)',
         }}>
           {a.tagline}
         </p>

@@ -142,7 +142,7 @@ export default function AgencyMarketplaceProfilePage() {
           />
           <div>
             <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>List in marketplace</div>
-            <p style={{ margin: '2px 0 0', fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+            <p style={{ margin: '2px 0 0', fontSize: 13, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>
               When on, your agency shows up in <strong>/agencies</strong> with the fields below. Off-market agencies can still receive direct invitations.
             </p>
             {profile.is_verified ? (
@@ -299,7 +299,7 @@ function VerificationPanel({ slug, profile, onChanged }) {
       {(decision !== 'approved') && (
         <div>
           <Label>{decision === 'pending' ? 'Re-submit (overrides previous)' : 'Submit documents'}</Label>
-          <p style={{ margin: '0 0 10px', fontSize: 12, color: 'var(--text-tertiary)', lineHeight: 1.55 }}>
+          <p style={{ margin: '0 0 10px', fontSize: 12, color: 'var(--text-tertiary)', lineHeight: 'var(--line-height-body)' }}>
             Upload to a private URL (Drive, S3, etc.) and paste the link here. Acceptable: GST cert, business registration, ID proof.
           </p>
           {draft.map((row, i) => (

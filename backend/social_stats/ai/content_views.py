@@ -36,7 +36,7 @@ from rest_framework.response import Response
 
 from ..models import Client, PostMetric
 from ..ai_helpers import brand_voice_prompt
-from ..ai_views import _resolved_client                 # reuse existing tenant guard
+from social_stats.views.ai import _resolved_client                 # reuse existing tenant guard
 from . import AIClient, AIError, RateLimited, prompts
 
 logger = logging.getLogger(__name__)

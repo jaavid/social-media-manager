@@ -101,7 +101,7 @@ export default function MarketingFooter() {
             <Logo variant="horizontal" height={28} />
             <p style={{
               margin: '14px 0 16px',
-              fontSize: 13, lineHeight: 1.6,
+              fontSize: 13, lineHeight: 'var(--line-height-body)',
               color: 'var(--text-secondary)',
               maxWidth: 280,
             }}>

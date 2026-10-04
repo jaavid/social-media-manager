@@ -214,7 +214,7 @@ export default function AIAuditPage({ clientId: propClientId = null }) {
         background: 'var(--brand-primary-soft)',
         border: '1px solid var(--brand-primary-glow)',
         borderRadius: 'var(--radius-md)',
-        fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.55,
+        fontSize: 12, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)',
       }}>
         <Sparkles size={12} style={{ color: 'var(--brand-primary-hover)', verticalAlign: -1 }} />
         {' '}

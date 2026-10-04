@@ -190,7 +190,7 @@ function Card({ t, onPreview, featured }) {
         )}
       </header>
       <p style={{
-        margin: 0, fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.4,
+        margin: 0, fontSize: 12, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)',
         display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
         overflow: 'hidden', minHeight: '2.8em',
       }}>{t.description}</p>
@@ -292,7 +292,7 @@ function PreviewModal({ template, onClose }) {
         </header>
 
         <div style={{ flex: 1, overflowY: 'auto', padding: 20 }}>
-          <p style={{ margin: '0 0 16px', fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+          <p style={{ margin: '0 0 16px', fontSize: 14, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>
             {template.description}
           </p>
 

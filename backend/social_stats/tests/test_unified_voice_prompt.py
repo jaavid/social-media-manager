@@ -127,7 +127,7 @@ class CallsiteMigrationTests(TestCase):
     legacy import."""
 
     def test_ai_views_imports_unified_voice_prompt(self):
-        from social_stats import ai_views
+        import social_stats.views.ai as ai_views
         # The module should expose unified_voice_prompt (imported into its
         # namespace), not the legacy brand_voice_prompt.
         self.assertTrue(hasattr(ai_views, 'unified_voice_prompt'))

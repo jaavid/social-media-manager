@@ -77,7 +77,7 @@ export default function HelpCenterPage() {
           }}>
             چگونه می‌توانیم کمک کنیم؟
           </h1>
-          <p style={{ margin: '0 auto 28px', maxWidth: 560, fontSize: 16, lineHeight: 1.65, color: 'var(--text-secondary)' }}>
+          <p style={{ margin: '0 auto 28px', maxWidth: 560, fontSize: 16, lineHeight: 'var(--line-height-body)', color: 'var(--text-secondary)' }}>
             مقالات، راهنماها و مراحل عیب‌یابی را جستجو کنید - یا بر اساس دسته بندی مرور کنید.
           </p>
 
@@ -178,7 +178,7 @@ export default function HelpCenterPage() {
                     <c.icon size={16} strokeWidth={2.2} />
                   </span>
                   <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)' }}>{c.title}</div>
-                  <p style={{ margin: '4px 0 12px', fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5, flex: 1 }}>
+                  <p style={{ margin: '4px 0 12px', fontSize: 13, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)', flex: 1 }}>
                     {c.body}
                   </p>
                   <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, fontSize: 12 }}>
@@ -229,7 +229,7 @@ export default function HelpCenterPage() {
             <div style={{ fontSize: 17, fontWeight: 600, color: 'var(--text-primary)' }}>
               هنوز به کمک نیاز دارید؟
             </div>
-            <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.55 }}>
+            <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>
               تیم پشتیبانی ما ظرف یک روز کاری پاسخ می‌دهد. سریعتر در رشد + برنامه های سازمانی.
             </div>
           </div>

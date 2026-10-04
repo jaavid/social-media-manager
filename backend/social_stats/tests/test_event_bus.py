@@ -27,8 +27,8 @@ from social_stats.events.registry import EVENT_HANDLERS
 from social_stats.models import (
     Client, UserProfile, EventLog, Notification, ActivityLog,
 )
-from social_stats.bot_models import Lead, BotFlow
-from social_stats.bot_models import BotConversation
+from social_stats.models.bot import Lead, BotFlow
+from social_stats.models.bot import BotConversation
 
 
 def _client(label='c'):

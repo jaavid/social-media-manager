@@ -65,7 +65,7 @@ export function ComposerPreview() {
         padding: 10,
         background: 'var(--surface-sunken)',
         borderRadius: 'var(--radius-sm)',
-        fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.5,
+        fontSize: 11, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)',
       }}>
         راه اندازی جدید - لوکس آپارتمان سه‌خوابه در <strong style={{ color: 'var(--text-primary)' }}>ارتفاعات آکم</strong>. استخر روی پشت بام، خانه هوشمند، آماده نقل مکان. بازدید از سایت این آخر هفته باز است 🌅
       </div>
@@ -193,10 +193,10 @@ export function AIInsightPreview() {
           بینش هوش مصنوعی · همین الان
         </span>
       </div>
-      <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.45 }}>
+      <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', lineHeight: 'var(--line-height-body)' }}>
         نامزدی در روزهای سه شنبه 30 درصد کاهش یافت
       </div>
-      <div style={{ marginTop: 6, fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.55 }}>
+      <div style={{ marginTop: 6, fontSize: 11, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>
         سعی کنید پست سه شنبه خود را به ساعت 7 بعدازظهر منتقل کنید - در آن زمان مخاطبان شما بیشتر فعال هستند.
       </div>
     </div>
@@ -342,7 +342,7 @@ function Bubble({ side, tone = 'plain', children }) {
       alignSelf: isUser ? 'flex-end' : 'flex-start',
       maxWidth: '88%',
       padding: '8px 12px',
-      fontSize: 12, lineHeight: 1.5,
+      fontSize: 12, lineHeight: 'var(--line-height-body)',
       color: cyan ? 'var(--brand-primary-hover)' : 'var(--text-primary)',
       background: cyan ? 'var(--brand-primary-soft)' : 'var(--surface-card)',
       border: cyan ? 'none' : '1px solid var(--border-subtle)',

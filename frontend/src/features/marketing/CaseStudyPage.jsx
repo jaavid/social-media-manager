@@ -129,7 +129,7 @@ export default function CaseStudyPage({ slug }) {
                 margin: '20px 0 0',
                 fontSize: 'clamp(18px, 2vw, 22px)',
                 color: 'rgba(255,255,255,0.75)',
-                lineHeight: 1.4,
+                lineHeight: 'var(--line-height-body)',
                 maxWidth: 540,
               }}>
                 {tagline}
@@ -288,7 +288,7 @@ export default function CaseStudyPage({ slug }) {
                 fontWeight: 700,
                 color: '#fff',
                 letterSpacing: '-0.02em',
-                lineHeight: 1.2,
+                lineHeight: 'var(--line-height-body)',
               }}>
                 {challenge.title}
               </h2>
@@ -313,7 +313,7 @@ export default function CaseStudyPage({ slug }) {
                 fontWeight: 700,
                 color: '#fff',
                 letterSpacing: '-0.02em',
-                lineHeight: 1.2,
+                lineHeight: 'var(--line-height-body)',
               }}>
                 {solution.title}
               </h2>
@@ -328,7 +328,7 @@ export default function CaseStudyPage({ slug }) {
                 {solution.bullets.map((b) => (
                   <li key={b} style={{
                     display: 'flex', gap: 10, alignItems: 'flex-start',
-                    fontSize: 15, color: 'rgba(255,255,255,0.80)', lineHeight: 1.5,
+                    fontSize: 15, color: 'rgba(255,255,255,0.80)', lineHeight: 'var(--line-height-body)',
                   }}>
                     <CheckCircle2 size={18} color={accent} style={{ flexShrink: 0, marginTop: 1 }} />
                     {b}
@@ -353,7 +353,7 @@ export default function CaseStudyPage({ slug }) {
                   fontWeight: 700,
                   color: '#fff',
                   letterSpacing: '-0.02em',
-                  lineHeight: 1.25,
+                  lineHeight: 'var(--line-height-body)',
                 }}>
                   {results.title}
                 </h2>
@@ -434,7 +434,7 @@ export default function CaseStudyPage({ slug }) {
             maxWidth: 520,
             fontSize: 17,
             color: 'rgba(255,255,255,0.75)',
-            lineHeight: 1.55,
+            lineHeight: 'var(--line-height-body)',
           }}>
             رایگان شروع کنید. هر زمان خواستید لغو کنید. اکثر تیم ها در هفته اول نتایج را می بینند.
           </p>
@@ -469,7 +469,7 @@ export default function CaseStudyPage({ slug }) {
 const paraStyle = {
   margin: '0 0 16px',
   fontSize: 17,
-  lineHeight: 1.65,
+  lineHeight: 'var(--line-height-body)',
   color: 'rgba(255,255,255,0.78)',
 };
 
@@ -521,7 +521,7 @@ function PullQuote({ pull, accent }) {
         fontSize: 'clamp(20px, 2.4vw, 26px)',
         fontWeight: 500,
         color: '#fff',
-        lineHeight: 1.4,
+        lineHeight: 'var(--line-height-body)',
         letterSpacing: '-0.01em',
       }}>
         “{pull.quote}”

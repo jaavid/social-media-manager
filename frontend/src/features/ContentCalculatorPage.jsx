@@ -135,7 +135,7 @@ const styles = {
   metricHint: {
     fontSize: 12,
     color: 'var(--text-secondary)',
-    lineHeight: 1.5,
+    lineHeight: 'var(--line-height-body)',
   },
   card: {
     background: 'var(--surface-card)',
@@ -181,7 +181,7 @@ const styles = {
     border: '1px solid var(--border-default)',
     padding: '16px 18px',
     fontSize: 14,
-    lineHeight: 1.6,
+    lineHeight: 'var(--line-height-body)',
     color: 'var(--text-primary)',
     outline: 'none',
     background: 'var(--surface-page)',

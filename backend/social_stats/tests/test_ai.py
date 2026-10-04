@@ -62,7 +62,7 @@ class ComposePostTests(TestCase):
         self.api = _api_for(self.user)
         cache.clear()
 
-    @patch('social_stats.ai_views.get_claude')
+    @patch('social_stats.views.ai.get_claude')
     def test_compose_returns_variants_per_platform(self, mock_get_claude):
         client = MagicMock()
         client.messages.create.return_value = _claude_returning(
@@ -78,7 +78,7 @@ class ComposePostTests(TestCase):
         self.assertEqual(res.data['variants']['facebook'], ['v1', 'v2', 'v3'])
         self.assertEqual(res.data['variants']['instagram'], ['a', 'b', 'c'])
 
-    @patch('social_stats.ai_views.get_claude')
+    @patch('social_stats.views.ai.get_claude')
     def test_compose_caches_repeat_call(self, mock_get_claude):
         client = MagicMock()
         client.messages.create.return_value = _claude_returning(
@@ -108,7 +108,7 @@ class SuggestHashtagsTests(TestCase):
         self.api = _api_for(self.user)
         cache.clear()
 
-    @patch('social_stats.ai_views.get_claude')
+    @patch('social_stats.views.ai.get_claude')
     def test_normalizes_and_caps_hashtags(self, mock_get_claude):
         client = MagicMock()
         client.messages.create.return_value = _claude_returning(
@@ -200,7 +200,7 @@ class SuggestReplyTests(TestCase):
         )
         cache.clear()
 
-    @patch('social_stats.ai_views.get_claude')
+    @patch('social_stats.views.ai.get_claude')
     def test_returns_three_suggestions_and_persists_first(self, mock_get_claude):
         c = MagicMock()
         c.messages.create.return_value = _claude_returning(
@@ -234,7 +234,7 @@ class RewriteTranslateTests(TestCase):
         self.api = _api_for(self.user)
         cache.clear()
 
-    @patch('social_stats.ai_views.get_claude')
+    @patch('social_stats.views.ai.get_claude')
     def test_rewrite_returns_text(self, mock_get_claude):
         c = MagicMock()
         c.messages.create.return_value = _claude_returning('Shorter version here.')
@@ -247,7 +247,7 @@ class RewriteTranslateTests(TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertEqual(res.data['text'], 'Shorter version here.')
 
-    @patch('social_stats.ai_views.get_claude')
+    @patch('social_stats.views.ai.get_claude')
     def test_translate_returns_text(self, mock_get_claude):
         c = MagicMock()
         c.messages.create.return_value = _claude_returning('Hola, mundo')
@@ -274,7 +274,7 @@ class BrandVoiceTests(TestCase):
         self.api = _api_for(self.user)
         cache.clear()
 
-    @patch('social_stats.ai_views.get_claude')
+    @patch('social_stats.views.ai.get_claude')
     def test_train_persists_profile(self, mock_get_claude):
         c = MagicMock()
         c.messages.create.return_value = _claude_returning(

@@ -230,7 +230,7 @@ function QueueDetail({ queueId, onChanged }) {
           )}
         </div>
 
-        <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+        <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>
           To inspect or reorder individual queued items, use the <code style={code}>composer/queues/&#123;id&#125;/reorder</code> endpoint.
           The next item drains automatically every minute when this queue is active and a slot is due.
         </div>

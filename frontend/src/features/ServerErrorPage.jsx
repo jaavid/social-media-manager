@@ -76,7 +76,7 @@ export default function ServerErrorPage() {
           }}>
             در پایان ما مشکلی پیش آمد.
           </h1>
-          <p style={{ margin: '12px auto 24px', maxWidth: 440, fontSize: 15, lineHeight: 1.65, color: 'var(--text-secondary)' }}>
+          <p style={{ margin: '12px auto 24px', maxWidth: 440, fontSize: 15, lineHeight: 'var(--line-height-body)', color: 'var(--text-secondary)' }}>
             به ما اطلاع داده شده است و در حال بررسی آن هستیم. در بیشتر موارد، به‌روزرسانی صفحه آن را حل می‌کند. اگر همچنان اتفاق می افتد، صفحه وضعیت ما را بررسی کنید یا با ما تماس بگیرید.
           </p>
 

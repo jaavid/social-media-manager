@@ -119,7 +119,7 @@ function Hero({ data }) {
             style={{
               margin: '20px 0 0',
               fontSize: 'clamp(15px, 1.6vw, 18px)',
-              lineHeight: 1.55, color: 'rgba(255,255,255,0.72)',
+              lineHeight: 'var(--line-height-body)', color: 'rgba(255,255,255,0.72)',
               maxWidth: 520,
             }}
           >
@@ -216,7 +216,7 @@ function PainPoints({ data }) {
             {data.subtitle && (
               <p style={{
                 margin: '12px 0 0',
-                fontSize: 15, lineHeight: 1.6,
+                fontSize: 15, lineHeight: 'var(--line-height-body)',
                 color: 'var(--text-secondary)',
               }}>{data.subtitle}</p>
             )}
@@ -251,7 +251,7 @@ function PainPoints({ data }) {
                 }}>{p.title}</h3>
                 <p style={{
                   margin: '6px 0 0',
-                  fontSize: 13, lineHeight: 1.55,
+                  fontSize: 13, lineHeight: 'var(--line-height-body)',
                   color: 'var(--text-secondary)',
                 }}>{p.description}</p>
               </div>
@@ -306,7 +306,7 @@ function FeatureStripe({ data, reverse }) {
               }}>{data.title}</h2>
               <p style={{
                 margin: '14px 0 0',
-                fontSize: 16, lineHeight: 1.6,
+                fontSize: 16, lineHeight: 'var(--line-height-body)',
                 color: 'var(--text-secondary)',
                 maxWidth: 460,
               }}>{data.description}</p>
@@ -316,7 +316,7 @@ function FeatureStripe({ data, reverse }) {
                     <li key={b} style={{
                       display: 'flex', alignItems: 'flex-start', gap: 10,
                       padding: '7px 0',
-                      fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.55,
+                      fontSize: 14, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)',
                     }}>
                       <Check size={14} style={{ color: '#00CCF5', flexShrink: 0, marginTop: 4 }}
                              strokeWidth={2.5} />
@@ -378,7 +378,7 @@ function TemplatesGallery({ data }) {
             }}>{data.title}</h2>
             {data.subtitle && (
               <p style={{
-                margin: '12px 0 0', fontSize: 15, lineHeight: 1.6,
+                margin: '12px 0 0', fontSize: 15, lineHeight: 'var(--line-height-body)',
                 color: 'var(--text-secondary)',
               }}>{data.subtitle}</p>
             )}
@@ -416,7 +416,7 @@ function TemplatesGallery({ data }) {
                   color: 'var(--text-primary)',
                 }}>{t.title}</h3>
                 <p style={{
-                  margin: '6px 0 0', fontSize: 13, lineHeight: 1.55,
+                  margin: '6px 0 0', fontSize: 13, lineHeight: 'var(--line-height-body)',
                   color: 'var(--text-secondary)',
                 }}>{t.description}</p>
               </div>
@@ -454,7 +454,7 @@ function CustomerQuote({ data }) {
           <p style={{
             margin: '8px 0 0',
             fontSize: 'clamp(20px, 2.4vw, 28px)',
-            fontWeight: 600, lineHeight: 1.4,
+            fontWeight: 600, lineHeight: 'var(--line-height-body)',
             color: 'var(--text-primary)',
             letterSpacing: '-0.01em',
           }}>{data.quote}</p>

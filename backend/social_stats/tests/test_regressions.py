@@ -200,7 +200,7 @@ class OAuthStateValidationTests(TestCase):
         state = http.session['oauth_state']
         # Token exchange fails (no real Meta app) → flow errors AFTER the
         # state guard, proving the guard accepted the genuine state.
-        with patch('social_stats.oauth_views.requests.get') as mock_get:
+        with patch('social_stats.views.oauth.requests.get') as mock_get:
             mock_get.return_value.json.return_value = {'error': {'message': 'bad app'}}
             res = http.get(f'/api/oauth/facebook/callback/?code=x&state={state}')
         self.assertEqual(res.status_code, 302)
@@ -213,7 +213,7 @@ class OAuthStateValidationTests(TestCase):
         self._start_facebook(http, client_obj.id)
         state = http.session['oauth_state']
         from unittest.mock import patch
-        with patch('social_stats.oauth_views.requests.get') as mock_get:
+        with patch('social_stats.views.oauth.requests.get') as mock_get:
             mock_get.return_value.json.return_value = {'error': {'message': 'x'}}
             http.get(f'/api/oauth/facebook/callback/?code=x&state={state}')
         # Replaying the same state must now fail the guard.

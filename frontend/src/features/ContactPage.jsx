@@ -92,7 +92,7 @@ export default function ContactPage() {
           }}>
             بیایید صحبت کنیم.
           </h1>
-          <p style={{ margin: 0, fontSize: 18, lineHeight: 1.65, color: 'var(--text-secondary)' }}>
+          <p style={{ margin: 0, fontSize: 18, lineHeight: 'var(--line-height-body)', color: 'var(--text-secondary)' }}>
             فروش، پشتیبانی، مشارکت، مطبوعات - یک دلیل انتخاب کنید و ما شما را به سمت انسان مناسب هدایت خواهیم کرد.
           </p>
         </div>
@@ -139,7 +139,7 @@ export default function ContactPage() {
                 <h2 style={{ margin: 0, fontSize: 22, fontWeight: 600, letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
                   با تشکر - ما پیام شما را دریافت کردیم.
                 </h2>
-                <p style={{ margin: '8px auto 20px', maxWidth: 380, fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+                <p style={{ margin: '8px auto 20px', maxWidth: 380, fontSize: 14, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>
                   ما معمولاً ظرف یک روز کاری پاسخ می‌دهیم. اگر فوری است، موضوعی را باز کنید{' '}
                   <a href="https://github.com/cbsshekhawat18-lab/social-stats-social-media-manager/issues" target="_blank" rel="noreferrer" style={{ color: 'var(--text-link)', fontWeight: 500 }}>در گیت‌هاب</a>.
                 </p>
@@ -336,7 +336,7 @@ function ContactInfoCard({ icon: Icon, title, body, detail, link }) {
         <div style={{ marginTop: 2, fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>
           {body}
         </div>
-        <div style={{ marginTop: 2, fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+        <div style={{ marginTop: 2, fontSize: 12, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>
           {detail}
         </div>
       </div>
@@ -372,7 +372,7 @@ function SupportLinkCard({ icon: Icon, title, body, to }) {
         <Icon size={16} strokeWidth={2.2} />
       </span>
       <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)' }}>{title}</div>
-      <p style={{ margin: '4px 0 14px', fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+      <p style={{ margin: '4px 0 14px', fontSize: 13, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>
         {body}
       </p>
       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 600, color: 'var(--text-link)' }}>

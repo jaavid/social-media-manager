@@ -51,7 +51,7 @@ def sync_active_ctwa_campaigns():
     independently — one failure shouldn't take down the whole run.
     """
     from .models import CTWACampaign
-    from .meta_ads_views import sync_campaign_spend
+    from social_stats.views.meta_ads import sync_campaign_spend
 
     active = CTWACampaign.objects.filter(is_active=True).select_related('client')
     total = active.count()

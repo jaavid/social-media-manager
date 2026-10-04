@@ -35,7 +35,7 @@ from rest_framework.response import Response
 
 from ..models import Conversation, Message, UnifiedReview
 from ..ai_helpers import brand_voice_prompt
-from ..ai_views import _resolved_client
+from social_stats.views.ai import _resolved_client
 from . import AIClient, AIError, RateLimited, prompts
 from .content_views import _ai_call_json, _error_response
 from .prompts import sentiment_analyzer, intent_classifier, spam_filter, crisis_detector

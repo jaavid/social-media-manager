@@ -294,7 +294,7 @@ function FloatingCard({ style, delay = 0, amplitude = 6, icon: Icon, color, titl
         </span>
         <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)' }}>{title}</span>
       </div>
-      <div style={{ fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.45 }}>{body}</div>
+      <div style={{ fontSize: 11, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>{body}</div>
     </motion.div>
   );
 }

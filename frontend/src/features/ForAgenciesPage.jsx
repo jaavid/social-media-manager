@@ -68,7 +68,7 @@ function Hero() {
         <MotionP
           initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          style={{ margin: '0 auto', maxWidth: 640, fontSize: 18, lineHeight: 1.6, color: 'var(--text-secondary)' }}
+          style={{ margin: '0 auto', maxWidth: 640, fontSize: 18, lineHeight: 'var(--line-height-body)', color: 'var(--text-secondary)' }}
         >
           تحلیل و آمار، محتوا، صندوق ورودی، کمپین‌های واتس‌اپ، تبلیغات، هوش مصنوعی - هر مشتری در یک داشبورد زیبا. در بازار ما فهرست کنید و سرنخ های ورودی دریافت کنید. بر اساس اعتماد ساخته شده است: هر اقدام ثبت شده، هر مجوز قابل لغو.
         </MotionP>
@@ -126,7 +126,7 @@ function MarketplaceExposure() {
           <h2 style={{ margin: '14px 0 10px', fontSize: 28, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
             سرنخ های ورودی، نه ارسال ایمیل سرد.
           </h2>
-          <p style={{ margin: '0 0 20px', fontSize: 15, color: 'var(--text-secondary)', lineHeight: 1.65 }}>
+          <p style={{ margin: '0 0 20px', fontSize: 15, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>
             آژانس خود را در بازار راوینتا فهرست کنید. کسب‌وکارهای تأیید شده براساس صنعت، مکان و رتبه‌بندی جستجو می‌کنند - سپس مستقیماً یک درخواست مدیریت برای شما ارسال می‌کنند. نظرات از مشتریانی با روابط واقعی و تأیید شده است.
           </p>
           <Button as={Link} to="/agencies" variant="secondary" size="md" icon={Building2}>
@@ -179,7 +179,7 @@ function FeatureBlocks() {
                 <it.icon size={18} strokeWidth={2.2} />
               </span>
               <h3 style={{ margin: '0 0 6px', fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>{it.title}</h3>
-              <p style={{ margin: 0, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.55 }}>{it.body}</p>
+              <p style={{ margin: 0, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>{it.body}</p>
             </article>
           ))}
         </div>
@@ -217,7 +217,7 @@ const sectionH = {
 const sectionSub = {
   margin: '8px auto 0', maxWidth: 580,
   fontSize: 15, color: 'var(--text-secondary)',
-  textAlign: 'center', lineHeight: 1.6,
+  textAlign: 'center', lineHeight: 'var(--line-height-body)',
 };
 const featureCard = {
   padding: 20,

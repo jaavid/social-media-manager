@@ -111,7 +111,7 @@ export default class ErrorBoundary extends Component {
           <p style={{
             margin: '12px auto 24px',
             maxWidth: 440,
-            fontSize: 15, lineHeight: 1.65,
+            fontSize: 15, lineHeight: 'var(--line-height-body)',
             color: 'var(--text-secondary)',
           }}>
             {translateRaw('A problem broke this view. Try reloading or check the status page.')}

@@ -1039,7 +1039,7 @@ const styles = {
     margin: '0 0 22px',
     color: 'var(--text-secondary)',
     fontSize: 14,
-    lineHeight: 1.5,
+    lineHeight: 'var(--line-height-body)',
   },
   // Form
   formPage: {
@@ -1472,14 +1472,14 @@ const styles = {
   dateHint: {
     fontSize: 11,
     color: 'var(--text-secondary)',
-    lineHeight: 1.4,
+    lineHeight: 'var(--line-height-body)',
   },
   topicWrap: { minHeight: 40 },
   topicText: {
     fontSize: 14,
     fontWeight: 700,
     color: 'var(--text-primary)',
-    lineHeight: 1.4,
+    lineHeight: 'var(--line-height-body)',
     cursor: 'text',
   },
   captionToggle: {
@@ -1495,7 +1495,7 @@ const styles = {
   captionText: {
     fontSize: 12,
     color: 'var(--text-secondary)',
-    lineHeight: 1.5,
+    lineHeight: 'var(--line-height-body)',
     cursor: 'text',
     padding: '8px 10px',
     borderRadius: 8,

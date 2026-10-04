@@ -158,7 +158,7 @@ function ActionCard({ icon: Icon, title, body, cta, to, tone, disabled, disabled
         <Icon size={18} strokeWidth={2.2} />
       </span>
       <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>{title}</div>
-      <p style={{ margin: 0, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.55 }}>{body}</p>
+      <p style={{ margin: 0, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>{body}</p>
       <div style={{ marginTop: 4, display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 13, fontWeight: 600, color: tone === 'primary' ? 'var(--brand-primary-hover)' : 'var(--text-secondary)' }}>
         {disabled ? (disabledHint || 'Coming soon') : (<>{cta} <ArrowRight size={13} /></>)}
       </div>

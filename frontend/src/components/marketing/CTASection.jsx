@@ -65,7 +65,7 @@ export default function CTASection({
             margin: '14px auto 0',
             fontSize: 'clamp(15px, 1.6vw, 17px)',
             color: 'rgba(255,255,255,0.75)',
-            lineHeight: 1.55,
+            lineHeight: 'var(--line-height-body)',
             maxWidth: 540,
           }}>{subtitle}</p>
         )}

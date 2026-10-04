@@ -65,7 +65,7 @@ function Pill({ icon: Icon, label, color, background, border, size }) {
       padding,
       fontSize,
       fontWeight: 600,
-      lineHeight: 1.2,
+      lineHeight: 'var(--line-height-body)',
       letterSpacing: 0.2,
       color,
       background,

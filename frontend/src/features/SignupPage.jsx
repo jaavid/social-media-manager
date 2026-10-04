@@ -172,7 +172,7 @@ export default function SignupPage() {
           <h1 style={{ margin: 0, fontSize: 22, fontWeight: 600, letterSpacing: '-0.01em', color: 'var(--text-primary)' }}>
             صندوق ورودی خود را بررسی کنید
           </h1>
-          <p style={{ margin: '8px 0 20px', fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+          <p style={{ margin: '8px 0 20px', fontSize: 14, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>
             ما یک پیوند تأیید را به <strong style={{ color: 'var(--text-primary)' }}>{email}</strong>. روی لینک موجود در ایمیل کلیک کنید تا حساب کاربری خود را فعال کنید.
           </p>
 

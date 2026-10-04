@@ -103,7 +103,7 @@ const Checkbox = forwardRef(function Checkbox(
               display: 'block',
               fontSize: 13, fontWeight: 500,
               color: 'var(--text-primary)',
-              lineHeight: 1.4,
+              lineHeight: 'var(--line-height-body)',
             }}>
               {localizedLabel}
             </span>
@@ -114,7 +114,7 @@ const Checkbox = forwardRef(function Checkbox(
               fontSize: 12,
               color: 'var(--text-tertiary)',
               marginTop: 2,
-              lineHeight: 1.4,
+              lineHeight: 'var(--line-height-body)',
             }}>
               {localizedDescription}
             </span>

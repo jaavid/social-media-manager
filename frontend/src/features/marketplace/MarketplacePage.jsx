@@ -260,7 +260,7 @@ function AgencyCard({ agency }) {
       {agency.description && (
         <p style={{
           margin: 0, fontSize: 13,
-          color: 'var(--text-secondary)', lineHeight: 1.55,
+          color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)',
           display: '-webkit-box',
           WebkitLineClamp: 3,
           WebkitBoxOrient: 'vertical',

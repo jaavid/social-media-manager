@@ -261,7 +261,7 @@ function ActivityRow({ row, onFlag, onRevert }) {
           {row.flagged_by_user && <span style={flagChip}><Flag size={9} /> Flagged</span>}
           {row.reverted_at && <span style={revertedChip}><Undo2 size={9} /> Reverted</span>}
         </div>
-        <div style={{ marginTop: 4, fontSize: 13, color: 'var(--text-primary)', lineHeight: 1.5 }}>
+        <div style={{ marginTop: 4, fontSize: 13, color: 'var(--text-primary)', lineHeight: 'var(--line-height-body)' }}>
           {row.description}
         </div>
       </div>

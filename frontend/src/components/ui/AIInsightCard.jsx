@@ -245,12 +245,12 @@ const styles = {
     display: 'flex', flexDirection: 'column', alignItems: 'center',
     justifyContent: 'center', gap: 12, padding: '28px 0', textAlign: 'center',
   },
-  generatingText: { margin: 0, fontSize: 14, color: '#6d28d9', lineHeight: 1.6 },
+  generatingText: { margin: 0, fontSize: 14, color: '#6d28d9', lineHeight: 'var(--line-height-body)' },
 
   content: {},
   para: {
     margin: '0 0 14px', fontSize: 14, color: '#374151',
-    lineHeight: 1.75,
+    lineHeight: 'var(--line-height-body)',
   },
   cursor: { color: '#7c3aed', animation: 'blink 1s step-end infinite' },
 
@@ -258,7 +258,7 @@ const styles = {
     display: 'flex', flexDirection: 'column', alignItems: 'center',
     justifyContent: 'center', padding: '32px 0', textAlign: 'center',
   },
-  emptyText: { margin: 0, fontSize: 13, color: '#94a3b8', maxWidth: 320, lineHeight: 1.6 },
+  emptyText: { margin: 0, fontSize: 13, color: '#94a3b8', maxWidth: 320, lineHeight: 'var(--line-height-body)' },
 
   footer: {
     marginTop: 12, paddingTop: 12,

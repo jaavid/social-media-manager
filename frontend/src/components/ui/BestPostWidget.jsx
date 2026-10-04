@@ -293,7 +293,7 @@ const vsBadge    = {
 };
 
 const captionStyle = {
-  margin: '0 0 14px', fontSize: 16, color: '#374151', lineHeight: 1.65, maxWidth: 760,
+  margin: '0 0 14px', fontSize: 16, color: '#374151', lineHeight: 'var(--line-height-body)', maxWidth: 760,
 };
 const metaRow  = { display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 };
 const metaTag  = {

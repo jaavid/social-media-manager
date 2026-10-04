@@ -91,7 +91,7 @@ export default function ApprovalQueuePage() {
                   </div>
                   <div style={{
                     fontSize: 13, color: 'var(--text-secondary)',
-                    whiteSpace: 'pre-wrap', lineHeight: 1.5,
+                    whiteSpace: 'pre-wrap', lineHeight: 'var(--line-height-body)',
                     maxHeight: 120, overflow: 'hidden',
                     background: 'var(--surface-sunken)',
                     padding: '10px 12px',

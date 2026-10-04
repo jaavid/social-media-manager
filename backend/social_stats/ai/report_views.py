@@ -28,7 +28,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from ..models import AIInsight
-from ..ai_views import _resolved_client
+from social_stats.views.ai import _resolved_client
 from . import AIClient, AIError, RateLimited, prompts
 from .content_views import _error_response
 from .insights_views import _build_metrics_snapshot

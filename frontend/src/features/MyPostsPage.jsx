@@ -197,7 +197,7 @@ const styles = {
   cardTitle: {
     margin: '0 0 14px',
     fontSize: 15,
-    lineHeight: 1.5,
+    lineHeight: 'var(--line-height-body)',
     fontWeight: 700,
     color: 'var(--text-primary)',
     display: '-webkit-box',

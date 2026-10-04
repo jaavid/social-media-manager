@@ -117,7 +117,7 @@ export default function AIStudio() {
             <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
               Press <kbd style={kbdStyle}>⌘ J</kbd> from anywhere to chat with Social Stats
             </div>
-            <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.55 }}>
+            <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>
               The chat assistant can pull your metrics, draft posts, search your inbox, and schedule actions —
               all with confirmation gates on anything that touches live data.
             </p>
@@ -175,7 +175,7 @@ function FeatureCard({ item, basePath }) {
       <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
         {item.title}
       </div>
-      <p style={{ margin: 0, fontSize: 12, lineHeight: 1.55, color: 'var(--text-secondary)' }}>
+      <p style={{ margin: 0, fontSize: 12, lineHeight: 'var(--line-height-body)', color: 'var(--text-secondary)' }}>
         {item.body}
       </p>
     </Link>

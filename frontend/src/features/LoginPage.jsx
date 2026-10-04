@@ -202,7 +202,7 @@ export default function LoginPage() {
                   borderRadius: 'var(--radius-md)',
                   color: 'var(--danger)',
                   fontSize: 13,
-                  lineHeight: 1.45,
+                  lineHeight: 'var(--line-height-body)',
                 }}
               >
                 <AlertCircle size={15} style={{ flexShrink: 0, marginTop: 1 }} />
@@ -333,7 +333,7 @@ export default function LoginPage() {
                 borderRadius: 'var(--radius-md)',
                 color: 'var(--danger)',
                 fontSize: 13,
-                lineHeight: 1.45,
+                lineHeight: 'var(--line-height-body)',
               }}
             >
               <AlertCircle size={15} style={{ flexShrink: 0, marginTop: 1 }} />

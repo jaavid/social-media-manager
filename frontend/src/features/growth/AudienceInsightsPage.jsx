@@ -175,7 +175,7 @@ export default function AudienceInsightsPage() {
                   <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>
                     Demographics — coming soon
                   </div>
-                  <div style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                  <div style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>
                     {data.demographics.note}
                   </div>
                 </div>

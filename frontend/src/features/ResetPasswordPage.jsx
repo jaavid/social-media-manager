@@ -280,5 +280,5 @@ const subStyle = {
   margin: '6px 0 0',
   fontSize: 14,
   color: 'var(--text-secondary)',
-  lineHeight: 1.6,
+  lineHeight: 'var(--line-height-body)',
 };

@@ -128,7 +128,7 @@ export default function PostPill({ post, onClick }) {
               color: '#fff',
             }}>{post.status}</span>
           </div>
-          <div style={{ marginBottom: 6, color: '#cbd5e1', lineHeight: 1.4 }}>
+          <div style={{ marginBottom: 6, color: '#cbd5e1', lineHeight: 'var(--line-height-body)' }}>
             {(post.caption || post.title || '').slice(0, 120)}{(post.caption || post.title || '').length > 120 ? '…' : ''}
           </div>
           {post.status === 'published' && (

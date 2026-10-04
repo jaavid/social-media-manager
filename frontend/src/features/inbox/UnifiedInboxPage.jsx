@@ -359,7 +359,7 @@ function ConversationRow({ conv, active, onClick }) {
           )}
         </div>
         <div style={{
-          fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.4,
+          fontSize: 12, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)',
           whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
           marginBottom: 4,
         }}>
@@ -608,7 +608,7 @@ function Bubble({ msg }) {
           ? 'linear-gradient(135deg, #00CCF5, #00A8D8)'
           : 'var(--surface-card)',
         color: isOut ? '#fff' : 'var(--text-primary)',
-        fontSize: 13, lineHeight: 1.5,
+        fontSize: 13, lineHeight: 'var(--line-height-body)',
         boxShadow: isOut ? '0 2px 6px rgba(0,168,216,0.15)' : 'var(--shadow-sm)',
         border: isOut ? 'none' : '1px solid var(--border-subtle)',
         whiteSpace: 'pre-wrap',

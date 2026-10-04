@@ -98,12 +98,12 @@ const Switch = forwardRef(function Switch(
       {(label || description) && (
         <span style={{ minWidth: 0 }}>
           {label && (
-            <span style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--text-primary)', lineHeight: 1.4 }}>
+            <span style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--text-primary)', lineHeight: 'var(--line-height-body)' }}>
               {label}
             </span>
           )}
           {description && (
-            <span style={{ display: 'block', fontSize: 12, color: 'var(--text-tertiary)', marginTop: 2, lineHeight: 1.4 }}>
+            <span style={{ display: 'block', fontSize: 12, color: 'var(--text-tertiary)', marginTop: 2, lineHeight: 'var(--line-height-body)' }}>
               {description}
             </span>
           )}

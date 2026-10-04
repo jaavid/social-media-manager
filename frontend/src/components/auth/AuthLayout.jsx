@@ -173,7 +173,7 @@ export default function AuthLayout({
                 margin: 0,
                 fontSize: 16,
                 color: 'var(--text-secondary)',
-                lineHeight: 1.65,
+                lineHeight: 'var(--line-height-body)',
                 maxWidth: 480,
               }}
             >
@@ -208,7 +208,7 @@ export default function AuthLayout({
                       style={{
                         margin: 0,
                         fontSize: 14,
-                        lineHeight: 1.6,
+                        lineHeight: 'var(--line-height-body)',
                         color: 'var(--text-primary)',
                         fontStyle: 'normal',
                       }}

@@ -7,60 +7,36 @@ textarea {
   font-family: var(--font-sans);
 }
 
-/* Product typography: Noto Sans Arabic is loaded once from index.html with real
-   300–900 weights. Keep body copy calm and use stronger weights for controls
-   and headings so Persian UI hierarchy stays clear without synthetic bold. */
-body {
-  font-weight: 400;
+/* Both variable families are preloaded by next/font/local (100–900). */
+html { font-synthesis: none; }
+[lang] { font-family: var(--font-sans); line-height: var(--line-height-body); }
+body { font-weight: 400; line-height: var(--line-height-body); }
+button, input, select, textarea { font: inherit; font-weight: 500 !important; line-height: var(--line-height-body) !important; }
+label { font-weight: 500; }
+h1 { font-weight: 700 !important; }
+[data-typography="display"], h1.font-extrabold { font-weight: 800 !important; }
+h2, h3, h4, h5, h6 { font-weight: 600 !important; }
+h1, h2, h3, h4, h5, h6 { line-height: var(--line-height-heading) !important; }
+strong, b { font-weight: 700; }
+:lang(fa), :lang(ar) { letter-spacing: 0 !important; }
+/* Natural line boxes and vertical padding protect Arabic dots and vowel marks. */
+input:not([type='checkbox']):not([type='radio']):not([type='range']), select {
+  padding-block: 0.5em;
+  height: auto;
 }
-
-button,
-input,
-select,
-textarea {
-  font: inherit;
+th, td { line-height: var(--line-height-body); }
+input[type='email'], input[type='url'], [dir='ltr'], bdi {
+  unicode-bidi: isolate;
 }
-
-button {
-  font-weight: 600;
-}
-
-label {
-  font-weight: 500;
-}
-
-h1,
-h2 {
-  font-weight: 800;
-}
-
-h3,
-h4,
-h5,
-h6,
-strong,
-b {
-  font-weight: 700;
-}
-
-html[lang='fa'] h1,
-html[lang='fa'] h2,
-html[lang='fa'] h3,
-html[lang='fa'] h4,
-html[lang='fa'] h5,
-html[lang='fa'] h6,
-html[lang='fa'] button {
-  letter-spacing: 0;
-}
+input[type='email'], input[type='url'] { direction: ltr !important; text-align: start; }
 
 html[dir='rtl'] body {
   direction: rtl;
   text-align: start;
 }
 
-html[dir='rtl'] input,
-html[dir='rtl'] textarea,
-html[dir='rtl'] select {
+input:lang(fa), textarea:lang(fa), select:lang(fa),
+input:lang(ar), textarea:lang(ar), select:lang(ar) {
   direction: rtl;
   text-align: start;
 }
@@ -79,3 +55,5 @@ html[dir='rtl'] .ds-module-rail [aria-current='page'],
 html[dir='rtl'] .ds-mobile-nav {
   unicode-bidi: plaintext;
 }
+
+input:lang(en), textarea:lang(en), select:lang(en) { direction: ltr; text-align: start; }

@@ -11,8 +11,8 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
-from social_stats.bot_channel_views import bot_channel_connection, bot_channel_status
-from social_stats.platform_views import platform_metadata
+from social_stats.views.bot_channel import bot_channel_connection, bot_channel_status
+from social_stats.views.platform import platform_metadata
 
 urlpatterns = [
     # Keep Django's framework admin outside the SPA namespace. The React app

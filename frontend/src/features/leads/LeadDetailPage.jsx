@@ -322,7 +322,7 @@ function ConversationTab({ lead }) {
             </span>
             <div style={{
               maxWidth: '75%', padding: '8px 12px',
-              fontSize: 13, lineHeight: 1.45,
+              fontSize: 13, lineHeight: 'var(--line-height-body)',
               background: isUser ? 'var(--surface-sunken)' : '#dcf8c6',
               color: isUser ? 'var(--text-primary)' : '#1f2c34',
               borderRadius: isUser ? '8px 8px 2px 8px' : '8px 8px 8px 2px',
@@ -378,7 +378,7 @@ function ScoreBadge({ score, reason }) {
       {reason && (
         <div style={{
           marginTop: 4, maxWidth: 240, fontSize: 11,
-          color: 'var(--text-tertiary)', lineHeight: 1.4, textAlign: 'right',
+          color: 'var(--text-tertiary)', lineHeight: 'var(--line-height-body)', textAlign: 'right',
         }}>
           {reason}
         </div>

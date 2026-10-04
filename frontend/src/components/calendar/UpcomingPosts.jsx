@@ -66,7 +66,7 @@ export default function UpcomingPosts({ posts }) {
               </div>
             </div>
             <div style={{
-              fontSize: 12, color: '#374151', lineHeight: 1.4,
+              fontSize: 12, color: '#374151', lineHeight: 'var(--line-height-body)',
               overflow: 'hidden', display: '-webkit-box',
               WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
             }}>

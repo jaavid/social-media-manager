@@ -143,6 +143,6 @@ const titleStyle = {
 
 const subStyle = {
   margin: '8px 0 0',
-  fontSize: 14, lineHeight: 1.6,
+  fontSize: 14, lineHeight: 'var(--line-height-body)',
   color: 'var(--text-secondary)',
 };

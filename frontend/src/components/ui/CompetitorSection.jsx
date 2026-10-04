@@ -181,7 +181,7 @@ const styles = {
   heroText: {
     margin: '6px 0 0',
     fontSize: 13,
-    lineHeight: 1.6,
+    lineHeight: 'var(--line-height-body)',
     color: 'var(--text-tertiary)',
     maxWidth: 720,
   },
@@ -213,7 +213,7 @@ const styles = {
     margin: '0 auto 18px',
     maxWidth: 540,
     fontSize: 14,
-    lineHeight: 1.65,
+    lineHeight: 'var(--line-height-body)',
     color: 'var(--text-tertiary)',
   },
   cardStack: {

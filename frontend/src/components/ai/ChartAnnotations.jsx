@@ -95,7 +95,7 @@ export default function ChartAnnotations({
         {data?.paragraphs?.[0] && (
           <p style={{
             margin: '6px 0 0',
-            fontSize: 12, lineHeight: 1.6,
+            fontSize: 12, lineHeight: 'var(--line-height-body)',
             color: 'var(--text-secondary)',
           }}>
             {data.paragraphs[0]}
@@ -140,7 +140,7 @@ export default function ChartAnnotations({
 
       {!data && !loading && !error && (
         <p style={{
-          margin: 0, fontSize: 12, color: 'var(--text-tertiary)', lineHeight: 1.55,
+          margin: 0, fontSize: 12, color: 'var(--text-tertiary)', lineHeight: 'var(--line-height-body)',
         }}>
           Click <strong style={{ color: 'var(--brand-primary-hover)' }}>Explain</strong> to have Social Stats translate this chart in plain English.
         </p>
@@ -155,7 +155,7 @@ export default function ChartAnnotations({
           {(data.paragraphs || []).map((p, i) => (
             <p key={i} style={{
               margin: i === 0 ? 0 : '8px 0 0',
-              fontSize: 13, lineHeight: 1.6,
+              fontSize: 13, lineHeight: 'var(--line-height-body)',
               color: 'var(--text-secondary)',
             }}>
               {p}
@@ -166,7 +166,7 @@ export default function ChartAnnotations({
             <ul style={{
               margin: '12px 0 0', paddingLeft: 18,
               fontSize: 12, color: 'var(--text-primary)',
-              lineHeight: 1.55,
+              lineHeight: 'var(--line-height-body)',
               borderLeft: '2px solid var(--brand-primary)',
               paddingTop: 4, paddingBottom: 4,
             }}>
