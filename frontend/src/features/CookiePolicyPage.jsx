@@ -14,75 +14,71 @@ import LegalPageLayout from '../components/marketing/LegalPageLayout';
 
 export default function CookiePolicyPage() {return (
     <LegalPageLayout
-      eyebrow="Cookies"
-      title="Cookie Policy"
+      eyebrow={"کوکی‌ها"}
+      title={"سیاست کوکی‌ها"}
       effectiveDate="2026-01-01"
       lastUpdated="2026-04-15"
-      intro="We use cookies (and similar technologies) to keep you signed in, remember your preferences, and learn what's working. This page explains exactly what we use and lets you choose."
+      intro={"ما از کوکی‌ها (و فناوری‌های مشابه) استفاده می‌کنیم تا شما را به سیستم وارد نگه داریم، تنظیمات برگزیده‌تان را به خاطر بسپارید و بفهمیم چه چیزی کار می‌کند. این صفحه دقیقاً توضیح می‌دهد که ما از چه چیزی استفاده می کنیم و به شما امکان می‌دهد انتخاب کنید."}
       sections={[
         {
           id: 'what-are-cookies',
-          title: '1. What are cookies?',
+          title: "1. کوکی‌ها چیست؟",
           body: (
             <p>
-              Cookies are small files that websites store on your device. They let us remember things across page
-              loads — like your sign-in state — and they give us aggregate signal about which features get used.
+              کوکی‌ها فایل های کوچکی هستند که وب سایت ها در دستگاه شما ذخیره می‌کنند. آنها به ما اجازه می‌دهند چیزهایی را در بارگیری‌های صفحه به خاطر بسپاریم - مانند وضعیت ورود به سیستم - و سیگنال‌های کلی در مورد اینکه کدام ویژگی‌ها استفاده می‌شوند به ما می‌دهند.
             </p>
           ),
         },
         {
           id: 'categories',
-          title: '2. Categories we use',
+          title: "2. دسته بندی هایی که استفاده می کنیم",
           body: (
             <>
-              <p>We group cookies into four categories. Toggle the optional ones below.</p>
+              <p>ما کوکی‌ها را به چهار دسته گروه بندی می کنیم. موارد اختیاری زیر را تغییر دهید.</p>
               <CookiePreferences />
             </>
           ),
         },
         {
           id: 'third-party',
-          title: '3. Third-party cookies',
+          title: "3. کوکی‌های شخص ثالث",
           body: (
             <>
               <p>
-                We deliberately keep third-party cookies to a minimum. The ones we do use:
+                ما عمداً کوکی‌های شخص ثالث را به حداقل می‌رسانیم. مواردی که ما استفاده می کنیم:
               </p>
               <ul>
-                <li><strong>Plausible Analytics</strong> — privacy-friendly aggregate analytics (no personal data, no cross-site tracking).</li>
-                <li><strong>Sentry</strong> — error reporting (essential, no personal content).</li>
+                <li><strong>تحلیل و آمار قابل قبول</strong> - تحلیل و آمار جمعی سازگار با حریم خصوصی (بدون اطلاعات شخصی، بدون ردیابی بین سایتی).</li>
+                <li><strong>نگهبانی</strong> - گزارش خطا (ضروری، بدون محتوای شخصی).</li>
               </ul>
             </>
           ),
         },
         {
           id: 'opt-out',
-          title: '4. How to opt out',
+          title: "4. نحوه انصراف",
           body: (
             <p>
-              Toggle categories above and click <strong>Save preferences</strong>. Your choices are stored locally
-              and respected on every visit. You can also block cookies entirely via your browser settings — note
-              that doing so will prevent you from signing in.
+              دسته‌های بالا را تغییر دهید و کلیک کنید <strong>ذخیره انتخاب‌ها</strong>. انتخاب های شما به صورت محلی ذخیره می‌شود و در هر بازدید مورد احترام قرار می‌گیرد. همچنین می‌توانید کوکی‌ها را به طور کامل از طریق تنظیمات مرورگر خود مسدود کنید - توجه داشته باشید که انجام این کار مانع از ورود شما به سیستم می‌شود.
             </p>
           ),
         },
         {
           id: 'changes',
-          title: '5. Changes to this policy',
+          title: "5. تغییرات در این سیاست",
           body: (
             <p>
-              We'll update this page if our cookie usage changes, and we'll alert returning users with a banner.
-              Material changes are emailed to account owners 30 days in advance.
+              اگر استفاده از کوکی ما تغییر کند، این صفحه را به‌روزرسانی می‌کنیم و با یک بنر به کاربران بازگشته هشدار می‌دهیم. تغییرات مواد 30 روز قبل برای صاحبان حساب ایمیل می‌شود.
             </p>
           ),
         },
         {
           id: 'contact',
-          title: '6. Contact',
+          title: "6. تماس",
           body: (
             <p>
-              Questions? Contact the administrator of this Social Stats instance, or visit our{' '}
-              <a href="/privacy">privacy policy</a>.
+              سوال؟ با مدیر این نمونه راوینتا تماس بگیرید یا از ما دیدن کنید{' '}
+              <a href="/privacy">سیاست حفظ حریم خصوصی</a>.
             </p>
           ),
         },

@@ -11,8 +11,8 @@ import '../styles/accessibility.css';
 import '../styles/tailwind.css';
 
 export const metadata = {
-  title: { default: 'Ravinta — From idea to impact', template: '%s · Ravinta' },
-  description: 'Plan, create, approve, publish, and measure your digital presence in one shared workspace.',
+  title: { default: 'راوینتا؛ از ایده تا اثرگذاری', template: '%s · Ravinta' },
+  description: 'برنامه‌ریزی، تولید، تأیید، انتشار و سنجش حضور دیجیتال در یک فضای کاری مشترک.',
   metadataBase: process.env.NEXT_PUBLIC_SITE_URL ? new URL(process.env.NEXT_PUBLIC_SITE_URL) : undefined,
   manifest: '/manifest.json',
   icons: { icon: '/icons/icon-192.png', apple: '/apple-touch-icon.png' },
@@ -36,14 +36,16 @@ const bootstrap = `try {
 } catch (_) {}`;
 export default async function RootLayout({ children }) {
   const language = await requestLanguage();
-  const storedTheme = (await cookies()).get('theme')?.value;
+  const cookieJar = await cookies();
+  const preferredLanguage = cookieJar.get('socialstats.language')?.value === 'en' ? 'en' : 'fa';
+  const storedTheme = cookieJar.get('theme')?.value;
   const preference = ['light', 'dark', 'system'].includes(storedTheme) ? storedTheme : 'light';
   const theme = preference === 'dark' ? 'dark' : 'light';
   return <html lang={language} dir={language === 'fa' ? 'rtl' : 'ltr'}
     data-preference={preference} data-theme={theme}
     className={`${arabicFont.variable} ${latinFont.variable}${theme === 'dark' ? ' dark' : ''}`} suppressHydrationWarning>
     <head><script dangerouslySetInnerHTML={{ __html: bootstrap }} /></head>
-    <body><SiteProviders language={language} theme={preference} hasSession={(await cookies()).has('sessionid')}>
+    <body><SiteProviders language={language} preferredLanguage={preferredLanguage} theme={preference} hasSession={cookieJar.has('sessionid')}>
       {children}
       <Suspense fallback={null}><PageviewTracker /></Suspense>
     </SiteProviders></body>

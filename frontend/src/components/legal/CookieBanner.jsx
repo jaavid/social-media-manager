@@ -93,15 +93,14 @@ export default function CookieBanner({ user = null }) {
   }
 
   return (
-    <div role="dialog" aria-label="Cookie preferences" style={s.wrap}>
+    <div role="dialog" aria-label={"تنظیمات کوکی‌ها"} style={s.wrap}>
       <div style={s.card}>
         <div style={s.header}>
           <Cookie size={18} style={{ color: 'var(--brand-primary-hover)', flexShrink: 0 }} />
           <div style={{ flex: 1 }}>
-            <div style={s.title}>We use cookies</div>
+            <div style={s.title}>ما از کوکی‌ها استفاده می‌کنیم</div>
             <div style={s.subtitle}>
-              Essential cookies keep Social Stats working. Analytics + marketing cookies are
-              optional — you can change preferences any time in Settings → Data & Privacy.
+              کوکی‌های ضروری برای عملکرد راوینتا لازم هستند. کوکی‌های تحلیل و بازاریابی اختیاری‌اند؛ هر زمان می‌توانید انتخاب خود را در تنظیمات ← داده‌ها و حریم خصوصی تغییر دهید.
             </div>
           </div>
         </div>
@@ -109,24 +108,24 @@ export default function CookieBanner({ user = null }) {
         {advancedOpen && (
           <div style={s.advanced}>
             <Toggle name="essential" pending={pending} setPending={setPending}
-                    label="Essential" desc="Login, security, CSRF — can't be disabled" disabled />
+                    label={"ضروری"} desc="Login, security, CSRF — can't be disabled" disabled />
             <Toggle name="functional" pending={pending} setPending={setPending}
-                    label="Functional" desc="Theme, language, layout preferences" />
+                    label={"کارکردی"} desc="Theme, language, layout preferences" />
             <Toggle name="analytics" pending={pending} setPending={setPending}
-                    label="Analytics" desc="Anonymous usage stats (Posthog)" />
+                    label={"تحلیل و آمار"} desc="Anonymous usage stats (Posthog)" />
             <Toggle name="marketing" pending={pending} setPending={setPending}
-                    label="Marketing" desc="Ad measurement and retargeting" />
+                    label={"بازاریابی"} desc="Ad measurement and retargeting" />
           </div>
         )}
 
         <div style={s.actions}>
-          <button type="button" onClick={acceptAll} style={s.btnPrimary}>Accept all</button>
-          <button type="button" onClick={essentialOnly} style={s.btnSecondary}>Essential only</button>
+          <button type="button" onClick={acceptAll} style={s.btnPrimary}>پذیرش همه</button>
+          <button type="button" onClick={essentialOnly} style={s.btnSecondary}>فقط کوکی‌های ضروری</button>
           <button type="button" onClick={() => setAdvancedOpen((v) => !v)} style={s.btnGhost}>
-            {advancedOpen ? <><ChevronUp size={13} /> Hide options</> : <><ChevronDown size={13} /> Customise</>}
+            {advancedOpen ? <><ChevronUp size={13} /> بستن گزینه‌ها</> : <><ChevronDown size={13} /> تنظیم گزینه‌ها</>}
           </button>
           {advancedOpen && (
-            <button type="button" onClick={saveCustom} style={s.btnPrimary}>Save preferences</button>
+            <button type="button" onClick={saveCustom} style={s.btnPrimary}>ذخیره انتخاب‌ها</button>
           )}
         </div>
       </div>

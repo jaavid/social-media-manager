@@ -56,7 +56,7 @@ export default function MetricCounter({
   }, [inView, value, duration, reduced]);
 
   const formatted = format
-    ? display.toLocaleString(undefined, {
+    ? display.toLocaleString('fa-IR', {
         minimumFractionDigits: decimals,
         maximumFractionDigits: decimals,
       })

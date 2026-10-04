@@ -50,7 +50,7 @@ export default function FAQ({ items = [], singleOpen = false }) {
             style={{
               width: '100%',
               padding: '20px 0',
-              textAlign: 'left',
+              textAlign: 'start',
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
               gap: 16,
               fontSize: 16, fontWeight: 600,

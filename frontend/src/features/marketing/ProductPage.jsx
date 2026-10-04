@@ -46,7 +46,7 @@ export default function ProductPage({ slug }) {
     <MarketingLayout>
       <Meta
         noSuffix
-        title={`${data.title} — Social Stats`}
+        title={`${data.title} - راوینتا`}
         description={data.description}
       />
       <JsonLd
@@ -61,8 +61,8 @@ export default function ProductPage({ slug }) {
       <JsonLd
         id="breadcrumbs"
         data={buildBreadcrumbs([
-          { name: 'Home',     url: `${SITE_URL}/` },
-          { name: 'Product',  url: `${SITE_URL}/product/${slug}` },
+          { name: "خانه",     url: `${SITE_URL}/` },
+          { name: "محصول",  url: `${SITE_URL}/product/${slug}` },
           { name: data.title, url: `${SITE_URL}/product/${slug}` },
         ])}
       />
@@ -162,7 +162,7 @@ function Hero({ data }) {
                       background: 'linear-gradient(135deg, #00CCF5, #00A8D8)',
                       color: '#0a0e14', border: 'none', fontWeight: 600,
                     }}>
-              Start free <ArrowRight size={15} />
+              شروع رایگان <ArrowRight size={15} />
             </Button>
             <Button as={Link} to="/features" size="lg" variant="ghost"
                     style={{
@@ -170,7 +170,7 @@ function Hero({ data }) {
                       background: 'rgba(255,255,255,0.06)',
                       border: '1px solid rgba(255,255,255,0.18)',
                     }}>
-              Explore features
+              مشاهده امکانات
             </Button>
           </MotionDiv>
         </div>
@@ -222,7 +222,7 @@ function FeatureStripe({ data, reverse }) {
           alignItems: 'center',
           direction: reverse ? 'rtl' : 'ltr',
         }} className="mkt-stripe-grid">
-          <div style={{ direction: 'ltr' }}>
+          <div style={{ direction: 'rtl' }}>
             <ScrollReveal>
               {data.eyebrow && (
                 <span style={{
@@ -262,7 +262,7 @@ function FeatureStripe({ data, reverse }) {
               )}
             </ScrollReveal>
           </div>
-          <div style={{ direction: 'ltr' }}>
+          <div style={{ direction: 'rtl' }}>
             <ScrollReveal delay={0.1}>
               <div style={{
                 padding: 16,
@@ -396,7 +396,7 @@ function CustomerQuote({ data }) {
               width: 40, height: 40, borderRadius: '50%',
               background: data.gradient || 'linear-gradient(135deg, #00CCF5, #8b5cf6)',
             }} />
-            <div style={{ textAlign: 'left' }}>
+            <div style={{ textAlign: 'start' }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>{data.author}</div>
               <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{data.role}</div>
             </div>
@@ -415,11 +415,11 @@ function FinalCTA({ data }) {
   return (
     <section style={{ padding: 'clamp(56px, 9vh, 96px) 24px', background: 'var(--surface-page)' }}>
       <CTASection
-        title={data.ctaTitle || 'Try Social Stats free'}
-        subtitle={data.ctaSubtitle || 'Start in 2 minutes. No credit card. Cancel anytime.'}
-        primary={{ to: '/signup', label: 'Start free' }}
-        secondary={{ to: '/features', label: 'Explore features' }}
-        microCopy="Free & open source · Self-host · Setup in 2 minutes"
+        title={data.ctaTitle || "راوینتا را رایگان امتحان کنید"}
+        subtitle={data.ctaSubtitle || "2 دقیقه دیگر شروع کنید. بدون کارت اعتباری هر زمان خواستید لغو کنید."}
+        primary={{ to: '/signup', label: "شروع رایگان" }}
+        secondary={{ to: '/features', label: "مشاهده امکانات" }}
+        microCopy={"رایگان و منبع باز · خود میزبان · راه اندازی در 2 دقیقه"}
         variant="cta"
       />
     </section>

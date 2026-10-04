@@ -19,8 +19,8 @@ import { Info } from 'lucide-react';
  */
 export default function SamplePreviewBanner({ kind = 'agency' }) {
   const label = kind === 'agency'
-    ? 'Sample agency listing — illustrative preview while the marketplace onboards real partners.'
-    : 'Sample case study — illustrative preview while we onboard launch partners.';
+    ? "نمونه فهرست آژانس - پیش‌نمایش گویا در حالی که بازار شرکای واقعی دارد."
+    : "نمونه مطالعه موردی - پیش‌نمایش گویا در حالی که ما شرکای راه‌اندازی را داریم.";
   return (
     <div
       role="note"

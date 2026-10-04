@@ -15,94 +15,89 @@ export default function GDPRPage() {
   return (
     <LegalPageLayout
       eyebrow="GDPR"
-      title="GDPR Compliance"
+      title={"مطابقت با GDPR"}
       effectiveDate="2026-01-01"
       lastUpdated="2026-04-15"
-      intro="If you're an EU/EEA resident or a customer with EU/EEA users, this page explains how Social Stats honours the General Data Protection Regulation (GDPR)."
+      intro={"اگر مقیم اتحادیه اروپا/منطقه اقتصادی اروپا هستید یا مشتری با کاربران اتحادیه اروپا/منطقه اقتصادی اروپا هستید، این صفحه توضیح می‌دهد که چگونه راوینتا به مقررات حفاظت از داده‌های عمومی (GDPR) احترام می‌گذارد."}
       sections={[
         {
           id: 'role',
-          title: '1. Our role',
+          title: "1. نقش ما",
           body: (
             <>
-              <p>Under GDPR, Social Stats acts as:</p>
+              <p>تحت GDPR، راوینتا به صورت زیر عمل می‌کند:</p>
               <ul>
-                <li><strong>Data controller</strong> for your account data (your email, billing info, settings).</li>
-                <li><strong>Data processor</strong> for content you upload or sync (e.g., social-media posts and metrics).</li>
+                <li><strong>کنترل کننده داده</strong> برای اطلاعات حساب شما (ایمیل، اطلاعات صورتحساب، تنظیمات).</li>
+                <li><strong>پردازشگر داده</strong> برای محتوایی که آپلود یا همگام‌سازی می‌کنید (به عنوان مثال، پست‌ها و معیارهای رسانه‌های اجتماعی).</li>
               </ul>
             </>
           ),
         },
         {
           id: 'rights',
-          title: '2. Your rights under GDPR',
+          title: "2. حقوق شما تحت GDPR",
           body: (
             <>
-              <p>You have the right to:</p>
+              <p>شما حق دارید:</p>
               <ul>
-                <li><strong>Access</strong> — request a copy of all data we hold about you.</li>
-                <li><strong>Rectify</strong> — correct inaccurate data.</li>
-                <li><strong>Erase</strong> — request deletion ("right to be forgotten").</li>
-                <li><strong>Restrict</strong> — limit how we process your data.</li>
-                <li><strong>Object</strong> — opt out of specific processing activities.</li>
-                <li><strong>Port</strong> — receive your data in a machine-readable format.</li>
+                <li><strong>دسترسی</strong> - یک کپی از تمام داده‌هایی که در مورد شما نگهداری می کنیم درخواست کنید.</li>
+                <li><strong>اصلاح کنید</strong> - داده‌های نادرست را تصحیح کنید.</li>
+                <li><strong>پاک کردن</strong> - درخواست حذف ("حق فراموش شدن").</li>
+                <li><strong>محدود کنید</strong> — نحوه پردازش داده‌های شما را محدود کنید.</li>
+                <li><strong>شیء</strong> - از فعالیت‌های پردازشی خاص خودداری کنید.</li>
+                <li><strong>بندر</strong> - داده‌های خود را در قالب قابل خواندن ماشین دریافت کنید.</li>
               </ul>
               <p>
-                We respond to verified requests within <strong>30 days</strong> at no cost. If your request is
-                particularly complex, we may extend this by 60 days and notify you in writing.
+                ما به درخواست های تأیید شده در داخل پاسخ می‌دهیم <strong>30 روز</strong> بدون هیچ هزینه ای. اگر درخواست شما بسیار پیچیده است، ممکن است این مدت را 60 روز تمدید کنیم و کتباً به شما اطلاع دهیم.
               </p>
             </>
           ),
         },
         {
           id: 'dpa',
-          title: '3. Data Processing Agreement (DPA)',
+          title: "3. قرارداد پردازش داده (DPA)",
           body: (
             <p>
-              Customers who process EU personal data via SocialStats can sign our standard{' '}
-              <a href="https://github.com/cbsshekhawat18-lab/social-stats-social-media-manager/issues" target="_blank" rel="noreferrer">DPA</a> at no cost. Our DPA includes EU Standard Contractual Clauses
-              (SCCs) for cross-border transfers and is updated annually.
+              مشتریانی که داده‌های شخصی اتحادیه اروپا را از طریق راوینتا پردازش می‌کنند، می‌توانند استاندارد ما را امضا کنند{' '}
+              <a href="https://github.com/cbsshekhawat18-lab/social-stats-social-media-manager/issues" target="_blank" rel="noreferrer">DPA</a> بدون هیچ هزینه ای. DPA ما شامل بندهای قراردادی استاندارد اتحادیه اروپا (SCC) برای نقل و انتقالات برون مرزی است و سالانه به روز می‌شود.
             </p>
           ),
         },
         {
           id: 'subprocessors',
-          title: '4. Sub-processors',
+          title: "4. پردازشگرهای فرعی",
           body: (
             <>
-              <p>We use the following sub-processors to provide Social Stats:</p>
+              <p>ما از زیرپردازنده های زیر برای ارائه راوینتا استفاده می کنیم:</p>
               <ul>
-                <li><strong>AWS (Frankfurt)</strong> — primary infrastructure, EU-region storage.</li>
-                <li><strong>Anthropic</strong> — AI features (zero data retention contractually).</li>
-                <li><strong>Sentry</strong> — error monitoring.</li>
-                <li><strong>Postmark</strong> — transactional email.</li>
+                <li><strong>AWS (فرانکفورت)</strong> - زیرساخت اولیه، ذخیره سازی منطقه اتحادیه اروپا.</li>
+                <li><strong>آنتروپیک</strong> - ویژگی‌های هوش مصنوعی (حفظ داده‌ها به صورت قراردادی صفر).</li>
+                <li><strong>نگهبانی</strong> - نظارت بر خطا.</li>
+                <li><strong>مهر پست</strong> - ایمیل تراکنشی.</li>
               </ul>
               <p>
-                We notify customers 30 days before adding new sub-processors. The current list is always available at{' '}
-                the administrator of this Social Stats instance.
+                ما 30 روز قبل از افزودن زیرپردازنده های جدید به مشتریان اطلاع می‌دهیم. لیست فعلی همیشه در دسترس است{' '}
+                مدیر این نمونه راوینتا.
               </p>
             </>
           ),
         },
         {
           id: 'transfers',
-          title: '5. International data transfers',
+          title: "5. انتقال داده بین المللی",
           body: (
             <p>
-              By default, EU customer data is stored in our Frankfurt region. Cross-border transfers (e.g., to AI
-              providers) are governed by Standard Contractual Clauses and only happen when strictly necessary to
-              deliver the requested feature.
+              به طور پیش فرض، داده‌های مشتریان اتحادیه اروپا در منطقه فرانکفورت ما ذخیره می‌شود. نقل و انتقالات برون مرزی (به عنوان مثال، به ارائه دهندگان هوش مصنوعی) توسط بندهای قراردادی استاندارد کنترل می‌شود و تنها زمانی اتفاق می افتد که برای ارائه ویژگی درخواستی به شدت ضروری باشد.
             </p>
           ),
         },
         {
           id: 'request',
-          title: '6. Submit a GDPR request',
+          title: "6. یک درخواست GDPR ارسال کنید",
           body: (
             <>
               <p>
-                Use the form below to submit a verified data request. We'll confirm receipt within 48 hours and
-                respond fully within 30 days.
+                از فرم زیر برای ارسال درخواست داده تایید شده استفاده کنید. ما ظرف 48 ساعت دریافت را تأیید می کنیم و ظرف 30 روز به طور کامل پاسخ می‌دهیم.
               </p>
               <GDPRRequestForm />
             </>
@@ -110,11 +105,10 @@ export default function GDPRPage() {
         },
         {
           id: 'contact',
-          title: '7. Contact our DPO',
+          title: "7. با DPO ما تماس بگیرید",
           body: (
             <p>
-              For data-protection questions, contact the administrator of this Social Stats instance. EU
-              residents may also lodge a complaint with their local supervisory authority.
+              برای سؤالات مربوط به حفاظت از داده ها، با مدیر این نمونه راوینتا تماس بگیرید. ساکنان اتحادیه اروپا همچنین می‌توانند با مقام نظارت محلی خود شکایت کنند.
             </p>
           ),
         },

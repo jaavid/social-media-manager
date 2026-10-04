@@ -15,95 +15,88 @@ export default function DPDPPage() {
   return (
     <LegalPageLayout
       eyebrow="DPDP"
-      title="DPDP Compliance (India)"
+      title={"انطباق با DPDP (هند)"}
       effectiveDate="2026-01-01"
       lastUpdated="2026-04-15"
-      intro="Social Stats is an India-headquartered company. This page explains how we comply with the Digital Personal Data Protection Act, 2023 (DPDP) for our Indian customers and users."
+      intro={"راوینتا شرکتی است که دفتر مرکزی آن در هند قرار دارد. این صفحه نحوه تبعیت ما از قانون حفاظت از داده‌های شخصی دیجیتال، 2023 (DPDP) را برای مشتریان و کاربران هندی خود توضیح می‌دهد."}
       sections={[
         {
           id: 'role',
-          title: '1. Our role under DPDP',
+          title: "1. نقش ما تحت DPDP",
           body: (
             <>
-              <p>Under the DPDP Act 2023, Social Stats acts as:</p>
+              <p>بر اساس قانون DPDP 2023، راوینتا به صورت زیر عمل می‌کند:</p>
               <ul>
-                <li><strong>Data Fiduciary</strong> for your account data — we determine the purpose and means of processing.</li>
-                <li><strong>Data Processor</strong> for content you upload via Social Stats (we process on your behalf as a Data Fiduciary).</li>
+                <li><strong>امانتداری داده</strong> برای داده‌های حساب شما - ما هدف و روش پردازش را تعیین می کنیم.</li>
+                <li><strong>پردازشگر داده</strong> برای محتوایی که از طریق راوینتا آپلود می‌کنید (ما از طرف شما به عنوان امانتدار داده پردازش می کنیم).</li>
               </ul>
             </>
           ),
         },
         {
           id: 'principles',
-          title: '2. Principles we follow',
+          title: "2. اصولی که ما دنبال می کنیم",
           body: (
             <ul>
-              <li><strong>Lawful, fair, transparent</strong> — clear notice before any data is collected.</li>
-              <li><strong>Purpose limitation</strong> — data is only used for the purposes you consented to.</li>
-              <li><strong>Data minimisation</strong> — we collect only what's needed.</li>
-              <li><strong>Accuracy</strong> — you can correct your data at any time.</li>
-              <li><strong>Storage limitation</strong> — data is deleted when no longer needed.</li>
-              <li><strong>Security</strong> — encryption at rest + in transit.</li>
+              <li><strong>قانونی، منصفانه، شفاف</strong> - قبل از جمع‌آوری داده‌ها، اطلاعیه واضح.</li>
+              <li><strong>محدودیت هدف</strong> - داده‌ها فقط برای مقاصدی استفاده می‌شوند که شما با آن موافقت کرده‌اید.</li>
+              <li><strong>به حداقل رساندن داده ها</strong> - ما فقط آنچه را که لازم است جمع آوری می کنیم.</li>
+              <li><strong>دقت</strong> - می‌توانید داده‌های خود را در هر زمان تصحیح کنید.</li>
+              <li><strong>محدودیت ذخیره سازی</strong> - داده ها زمانی که دیگر مورد نیاز نیستند حذف می‌شوند.</li>
+              <li><strong>امنیت</strong> - رمزگذاری در حالت استراحت + در حال انتقال.</li>
             </ul>
           ),
         },
         {
           id: 'rights',
-          title: '3. Your rights as a Data Principal',
+          title: "3. حقوق شما به عنوان مدیر داده",
           body: (
             <>
-              <p>The DPDP Act gives you, as a Data Principal, the right to:</p>
+              <p>قانون DPDP به شما به عنوان یک مدیر داده این حق را می‌دهد که:</p>
               <ul>
-                <li><strong>Access</strong> — request a summary of personal data we process about you.</li>
-                <li><strong>Correct or erase</strong> — request correction or deletion of inaccurate data.</li>
-                <li><strong>Withdraw consent</strong> — for any processing that depends on consent.</li>
-                <li><strong>Nominate</strong> — designate another individual to exercise your rights in the event of incapacity.</li>
-                <li><strong>Grievance redressal</strong> — escalate concerns to our Grievance Officer (below).</li>
+                <li><strong>دسترسی</strong> - خلاصه ای از داده‌های شخصی را که ما درباره شما پردازش می کنیم، درخواست کنید.</li>
+                <li><strong>تصحیح یا پاک کنید</strong> - درخواست اصلاح یا حذف داده‌های نادرست.</li>
+                <li><strong>لغو رضایت</strong> - برای هر پردازشی که به رضایت بستگی دارد.</li>
+                <li><strong>نامزد کنید</strong> - فرد دیگری را برای اعمال حقوق شما در صورت ناتوانی تعیین کنید.</li>
+                <li><strong>رسیدگی به شکایات</strong> - نگرانی ها را به افسر شکایت ما تشدید کنید (در زیر).</li>
               </ul>
             </>
           ),
         },
         {
           id: 'consent',
-          title: '4. Consent & notice',
+          title: "4. رضایت و اطلاعیه",
           body: (
             <p>
-              Before processing any personal data, we provide a clear, plain-language notice describing what data
-              we collect, why, and how to withdraw consent. Notices are available in English, Hindi, and 8 other
-              Indian languages.
+              قبل از پردازش هر گونه داده شخصی، ما یک اخطار به زبان ساده و واضح ارائه می کنیم که در آن توضیح می‌دهد چه داده‌هایی را جمع آوری می کنیم، چرا و چگونه رضایت را لغو کنیم. اعلامیه ها به زبان انگلیسی، هندی و 8 زبان هندی دیگر در دسترس هستند.
             </p>
           ),
         },
         {
           id: 'localization',
-          title: '5. Data localisation',
+          title: "5. بومی سازی داده ها",
           body: (
             <p>
-              Personal data of Indian Data Principals is stored in our Mumbai region (AWS ap-south-1) by default.
-              Cross-border transfers, where necessary (e.g., for AI features), happen only after an MeitY whitelist
-              check and with appropriate contractual safeguards.
+              داده‌های شخصی کاربران هندی به‌طور پیش‌فرض در منطقه بمبئی (AWS ap-south-1) ذخیره می‌شوند. انتقال برون‌مرزی، در صورت نیاز، پس از بررسی فهرست مجاز وزارت الکترونیک و فناوری اطلاعات هند و با تضمین‌های قراردادی مناسب انجام می‌شود.
             </p>
           ),
         },
         {
           id: 'breach',
-          title: '6. Personal data breach',
+          title: "6. نقض داده‌های شخصی",
           body: (
             <p>
-              In the unlikely event of a personal data breach, we'll notify the Data Protection Board of India and
-              all affected Data Principals within <strong>72 hours</strong> of becoming aware of the breach,
-              including its nature, scope, and remediation steps.
+              در صورت غیر محتمل نقض داده‌های شخصی، ما به هیئت حفاظت از داده‌های هند و همه مدیران داده‌های تحت تأثیر در داخل اطلاع خواهیم داد. <strong>72 ساعت</strong> آگاهی از نقض، از جمله ماهیت، دامنه و مراحل اصلاح آن.
             </p>
           ),
         },
         {
           id: 'request',
-          title: '7. Submit a DPDP request',
+          title: "7. یک درخواست DPDP ارسال کنید",
           body: (
             <>
               <p>
-                Use the form below to submit a request. Our Grievance Officer will confirm receipt within 48 hours
-                and respond fully within 30 days.
+                برای ارسال درخواست از فرم زیر استفاده کنید. افسر شکایت ما ظرف 48 ساعت دریافت را تأیید می‌کند و ظرف 30 روز به طور کامل پاسخ می‌دهد.
               </p>
               <DPDPRequestForm />
             </>
@@ -111,20 +104,19 @@ export default function DPDPPage() {
         },
         {
           id: 'grievance',
-          title: '8. Grievance Officer',
+          title: "8. مسئول رسیدگی به شکایات",
           body: (
             <>
               <p>
-                Our Grievance Officer can be reached at:
+                با افسر رسیدگی به شکایات ما می‌توانید در این آدرس تماس بگیرید:
               </p>
               <p style={{ background: 'var(--surface-sunken)', padding: 16, borderRadius: 'var(--radius-md)', fontSize: 14 }}>
-                <strong>Grievance Officer, Social Stats</strong><br />
-                the administrator of this Social Stats instance<br />
-                For postal correspondence, write to the Grievance Officer at the
-                address shared in our reply to your email.
+                <strong>مسئول رسیدگی به شکایات، راوینتا</strong><br />
+                مدیر این نمونه راوینتا<br />
+                برای مکاتبات پستی، به افسر شکایت در آدرسی که در پاسخ ما به ایمیل شما به اشتراک گذاشته شده است، مکاتبه کنید.
               </p>
               <p>
-                You may also lodge a complaint with the Data Protection Board of India.
+                همچنین می‌توانید شکایتی را با هیئت حفاظت از داده‌های هند تسلیم کنید.
               </p>
             </>
           ),

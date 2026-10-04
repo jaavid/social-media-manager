@@ -17,12 +17,12 @@ import toast from '../components/ui/toast';
 
 
 const REQUEST_TYPES = [
-  { value: 'access',       label: 'Right to access — what data do you hold about me?' },
-  { value: 'rectification',label: 'Right to rectification — correct data about me' },
-  { value: 'erasure',      label: 'Right to erasure — delete my data' },
-  { value: 'portability',  label: 'Right to data portability — export my data' },
-  { value: 'restrict',     label: 'Right to restrict processing' },
-  { value: 'object',       label: 'Right to object to processing' },
+  { value: 'access',       label: "حق دسترسی - چه اطلاعاتی در مورد من دارید؟" },
+  { value: 'rectification',label: "حق تصحیح - اطلاعات صحیح در مورد من" },
+  { value: 'erasure',      label: "حق پاک کردن - داده‌های من را حذف کنید" },
+  { value: 'portability',  label: "حق انتقال داده‌ها؛ دریافت نسخه داده‌های من" },
+  { value: 'restrict',     label: "حق محدود کردن پردازش" },
+  { value: 'object',       label: "حق اعتراض به پردازش" },
 ];
 export default function GDPRRequestForm() {
   const [name, setName] = useState('');
@@ -35,7 +35,7 @@ export default function GDPRRequestForm() {
   async function submit(e) {
     e.preventDefault();
     if (!name.trim() || !email.trim()) {
-      toast.error('Name and email are required.');
+      toast.error("نام و ایمیل الزامی است.");
       return;
     }
     setSubmitting(true);
@@ -43,7 +43,7 @@ export default function GDPRRequestForm() {
       // No backend endpoint yet — pretend it submitted.
       await new Promise((r) => setTimeout(r, 700));
       setDone(true);
-      toast.success('Request received. We\'ll be in touch within 48 hours.');
+      toast.success("درخواست دریافت شد. ظرف 48 ساعت با شما تماس خواهیم گرفت.");
     } finally {
       setSubmitting(false);
     }
@@ -62,7 +62,7 @@ export default function GDPRRequestForm() {
           fontWeight: 500,
         }}
       >
-        Thanks — your request has been logged. We'll confirm receipt at <strong>{email}</strong> within 48 hours.
+        با تشکر - درخواست شما ثبت شده است. ما دریافت را در <strong>{email}</strong> ظرف 48 ساعت.
       </div>
     );
   }
@@ -70,21 +70,21 @@ export default function GDPRRequestForm() {
   return (
     <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 8 }}>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }} className="gdpr-row">
-        <Input label="Your name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Full name" size="md" />
-        <Input label="Your email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@email.com" size="md" />
+        <Input label={"نام شما"} value={name} onChange={(e) => setName(e.target.value)} placeholder={"نام کامل"} size="md" />
+        <Input label={"ایمیل شما"} type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@email.com" size="md" />
       </div>
-      <Select label="Request type" value={type} onChange={setType} options={REQUEST_TYPES} size="md" />
+      <Select label={"نوع درخواست"} value={type} onChange={setType} options={REQUEST_TYPES} size="md" />
       <Textarea
-        label="Additional details (optional)"
+        label={"جزئیات اضافی (اختیاری)"}
         value={details}
         onChange={(e) => setDetails(e.target.value)}
-        placeholder="Anything that helps us identify your account or scope the request…"
+        placeholder={"هر چیزی که به ما کمک کند حساب شما را شناسایی کنیم یا دامنه درخواست را انجام دهیم…"}
         minRows={3}
         maxRows={8}
         showCount
         maxLength={1500}
       />
-      <Button type="submit" size="md" loading={submitting}>Submit request</Button>
+      <Button type="submit" size="md" loading={submitting}>درخواست ارسال کنید</Button>
       <style>{`
         @media (max-width: 640px) { .gdpr-row { grid-template-columns: 1fr !important; } }
       `}</style>

@@ -1,4 +1,4 @@
 import Content from '../../../features/GDPRPage.jsx';
 import { publicMetadata } from '../../../lib/metadata.mjs';
-export const metadata = publicMetadata("GDPR Compliance", "If you're an EU/EEA resident or a customer with EU/EEA users, this page explains how Social Stats honours the General Data Protection Regulation (GDPR).", "/gdpr", false);
+export const metadata = publicMetadata("مطابقت با GDPR", "اگر مقیم اتحادیه اروپا/منطقه اقتصادی اروپا هستید یا مشتری با کاربران اتحادیه اروپا/منطقه اقتصادی اروپا هستید، این صفحه توضیح می‌دهد که چگونه راوینتا به مقررات حفاظت از داده‌های عمومی (GDPR) احترام می‌گذارد.", "/gdpr", false);
 export default function Page() { return <Content />; }

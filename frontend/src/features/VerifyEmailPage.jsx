@@ -1,3 +1,4 @@
+import { publicMessage } from '../i18n/public-message';
 import { useAppSearchParams } from '../core/navigation';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
@@ -34,7 +35,7 @@ export default function VerifyEmailPage() {
   useEffect(() => {
     if (!token) {
       setStatus('error');
-      setMessage('No verification token found in the URL.');
+      setMessage("هیچ نشانه تأییدی در URL یافت نشد.");
       return;
     }
     authAPI
@@ -47,21 +48,21 @@ export default function VerifyEmailPage() {
       })
       .catch((err) => {
         setStatus('error');
-        setMessage(err?.response?.data?.error || 'This verification link is invalid or has expired.');
+        setMessage(err?.response?.data?.error || "این پیوند تأیید نامعتبر است یا منقضی شده است.");
       });
   }, []);
 
   return (
     <AuthLayout
       heroTitle={
-        status === 'success' ? 'You\'re verified.' :
-        status === 'error'   ? 'Couldn\'t verify your email.' :
-                               'Just a moment…'
+        status === 'success' ? "شما تأیید شده اید." :
+        status === 'error'   ? "ایمیل شما تأیید نشد." :
+                               "فقط یک لحظه…"
       }
       heroSub={
-        status === 'success' ? 'Welcome to Social Stats. Let\'s get your workspace set up.' :
-        status === 'error'   ? 'Verification links expire after 24 hours. Resend a fresh one if needed.' :
-                               'We\'re activating your Social Stats account.'
+        status === 'success' ? "به راوینتا خوش آمدید. بیایید فضای کاری شما را تنظیم کنیم." :
+        status === 'error'   ? "پیوندهای تأیید پس از 24 ساعت منقضی می‌شوند. در صورت نیاز یک مورد جدید را دوباره ارسال کنید." :
+                               "ما در حال فعال کردن حساب راوینتا شما هستیم."
       }
     >
       <div style={cardStyle}>
@@ -70,8 +71,8 @@ export default function VerifyEmailPage() {
             <div aria-hidden style={iconBubbleStyle}>
               <Spinner size="md" />
             </div>
-            <h1 style={titleStyle}>Verifying your email…</h1>
-            <p style={subStyle}>This usually takes just a second.</p>
+            <h1 style={titleStyle}>در حال تأیید ایمیل شما…</h1>
+            <p style={subStyle}>این معمولا فقط یک ثانیه طول می کشد.</p>
           </>
         )}
 
@@ -84,8 +85,8 @@ export default function VerifyEmailPage() {
             <div aria-hidden style={{ ...iconBubbleStyle, background: 'var(--success-bg)', color: 'var(--success)' }}>
               <CheckCircle size={28} strokeWidth={1.8} />
             </div>
-            <h1 style={titleStyle}>Email verified!</h1>
-            <p style={subStyle}>Your account is active. Redirecting to your dashboard…</p>
+            <h1 style={titleStyle}>ایمیل تأیید شد!</h1>
+            <p style={subStyle}>حساب شما فعال است. در حال تغییر مسیر به داشبورد شما…</p>
           </motion.div>
         )}
 
@@ -94,17 +95,17 @@ export default function VerifyEmailPage() {
             <div aria-hidden style={{ ...iconBubbleStyle, background: 'var(--danger-bg)', color: 'var(--danger)' }}>
               <XCircle size={28} strokeWidth={1.8} />
             </div>
-            <h1 style={titleStyle}>Verification failed</h1>
-            <p style={subStyle}>{message}</p>
+            <h1 style={titleStyle}>تأیید نشد</h1>
+            <p style={subStyle}>{publicMessage(message, "انجام درخواست ممکن نشد. لطفاً اطلاعات واردشده را بررسی کنید.")}</p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 20 }}>
               <Button as={Link} to="/signup" size="md" fullWidth>
-                Back to sign up
+                بازگشت به ثبت نام
               </Button>
               <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
-                Already verified?{' '}
+                قبلاً تأیید شده‌اید؟{' '}
                 <Link to="/login" style={{ color: 'var(--text-link)', fontWeight: 600, textDecoration: 'none' }}>
-                  Sign in
+                  ورود
                 </Link>
               </div>
             </div>

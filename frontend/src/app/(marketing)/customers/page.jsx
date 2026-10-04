@@ -1,4 +1,4 @@
 import Content from '../../../features/CustomersPage.jsx';
 import { publicMetadata } from '../../../lib/metadata.mjs';
-export const metadata = publicMetadata("Customer stories", "Customer stories will appear here as Social Stats launches publicly. In the meantime, here's how the product is built to be used — by industry.", "/customers", false);
+export const metadata = publicMetadata("داستان های مشتری", "داستان‌های مشتریان در اینجا با راه‌اندازی عمومی راوینتا ظاهر می‌شوند. در عین حال، در اینجا نحوه ساخت محصول برای استفاده توسط صنعت آمده است.", "/customers", false);
 export default function Page() { return <Content />; }

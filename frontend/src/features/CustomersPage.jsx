@@ -45,75 +45,75 @@ import Meta from '../components/Meta';
 
 const EXAMPLE_WORKFLOWS = [
   {
-    industry: 'Real estate',
+    industry: "املاک و مستغلات",
     icon: Building2,
     accent: '#00CCF5',
-    headline: 'Capture and qualify property leads via WhatsApp',
-    body: 'Run click-to-WhatsApp ads, route enquiries through a bot that asks for budget and locality, then push qualified leads to your CRM. Schedule property reels and Instagram posts from the same Composer.',
+    headline: "از طریق واتس‌اپ، سرنخ های دارایی را جذب و واجد شرایط کنید",
+    body: "تبلیغات کلیکی به واتس‌اپ را اجرا کنید، درخواست‌ها را از طریق رباتی که بودجه و محل را می‌خواهد هدایت کنید، سپس سرنخ‌های واجد شرایط را به سمت CRM خود هدایت کنید. حلقه‌های دارایی و پست‌های اینستاگرام را از همان ویرایشگر محتوا زمان‌بندی کنید.",
     bullets: [
-      'CTWA campaigns with platform-native lead forms',
-      'Visual bot builder for qualification flows',
-      'Brand-voice AI captions per listing',
+      "کمپین‌های CTWA با فرم های سرب بومی پلتفرم",
+      "سازنده ربات بصری برای جریان‌های صلاحیت",
+      "شرح‌های هوش مصنوعی با لحن برند در هر فهرست",
     ],
   },
   {
-    industry: 'Healthcare',
+    industry: "سلامت و درمان",
     icon: Stethoscope,
     accent: '#8b5cf6',
-    headline: 'Cut no-shows with WhatsApp reminders + a unified inbox',
-    body: 'Send appointment reminders 24h and 2h before the slot via WhatsApp templates. Reschedule requests land in the same inbox as Instagram DMs and Google reviews — your team works from one queue.',
+    headline: "با یادآوری واتس‌اپ + صندوق ورودی یکپارچه، موارد بدون نمایش را قطع کنید",
+    body: "یادآوری‌های قرار را 24 ساعت و 2 ساعت قبل از اسلات از طریق قالب‌های واتس‌اپ ارسال کنید. زمان‌بندی مجدد درخواست‌ها در همان صندوق ورودی پیام‌های پیامکی اینستاگرام و بررسی‌های Google قرار می‌گیرند - تیم شما از یک صف کار می‌کند.",
     bullets: [
-      'Approved WhatsApp template campaigns',
-      'Unified inbox across DMs, reviews, comments',
-      'Per-clinic workspaces with shared brand voice',
+      "کمپین‌های قالب واتس‌اپ تایید شده است",
+      "صندوق ورودی یکپارچه در پیام خصوصی ها، نظرات، نظرات",
+      "فضاهای کاری هر کلینیک با لحن برند مشترک",
     ],
   },
   {
-    industry: 'Agencies',
+    industry: "آژانس‌ها",
     icon: Users,
     accent: '#f472b6',
-    headline: 'Manage many clients without losing the thread',
-    body: 'A small agency can manage many client workspaces from one Social Stats tenant. Approval flows, white-label reports, and per-client brand voice mean the work scales without a proportional headcount increase.',
+    headline: "بسیاری از مشتریان را بدون از دست دادن موضوع مدیریت کنید",
+    body: "یک آژانس کوچک می‌تواند بسیاری از فضاهای کاری مشتری را از یک مستاجر راوینتا مدیریت کند. جریان‌های تایید، گزارش‌های برند اختصاصی، و لحن برند هر مشتری به معنای مقیاس های کار بدون افزایش تعداد کار متناسب است.",
     bullets: [
-      'Per-client workspace + brand voice',
-      'Approval flows for posts and replies',
-      'White-label reports on a schedule',
+      "فضای کاری برای هر مشتری + لحن برند",
+      "جریان‌های تایید برای پست‌ها و پاسخ ها",
+      "گزارش‌های برند اختصاصی بر اساس یک برنامه",
     ],
   },
   {
-    industry: 'Restaurants',
+    industry: "رستوران‌ها",
     icon: Utensils,
     accent: '#f59e0b',
-    headline: 'CTWA bots that take orders and bookings',
-    body: 'Run Click-to-WhatsApp ads that drop the user into a bot for menu, location, and booking. Route confirmed orders to your POS via webhook. Update Instagram and Google Business with daily specials from one Composer.',
+    headline: "ربات‌های CTWA که سفارش‌ها و رزروها را دریافت می‌کنند",
+    body: "تبلیغات Click-to-واتس‌اپ را اجرا کنید که کاربر را برای منو، مکان و رزرو به ربات می‌اندازد. سفارشات تایید شده را از طریق webhook به POS خود هدایت کنید. اینستاگرام و کسب‌وکار گوگل را با تخفیف های روزانه از یک ویرایشگر محتوا به روز کنید.",
     bullets: [
-      'Menu + booking bots out of the box',
-      'Google Business posts auto-synced',
-      'Per-location workspaces',
+      "منو + ربات‌های رزرو خارج از جعبه",
+      "پست‌های کسب و کار Google به صورت خودکار همگام‌سازی می‌شوند",
+      "فضاهای کاری در هر مکان",
     ],
   },
   {
-    industry: 'E-commerce',
+    industry: "تجارت الکترونیکی",
     icon: ShoppingBag,
     accent: '#10b981',
-    headline: 'Catalogue ads + WhatsApp checkout',
-    body: 'Pull products from Shopify or Woo into Composer. Run carousel ads on Instagram and Facebook with deep links into a WhatsApp catalogue checkout. Reply to inbound messages with AI-suggested replies in your brand voice.',
+    headline: "تبلیغات کاتالوگ + پرداخت واتس‌اپ",
+    body: "محصولات را از Shopify یا Woo به ویرایشگر محتوا بکشید. تبلیغات چرخ و فلک را در اینستاگرام و فیس‌بوک با پیوندهای عمیق در پرداخت کاتالوگ واتس‌اپ اجرا کنید. به پیام‌های ورودی با پاسخ‌های پیشنهادی هوش مصنوعی با لحن برند خود پاسخ دهید.",
     bullets: [
-      'Shopify + Woo product feed',
-      'WhatsApp catalogue + checkout',
-      'AI reply suggestions in brand voice',
+      "خوراک محصول Shopify + Woo",
+      "کاتالوگ واتس‌اپ + تسویه حساب",
+      "پیشنهادات پاسخ هوش مصنوعی در لحن برند",
     ],
   },
   {
-    industry: 'Creators',
+    industry: "تولیدکنندگان محتوا",
     icon: Sparkles,
     accent: '#a78bfa',
-    headline: 'Plan, generate, and ship content across platforms',
-    body: 'Train Social Stats on five posts in your voice. Generate caption variants for Instagram, Facebook, LinkedIn, and YouTube descriptions from one prompt. Schedule once; the Composer formats per platform.',
+    headline: "برنامه‌ریزی، تولید، و ارسال محتوا در سراسر سیستم عامل",
+    body: "آموزش راوینتا در پنج پست با صدای خود. انواع کپشن برای توضیحات اینستاگرام، فیسبوک، لینکدین و یوتیوب از یک اعلان ایجاد کنید. یک بار برنامه‌ریزی کنید؛ فرمت های ویرایشگر محتوا در هر پلتفرم",
     bullets: [
-      'One Composer, five-platform output',
-      'Brand-voice training in 3 minutes',
-      'AI-narrated monthly recap',
+      "یک ویرایشگر محتوا، خروجی پنج پلتفرم",
+      "آموزش لحن برند در 3 دقیقه",
+      "خلاصه ماهانه روایت شده توسط هوش مصنوعی",
     ],
   },
 ];
@@ -122,8 +122,8 @@ export default function CustomersPage() {
   return (
     <MarketingLayout>
       <Meta
-        title="Customer stories"
-        description="Customer stories will appear here as Social Stats launches publicly. In the meantime, here's how the product is built to be used — by industry."
+        title={"داستان های مشتری"}
+        description={"داستان‌های مشتریان در اینجا با راه‌اندازی عمومی راوینتا ظاهر می‌شوند. در عین حال، در اینجا نحوه ساخت محصول برای استفاده توسط صنعت آمده است."}
       />
 
       {/* ╭───────────╮
@@ -146,7 +146,7 @@ export default function CustomersPage() {
             border: '1px solid rgba(255,255,255,0.2)',
             borderRadius: 'var(--radius-pill)',
             textTransform: 'uppercase',
-          }}>Coming soon</span>
+          }}>به‌زودی</span>
 
           <h1 style={{
             margin: 0,
@@ -155,7 +155,7 @@ export default function CustomersPage() {
             lineHeight: 1.1,
             color: '#fff',
           }}>
-            Customer stories — coming soon
+            داستان های مشتری - به زودی
           </h1>
 
           <p style={{
@@ -164,10 +164,7 @@ export default function CustomersPage() {
             lineHeight: 1.55,
             color: 'rgba(255,255,255,0.78)',
           }}>
-            We're rolling out Social Stats to a first cohort of launch partners.
-            Real customer stories, with named teams and real numbers, will
-            appear here as those partners go public. Until then, here's how
-            the product is built to be used.
+            ما در حال انتشار راوینتا برای اولین گروه از شرکای راه اندازی هستیم. با انتشار عمومی آن شرکا، داستان‌های واقعی مشتریان، با تیم‌های نام‌گذاری شده و اعداد واقعی، در اینجا ظاهر می‌شوند. تا آن زمان، در اینجا نحوه ساخت محصول برای استفاده آمده است.
           </p>
 
           <div style={{
@@ -180,7 +177,7 @@ export default function CustomersPage() {
                       color: '#0a0e14',
                       border: 'none',
                     }}>
-              Become a launch partner <ArrowRight size={15} />
+              شریک راه اندازی شوید <ArrowRight size={15} />
             </Button>
             <Button as={Link} to="/contact" size="lg" variant="ghost"
                     style={{
@@ -188,7 +185,7 @@ export default function CustomersPage() {
                       background: 'rgba(255,255,255,0.08)',
                       border: '1px solid rgba(255,255,255,0.18)',
                     }}>
-              Talk to the team
+              با تیم صحبت کنید
             </Button>
           </div>
         </div>
@@ -212,20 +209,18 @@ export default function CustomersPage() {
                 background: 'var(--brand-primary-soft)',
                 borderRadius: 'var(--radius-pill)',
                 letterSpacing: '0.06em', textTransform: 'uppercase',
-              }}>Example workflows · illustrative</span>
+              }}>نمونه گردش کار · گویا</span>
               <h2 style={{
                 margin: 0, fontSize: 'clamp(28px, 4vw, 40px)',
                 fontWeight: 700, letterSpacing: '-0.02em',
                 color: 'var(--text-primary)', lineHeight: 1.15,
-              }}>How Social Stats is built to be used</h2>
+              }}>چگونه راوینتا برای استفاده ساخته شده است</h2>
               <p style={{
                 margin: '14px auto 0', maxWidth: 620,
                 fontSize: 16, lineHeight: 1.55,
                 color: 'var(--text-secondary)',
               }}>
-                These are example workflows, not real customer stories.
-                Each describes a typical setup for that industry — the
-                channels, AI features, and approval flows that fit.
+                اینها نمونه گردش کار هستند، نه داستانهای واقعی مشتری. هر کدام یک راه‌اندازی معمولی برای آن صنعت را توصیف می‌کنند - کانال‌ها، ویژگی‌های هوش مصنوعی، و جریان‌های تأیید مناسب.
               </p>
             </div>
           </ScrollReveal>
@@ -318,7 +313,8 @@ export default function CustomersPage() {
             background: 'var(--brand-primary-soft)',
             borderRadius: 'var(--radius-pill)', textTransform: 'uppercase',
           }}>
-            <Sparkles size={12} /> Launch partner programme
+            <Sparkles size={12} /> راه اندازی برنامه شریک
+گیره
           </div>
           <h2 style={{
             margin: 0,
@@ -326,26 +322,24 @@ export default function CustomersPage() {
             fontWeight: 700, letterSpacing: '-0.02em',
             color: 'var(--text-primary)', lineHeight: 1.2,
           }}>
-            Be the first customer story on this page
+            اولین داستان مشتری در این صفحه باشید
           </h2>
           <p style={{
             margin: '14px auto 0', maxWidth: 520,
             fontSize: 15, lineHeight: 1.55,
             color: 'var(--text-secondary)',
           }}>
-            Launch-partner teams get hands-on onboarding, a direct line to
-            the team, and a feature spot here when they're ready to share
-            their numbers.
+            تیم‌های شریک راه‌اندازی زمانی که آماده به اشتراک گذاشتن شماره‌هایشان هستند، به صورت عملی، یک خط مستقیم به تیم، و یک نقطه ویژگی در اینجا دریافت می‌کنند.
           </p>
           <div style={{
             marginTop: 28, display: 'inline-flex', gap: 12,
             justifyContent: 'center', flexWrap: 'wrap',
           }}>
             <Button as={Link} to="/signup" size="lg" variant="primary">
-              Start free <ArrowRight size={15} />
+              شروع رایگان <ArrowRight size={15} />
             </Button>
             <Button as={Link} to="/contact" size="lg" variant="ghost">
-              Talk to the team
+              با تیم صحبت کنید
             </Button>
           </div>
         </div>

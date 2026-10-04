@@ -54,7 +54,7 @@ export default function OAuthCallbackPage() {
     <div style={styles.page}>
       <div style={styles.card}>
         <div style={styles.spinner} />
-        <p style={styles.msg}>Finalising connection…</p>
+        <p style={styles.msg}>در حال نهایی شدن اتصال…</p>
       </div>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>

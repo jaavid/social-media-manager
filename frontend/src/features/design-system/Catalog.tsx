@@ -5,7 +5,6 @@ import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Select from '@/components/ui/Select';
 import { useTheme } from '@/hooks/useTheme';
-import { setLanguage } from '@/i18n';
 import { message } from '@/i18n/translate';
 import type { MessageKey } from '@/i18n/messages';
 
@@ -19,8 +18,8 @@ export default function Catalog() {
     <h1 className="text-3xl font-bold">{t('catalog.title')}</h1>
     <p>{t('catalog.intro')}</p>
     <div className="flex flex-wrap gap-4">
-      <label>{t('catalog.language')}<select value={language} onChange={event => setLanguage(event.target.value)}>
-        <option value="fa">{t('catalog.persian')}</option><option value="en">{t('catalog.english')}</option>
+      <label>{t('catalog.language')}<select value="fa" disabled>
+        <option value="fa">{t('catalog.persian')}</option>
       </select></label>
       <label>{t('catalog.theme')}<select value={preference} onChange={event => setTheme(event.target.value)}>
         {(['light', 'dark', 'system'] as const).map(theme => <option key={theme} value={theme}>{t(`catalog.${theme}`)}</option>)}
@@ -29,7 +28,7 @@ export default function Catalog() {
     <section className="app-surface rounded-lg p-6 shadow-md">
       <h2 className="text-xl font-bold">{t('catalog.typography')}</h2>
       {['sm', 'base', 'lg'].map(size => <p key={size} data-sample={size} className={{ sm: 'text-sm', base: 'text-base', lg: 'text-lg' }[size]}>
-        {t('common.home')} · Social Stats <bdi className="bidi-isolate">team@example.com</bdi>
+        {t('common.home')} · راوینتا <bdi className="bidi-isolate">team@example.com</bdi>
       </p>)}
     </section>
     <section className="app-surface rounded-lg p-6 shadow-md">

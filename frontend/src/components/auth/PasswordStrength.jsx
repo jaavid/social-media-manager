@@ -13,11 +13,11 @@
  * affordance, not validation — the backend remains the source of truth.
  */
 const LEVELS = [
-  { label: 'Very weak', color: 'var(--danger)',  width: '20%' },
-  { label: 'Weak',      color: 'var(--danger)',  width: '40%' },
-  { label: 'Fair',      color: 'var(--warning)', width: '60%' },
-  { label: 'Good',      color: 'var(--info)',    width: '80%' },
-  { label: 'Strong',    color: 'var(--success)', width: '100%' },
+  { label: "بسیار ضعیف", color: 'var(--danger)',  width: '20%' },
+  { label: "ضعیف",      color: 'var(--danger)',  width: '40%' },
+  { label: "متوسط",      color: 'var(--warning)', width: '60%' },
+  { label: "خوب",      color: 'var(--info)',    width: '80%' },
+  { label: "قوی",    color: 'var(--success)', width: '100%' },
 ];
 
 export function scorePassword(pw) {
@@ -65,7 +65,7 @@ export default function PasswordStrength({ password = '', show = true }) {
           fontWeight: 500,
         }}
       >
-        Password strength: {lvl.label}
+        قدرت گذرواژه: {lvl.label}
       </div>
     </div>
   );

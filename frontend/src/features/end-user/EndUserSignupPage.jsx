@@ -1,3 +1,4 @@
+import { publicMessage } from '../../i18n/public-message';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -25,13 +26,13 @@ import { endUserAPI } from '../../services/api';
 import toast from '../../components/ui/toast';
 
 const INDUSTRY_OPTIONS = [
-  { value: 'real_estate',  label: 'Real estate' },
-  { value: 'clinic',       label: 'Clinic / hospital' },
-  { value: 'restaurant',   label: 'Restaurant / cafe' },
-  { value: 'retail',       label: 'Retail / e-commerce' },
-  { value: 'creator',      label: 'Creator / influencer' },
-  { value: 'professional', label: 'Professional services' },
-  { value: 'other',        label: 'Other' },
+  { value: 'real_estate',  label: "املاک و مستغلات" },
+  { value: 'clinic',       label: "درمانگاه / بیمارستان" },
+  { value: 'restaurant',   label: "رستوران / کافه" },
+  { value: 'retail',       label: "خرده فروشی / تجارت الکترونیک" },
+  { value: 'creator',      label: "خالق / تأثیرگذار" },
+  { value: 'professional', label: "خدمات حرفه ای" },
+  { value: 'other',        label: "دیگر" },
 ];
 
 export default function EndUserSignupPage() {
@@ -54,16 +55,16 @@ export default function EndUserSignupPage() {
 
   function next() {
     if (step === 1) {
-      if (!form.full_name.trim()) return toast.error('Tell us your name');
-      if (!form.email.trim())     return toast.error('Email is required');
-      if (form.password.length < 8) return toast.error('Password must be at least 8 characters');
+      if (!form.full_name.trim()) return toast.error("نام خود را به ما بگویید");
+      if (!form.email.trim())     return toast.error("ایمیل مورد نیاز است");
+      if (form.password.length < 8) return toast.error("رمز عبور باید حداقل 8 کاراکتر باشد");
     }
-    if (step === 2 && !form.industry) return toast.error('Pick an industry so we can tune Social Stats for you');
+    if (step === 2 && !form.industry) return toast.error("صنعتی را انتخاب کنید تا بتوانیم راوینتا را برای شما تنظیم کنیم");
     setStep((s) => Math.min(3, s + 1));
   }
 
   async function submit() {
-    if (!form.terms) return toast.error('Please accept the Terms of Service');
+    if (!form.terms) return toast.error("لطفاً شرایط خدمات را بپذیرید");
     setLoading(true);
     try {
       const res = await endUserAPI.signup({
@@ -78,15 +79,15 @@ export default function EndUserSignupPage() {
       const { user, workspace } = res.data;
       await refreshAuth();
       persistentStorage.setItem('end_user_signup_workspace', JSON.stringify(workspace || {}));
-      toast.success(`Welcome to Social Stats, ${user?.first_name || ''}!`);
+      toast.success(`به راوینتا خوش آمدید، ${user?.first_name || ''}!`);
       // Trigger a fresh /me bootstrap by routing through /auth-callback so the
       // existing useAuth hook picks up the new session.
       navigate('/u');
     } catch (e) {
       const data = e?.response?.data || {};
       const errs = data.errors || {};
-      const first = Object.values(errs)[0] || data.detail || 'Signup failed';
-      toast.error(String(first));
+      const first = Object.values(errs)[0] || data.detail || "ثبت نام انجام نشد";
+      toast.error(publicMessage(String(first)));
     } finally {
       setLoading(false);
     }
@@ -114,10 +115,10 @@ export default function EndUserSignupPage() {
           </span>
           <div>
             <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)' }}>
-              Get started with Social Stats
+              با راوینتا شروع کنید
             </div>
             <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
-              Free forever · no agency required
+              رایگان برای همیشه · بدون آژانس مورد نیاز است
             </div>
           </div>
         </header>
@@ -126,25 +127,25 @@ export default function EndUserSignupPage() {
 
         {step === 1 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <Field label="Your full name" value={form.full_name} onChange={set('full_name')} placeholder="Priya Singh" autoFocus />
-            <Field label="Email" type="email" value={form.email} onChange={set('email')} placeholder="you@yourbiz.com" />
-            <Field label="Password" type="password" value={form.password} onChange={set('password')} placeholder="At least 8 characters" />
+            <Field label={"نام کامل شما"} value={form.full_name} onChange={set('full_name')} placeholder={"پریا سینگ"} autoFocus />
+            <Field label={"ایمیل"} type="email" value={form.email} onChange={set('email')} placeholder="you@yourbiz.com" />
+            <Field label={"گذرواژه"} type="password" value={form.password} onChange={set('password')} placeholder={"حداقل 8 کاراکتر"} />
           </div>
         )}
 
         {step === 2 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div>
-              <Label>What do you do?</Label>
+              <Label>چه کار می‌کنید؟</Label>
               <select value={form.industry} onChange={set('industry')} style={selectStyle}>
-                <option value="">Choose one…</option>
+                <option value="">یکی را انتخاب کنید…</option>
                 {INDUSTRY_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>{opt.label}</option>
                 ))}
               </select>
             </div>
-            <Field label="Business name (optional)" value={form.company_name} onChange={set('company_name')} placeholder="Defaults to your name" />
-            <Field label="Phone (optional)" value={form.phone} onChange={set('phone')} placeholder="+91 …" />
+            <Field label={"نام تجاری (اختیاری)"} value={form.company_name} onChange={set('company_name')} placeholder={"پیش‌فرض نام شما"} />
+            <Field label={"تلفن (اختیاری)"} value={form.phone} onChange={set('phone')} placeholder="+91 …" />
           </div>
         )}
 
@@ -159,8 +160,8 @@ export default function EndUserSignupPage() {
                 style={{ marginTop: 3 }}
               />
               <span>
-                I accept the <Link to="/terms" style={{ color: 'var(--brand-primary-hover)' }}>Terms of Service</Link>{' '}
-                and the <Link to="/privacy" style={{ color: 'var(--brand-primary-hover)' }}>Privacy Policy</Link>.
+                من قبول دارم <Link to="/terms" style={{ color: 'var(--brand-primary-hover)' }}>شرایط استفاده از خدمات</Link>{' '}
+                و <Link to="/privacy" style={{ color: 'var(--brand-primary-hover)' }}>سیاست حریم خصوصی</Link>.
               </span>
             </label>
           </div>
@@ -169,24 +170,24 @@ export default function EndUserSignupPage() {
         <footer style={{ display: 'flex', gap: 8, marginTop: 22 }}>
           {step > 1 && (
             <button type="button" onClick={() => setStep(step - 1)} style={btnGhost}>
-              <ArrowLeft size={14} /> Back
+              <ArrowLeft size={14} /> بازگشت
             </button>
           )}
           <div style={{ flex: 1 }} />
           {step < 3 && (
             <button type="button" onClick={next} style={btnPrimary}>
-              Continue <ArrowRight size={14} />
+              ادامه <ArrowRight size={14} />
             </button>
           )}
           {step === 3 && (
             <button type="button" onClick={submit} disabled={loading || !form.terms} style={btnPrimary}>
-              {loading ? 'Creating…' : 'Create account'} <Check size={14} />
+              {loading ? 'در حال ساخت…' : "ایجاد حساب"} <Check size={14} />
             </button>
           )}
         </footer>
 
         <p style={{ marginTop: 16, fontSize: 12, color: 'var(--text-tertiary)', textAlign: 'center' }}>
-          Already have an account? <Link to="/login" style={{ color: 'var(--brand-primary-hover)', fontWeight: 600 }}>Sign in</Link>
+          آیا از قبل حساب کاربری دارید؟ <Link to="/login" style={{ color: 'var(--brand-primary-hover)', fontWeight: 600 }}>ورود</Link>
         </p>
       </div>
     </div>
@@ -235,11 +236,11 @@ function Label({ children }) {
 
 function Summary({ form }) {
   const rows = [
-    ['Name',     form.full_name],
-    ['Email',    form.email],
-    ['Industry', INDUSTRY_OPTIONS.find((i) => i.value === form.industry)?.label || form.industry],
-    ['Business', form.company_name || form.full_name],
-    ['Phone',    form.phone || '—'],
+    ["نام",     form.full_name],
+    ["ایمیل",    form.email],
+    ["صنعت", INDUSTRY_OPTIONS.find((i) => i.value === form.industry)?.label || form.industry],
+    ["تجارت", form.company_name || form.full_name],
+    ["تلفن",    form.phone || '—'],
   ];
   return (
     <div style={{

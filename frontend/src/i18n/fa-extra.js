@@ -3,6 +3,17 @@
 // incrementally through `tr()` without introducing another i18n dependency.
 
 const faExtra = {
+  'Render error': 'خطا در نمایش صفحه',
+  'Something went wrong on this page.': 'نمایش این صفحه با مشکل روبه‌رو شد.',
+  'A problem broke this view. Try reloading or check the status page.': 'صفحه را دوباره بارگذاری کنید. اگر مشکل ادامه داشت، وضعیت سامانه را بررسی کنید.',
+  'Reload': 'بارگذاری دوباره',
+  'Check status': 'بررسی وضعیت سامانه',
+  'Report it': 'گزارش مشکل',
+  'Reference ID:': 'شناسه پیگیری:',
+  'Stack trace (dev only)': 'جزئیات خطا (ویژه توسعه)',
+  'Skip to main content': 'رفتن به محتوای اصلی',
+  'Switch to light mode': 'تغییر به حالت روشن',
+  'Switch to dark mode': 'تغییر به حالت تیره',
   'Active Workspaces': 'فضاهای کاری فعال',
   'Total Workspaces': 'تعداد فضاهای کاری',
   'Owner email': 'ایمیل مالک',

@@ -1,3 +1,4 @@
+import { publicMessage } from '../i18n/public-message';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -15,8 +16,10 @@ import {
 import { Lock, Eye, TrendingUp, Users, MousePointerClick, Play, Heart, ExternalLink } from 'lucide-react';
 import { publicReportAPI } from '../services/api';
 import { useLookups } from '../hooks/useData';
-import { fmt } from '../services/platforms';
+import { formatUiNumber } from '../i18n';
 import SocialPlatformIcon from '../components/ui/SocialPlatformIcon';
+
+const fmt = value => formatUiNumber(value, 'fa', { notation: 'compact', maximumFractionDigits: 1 });
 
 // ── Inject styles once ────────────────────────────────────────────────────────
 if (typeof document !== 'undefined' && !document.getElementById('pub-report-styles')) {
@@ -62,12 +65,12 @@ const PLATFORM_COLOR_MAP = {
 };
 
 const KPI_DEFS = [
-  { key: 'impressions', label: 'Impressions' },
-  { key: 'reach',       label: 'Reach' },
-  { key: 'clicks',      label: 'Clicks' },
-  { key: 'likes',       label: 'Likes' },
-  { key: 'followers',   label: 'Followers' },
-  { key: 'video_views', label: 'Video Views' },
+  { key: 'impressions', label: "تعداد نمایش" },
+  { key: 'reach',       label: "دسترسی مخاطبان" },
+  { key: 'clicks',      label: "کلیک‌ها" },
+  { key: 'likes',       label: "پسندها" },
+  { key: 'followers',   label: "دنبال‌کنندگان" },
+  { key: 'video_views', label: "بازدید ویدئو" },
 ];
 
 function KpiCard({ label, value, icon: Icon, color }) {
@@ -93,7 +96,7 @@ function PasswordGate({ token, clientName, period, onUnlock }) {
   async function submit(e) {
     e.preventDefault();
     if (!pw.trim()) {
-      setFieldError('Password is required.');
+      setFieldError("وارد کردن رمز عبور الزامی است.");
       return;
     }
     setBusy(true);
@@ -103,7 +106,7 @@ function PasswordGate({ token, clientName, period, onUnlock }) {
       const res = await publicReportAPI.verify(token, pw);
       onUnlock(res.data);
     } catch {
-      setErr('Incorrect password. Please try again.');
+      setErr("رمز عبور اشتباه است. لطفا دوباره امتحان کنید.");
     } finally {
       setBusy(false);
     }
@@ -122,10 +125,10 @@ function PasswordGate({ token, clientName, period, onUnlock }) {
           </p>
         </div>
         <p style={{ fontSize: 14, color: 'var(--text-secondary)', textAlign: 'center', marginBottom: 20 }}>
-          This report is password protected.
+          این گزارش با رمز محافظت می‌شود.
         </p>
         <form onSubmit={submit}>
-          <label style={pwLabel}>Password <span style={requiredAsterisk}>*</span></label>
+          <label style={pwLabel}>گذرواژه <span style={requiredAsterisk}>*</span></label>
           <input
             type="password"
             value={pw}
@@ -133,14 +136,14 @@ function PasswordGate({ token, clientName, period, onUnlock }) {
               setPw(e.target.value);
               if (fieldError) setFieldError('');
             }}
-            placeholder="Enter password…"
+            placeholder={"رمز عبور را وارد کنید…"}
             style={{ ...pwInput, ...(fieldError ? pwInputError : {}) }}
             autoFocus
           />
-          {fieldError && <p style={pwErrorText}>{fieldError}</p>}
-          {err && <p style={{ color: '#dc2626', fontSize: 13, margin: '8px 0 0' }}>{err}</p>}
+          {fieldError && <p style={pwErrorText}>{publicMessage(fieldError, "انجام درخواست ممکن نشد. لطفاً اطلاعات واردشده را بررسی کنید.")}</p>}
+          {err && <p style={{ color: '#dc2626', fontSize: 13, margin: '8px 0 0' }}>{publicMessage(err, "انجام درخواست ممکن نشد. لطفاً اطلاعات واردشده را بررسی کنید.")}</p>}
           <button type="submit" disabled={busy} style={pwBtn}>
-            {busy ? 'Verifying…' : 'View Report'}
+            {busy ? 'در حال بررسی…' : "مشاهده گزارش"}
           </button>
         </form>
       </div>
@@ -167,13 +170,13 @@ export default function PublicReportPage() {
       })
       .catch(err => {
         const msg = err.response?.data?.error;
-        setError(msg || 'This report could not be loaded.');
+        setError(msg || "این گزارش بارگیری نشد.");
       })
       .finally(() => setLoading(false));
   }, [token]);
 
-  if (loading) return <div style={centeredMsg}>Loading report…</div>;
-  if (error)   return <div style={{ ...centeredMsg, color: '#dc2626' }}>{error}</div>;
+  if (loading) return <div style={centeredMsg}>در حال بارگیری گزارش…</div>;
+  if (error)   return <div style={{ ...centeredMsg, color: '#dc2626' }}>{publicMessage(error, "انجام درخواست ممکن نشد. لطفاً اطلاعات واردشده را بررسی کنید.")}</div>;
 
   if (meta?.requires_password) {
     return (
@@ -220,7 +223,7 @@ export default function PublicReportPage() {
           <div>
             <h1 style={companyName}>{client?.name}</h1>
             <p style={periodLabel}>
-              Social Media Report · {period?.from} → {period?.until}
+              گزارش شبکه‌های اجتماعی · {period?.from} → {period?.until}
             </p>
           </div>
           <button
@@ -228,7 +231,7 @@ export default function PublicReportPage() {
             onClick={() => window.print()}
             style={printBtn}
           >
-            Download PDF
+            دانلود PDF
           </button>
         </div>
       </div>
@@ -236,7 +239,7 @@ export default function PublicReportPage() {
       <div style={content}>
         {/* ── KPI Cards ──────────────────────────────────── */}
         <section style={sectionWrap}>
-          <h2 style={sectionTitle}>Overview</h2>
+          <h2 style={sectionTitle}>نمای کلی</h2>
           <div style={kpiGrid}>
             {kpiDefs.map(k => (
               <KpiCard key={k.key} label={k.label} value={totals?.[k.key]} icon={k.icon} color={k.color} />
@@ -247,12 +250,12 @@ export default function PublicReportPage() {
         {/* ── Platform Breakdown ─────────────────────────── */}
         {by_platform?.length > 0 && (
           <section style={sectionWrap}>
-            <h2 style={sectionTitle}>By Platform</h2>
+            <h2 style={sectionTitle}>توسط پلتفرم</h2>
             <div style={{ overflowX: 'auto' }}>
               <table style={tableStyle}>
                 <thead>
                   <tr>
-                    {['Platform', 'Impressions', 'Reach', 'Clicks', 'Likes', 'Followers', 'Video Views'].map(h => (
+                    {["پلتفرم", "تعداد نمایش", "دسترسی مخاطبان", "کلیک‌ها", "پسندها", "دنبال‌کنندگان", "بازدید ویدئو"].map(h => (
                       <th key={h} style={thStyle}>{h}</th>
                     ))}
                   </tr>
@@ -283,7 +286,7 @@ export default function PublicReportPage() {
         {/* ── Platform Bar Chart ─────────────────────────── */}
         {by_platform?.length > 0 && (
           <section style={sectionWrap}>
-            <h2 style={sectionTitle}>Impressions by Platform</h2>
+            <h2 style={sectionTitle}>برداشت بر اساس پلتفرم</h2>
             <ResponsiveContainer width="100%" height={240}>
               <BarChart data={by_platform} margin={{ top: 0, right: 20, bottom: 0, left: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--surface-sunken)" />
@@ -300,7 +303,7 @@ export default function PublicReportPage() {
         {/* ── Timeseries Line Chart ──────────────────────── */}
         {tsData.length > 1 && (
           <section style={sectionWrap}>
-            <h2 style={sectionTitle}>Impressions Over Time</h2>
+            <h2 style={sectionTitle}>برداشت در طول زمان</h2>
             <ResponsiveContainer width="100%" height={260}>
               <LineChart data={tsData} margin={{ top: 0, right: 20, bottom: 0, left: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--surface-sunken)" />
@@ -328,7 +331,7 @@ export default function PublicReportPage() {
         {/* ── Top Posts ──────────────────────────────────── */}
         {top_posts?.length > 0 && (
           <section style={sectionWrap}>
-            <h2 style={sectionTitle}>Top Posts</h2>
+            <h2 style={sectionTitle}>پست‌های برتر</h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {top_posts.map((post, i) => {
                 const pl = {
@@ -348,7 +351,7 @@ export default function PublicReportPage() {
                         </span>
                         {post.published_at && (
                           <span style={{ marginLeft: 8 }}>
-                            {new Date(post.published_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            {new Date(post.published_at).toLocaleDateString('fa-IR', { day: 'numeric', month: 'short', year: 'numeric' })}
                           </span>
                         )}
                       </div>
@@ -380,7 +383,7 @@ export default function PublicReportPage() {
       {/* ── Footer ─────────────────────────────────────── */}
       <div style={footer}>
         <p style={{ margin: 0, fontSize: 12, color: 'var(--text-tertiary)' }}>
-          Generated by <strong style={{ color: '#00d7ff' }}>Xper8</strong> · {period?.from} → {period?.until}
+          تولید شده توسط <strong style={{ color: '#00d7ff' }}>Xper8</strong> · {period?.from} → {period?.until}
         </p>
       </div>
     </div>
@@ -417,7 +420,7 @@ const kpiLabel = { margin: '0 0 2px', fontSize: 11, color: 'var(--text-secondary
 const kpiValue = { margin: 0, fontSize: 16, fontWeight: 800, color: 'var(--text-primary)' };
 
 const tableStyle = { width: '100%', borderCollapse: 'collapse', fontSize: 13 };
-const thStyle    = { textAlign: 'left', padding: '8px 12px', background: 'var(--surface-page)', color: 'var(--text-secondary)', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', borderBottom: '1px solid var(--border-default)' };
+const thStyle    = { textAlign: 'start', padding: '8px 12px', background: 'var(--surface-page)', color: 'var(--text-secondary)', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', borderBottom: '1px solid var(--border-default)' };
 const trStyle    = { borderBottom: '1px solid var(--surface-sunken)' };
 const tdStyle    = { padding: '10px 12px', color: 'var(--text-secondary)' };
 

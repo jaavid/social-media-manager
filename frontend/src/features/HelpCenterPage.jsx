@@ -18,23 +18,23 @@ import Input from '../components/ui/Input';
 import Meta from '../components/Meta';
 
 const CATEGORIES = [
-  { id: 'getting-started', icon: Rocket,    color: '#00CCF5', title: 'Getting started',     count: 12, body: 'Sign-up, workspace setup, inviting your team.' },
-  { id: 'connections',     icon: Plug,      color: '#10b981', title: 'Connections',         count: 18, body: 'OAuth, manual tokens, troubleshooting reconnects.' },
-  { id: 'composer',        icon: PenSquare, color: '#8b5cf6', title: 'Composer',            count: 14, body: 'Composing, scheduling, approvals, media library.' },
-  { id: 'inbox',           icon: Inbox,     color: '#f59e0b', title: 'Inbox',               count: 9,  body: 'Unified inbox, AI replies, automation rules.' },
-  { id: 'billing',         icon: CreditCard,color: '#3b82f6', title: 'Billing',             count: 11, body: 'Plans, payment methods, invoices, refunds.' },
-  { id: 'troubleshooting', icon: Wrench,    color: '#ef4444', title: 'Troubleshooting',     count: 7,  body: 'Common issues, error codes, recovery steps.' },
-  { id: 'security',        icon: Shield,    color: '#0891b2', title: 'Security & privacy',  count: 8,  body: 'Authentication, audit log, data retention.' },
-  { id: 'api',             icon: BookOpen,  color: '#6366f1', title: 'API & developers',    count: 16, body: 'API keys, webhooks, rate limits.' },
+  { id: 'getting-started', icon: Rocket,    color: '#00CCF5', title: "شروع به کار",     count: 12, body: "ثبت نام، راه اندازی فضای کاری، دعوت از تیم شما." },
+  { id: 'connections',     icon: Plug,      color: '#10b981', title: "اتصالات",         count: 18, body: "OAuth، نشانه های دستی، عیب یابی اتصال مجدد." },
+  { id: 'composer',        icon: PenSquare, color: '#8b5cf6', title: "ویرایشگر محتوا",            count: 14, body: "تالیف، زمان‌بندی، تأییدیه‌ها، کتابخانه رسانه." },
+  { id: 'inbox',           icon: Inbox,     color: '#f59e0b', title: "صندوق پیام‌ها",               count: 9,  body: "صندوق ورودی یکپارچه، پاسخ‌های هوش مصنوعی، قوانین اتوماسیون." },
+  { id: 'billing',         icon: CreditCard,color: '#3b82f6', title: "صورتحساب",             count: 11, body: "طرح ها، روش های پرداخت، فاکتورها، بازپرداخت." },
+  { id: 'troubleshooting', icon: Wrench,    color: '#ef4444', title: "عیب یابی",     count: 7,  body: "مسائل رایج، کدهای خطا، مراحل بازیابی." },
+  { id: 'security',        icon: Shield,    color: '#0891b2', title: "امنیت و حریم خصوصی",  count: 8,  body: "احراز هویت، گزارش حسابرسی، نگهداری داده ها." },
+  { id: 'api',             icon: BookOpen,  color: '#6366f1', title: "API و توسعه دهندگان",    count: 16, body: "کلیدهای API، webhooks، محدودیت‌های نرخ." },
 ];
 
 const POPULAR = [
-  'How do I connect a Facebook page?',
-  'Why did my Meta token expire?',
-  'How do I invite teammates and assign roles?',
-  'How do approvals work in the Composer?',
-  'Where do I download a client report as PDF?',
-  'How do I cancel my subscription?',
+  "چگونه یک صفحه فیس‌بوک را متصل کنم؟",
+  "چرا توکن متای من منقضی شد؟",
+  "چگونه هم تیمی ها را دعوت کنم و نقش ها را تعیین کنم؟",
+  "تاییدیه ها در ویرایشگر محتوا چگونه کار می‌کنند؟",
+  "گزارش مشتری را به صورت PDF از کجا دانلود کنم؟",
+  "چگونه اشتراک خود را لغو کنم؟",
 ];
 
 export default function HelpCenterPage() {
@@ -52,8 +52,8 @@ export default function HelpCenterPage() {
   return (
     <>
       <Meta
-        title="Help Center"
-        description="Setup guides, troubleshooting steps, FAQs, and answers to common questions about using Social Stats."
+        title={"مرکز راهنما"}
+        description={"راهنماهای راه‌اندازی، مراحل عیب‌یابی، سؤالات متداول و پاسخ به سؤالات رایج در مورد استفاده از راوینتا."}
       />
       {/* Hero with search */}
       <section style={{ padding: '128px 32px 56px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
@@ -66,7 +66,7 @@ export default function HelpCenterPage() {
           }}
         />
         <div style={{ position: 'relative', maxWidth: 720, margin: '0 auto' }}>
-          <Badge variant="brand" size="md" icon={BookOpen}>Help Center</Badge>
+          <Badge variant="brand" size="md" icon={BookOpen}>مرکز راهنما</Badge>
           <h1 style={{
             margin: '20px 0 16px',
             fontSize: 'clamp(36px, 4.4vw, 48px)',
@@ -75,17 +75,17 @@ export default function HelpCenterPage() {
             fontWeight: 600,
             color: 'var(--text-primary)',
           }}>
-            How can we help?
+            چگونه می‌توانیم کمک کنیم؟
           </h1>
           <p style={{ margin: '0 auto 28px', maxWidth: 560, fontSize: 16, lineHeight: 1.65, color: 'var(--text-secondary)' }}>
-            Search articles, guides, and troubleshooting steps — or browse by category.
+            مقالات، راهنماها و مراحل عیب‌یابی را جستجو کنید - یا بر اساس دسته بندی مرور کنید.
           </p>
 
           <div style={{ maxWidth: 540, margin: '0 auto' }}>
             <Input
               size="lg"
               type="search"
-              placeholder="Search articles, guides, error codes…"
+              placeholder={"جستجو در مقالات، راهنماها، کدهای خطا…"}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               prefix={<Search size={16} />}
@@ -94,7 +94,7 @@ export default function HelpCenterPage() {
 
           {/* Popular searches */}
           <div style={{ marginTop: 20, display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
-            <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-tertiary)', alignSelf: 'center' }}>Popular:</span>
+            <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-tertiary)', alignSelf: 'center' }}>پرطرفدار:</span>
             {POPULAR.slice(0, 3).map((t) => (
               <button
                 key={t}
@@ -124,7 +124,7 @@ export default function HelpCenterPage() {
       <section style={{ padding: '32px 32px 64px' }}>
         <div style={{ maxWidth: 'var(--container-xl)', margin: '0 auto' }}>
           <h2 style={{ margin: '0 0 24px', fontSize: 14, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-tertiary)' }}>
-            Browse by category
+            بر اساس دسته بندی مرور کنید
           </h2>
 
           {filtered.length === 0 ? (
@@ -138,8 +138,8 @@ export default function HelpCenterPage() {
                 color: 'var(--text-secondary)',
               }}
             >
-              No categories match "{query}". Try a different search or{' '}
-              <Link to="/contact" style={{ color: 'var(--text-link)', fontWeight: 500 }}>contact support</Link>.
+              هیچ دسته ای مطابقت ندارد "{query}". جستجوی دیگری را امتحان کنید یا{' '}
+              <Link to="/contact" style={{ color: 'var(--text-link)', fontWeight: 500 }}>با پشتیبانی تماس بگیرید</Link>.
             </div>
           ) : (
             <div
@@ -182,9 +182,9 @@ export default function HelpCenterPage() {
                     {c.body}
                   </p>
                   <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, fontSize: 12 }}>
-                    <span style={{ color: 'var(--text-tertiary)' }}>{c.count} articles</span>
+                    <span style={{ color: 'var(--text-tertiary)' }}>{c.count} مقالات</span>
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: 'var(--text-link)', fontWeight: 600 }}>
-                      Browse <ArrowRight size={12} />
+                      مرور کنید <ArrowRight size={12} />
                     </span>
                   </span>
                 </Link>
@@ -227,14 +227,14 @@ export default function HelpCenterPage() {
           </span>
           <div style={{ minWidth: 0, flex: 1 }}>
             <div style={{ fontSize: 17, fontWeight: 600, color: 'var(--text-primary)' }}>
-              Still need help?
+              هنوز به کمک نیاز دارید؟
             </div>
             <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.55 }}>
-              Our support team replies within one business day. Faster on Growth + Enterprise plans.
+              تیم پشتیبانی ما ظرف یک روز کاری پاسخ می‌دهد. سریعتر در رشد + برنامه های سازمانی.
             </div>
           </div>
           <Button as={Link} to="/contact" size="md" iconRight={ArrowRight}>
-            Contact support
+            ارتباط با پشتیبانی
           </Button>
           <style>{`
             @media (max-width: 640px) { .help-cta { flex-direction: column !important; align-items: flex-start !important; text-align: left; } }

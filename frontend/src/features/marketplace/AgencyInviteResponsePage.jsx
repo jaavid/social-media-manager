@@ -1,3 +1,4 @@
+import { publicMessage, publicInvitationStatus } from '../../i18n/public-message';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -46,7 +47,7 @@ export default function AgencyInviteResponsePage() {
     setLoading(true);
     agencyInviteAPI.invite(token)
       .then((r) => { if (!cancelled) setInvite(r.data); })
-      .catch((e) => { if (!cancelled) setError(e?.response?.data?.error || 'Could not load invitation'); })
+      .catch((e) => { if (!cancelled) setError(e?.response?.data?.error || "دعوتنامه بارگیری نشد"); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, [token]);
@@ -64,10 +65,10 @@ export default function AgencyInviteResponsePage() {
     setBusy(true);
     try {
       await agencyInviteAPI.accept(token);
-      toast.success('Invitation accepted');
+      toast.success("دعوت پذیرفته شد");
       navigate('/admin');  // agency-side dashboard (existing)
     } catch (e) {
-      toast.error(e?.response?.data?.error || 'Could not accept');
+      toast.error(publicMessage(e?.response?.data?.error || "نمی‌توانست بپذیرد"));
     } finally {
       setBusy(false);
     }
@@ -78,21 +79,21 @@ export default function AgencyInviteResponsePage() {
       navigate(`/login?next=/agency-invite/${token}`);
       return;
     }
-    if (!window.confirm('Decline this invitation?')) return;
+    if (!window.confirm("این دعوت را رد کنید؟")) return;
     setBusy(true);
     try {
       await agencyInviteAPI.decline(token);
-      toast.success('Invitation declined');
+      toast.success("دعوت رد شد");
       navigate('/');
     } catch (e) {
-      toast.error(e?.response?.data?.error || 'Could not decline');
+      toast.error(publicMessage(e?.response?.data?.error || "رد نشد"));
     } finally {
       setBusy(false);
     }
   }
 
   if (loading || authLoading) {
-    return <Center><span style={{ color: 'var(--text-tertiary)', fontSize: 13 }}>Loading invitation…</span></Center>;
+    return <Center><span style={{ color: 'var(--text-tertiary)', fontSize: 13 }}>در حال بارگیری دعوت…</span></Center>;
   }
 
   if (error || !invite) {
@@ -101,8 +102,8 @@ export default function AgencyInviteResponsePage() {
         <div style={errorBox}>
           <AlertTriangle size={20} style={{ color: 'var(--danger)' }} />
           <div>
-            <strong style={{ color: 'var(--text-primary)' }}>Invitation unavailable</strong>
-            <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--text-secondary)' }}>{error || 'Unknown error'}</p>
+            <strong style={{ color: 'var(--text-primary)' }}>دعوتنامه در دسترس نیست</strong>
+            <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--text-secondary)' }}>{publicMessage(error) || "خطای ناشناخته"}</p>
           </div>
         </div>
       </Center>
@@ -118,7 +119,7 @@ export default function AgencyInviteResponsePage() {
         <div style={topbarStyle}>
           <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, textDecoration: 'none', color: 'inherit' }}>
             <span style={brandMark}><Sparkles size={14} strokeWidth={2.4} /></span>
-            <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>Social Stats</span>
+            <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>راوینتا</span>
           </Link>
         </div>
 
@@ -127,13 +128,13 @@ export default function AgencyInviteResponsePage() {
             <span style={clientAvatar}><Building2 size={20} strokeWidth={2} /></span>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--brand-primary-hover)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-                Manage-account request
+                درخواست مدیریت حساب
               </div>
               <h1 style={{ margin: '2px 0 0', fontSize: 20, fontWeight: 700, color: 'var(--text-primary)' }}>
-                {invite.client_company} wants you to manage their social
+                {invite.client_company} از شما می خواهد که اجتماعی آنها را مدیریت کنید
               </h1>
               <div style={{ marginTop: 6, fontSize: 12, color: 'var(--text-tertiary)' }}>
-                from <strong style={{ color: 'var(--text-secondary)' }}>{invite.inviter_user_name}</strong> · {invite.inviter_user_email}
+                از <strong style={{ color: 'var(--text-secondary)' }}>{invite.inviter_user_name}</strong> · {invite.inviter_user_email}
                 {invite.client_industry && <> · {invite.client_industry}</>}
               </div>
             </div>
@@ -142,7 +143,7 @@ export default function AgencyInviteResponsePage() {
           {invite.message && (
             <div style={messageBox}>
               <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--brand-primary-hover)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-                Message
+                پیام
               </div>
               <p style={{ margin: '4px 0 0', fontSize: 14, color: 'var(--text-primary)', lineHeight: 1.55, whiteSpace: 'pre-wrap' }}>
                 {invite.message}
@@ -153,7 +154,7 @@ export default function AgencyInviteResponsePage() {
           {(invite.budget_range || (invite.desired_services && invite.desired_services.length > 0)) && (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
               {invite.budget_range && (
-                <span style={chipNeutral}>Budget · {invite.budget_range}</span>
+                <span style={chipNeutral}>بودجه · {invite.budget_range}</span>
               )}
               {(invite.desired_services || []).map((s) => (
                 <span key={s} style={chipNeutral}>{s}</span>
@@ -163,14 +164,13 @@ export default function AgencyInviteResponsePage() {
 
           <section>
             <div style={sectionHead}>
-              <span>Proposed access</span>
+              <span>دسترسی پیشنهادی</span>
               <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-tertiary)' }}>
-                {grantedCount} granted
+                {grantedCount} اعطا شد
               </span>
             </div>
             <p style={{ ...hintText, marginTop: 4 }}>
-              The workspace owner picked these — you can't widen them at accept time. If you need different access,
-              decline this and send them a manage-request from your agency dashboard with your own proposal.
+              مالک فضای کاری اینها را انتخاب کرد - نمی‌توانید در زمان پذیرش آنها را گسترش دهید. اگر به دسترسی دیگری نیاز دارید، این را رد کنید و یک درخواست مدیریت از داشبورد آژانس خود با پیشنهاد خود برای آنها ارسال کنید.
             </p>
             <div style={{ marginTop: 12 }}>
               <PermissionMatrix
@@ -186,14 +186,14 @@ export default function AgencyInviteResponsePage() {
             <footer style={{ display: 'flex', gap: 10, marginTop: 22, justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
               <span style={{ fontSize: 12, color: 'var(--text-tertiary)', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                 <CalendarClock size={12} />
-                {invite.expires_at ? `Expires ${new Date(invite.expires_at).toLocaleDateString()}` : ''}
+                {invite.expires_at ? `منقضی می‌شود ${new Date(invite.expires_at).toLocaleDateString()}` : ''}
               </span>
               <div style={{ display: 'flex', gap: 8 }}>
                 <button type="button" onClick={decline} disabled={busy} style={btnGhost}>
-                  <X size={14} /> Decline
+                  <X size={14} /> رد کردن
                 </button>
                 <button type="button" onClick={accept} disabled={busy} style={btnPrimary}>
-                  {busy ? 'Working…' : <>Accept <ChevronRight size={14} /></>}
+                  {busy ? 'در حال انجام…' : <>قبول کنید <ChevronRight size={14} /></>}
                 </button>
               </div>
             </footer>
@@ -203,11 +203,11 @@ export default function AgencyInviteResponsePage() {
             <div style={resolvedBox}>
               <Check size={18} style={{ color: 'var(--success)' }} />
               <div>
-                <strong style={{ color: 'var(--text-primary)' }}>Already {invite.status}</strong>
+                <strong style={{ color: 'var(--text-primary)' }}>در حال حاضر {publicInvitationStatus(invite.status)}</strong>
                 <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--text-secondary)' }}>
-                  {invite.status === 'accepted' && 'You are now managing this workspace.'}
-                  {invite.status === 'declined' && 'You declined this invitation.'}
-                  {invite.status === 'expired' && 'This invitation expired.'}
+                  {invite.status === 'accepted' && "اکنون شما در حال مدیریت این فضای کاری هستید."}
+                  {invite.status === 'declined' && "شما این دعوت را رد کردید."}
+                  {invite.status === 'expired' && "این دعوت منقضی شده است."}
                 </p>
               </div>
             </div>
@@ -215,7 +215,7 @@ export default function AgencyInviteResponsePage() {
         </div>
 
         <p style={{ marginTop: 18, textAlign: 'center', fontSize: 12, color: 'var(--text-tertiary)' }}>
-          Both sides keep full visibility into every action taken on this account.
+          هر دو طرف در مورد هر اقدامی که در این زمینه انجام می‌شود کاملاً دیده می‌شوند.
         </p>
       </div>
     </div>

@@ -38,12 +38,12 @@ const TO_UI = {
 };
 
 const SEV = {
-  operational: { color: 'var(--success)', bg: 'var(--success-bg)', label: 'Operational',    icon: CheckCircle2 },
-  partial:     { color: 'var(--warning)', bg: 'var(--warning-bg)', label: 'Partial outage', icon: AlertTriangle },
-  down:        { color: 'var(--danger)',  bg: 'var(--danger-bg)',  label: 'Major outage',   icon: XCircle },
-  unknown:     { color: 'var(--text-tertiary)', bg: 'var(--surface-card-elevated)', label: 'Checking…', icon: RefreshCw },
-  minor:       { color: 'var(--warning)', bg: 'var(--warning-bg)', label: 'Minor',          icon: AlertTriangle },
-  maintenance: { color: 'var(--info)',    bg: 'var(--info-bg)',    label: 'Maintenance',    icon: AlertTriangle },
+  operational: { color: 'var(--success)', bg: 'var(--success-bg)', label: "در حال فعالیت",    icon: CheckCircle2 },
+  partial:     { color: 'var(--warning)', bg: 'var(--warning-bg)', label: "قطعی جزئی", icon: AlertTriangle },
+  down:        { color: 'var(--danger)',  bg: 'var(--danger-bg)',  label: "قطعی عمده",   icon: XCircle },
+  unknown:     { color: 'var(--text-tertiary)', bg: 'var(--surface-card-elevated)', label: "در حال بررسی…", icon: RefreshCw },
+  minor:       { color: 'var(--warning)', bg: 'var(--warning-bg)', label: "جزئی",          icon: AlertTriangle },
+  maintenance: { color: 'var(--info)',    bg: 'var(--info-bg)',    label: "نگهداری سامانه",    icon: AlertTriangle },
 };
 
 // 90-day historical uptime — seeded so bars are stable per service. The latest
@@ -69,38 +69,38 @@ function buildUptime(seed, todayStatus) {
 const INCIDENTS = [
   {
     id: 'i-2026-04-12',
-    date: 'April 12, 2026',
-    title: 'Brief Meta sync delay (8 minutes)',
+    date: "12 آوریل 2026",
+    title: "تأخیر مختصر همگام سازی متا (8 دقیقه)",
     severity: 'minor',
-    summary: 'Meta Graph API responded slowly between 14:32 and 14:40 IST. Backfill completed automatically.',
+    summary: "متا Graph API به آرامی بین 14:32 و 14:40 IST پاسخ داد. پر کردن به طور خودکار تکمیل شد.",
   },
   {
     id: 'i-2026-03-28',
-    date: 'March 28, 2026',
-    title: 'WhatsApp template approval queue lag',
+    date: "28 مارس 2026",
+    title: "تأخیر در صف تأیید قالب واتس‌اپ",
     severity: 'minor',
-    summary: 'Pinbot template-approval webhook lagged by ~12 minutes. No data lost; templates approved on schedule.',
+    summary: "وب هوک تایید الگوی پین‌بات ~ 12 دقیقه تاخیر داشت. هیچ داده ای از بین نمی رود؛ الگوهای تایید شده طبق برنامه",
   },
   {
     id: 'i-2026-02-14',
-    date: 'February 14, 2026',
-    title: 'Scheduled maintenance — DB upgrade',
+    date: "14 فوریه 2026",
+    title: "تعمیر و نگهداری برنامه‌ریزی شده - ارتقاء DB",
     severity: 'maintenance',
-    summary: 'Planned PostgreSQL 15 → 16 upgrade. 2-minute read-only window, communicated 14 days in advance.',
+    summary: "ارتقاء برنامه‌ریزی شده PostgreSQL 15 → 16. پنجره 2 دقیقه ای فقط خواندنی، 14 روز قبل ارتباط برقرار می‌کند.",
   },
 ];
 
 const FALLBACK_SERVICES = [
-  { id: 'web',      name: 'Web app' },
+  { id: 'web',      name: "برنامه وب" },
   { id: 'api',      name: 'API' },
-  { id: 'workers',  name: 'Background workers (Celery)' },
-  { id: 'realtime', name: 'Realtime / WebSockets' },
-  { id: 'db',       name: 'Database' },
-  { id: 'meta',     name: 'Meta integration (Facebook + Instagram)' },
-  { id: 'google',   name: 'Google integration (YouTube + GMB)' },
-  { id: 'linkedin', name: 'LinkedIn integration' },
-  { id: 'pinbot',   name: 'WhatsApp (Pinbot.ai)' },
-  { id: 'ai',       name: 'Social Stats' },
+  { id: 'workers',  name: "پردازش‌های پس‌زمینه" },
+  { id: 'realtime', name: "ارتباط بلادرنگ" },
+  { id: 'db',       name: "پایگاه داده" },
+  { id: 'meta',     name: "ادغام متا (فیس‌بوک + اینستاگرام)" },
+  { id: 'google',   name: "اتصال گوگل (یوتیوب و نمایه کسب‌وکار)" },
+  { id: 'linkedin', name: "ادغام لینکدین" },
+  { id: 'pinbot',   name: 'واتس‌اپ (پین‌بات)' },
+  { id: 'ai',       name: "راوینتا" },
 ];
 
 export default function StatusPage() {
@@ -136,7 +136,9 @@ export default function StatusPage() {
   }, []);
 
   const services = useMemo(() => {
-    if (data?.services?.length) return data.services;
+    if (data?.services?.length) return data.services.map(service => ({
+      ...service, name: FALLBACK_SERVICES.find(item => item.id === service.id)?.name || service.name,
+    }));
     return FALLBACK_SERVICES.map((s) => ({ ...s, status: 'unknown' }));
   }, [data]);
 
@@ -152,8 +154,8 @@ export default function StatusPage() {
   return (
     <>
       <Meta
-        title="System Status"
-        description="Live uptime, scheduled maintenance, and recent incidents for the Social Stats platform."
+        title={"وضعیت سیستم"}
+        description={"زمان فعال، تعمیر و نگهداری برنامه‌ریزی شده، و حوادث اخیر برای پلتفرم راوینتا."}
       />
 
       {/* Hero / overall status */}
@@ -171,7 +173,7 @@ export default function StatusPage() {
           }}
         />
         <div style={{ position: 'relative', maxWidth: 720, margin: '0 auto', textAlign: 'center' }}>
-          <Badge variant="brand" size="md">Status</Badge>
+          <Badge variant="brand" size="md">وضعیت</Badge>
 
           <div style={{
             marginTop: 24,
@@ -185,11 +187,11 @@ export default function StatusPage() {
           }}>
             <Icon size={16} className={refreshing ? 'spin' : undefined} />
             {error
-              ? 'Status API unreachable — last cache shown'
+              ? "وضعیت API غیرقابل دسترسی - آخرین حافظه پنهان نشان داده شده است"
               : overall === 'operational'
-                ? 'All systems operational'
+                ? "همه سیستم ها عملیاتی هستند"
                 : overall === 'unknown'
-                  ? 'Checking…'
+                  ? 'در حال بررسی…'
                   : ov.label}
           </div>
 
@@ -201,13 +203,13 @@ export default function StatusPage() {
             fontWeight: 600,
             color: 'var(--text-primary)',
           }}>
-            Social Stats System Status
+            وضعیت سیستم راوینتا
           </h1>
           <p style={{ margin: 0, fontSize: 13, color: 'var(--text-tertiary)' }}>
             {lastChecked
-              ? <>Last checked {lastChecked.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' })} · auto-refreshes every 30s</>
-              : 'Checking…'}
-            {data?.region && <> · region <strong style={{ color: 'var(--text-secondary)' }}>{data.region}</strong></>}
+              ? <>آخرین بررسی {lastChecked.toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })} · هر 30 ثانیه به طور خودکار بازخوانی می‌شود</>
+              : 'در حال بررسی…'}
+            {data?.region && <> · منطقه <strong style={{ color: 'var(--text-secondary)' }}>{data.region}</strong></>}
             {' · '}
             <button
               type="button"
@@ -223,7 +225,7 @@ export default function StatusPage() {
                 textDecoration: 'underline',
               }}
             >
-              Refresh now
+              اکنون بازخوانی کنید
             </button>
           </p>
         </div>
@@ -268,12 +270,12 @@ export default function StatusPage() {
                     {svc.name}
                   </div>
                   <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2 }}>
-                    {upPct}% uptime · 90 days
+                    {upPct}٪ دسترس‌پذیری · ۹۰ روز
                     {svc.latency_ms != null && uiStatus === 'operational' && (
                       <> · {svc.latency_ms}ms</>
                     )}
                     {svc.workers != null && (
-                      <> · {svc.workers} worker{svc.workers === 1 ? '' : 's'}</>
+                      <> · {svc.workers} کارگر{svc.workers === 1 ? '' : 's'}</>
                     )}
                   </div>
                 </div>
@@ -286,7 +288,7 @@ export default function StatusPage() {
                     return (
                       <span
                         key={idx}
-                        title={`Day -${days.length - 1 - idx}: ${d}${isToday ? ' (today)' : ''}`}
+                        title={`روز -${days.length - 1 - idx}: ${d}${isToday ? "(امروز)" : ''}`}
                         style={{
                           flex: 1, height: '100%',
                           background: c,
@@ -333,7 +335,7 @@ export default function StatusPage() {
       <section style={{ padding: '32px 32px 96px' }}>
         <div style={{ maxWidth: 'var(--container-xl)', margin: '0 auto' }}>
           <h2 style={{ margin: '0 0 18px', fontSize: 18, fontWeight: 600, color: 'var(--text-primary)' }}>
-            Recent incidents
+            حوادث اخیر
           </h2>
 
           <div style={{
@@ -344,7 +346,7 @@ export default function StatusPage() {
           }}>
             {INCIDENTS.length === 0 ? (
               <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-tertiary)' }}>
-                No incidents in the last 30 days.
+                هیچ حادثه ای در 30 روز گذشته رخ نداده است.
               </div>
             ) : (
               INCIDENTS.map((inc, i) => {
@@ -376,8 +378,8 @@ export default function StatusPage() {
           </div>
 
           <p style={{ marginTop: 16, fontSize: 12, color: 'var(--text-tertiary)', textAlign: 'center' }}>
-            Subscribe to incident notifications via the link in your{' '}
-            <a href="/dashboard/account-settings" style={{ color: 'var(--text-link)' }}>account settings</a>.
+            از طریق پیوند موجود در اعلان‌های حادثه مشترک شوید{' '}
+            <a href="/dashboard/account-settings" style={{ color: 'var(--text-link)' }}>تنظیمات حساب</a>.
           </p>
         </div>
       </section>

@@ -40,7 +40,7 @@ export default function LegalPageLayout({
     <MarketingLayout>
       <Meta
         title={title}
-        description={intro || `${title} — Social Stats legal and support documentation.`}
+        description={intro || `${title} - اسناد حقوقی و پشتیبانی راوینتا.`}
       />
 
       {/* Hero */}
@@ -67,9 +67,9 @@ export default function LegalPageLayout({
           </h1>
           {(effectiveDate || lastUpdated) && (
             <div style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>
-              {effectiveDate && <>Effective: {formatDate(effectiveDate)}</>}
+              {effectiveDate && <>تاریخ اجرا: {formatDate(effectiveDate)}</>}
               {effectiveDate && lastUpdated && ' · '}
-              {lastUpdated && <>Last updated: {formatDate(lastUpdated)}</>}
+              {lastUpdated && <>آخرین به‌روزرسانی: {formatDate(lastUpdated)}</>}
             </div>
           )}
           {intro && (
@@ -112,7 +112,7 @@ export default function LegalPageLayout({
               color: 'var(--text-tertiary)',
               padding: '4px 8px 10px',
             }}>
-              Contents
+              مطالب
             </div>
             <TableOfContents sections={sections.map(({ id, title }) => ({ id, title }))} />
           </aside>
@@ -179,5 +179,5 @@ function formatDate(d) {
   if (!d) return '';
   const date = d instanceof Date ? d : new Date(d);
   if (Number.isNaN(date.getTime())) return String(d);
-  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
+  return date.toLocaleDateString('fa-IR', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
 }

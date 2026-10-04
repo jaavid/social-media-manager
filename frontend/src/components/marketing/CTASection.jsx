@@ -27,12 +27,12 @@ import MeshGradient from './MeshGradient';
  * pre-filled (sign-up wizard reads the query param).
  */
 export default function CTASection({
-  title = 'Ready to upgrade your marketing?',
-  subtitle = 'Start free in 2 minutes — no credit card required.',
-  primary = { to: '/signup', label: 'Start free' },
+  title = "برای ارتقاء بازاریابی خود آماده اید؟",
+  subtitle = "شروع رایگان در 2 دقیقه - بدون نیاز به کارت اعتباری.",
+  primary = { to: '/signup', label: "شروع رایگان" },
   secondary = null,
   showEmail = false,
-  microCopy = 'No credit card · Free forever · Setup in 2 minutes',
+  microCopy = "بدون کارت اعتباری · برای همیشه رایگان · راه اندازی در 2 دقیقه",
   variant = 'cta',
 }) {
   return (
@@ -84,7 +84,7 @@ export default function CTASection({
             <input
               type="email" name="email" required
               placeholder="you@company.com"
-              aria-label="Email"
+              aria-label={"ایمیل"}
               style={{
                 flex: '1 1 220px', minWidth: 0,
                 padding: '14px 16px',

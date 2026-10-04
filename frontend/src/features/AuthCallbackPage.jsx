@@ -1,3 +1,4 @@
+import { publicMessage } from '../i18n/public-message';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -57,7 +58,7 @@ export default function AuthCallbackPage() {
         }
       })
       .catch(() => {
-        setError('Authentication failed. Redirecting to login…');
+        setError("احراز هویت ناموفق بود. در حال تغییر مسیر به ورود…");
         setTimeout(() => navigate('/login'), 2000);
       });
   }, [navigate]);
@@ -69,12 +70,12 @@ export default function AuthCallbackPage() {
         {error ? (
           <>
             <div style={styles.errorIcon}>✕</div>
-            <p style={styles.errorText}>{error}</p>
+            <p style={styles.errorText}>{publicMessage(error, "انجام درخواست ممکن نشد. لطفاً اطلاعات واردشده را بررسی کنید.")}</p>
           </>
         ) : (
           <>
             <div style={styles.spinner} />
-            <p style={styles.msg}>Signing you in…</p>
+            <p style={styles.msg}>ورود به سیستم…</p>
           </>
         )}
       </div>

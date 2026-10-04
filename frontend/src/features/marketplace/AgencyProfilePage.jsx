@@ -1,3 +1,4 @@
+import { publicMessage } from '../../i18n/public-message';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -57,28 +58,28 @@ export default function AgencyProfilePage() {
         rows: prev.rows.map((rv) => rv.id === id ? { ...rv, helpful_count: r.data.helpful_count } : rv),
       } : prev);
     } catch (e) {
-      toast.error(e?.response?.data?.error || 'Could not mark helpful');
+      toast.error(publicMessage(e?.response?.data?.error || "نمی‌توان به عنوان مفید علامت‌گذاری کرد"));
     }
   }
 
   async function deleteReview(id) {
-    if (!window.confirm('Delete this review?')) return;
+    if (!window.confirm("این نظر حذف شود؟")) return;
     try {
       await reviewAPI.delete(id);
-      toast.success('Review deleted');
+      toast.success("نظر حذف شد");
       reloadReviews();
     } catch (e) {
-      toast.error(e?.response?.data?.error || 'Could not delete');
+      toast.error(publicMessage(e?.response?.data?.error || "حذف نشد"));
     }
   }
 
   async function respondToReview(id, response) {
     try {
       await reviewAPI.respond(id, response);
-      toast.success('Response posted');
+      toast.success("پاسخ ارسال شد");
       reloadReviews();
     } catch (e) {
-      toast.error(e?.response?.data?.error || 'Could not respond');
+      toast.error(publicMessage(e?.response?.data?.error || "نتوانست پاسخ دهد"));
     }
   }
 
@@ -87,13 +88,13 @@ export default function AgencyProfilePage() {
     setLoading(true);
     marketplaceAPI.get(slug)
       .then((r) => { if (!cancelled) setAgency(r.data); })
-      .catch((e) => { if (!cancelled) setError(e?.response?.data?.error || 'Could not load agency'); })
+      .catch((e) => { if (!cancelled) setError(e?.response?.data?.error || "نمایندگی بارگیری نشد"); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, [slug]);
 
-  if (loading) return <Center><span style={{ color: 'var(--text-tertiary)' }}>Loading…</span></Center>;
-  if (error || !agency) return <Center><div style={errorBox}>{error || 'Agency not found.'}</div></Center>;
+  if (loading) return <Center><span style={{ color: 'var(--text-tertiary)' }}>در حال بارگذاری…</span></Center>;
+  if (error || !agency) return <Center><div style={errorBox}>{publicMessage(error) || "آژانس یافت نشد."}</div></Center>;
 
   const isEndUser = user?.role === 'client';
 
@@ -101,7 +102,7 @@ export default function AgencyProfilePage() {
     <div style={{ minHeight: '100vh', background: 'var(--surface-page)', padding: '24px 16px 56px' }}>
       <div style={{ maxWidth: 880, margin: '0 auto' }}>
         <Link to="/agencies" style={backLink}>
-          <ChevronLeft size={14} /> All agencies
+          <ChevronLeft size={14} /> همه آژانس‌ها
         </Link>
 
         {/* Hero */}
@@ -114,13 +115,13 @@ export default function AgencyProfilePage() {
           <div style={{ flex: 1, minWidth: 0 }}>
             <h1 style={{ margin: 0, fontSize: 26, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
               {agency.name}
-              {agency.is_verified && <ShieldCheck size={18} color="var(--success)" aria-label="Verified" />}
+              {agency.is_verified && <ShieldCheck size={18} color="var(--success)" aria-label={"تأییدشده"} />}
             </h1>
             <div style={{ marginTop: 6, display: 'flex', flexWrap: 'wrap', gap: 14, alignItems: 'center', fontSize: 13, color: 'var(--text-tertiary)' }}>
               {agency.location && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><MapPin size={12} /> {agency.location}</span>}
               {agency.review_count > 0 && (
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                  <Star size={12} fill="var(--warning)" stroke="var(--warning)" /> {agency.avg_rating.toFixed(1)} <span>({agency.review_count} review{agency.review_count === 1 ? '' : 's'})</span>
+                  <Star size={12} fill="var(--warning)" stroke="var(--warning)" /> {agency.avg_rating.toFixed(1)} <span>({agency.review_count} بررسی{agency.review_count === 1 ? '' : 's'})</span>
                 </span>
               )}
               {agency.website && (
@@ -133,11 +134,11 @@ export default function AgencyProfilePage() {
 
           <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
             <button type="button" onClick={() => setContactOpen(true)} style={btnGhost}>
-              <Mail size={13} /> Contact
+              <Mail size={13} /> تماس با ما
             </button>
             {isEndUser && (
               <button type="button" onClick={() => setInviteOpen(true)} style={btnPrimary}>
-                <Send size={13} /> Invite this agency
+                <Send size={13} /> از این آژانس دعوت کنید
               </button>
             )}
           </div>
@@ -145,7 +146,7 @@ export default function AgencyProfilePage() {
 
         {/* About */}
         {agency.description && (
-          <Section title="About">
+          <Section title={"درباره ما"}>
             <p style={{ margin: 0, fontSize: 14, color: 'var(--text-primary)', lineHeight: 1.65, whiteSpace: 'pre-wrap' }}>
               {agency.description}
             </p>
@@ -154,7 +155,7 @@ export default function AgencyProfilePage() {
 
         {/* Services + pricing */}
         {(agency.services_offered?.length > 0 || agency.pricing_starting_at) && (
-          <Section title="Services & pricing">
+          <Section title={"خدمات و قیمت گذاری"}>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
               {(agency.services_offered || []).map((s) => (
                 <span key={s} style={chipNeutral}>{s}</span>
@@ -162,9 +163,9 @@ export default function AgencyProfilePage() {
             </div>
             {agency.pricing_starting_at && (
               <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: 14 }}>
-                Starting at <strong style={{ color: 'var(--text-primary)' }}>
+                شروع در <strong style={{ color: 'var(--text-primary)' }}>
                   {agency.pricing_currency} {Number(agency.pricing_starting_at).toLocaleString()}
-                </strong> per month.
+                </strong> در هر ماه.
               </p>
             )}
           </Section>
@@ -172,7 +173,7 @@ export default function AgencyProfilePage() {
 
         {/* Industries */}
         {agency.industries_served?.length > 0 && (
-          <Section title="Industries served">
+          <Section title={"صنایع خدمت کرده است"}>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {agency.industries_served.map((ind) => (
                 <span key={ind} style={chipNeutral}>{ind}</span>
@@ -183,14 +184,14 @@ export default function AgencyProfilePage() {
 
         {/* Reviews */}
         <Section
-          title={`Reviews ${reviewsExtra?.count > 0 ? `(${reviewsExtra.count})` : ''}`}
+          title={`نظرات ${reviewsExtra?.count > 0 ? `(${reviewsExtra.count})` : ''}`}
         >
           {reviewsExtra?.count > 0 && (
             <RatingSummary avg={reviewsExtra.avg_rating} distribution={reviewsExtra.distribution} count={reviewsExtra.count} />
           )}
           {(reviewsExtra?.rows?.length || 0) === 0 ? (
             <p style={{ margin: 0, fontSize: 13, color: 'var(--text-tertiary)' }}>
-              No reviews yet — be the first to rate them after working together.
+              هنوز نظری وجود ندارد - اولین کسی باشید که پس از همکاری با یکدیگر به آنها امتیاز می دهید.
             </p>
           ) : (
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -213,8 +214,7 @@ export default function AgencyProfilePage() {
         <div style={trustBox}>
           <Sparkles size={16} style={{ color: 'var(--brand-primary-hover)' }} />
           <p style={{ margin: 0, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.55 }}>
-            Social Stats keeps you in full control. Whichever agency you choose, you can pause access,
-            revoke permissions, or end the relationship at any time — and every action is logged for audit.
+            راوینتا شما را در کنترل کامل نگه می دارد. هر آژانسی که انتخاب کنید، می‌توانید دسترسی را موقتاً متوقف کنید، مجوزها را لغو کنید یا رابطه را در هر زمانی خاتمه دهید - و هر اقدام برای ممیزی ثبت می‌شود.
           </p>
         </div>
       </div>
@@ -223,7 +223,7 @@ export default function AgencyProfilePage() {
         open={inviteOpen}
         onClose={() => setInviteOpen(false)}
         targetAgency={agency}
-        onSent={() => toast.success(`Invitation sent to ${agency.name}`)}
+        onSent={() => toast.success(`دعوت نامه ارسال شد ${agency.name}`)}
       />
 
       <WriteReviewModal
@@ -251,15 +251,15 @@ function ContactModal({ open, onClose, agency }) {
   if (!open) return null;
 
   async function send() {
-    if (!user) { toast.error('Please sign in to send an inquiry.'); return; }
-    if (!message.trim()) { toast.error('Tell them what you need.'); return; }
+    if (!user) { toast.error("لطفا برای ارسال درخواست وارد شوید."); return; }
+    if (!message.trim()) { toast.error("آنچه را که نیاز دارید به آنها بگویید."); return; }
     setBusy(true);
     try {
       await marketplaceAPI.contact(agency.slug, message.trim());
-      toast.success(`Sent to ${agency.name}`);
+      toast.success(`ارسال شده به ${agency.name}`);
       onClose?.();
     } catch (e) {
-      toast.error(e?.response?.data?.error || 'Could not send');
+      toast.error(publicMessage(e?.response?.data?.error || "ارسال نشد"));
     } finally {
       setBusy(false);
     }
@@ -268,21 +268,21 @@ function ContactModal({ open, onClose, agency }) {
   return (
     <div style={backdropStyle} onClick={(e) => { if (e.target === e.currentTarget) onClose?.(); }}>
       <div style={{ ...modalStyle, padding: 22 }}>
-        <h2 style={{ margin: 0, fontSize: 17, fontWeight: 700 }}>Contact {agency.name}</h2>
+        <h2 style={{ margin: 0, fontSize: 17, fontWeight: 700 }}>تماس با ما {agency.name}</h2>
         <p style={{ margin: '4px 0 12px', fontSize: 13, color: 'var(--text-secondary)' }}>
-          A non-binding inquiry. They'll reply via email or invite you to manage.
+          یک تحقیق غیر الزام آور. آنها از طریق ایمیل پاسخ خواهند داد یا از شما برای مدیریت دعوت خواهند کرد.
         </p>
         <textarea
           rows={5}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          placeholder="Hi! I run a real estate brokerage in Pune and we're posting on Instagram + GMB. Can you help with content + analytics?"
+          placeholder={"سلام! من یک کارگزاری املاک در پونا دارم و در اینستاگرام + GMB پست می گذاریم. آیا می‌توانید در زمینه محتوا + تحلیل و آمار کمک کنید؟"}
           style={textareaStyle}
         />
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 12 }}>
-          <button type="button" onClick={onClose} style={btnGhost}>Cancel</button>
+          <button type="button" onClick={onClose} style={btnGhost}>انصراف</button>
           <button type="button" onClick={send} disabled={busy} style={btnPrimary}>
-            {busy ? 'Sending…' : <>Send <Send size={13} /></>}
+            {busy ? 'در حال ارسال…' : <>ارسال کنید <Send size={13} /></>}
           </button>
         </div>
       </div>
@@ -313,7 +313,7 @@ function ReviewItem({ review, isAgencyMember, onHelpful, onDelete, onRespond, on
             <Star key={i} size={12} fill={i < review.rating ? 'var(--warning)' : 'transparent'} stroke="var(--warning)" />
           ))}
         </span>
-        {review.is_verified && <span style={verifiedChip}><ShieldCheck size={10} /> Verified</span>}
+        {review.is_verified && <span style={verifiedChip}><ShieldCheck size={10} /> تأییدشده</span>}
         {review.created_at && (
           <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
             {new Date(review.created_at).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })}
@@ -328,15 +328,15 @@ function ReviewItem({ review, isAgencyMember, onHelpful, onDelete, onRespond, on
 
       {(review.pros?.length > 0 || review.cons?.length > 0) && (
         <div style={{ marginTop: 8, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 8 }}>
-          {review.pros?.length > 0 && <ProsCons items={review.pros} tone="success" label="Pros" />}
-          {review.cons?.length > 0 && <ProsCons items={review.cons} tone="warning" label="Cons" />}
+          {review.pros?.length > 0 && <ProsCons items={review.pros} tone="success" label={"نقاط قوت"} />}
+          {review.cons?.length > 0 && <ProsCons items={review.cons} tone="warning" label={"نقاط ضعف"} />}
         </div>
       )}
 
       {review.agency_response && (
         <div style={agencyResponseBox}>
           <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--brand-primary-hover)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-            Agency response
+            پاسخ آژانس
           </div>
           <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--text-primary)' }}>{review.agency_response}</p>
         </div>
@@ -344,16 +344,16 @@ function ReviewItem({ review, isAgencyMember, onHelpful, onDelete, onRespond, on
 
       <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
         <button type="button" onClick={onHelpful} style={miniBtn}>
-          <ThumbsUp size={11} /> Helpful{review.helpful_count > 0 && ` · ${review.helpful_count}`}
+          <ThumbsUp size={11} /> مفید{review.helpful_count > 0 && ` · ${review.helpful_count}`}
         </button>
         {isMine && review.is_editable && onEdit && (
           <button type="button" onClick={onEdit} style={miniBtn}>
-            <Edit3 size={11} /> Edit
+            <Edit3 size={11} /> ویرایش
           </button>
         )}
         {isMine && (
           <button type="button" onClick={onDelete} style={{ ...miniBtn, color: 'var(--danger)', borderColor: 'var(--danger)' }}>
-            <Trash2 size={11} /> Delete
+            <Trash2 size={11} /> حذف
           </button>
         )}
         {canRespond && <RespondInline onSubmit={onRespond} />}
@@ -387,7 +387,7 @@ function RespondInline({ onSubmit }) {
   if (!open) {
     return (
       <button type="button" onClick={() => setOpen(true)} style={miniBtn}>
-        <MessageSquare size={11} /> Respond
+        <MessageSquare size={11} /> پاسخ دهید
       </button>
     );
   }
@@ -397,11 +397,11 @@ function RespondInline({ onSubmit }) {
         type="text"
         value={text}
         onChange={(e) => setText(e.target.value)}
-        placeholder="Your response (public)"
+        placeholder={"پاسخ شما (عمومی)"}
         style={{ flex: 1, padding: '7px 10px', background: 'var(--surface-sunken)', border: '1px solid var(--border-default)', borderRadius: 'var(--radius-sm)', fontSize: 12, color: 'var(--text-primary)', outline: 'none', fontFamily: 'inherit' }}
       />
-      <button type="button" onClick={() => { if (text.trim()) { onSubmit(text.trim()); setOpen(false); setText(''); } }} style={miniBtn}>Post</button>
-      <button type="button" onClick={() => { setOpen(false); setText(''); }} style={miniBtn}>Cancel</button>
+      <button type="button" onClick={() => { if (text.trim()) { onSubmit(text.trim()); setOpen(false); setText(''); } }} style={miniBtn}>پست</button>
+      <button type="button" onClick={() => { setOpen(false); setText(''); }} style={miniBtn}>انصراف</button>
     </div>
   );
 }
@@ -419,7 +419,7 @@ function RatingSummary({ avg, distribution, count }) {
             <Star key={i} size={13} fill={i < Math.round(avg) ? 'var(--warning)' : 'transparent'} stroke="var(--warning)" />
           ))}
         </div>
-        <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2 }}>{count} review{count === 1 ? '' : 's'}</div>
+        <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2 }}>{count} بررسی{count === 1 ? '' : 's'}</div>
       </div>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
         {[5, 4, 3, 2, 1].map((star) => {

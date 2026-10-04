@@ -6,10 +6,10 @@ export default function BlogShare() {
   const [url, setUrl] = useState('');
   useEffect(() => setUrl(window.location.href), []);
   async function copyLink() {
-    try { await navigator.clipboard.writeText(window.location.href); toast.success('Link copied to clipboard'); }
-    catch { toast.error('Could not copy link'); }
+    try { await navigator.clipboard.writeText(window.location.href); toast.success("پیوند در کلیپ بورد کپی شد"); }
+    catch { toast.error("پیوند کپی نشد"); }
   }
-  return <><ShareBtn icon={Linkedin} href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`} label="Share on LinkedIn" /><ShareBtn icon={Facebook} href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`} label="Share on Facebook" /><ShareBtn icon={LinkIcon} onClick={copyLink} label="Copy link" /></>;
+  return <><ShareBtn icon={Linkedin} href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`} label={"در لینکدین به اشتراک بگذارید"} /><ShareBtn icon={Facebook} href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`} label={"در فیس‌بوک به اشتراک بگذارید"} /><ShareBtn icon={LinkIcon} onClick={copyLink} label={"کپی لینک"} /></>;
 }
 function ShareBtn({ icon: Icon, href, onClick, label }) {
   const Wrap = href ? 'a' : 'button';

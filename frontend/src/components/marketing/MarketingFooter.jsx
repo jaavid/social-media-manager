@@ -14,61 +14,61 @@ export default function MarketingFooter() {
 
   const COLUMNS = [
     {
-      title: 'Product',
+      title: "محصول",
       links: [
-        { label: 'Analytics',     to: '/product/analytics' },
-        { label: 'Composer',      to: '/product/composer' },
-        { label: 'Inbox',         to: '/product/inbox' },
-        { label: 'WhatsApp',      to: '/product/whatsapp' },
-        { label: 'Bot Builder',   to: '/product/bot-builder' },
-        { label: 'AI Studio',     to: '/product/ai' },
-        { label: 'Reports',       to: '/product/reports' },
-        { label: 'Automations',   to: '/product/automations' },
-        { label: 'Marketplace',   to: '/product/marketplace-product' },
+        { label: "تحلیل و آمار",     to: '/product/analytics' },
+        { label: "ویرایشگر محتوا",      to: '/product/composer' },
+        { label: "صندوق پیام‌ها",         to: '/product/inbox' },
+        { label: "واتس‌اپ",      to: '/product/whatsapp' },
+        { label: "سازنده ربات",   to: '/product/bot-builder' },
+        { label: "استودیوی هوش مصنوعی",     to: '/product/ai' },
+        { label: "گزارش‌ها",       to: '/product/reports' },
+        { label: "خودکارسازی",   to: '/product/automations' },
+        { label: "بازار خدمات",   to: '/product/marketplace-product' },
       ],
     },
     {
-      title: 'Solutions',
+      title: "راهکارها",
       links: [
-        { label: 'For Agencies',   to: '/solutions/agencies' },
-        { label: 'For Businesses', to: '/solutions/businesses' },
-        { label: 'Real Estate',    to: '/solutions/real-estate' },
-        { label: 'Healthcare',     to: '/solutions/clinics' },
-        { label: 'Restaurants',    to: '/solutions/restaurants' },
-        { label: 'Creators',       to: '/solutions/creators' },
-        { label: 'E-commerce',     to: '/solutions/ecommerce' },
+        { label: "برای آژانس‌ها",   to: '/solutions/agencies' },
+        { label: "برای کسب‌وکارها", to: '/solutions/businesses' },
+        { label: "املاک",    to: '/solutions/real-estate' },
+        { label: "سلامت و درمان",     to: '/solutions/clinics' },
+        { label: "رستوران‌ها",    to: '/solutions/restaurants' },
+        { label: "تولیدکنندگان محتوا",       to: '/solutions/creators' },
+        { label: "تجارت الکترونیکی",     to: '/solutions/ecommerce' },
       ],
     },
     {
-      title: 'Resources',
+      title: "منابع",
       links: [
-        { label: 'Customers',     to: '/customers' },
-        { label: 'Blog',          to: '/blog' },
-        { label: 'Help Center',   to: '/help' },
-        { label: 'Changelog',     to: '/changelog' },
-        { label: 'Status',        to: '/status' },
-        { label: 'Integrations',  to: '/integrations' },
+        { label: "مشتریان",     to: '/customers' },
+        { label: "وبلاگ",          to: '/blog' },
+        { label: "مرکز راهنما",   to: '/help' },
+        { label: "تاریخچه تغییرات",     to: '/changelog' },
+        { label: "وضعیت",        to: '/status' },
+        { label: "اتصال‌ها",  to: '/integrations' },
       ],
     },
     {
-      title: 'Company',
+      title: "شرکت",
       links: [
-        { label: 'About',     to: '/about' },
-        { label: 'Customers', to: '/customers' },
-        { label: 'Contact',   to: '/contact' },
-        { label: 'Press',     to: '/about#press' },
-        { label: 'Careers',   to: '/about#careers' },
+        { label: "درباره ما",     to: '/about' },
+        { label: "مشتریان", to: '/customers' },
+        { label: "تماس با ما",   to: '/contact' },
+        { label: "رسانه‌ها",     to: '/about#press' },
+        { label: "فرصت‌های شغلی",   to: '/about#careers' },
       ],
     },
     {
-      title: 'Legal',
+      title: "حقوقی",
       links: [
-        { label: 'Privacy',         to: '/privacy' },
-        { label: 'Terms',           to: '/terms' },
-        { label: 'Cookies',         to: '/cookies' },
+        { label: "حریم خصوصی",         to: '/privacy' },
+        { label: "شرایط استفاده",           to: '/terms' },
+        { label: "کوکی‌ها",         to: '/cookies' },
         { label: 'GDPR',            to: '/gdpr' },
         { label: 'DPDP',            to: '/dpdp' },
-        { label: 'Security',        to: '/security' },
+        { label: "امنیت",        to: '/security' },
       ],
     },
   ];
@@ -105,13 +105,13 @@ export default function MarketingFooter() {
               color: 'var(--text-secondary)',
               maxWidth: 280,
             }}>
-              The AI marketing OS for modern agencies. Analytics, content, conversations, and ads — for every client, in one place.
+              سیستم عامل بازاریابی هوش مصنوعی برای آژانس‌های مدرن. تحلیل و آمار، محتوا، مکالمات و تبلیغات - برای هر مشتری، در یک مکان.
             </p>
             <div style={{ display: 'flex', gap: 6 }}>
               <SocialIconLink href="https://github.com/socialstats"            label="GitHub"   icon={Github} />
-              <SocialIconLink href="https://linkedin.com/company/socialstats"  label="LinkedIn" icon={Linkedin} />
-              <SocialIconLink href="https://twitter.com/socialstats"           label="Twitter"  icon={Twitter} />
-              <SocialIconLink href="https://youtube.com/@socialstats"          label="YouTube"  icon={Youtube} />
+              <SocialIconLink href="https://linkedin.com/company/socialstats"  label={"لینکدین"} icon={Linkedin} />
+              <SocialIconLink href="https://twitter.com/socialstats"           label={"توییتر"}  icon={Twitter} />
+              <SocialIconLink href="https://youtube.com/@socialstats"          label={"یوتیوب"}  icon={Youtube} />
             </div>
             {/* Geographic framing intentionally omitted from the global footer.
                 Office and contact information lives on /contact and /dpdp. */}
@@ -154,7 +154,7 @@ export default function MarketingFooter() {
           gap: 16, flexWrap: 'wrap',
           fontSize: 12, color: 'var(--text-tertiary)',
         }}>
-          <span>© {year} SocialStats. All rights reserved.</span>
+          <span>© {year} راوینتا. همه حقوق محفوظ است.</span>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
             <Link to="/status" style={{
               display: 'inline-flex', alignItems: 'center', gap: 6,
@@ -165,13 +165,13 @@ export default function MarketingFooter() {
                 background: 'var(--success)',
                 boxShadow: '0 0 8px rgba(16,185,129,0.6)',
               }} />
-              All systems operational
+              همه سیستم ها عملیاتی هستند
             </Link>
             <span style={{
               display: 'inline-flex', alignItems: 'center', gap: 4,
               color: 'var(--text-tertiary)',
             }}>
-              <Sparkles size={11} /> Built with Social Stats
+              <Sparkles size={11} /> ساخته شده با راوینتا
             </span>
           </div>
         </div>

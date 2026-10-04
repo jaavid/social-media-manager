@@ -20,30 +20,30 @@ const VALUES = [
   {
     icon: Compass,
     color: 'var(--module-analytics)',
-    title: 'Honest by default',
+    title: "به طور پیش فرض صادقانه",
     body:
-      'No dark patterns, no surprise charges, no manipulative onboarding. We believe trust compounds — and so do good products.',
+      "بدون الگوهای تاریک، بدون هزینه های غافلگیرکننده، بدون سوار شدن دستکاری. ما به ترکیبات اعتماد داریم - و همینطور محصولات خوب.",
   },
   {
     icon: Layers,
     color: 'var(--module-ai)',
-    title: 'Quality over scope',
+    title: "کیفیت بیش از دامنه",
     body:
-      'Every feature ships only when it feels obvious in your hands. We\'d rather do five things beautifully than fifty halfway.',
+      "هر ویژگی تنها زمانی ارسال می‌شود که در دستان شما آشکار باشد. ما ترجیح می‌دهیم پنج کار را به زیبایی انجام دهیم تا پنجاه کار در نیمه راه.",
   },
   {
     icon: Heart,
     color: '#ef4444',
-    title: 'Customers at the center',
+    title: "مشتریان در مرکز",
     body:
-      'We talk to customers every week. The roadmap reflects what real teams need, not what board decks want.',
+      "ما هر هفته با مشتریان صحبت می کنیم. نقشه راه منعکس کننده آن چیزی است که تیم‌های واقعی به آن نیاز دارند، نه آنچه که عرشه های هیئت مدیره می خواهند.",
   },
   {
     icon: Globe,
     color: '#f59e0b',
-    title: 'India-first, world-ready',
+    title: "هند اول، آماده جهان",
     body:
-      'Built in India, for the world. Rupee billing, GST invoicing, DPDP compliance — and global infrastructure.',
+      "ساخته شده در هند، برای جهان. صورت‌حساب روپیه، صورت‌حساب GST، انطباق با DPDP - و زیرساخت جهانی.",
   },
 ];
 
@@ -53,17 +53,17 @@ const VALUES = [
 const TEAM = [];
 
 const TIMELINE = [
-  { date: '2024',  title: 'First prototype',    body: 'Social Stats started as a unified dashboard for analytics across the platforms agencies actually use.' },
-  { date: '2025',  title: 'Composer + Inbox',   body: 'Content composer with per-platform formatting and a unified inbox across DMs, comments, and reviews.' },
-  { date: '2026',  title: 'Marketing OS (you are here)', body: 'Unified control center across analytics, messaging, ads, AI, and automations.' },
+  { date: '2024',  title: "نمونه اولیه",    body: "راوینتا به عنوان یک داشبورد یکپارچه برای تحلیل و آمار در سراسر پلتفرم‌هایی که آژانس‌ها واقعاً از آن استفاده می‌کنند شروع شد." },
+  { date: '2025',  title: "ویرایشگر محتوا + صندوق ورودی",   body: "ویرایشگر محتوا محتوا با قالب‌بندی برای هر پلتفرم و صندوق ورودی یکپارچه در میان پیام‌های ارسالی، نظرات و نظرات." },
+  { date: '2026',  title: "سیستم عامل بازاریابی (شما اینجا هستید)", body: "مرکز کنترل یکپارچه در تحلیل و آمار، پیام‌رسانی، تبلیغات، هوش مصنوعی و اتوماسیون." },
 ];
 
 export default function AboutPage() {
   return (
     <MarketingLayout>
       <Meta
-        title="About"
-        description="Social Stats is the marketing OS for modern teams — unified analytics, content, messaging, and AI across the 5 platforms that matter."
+        title={"درباره ما"}
+        description={"راوینتا سیستم عامل بازاریابی برای تیم‌های مدرن است - تحلیل و آمار، محتوا، پیام‌رسانی و هوش مصنوعی یکپارچه در 5 پلتفرم مهم."}
       />
       {/* Hero */}
       <section style={{ padding: '128px 32px 64px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
@@ -76,7 +76,7 @@ export default function AboutPage() {
           }}
         />
         <div style={{ position: 'relative', maxWidth: 760, margin: '0 auto' }}>
-          <Badge variant="brand" size="md">About</Badge>
+          <Badge variant="brand" size="md">درباره ما</Badge>
           <h1 style={{
             margin: '20px 0 18px',
             fontSize: 'clamp(40px, 5vw, 56px)',
@@ -85,12 +85,10 @@ export default function AboutPage() {
             fontWeight: 600,
             color: 'var(--text-primary)',
           }}>
-            We're building the marketing OS we wanted at our last company.
+            ما در حال ساختن سیستم عامل بازاریابی مورد نظر خود در آخرین شرکت خود هستیم.
           </h1>
           <p style={{ margin: 0, fontSize: 18, lineHeight: 1.65, color: 'var(--text-secondary)' }}>
-            Social Stats started with a frustrated founding team and a long list of broken
-            marketing tools. We're building the unified product we wanted at our
-            last company.
+            راوینتا با یک تیم موسس ناامید و یک لیست طولانی از ابزارهای بازاریابی شکسته شروع شد. ما در حال ساختن محصول یکپارچه ای که می خواستیم در آخرین شرکت خود هستیم.
           </p>
         </div>
       </section>
@@ -105,7 +103,7 @@ export default function AboutPage() {
             color: 'var(--brand-primary-hover)',
             marginBottom: 14,
           }}>
-            Our mission
+            ماموریت ما
           </div>
           <p style={{
             margin: 0,
@@ -115,8 +113,7 @@ export default function AboutPage() {
             color: 'var(--text-primary)',
             lineHeight: 1.4,
           }}>
-            Give every marketing team — from solo creators to global agencies — a single,
-            beautiful platform to <span style={{ color: 'var(--brand-primary-hover)' }}>understand, create, and grow</span>.
+            به هر تیم بازاریابی - از سازندگان انفرادی گرفته تا آژانس‌های جهانی - یک پلتفرم واحد و زیبا بدهید <span style={{ color: 'var(--brand-primary-hover)' }}>درک کنید، ایجاد کنید و رشد کنید</span>.
           </p>
         </div>
       </section>
@@ -126,10 +123,10 @@ export default function AboutPage() {
         <div style={{ maxWidth: 'var(--container-xl)', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 48 }}>
             <h2 style={{ margin: 0, fontSize: 'clamp(28px, 3.4vw, 40px)', fontWeight: 600, letterSpacing: '-0.025em', color: 'var(--text-primary)' }}>
-              How we work.
+              چگونه کار می کنیم.
             </h2>
             <p style={{ margin: '12px auto 0', maxWidth: 540, fontSize: 15, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-              Four values that show up in every product decision.
+              چهار ارزشی که در هر تصمیم محصول نشان داده می‌شود.
             </p>
           </div>
           <div
@@ -185,12 +182,12 @@ export default function AboutPage() {
       <section style={{ padding: '96px 32px', background: 'var(--surface-card)', borderTop: '1px solid var(--border-subtle)', borderBottom: '1px solid var(--border-subtle)' }}>
         <div style={{ maxWidth: 'var(--container-xl)', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 48 }}>
-            <Badge variant="brand" size="md">Team</Badge>
+            <Badge variant="brand" size="md">تیم</Badge>
             <h2 style={{ margin: '14px 0 12px', fontSize: 'clamp(28px, 3.4vw, 40px)', fontWeight: 600, letterSpacing: '-0.025em', color: 'var(--text-primary)' }}>
-              The humans behind Social Stats.
+              انسان های پشت راوینتا.
             </h2>
             <p style={{ margin: '0 auto', maxWidth: 540, fontSize: 15, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-              We're a small, experienced team based in Bangalore and remote.
+              ما یک تیم کوچک و با تجربه در بنگلور و از راه دور هستیم.
             </p>
           </div>
 
@@ -225,8 +222,8 @@ export default function AboutPage() {
                     <div style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{m.bio}</div>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                    <SocialChip icon={Linkedin} label={`${m.name} on LinkedIn`} />
-                    <SocialChip icon={Twitter}  label={`${m.name} on Twitter`} />
+                    <SocialChip icon={Linkedin} label={`${m.name} در لینکدین`} />
+                    <SocialChip icon={Twitter}  label={`${m.name} در توییتر`} />
                   </div>
                 </MotionDiv>
               ))}
@@ -241,8 +238,7 @@ export default function AboutPage() {
               maxWidth: 560, margin: '0 auto',
             }}>
               <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: 'var(--text-secondary)' }}>
-                Individual team profiles will appear here as we go public.
-                In the meantime, the easiest way to reach us is over email at{' '}
+                با عمومی شدن نمایه های تیمی در اینجا ظاهر می‌شود. در این میان، ساده‌ترین راه برای ارتباط با ما از طریق ایمیل است{' '}
                 <a href="https://github.com/cbsshekhawat18-lab/social-stats-social-media-manager" target="_blank" rel="noreferrer" style={{ color: 'var(--text-link)', fontWeight: 600 }}>
                   github.com/cbsshekhawat18-lab/social-stats-social-media-manager
                 </a>.
@@ -251,8 +247,8 @@ export default function AboutPage() {
           )}
 
           <p style={{ marginTop: 32, textAlign: 'center', fontSize: 13, color: 'var(--text-tertiary)' }}>
-            We're hiring across engineering, design, and customer success.{' '}
-            <Link to="/contact" style={{ color: 'var(--text-link)', fontWeight: 600, textDecoration: 'none' }}>Get in touch →</Link>
+            ما در زمینه مهندسی، طراحی و موفقیت مشتری استخدام می کنیم.{' '}
+            <Link to="/contact" style={{ color: 'var(--text-link)', fontWeight: 600, textDecoration: 'none' }}>تماس بگیرید →</Link>
           </p>
 
           <style>{`
@@ -266,9 +262,9 @@ export default function AboutPage() {
       <section style={{ padding: '96px 32px' }}>
         <div style={{ maxWidth: 760, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 48 }}>
-            <Badge variant="brand" size="md">Journey</Badge>
+            <Badge variant="brand" size="md">سفر</Badge>
             <h2 style={{ margin: '14px 0 12px', fontSize: 'clamp(28px, 3.4vw, 40px)', fontWeight: 600, letterSpacing: '-0.025em', color: 'var(--text-primary)' }}>
-              How we got here.
+              چگونه به اینجا رسیدیم.
             </h2>
           </div>
 
@@ -319,14 +315,14 @@ export default function AboutPage() {
       {/* CTA */}
       <section style={{ padding: '0 32px 120px', textAlign: 'center' }}>
         <h2 style={{ margin: 0, fontSize: 'clamp(28px, 3.4vw, 40px)', fontWeight: 600, letterSpacing: '-0.025em', color: 'var(--text-primary)' }}>
-          Want to build with us?
+          آیا می خواهید با ما بسازید؟
         </h2>
         <p style={{ margin: '12px auto 28px', maxWidth: 480, fontSize: 16, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-          We're hiring across the stack. Or just say hi.
+          ما در سراسر پشته استخدام می کنیم. یا فقط سلام کنید
         </p>
         <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-          <Button as={Link} to="/contact" size="lg" iconRight={ArrowRight}>Say hello</Button>
-          <Button as={Link} to="/signup"  variant="secondary" size="lg">Try Social Stats free</Button>
+          <Button as={Link} to="/contact" size="lg" iconRight={ArrowRight}>سلام کنید</Button>
+          <Button as={Link} to="/signup"  variant="secondary" size="lg">راوینتا را رایگان امتحان کنید</Button>
         </div>
       </section>
     </MarketingLayout>

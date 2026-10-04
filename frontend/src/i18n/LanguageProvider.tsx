@@ -1,15 +1,23 @@
 'use client';
 import { createContext, useEffect, useState } from 'react';
 import type { PropsWithChildren } from 'react';
-import { useRouter } from 'next/navigation';
+import { isPublicRoute } from './public-routes';
+import { usePathname, useRouter } from 'next/navigation';
 import { NextIntlClientProvider } from 'next-intl';
 import type { Language } from './messages';
 import { nestedMessages } from './translate';
 
 export const LanguageContext = createContext<Language | null>(null);
-export default function LanguageProvider({ children, language: initial }: PropsWithChildren<{ language: Language }>) {
-  const [language, setLanguage] = useState(initial);
+export default function LanguageProvider({ children, language: initial, preferredLanguage = initial }: PropsWithChildren<{ language: Language; preferredLanguage?: Language }>) {
+  const [preference, setLanguage] = useState(preferredLanguage);
+  const pathname = usePathname();
+  const language = pathname && isPublicRoute(pathname) ? 'fa' : preference;
   const router = useRouter();
+  useEffect(() => { setLanguage(preferredLanguage); }, [preferredLanguage]);
+  useEffect(() => {
+    document.documentElement.lang = language;
+    document.documentElement.dir = language === 'fa' ? 'rtl' : 'ltr';
+  }, [language]);
   useEffect(() => {
     const update = (event: Event) => {
       setLanguage((event as CustomEvent<Language>).detail);

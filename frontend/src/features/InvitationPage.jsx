@@ -1,3 +1,4 @@
+import { publicMessage, publicInvitationStatus } from '../i18n/public-message';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -38,7 +39,7 @@ export default function InvitationPage() {
   useEffect(() => {
     invitationAPI.getByToken(token)
       .then((res) => setInv(res.data))
-      .catch((e) => setError(e?.response?.data?.error || 'Invitation not found.'))
+      .catch((e) => setError(e?.response?.data?.error || "دعوتنامه یافت نشد."))
       .finally(() => setLoading(false));
   }, [token]);
 
@@ -63,7 +64,7 @@ export default function InvitationPage() {
         setDone('rejected');
       }
     } catch (e) {
-      setError(e?.response?.data?.error || 'Something went wrong.');
+      setError(e?.response?.data?.error || "مشکلی پیش آمد.");
     } finally {
       setResponding('');
     }
@@ -72,16 +73,16 @@ export default function InvitationPage() {
   // ── Render ─────────────────────────────────────────────────────────────
   let content;
   if (loading) {
-    content = <CenteredState icon={<Spinner size="md" />} title="Loading invitation…" />;
+    content = <CenteredState icon={<Spinner size="md" />} title={"در حال بارگیری دعوت…"} />;
   } else if (error && !inv) {
     content = (
       <CenteredState
         icon={<XCircle size={28} strokeWidth={1.8} />}
         iconColor="var(--danger)"
         iconBg="var(--danger-bg)"
-        title="Invitation not found"
-        description={error}
-        action={<Button as={Link} to="/login" variant="secondary" fullWidth>Back to sign in</Button>}
+        title={"دعوتنامه یافت نشد"}
+        description={publicMessage(error, "انجام درخواست ممکن نشد. لطفاً اطلاعات واردشده را بررسی کنید.")}
+        action={<Button as={Link} to="/login" variant="secondary" fullWidth>بازگشت به ورود</Button>}
       />
     );
   } else if (done === 'accepted') {
@@ -90,8 +91,8 @@ export default function InvitationPage() {
         icon={<CheckCircle size={28} strokeWidth={1.8} />}
         iconColor="var(--success)"
         iconBg="var(--success-bg)"
-        title="Invitation accepted!"
-        description="Redirecting you to your dashboard…"
+        title={"دعوت پذیرفته شد!"}
+        description={"هدایت شما به داشبورد شما…"}
       />
     );
   } else if (done === 'rejected') {
@@ -100,9 +101,9 @@ export default function InvitationPage() {
         icon={<XCircle size={28} strokeWidth={1.8} />}
         iconColor="var(--danger)"
         iconBg="var(--danger-bg)"
-        title="Invitation declined"
-        description={`You've declined the invitation from ${inv?.agency_name}.`}
-        action={<Button as={Link} to="/pending" variant="secondary" fullWidth>Back to dashboard</Button>}
+        title={"دعوت رد شد"}
+        description={`شما دعوت نامه را رد کرده اید ${inv?.agency_name}.`}
+        action={<Button as={Link} to="/pending" variant="secondary" fullWidth>بازگشت به داشبورد</Button>}
       />
     );
   } else if (inv?.is_expired || inv?.status === 'expired') {
@@ -111,18 +112,18 @@ export default function InvitationPage() {
         icon={<Clock size={28} strokeWidth={1.8} />}
         iconColor="var(--warning)"
         iconBg="var(--warning-bg)"
-        title="Invitation expired"
-        description="This invitation has expired. Ask the agency to send a new one."
-        action={<Button as={Link} to="/login" variant="secondary" fullWidth>Back to sign in</Button>}
+        title={"دعوتنامه منقضی شده است"}
+        description={"این دعوت منقضی شده است. از آژانس بخواهید که یک مورد جدید ارسال کند."}
+        action={<Button as={Link} to="/login" variant="secondary" fullWidth>بازگشت به ورود</Button>}
       />
     );
   } else if (inv?.status && inv.status !== 'pending') {
     content = (
       <CenteredState
         icon={<Building2 size={28} strokeWidth={1.8} />}
-        title="Already responded"
-        description={`This invitation was already ${inv.status}.`}
-        action={<Button as={Link} to="/dashboard" variant="secondary" fullWidth>Go to dashboard</Button>}
+        title={"قبلاً پاسخ داده شده است"}
+        description={`وضعیت این دعوت: ${publicInvitationStatus(inv.status)}.`}
+        action={<Button as={Link} to="/dashboard" variant="secondary" fullWidth>به داشبورد بروید</Button>}
       />
     );
   } else if (inv) {
@@ -132,10 +133,9 @@ export default function InvitationPage() {
         <div aria-hidden style={{ ...iconBubbleStyle, background: 'var(--brand-primary-soft)', color: 'var(--brand-primary-hover)' }}>
           <Building2 size={26} strokeWidth={1.8} />
         </div>
-        <h1 style={titleStyle}>You've been invited</h1>
+        <h1 style={titleStyle}>شما دعوت شده اید</h1>
         <p style={subStyle}>
-          <strong style={{ color: 'var(--text-primary)' }}>{inv.agency_name}</strong> wants to manage your
-          social media analytics on Social Stats.
+          <strong style={{ color: 'var(--text-primary)' }}>{inv.agency_name}</strong> می‌خواهد تحلیل و آمار رسانه‌های اجتماعی شما را در راوینتا مدیریت کند.
         </p>
 
         <div
@@ -149,7 +149,7 @@ export default function InvitationPage() {
           }}
         >
           <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-tertiary)' }}>
-            Agency
+            آژانس
           </div>
           <div style={{ marginTop: 4, fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>
             {inv.agency_name}
@@ -190,7 +190,7 @@ export default function InvitationPage() {
               textAlign: 'left',
             }}
           >
-            {error}
+            {publicMessage(error, "انجام درخواست ممکن نشد. لطفاً اطلاعات واردشده را بررسی کنید.")}
           </div>
         )}
 
@@ -204,7 +204,7 @@ export default function InvitationPage() {
             onClick={() => handleRespond('reject')}
             fullWidth
           >
-            Decline
+            رد کردن
           </Button>
           <Button
             size="md"
@@ -214,7 +214,7 @@ export default function InvitationPage() {
             onClick={() => handleRespond('accept')}
             fullWidth
           >
-            Accept
+            قبول کنید
           </Button>
         </div>
       </div>
@@ -223,8 +223,8 @@ export default function InvitationPage() {
 
   return (
     <AuthLayout
-      heroTitle="Join your agency on Social Stats."
-      heroSub="Accept the invitation to give your agency access to your social media analytics."
+      heroTitle={"به آژانس خود در راوینتا بپیوندید."}
+      heroSub={"دعوت نامه را بپذیرید تا آژانس خود را به تحلیل و آمار شبکه‌های اجتماعی خود دسترسی دهد."}
     >
       {content}
     </AuthLayout>

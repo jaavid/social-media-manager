@@ -1,4 +1,4 @@
 import Content from '../../../features/ForAgenciesPage.jsx';
 import { publicMetadata } from '../../../lib/metadata.mjs';
-export const metadata = publicMetadata("Social Stats for agencies — manage 100+ clients from one place", "One dashboard for analytics, content, inbox, ads, and WhatsApp campaigns across every client. Marketplace listing brings inbound leads. Trust + permissions built into the foundation.", "/for-agencies", false);
+export const metadata = publicMetadata("راوینتا برای آژانس‌ها - بیش از 100 مشتری را از یک مکان مدیریت کنید", "یک داشبورد برای تحلیل و آمار، محتوا، صندوق ورودی، تبلیغات و کمپین‌های واتس‌اپ در هر مشتری. فهرست بازار سرنخ های ورودی را به ارمغان می آورد. اعتماد + مجوزهای تعبیه شده در بنیاد.", "/for-agencies", false);
 export default function Page() { return <Content />; }

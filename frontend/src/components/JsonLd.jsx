@@ -18,7 +18,7 @@ export default function JsonLd({ id, data }) {
 // ── shared site identity ──────────────────────────────────────────────
 const PUBLIC_SITE_ORIGIN = (process.env.NEXT_PUBLIC_SITE_URL || 'https://socialstats.app').replace(/\/$/, '');
 const SITE = {
-  name: 'Social Stats',
+  name: 'راوینتا',
   url: PUBLIC_SITE_ORIGIN,
   logo: `${PUBLIC_SITE_ORIGIN}/screenshot.png`,
   sameAs: [
@@ -52,7 +52,7 @@ export function buildOrganization() {
       '@type': 'ContactPoint',
       contactType: 'customer support',
       url: 'https://github.com/cbsshekhawat18-lab/social-stats-social-media-manager/issues',
-      availableLanguage: ['en', 'hi'],
+      availableLanguage: ['fa'],
     },
   };
 }
@@ -64,6 +64,7 @@ export function buildWebSite() {
     '@id': `${SITE.url}/#website`,
     url: SITE.url,
     name: SITE.name,
+    inLanguage: 'fa-IR',
     publisher: { '@id': `${SITE.url}/#organization` },
     potentialAction: {
       '@type': 'SearchAction',

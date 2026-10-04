@@ -1,3 +1,4 @@
+import { publicMessage } from '../i18n/public-message';
 import { useAppSearchParams } from '../core/navigation';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
@@ -37,14 +38,14 @@ function ForgotForm() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!email.trim()) { setError('Email is required.'); return; }
+    if (!email.trim()) { setError("وارد کردن ایمیل الزامی است."); return; }
     setError('');
     setLoading(true);
     try {
       await authAPI.passwordResetRequest(email.trim().toLowerCase());
       setDone(true);
     } catch {
-      setError('Something went wrong. Please try again.');
+      setError("مشکلی پیش آمد. لطفا دوباره امتحان کنید.");
     } finally {
       setLoading(false);
     }
@@ -53,19 +54,19 @@ function ForgotForm() {
   if (done) {
     return (
       <AuthLayout
-        heroTitle="Help is on the way."
-        heroSub="If we recognise the email, you'll receive a reset link in the next minute or two."
+        heroTitle={"کمک در راه است."}
+        heroSub={"اگر ایمیل را بشناسیم، در یکی دو دقیقه آینده پیوند بازنشانی دریافت خواهید کرد."}
       >
         <div style={{ ...cardStyle, textAlign: 'center' }}>
           <div aria-hidden style={iconBubbleStyle}>
             <Mail size={26} strokeWidth={1.8} />
           </div>
-          <h1 style={titleStyle}>Check your inbox</h1>
+          <h1 style={titleStyle}>صندوق ورودی خود را بررسی کنید</h1>
           <p style={{ ...subStyle, margin: '8px 0 20px' }}>
-            If <strong style={{ color: 'var(--text-primary)' }}>{email}</strong> is registered, a reset link is on its way.
+            اگر <strong style={{ color: 'var(--text-primary)' }}>{email}</strong> ثبت شده است، پیوند بازنشانی در راه است.
           </p>
           <Button as={Link} to="/login" variant="secondary" size="md" fullWidth>
-            Back to sign in
+            بازگشت به ورود
           </Button>
         </div>
       </AuthLayout>
@@ -76,33 +77,33 @@ function ForgotForm() {
     <AuthLayout
       footer={
         <>
-          Remembered it?{' '}
+          آن را به خاطر دارید؟{' '}
           <Link to="/login" style={{ color: 'var(--text-link)', fontWeight: 600, textDecoration: 'none' }}>
-            Back to sign in
+            بازگشت به ورود
           </Link>
         </>
       }
     >
       <div style={cardStyle}>
         <header style={{ marginBottom: 22 }}>
-          <h1 style={titleStyle}>Reset your password</h1>
-          <p style={subStyle}>Enter your email — we'll send a secure link to reset your password.</p>
+          <h1 style={titleStyle}>رمز عبور خود را بازنشانی کنید</h1>
+          <p style={subStyle}>ایمیل خود را وارد کنید — ما یک پیوند امن برای بازنشانی رمز عبور شما ارسال خواهیم کرد.</p>
         </header>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <Input
-            label="Email"
+            label={"ایمیل"}
             type="email"
             autoComplete="email"
             value={email}
             onChange={(e) => { setEmail(e.target.value); setError(''); }}
             placeholder="you@company.com"
-            error={error}
+            error={publicMessage(error, "انجام درخواست ممکن نشد. لطفاً اطلاعات واردشده را بررسی کنید.")}
             size="lg"
             autoFocus
           />
           <Button type="submit" size="lg" iconRight={ArrowRight} fullWidth loading={loading}>
-            Send reset link
+            پیوند بازنشانی را ارسال کنید
           </Button>
         </form>
       </div>
@@ -131,10 +132,10 @@ function ResetForm({ token }) {
 
   function validate() {
     const e = {};
-    if (!password) e.password = 'Password is required.';
-    else if (password.length < 8) e.password = 'Password must be at least 8 characters.';
-    if (!confirm) e.confirm = 'Please confirm your password.';
-    else if (password !== confirm) e.confirm = 'Passwords do not match.';
+    if (!password) e.password = "وارد کردن رمز عبور الزامی است.";
+    else if (password.length < 8) e.password = "رمز عبور باید حداقل 8 کاراکتر باشد.";
+    if (!confirm) e.confirm = "لطفاً رمز عبور خود را تأیید کنید.";
+    else if (password !== confirm) e.confirm = "رمزهای عبور مطابقت ندارند.";
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -151,7 +152,7 @@ function ResetForm({ token }) {
     } catch (err) {
       const data = err?.response?.data;
       if (data?.errors?.password) setErrors((p) => ({ ...p, password: data.errors.password }));
-      else setServerError(data?.error || 'This reset link is invalid or has expired.');
+      else setServerError(data?.error || "این پیوند بازنشانی نامعتبر است یا منقضی شده است.");
     } finally {
       setLoading(false);
     }
@@ -160,15 +161,15 @@ function ResetForm({ token }) {
   if (done) {
     return (
       <AuthLayout
-        heroTitle="You're all set."
-        heroSub="Your password is updated. Redirecting you to sign in…"
+        heroTitle={"همه چیز آماده است."}
+        heroSub={"رمز عبور شما به روز شده است. هدایت شما برای ورود به سیستم…"}
       >
         <div style={{ ...cardStyle, textAlign: 'center' }}>
           <div aria-hidden style={{ ...iconBubbleStyle, background: 'var(--success-bg)', color: 'var(--success)' }}>
             <CheckCircle size={26} strokeWidth={1.8} />
           </div>
-          <h1 style={titleStyle}>Password updated</h1>
-          <p style={subStyle}>Your password has been changed successfully.</p>
+          <h1 style={titleStyle}>رمز عبور به روز شد</h1>
+          <p style={subStyle}>رمز عبور شما با موفقیت تغییر کرده است.</p>
         </div>
       </AuthLayout>
     );
@@ -178,26 +179,26 @@ function ResetForm({ token }) {
     <AuthLayout
       footer={
         <Link to="/login" style={{ color: 'var(--text-link)', fontWeight: 600, textDecoration: 'none' }}>
-          Back to sign in
+          بازگشت به ورود
         </Link>
       }
     >
       <div style={cardStyle}>
         <header style={{ marginBottom: 22 }}>
-          <h1 style={titleStyle}>Set a new password</h1>
-          <p style={subStyle}>Choose a strong password you haven't used before.</p>
+          <h1 style={titleStyle}>یک رمز عبور جدید تنظیم کنید</h1>
+          <p style={subStyle}>رمز عبور قوی ای را انتخاب کنید که قبلاً از آن استفاده نکرده اید.</p>
         </header>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div>
             <Input
-              label="New password"
+              label={"گذرواژه جدید"}
               type="password"
               autoComplete="new-password"
               value={password}
               onChange={(e) => { setPassword(e.target.value); clearField('password'); }}
-              placeholder="At least 8 characters"
-              error={errors.password}
+              placeholder={"حداقل 8 کاراکتر"}
+              error={publicMessage(errors.password, "انجام درخواست ممکن نشد. لطفاً اطلاعات واردشده را بررسی کنید.")}
               size="lg"
               autoFocus
             />
@@ -205,13 +206,13 @@ function ResetForm({ token }) {
           </div>
 
           <Input
-            label="Confirm password"
+            label={"تکرار گذرواژه"}
             type="password"
             autoComplete="new-password"
             value={confirm}
             onChange={(e) => { setConfirm(e.target.value); clearField('confirm'); }}
-            placeholder="Re-enter your password"
-            error={errors.confirm}
+            placeholder={"رمز عبور خود را دوباره وارد کنید"}
+            error={publicMessage(errors.confirm, "انجام درخواست ممکن نشد. لطفاً اطلاعات واردشده را بررسی کنید.")}
             success={!!confirm && confirm === password && password.length >= 8 && !errors.confirm}
             size="lg"
           />
@@ -232,12 +233,12 @@ function ResetForm({ token }) {
               }}
             >
               <AlertCircle size={15} style={{ flexShrink: 0, marginTop: 1 }} />
-              <span>{serverError}</span>
+              <span>{publicMessage(serverError, "انجام درخواست ممکن نشد. لطفاً اطلاعات واردشده را بررسی کنید.")}</span>
             </div>
           )}
 
           <Button type="submit" size="lg" iconRight={ArrowRight} fullWidth loading={loading}>
-            Update password
+            رمز عبور را به روز کنید
           </Button>
         </form>
       </div>

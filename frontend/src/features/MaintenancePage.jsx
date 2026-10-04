@@ -85,10 +85,10 @@ export default function MaintenancePage({ expectedReturn }) {
           letterSpacing: '-0.025em',
           color: 'var(--text-primary)',
         }}>
-          We're upgrading Social Stats.
+          ما در حال ارتقاء راوینتا هستیم.
         </h1>
         <p style={{ margin: '12px auto 24px', maxWidth: 380, fontSize: 15, lineHeight: 1.65, color: 'var(--text-secondary)' }}>
-          We're making things faster and smoother. Sit tight — we'll be back shortly.
+          ما کارها را سریع‌تر و روان‌تر می‌کنیم. سفت بنشین - به زودی برمی گردیم.
         </p>
 
         {remaining != null && (
@@ -104,20 +104,20 @@ export default function MaintenancePage({ expectedReturn }) {
               marginBottom: 24,
             }}
           >
-            <Countdown ms={remaining} label="Min" unit={60_000} />
+            <Countdown ms={remaining} label={"دقیقه"} unit={60_000} />
             <span style={{ fontSize: 28, fontWeight: 600, color: 'var(--text-quaternary)' }}>:</span>
-            <Countdown ms={remaining} label="Sec" unit={1_000} mod={60} />
+            <Countdown ms={remaining} label={"ثانیه"} unit={1_000} mod={60} />
           </div>
         )}
 
         <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-          <Button onClick={() => window.location.reload()} size="md" icon={RefreshCw}>Refresh</Button>
-          <Button as="a" href="/status" variant="secondary" size="md" icon={Activity}>Check status</Button>
-          <Button as="a" href="https://github.com/cbsshekhawat18-lab/social-stats-social-media-manager/issues" variant="ghost" size="md" icon={Mail}>Email us</Button>
+          <Button onClick={() => window.location.reload()} size="md" icon={RefreshCw}>به‌روزرسانی</Button>
+          <Button as="a" href="/status" variant="secondary" size="md" icon={Activity}>وضعیت را بررسی کنید</Button>
+          <Button as="a" href="https://github.com/cbsshekhawat18-lab/social-stats-social-media-manager/issues" variant="ghost" size="md" icon={Mail}>به ما ایمیل بزنید</Button>
         </div>
 
         <p style={{ marginTop: 24, fontSize: 12, color: 'var(--text-tertiary)' }}>
-          This page auto-refreshes every minute.
+          این صفحه هر دقیقه به‌طور خودکار بازخوانی می‌شود.
         </p>
       </div>
     </div>

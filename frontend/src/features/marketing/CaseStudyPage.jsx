@@ -58,14 +58,14 @@ export default function CaseStudyPage({ slug }) {
     <MarketingLayout>
       <Meta
         noSuffix
-        title={`${company} — Social Stats Customer Story`}
+        title={`${company} - داستان مشتری راوینتا`}
         description={tagline}
       />
       <JsonLd
         id="breadcrumbs"
         data={buildBreadcrumbs([
-          { name: 'Home',      url: `${SITE_URL}/` },
-          { name: 'Customers', url: `${SITE_URL}/customers` },
+          { name: "خانه",      url: `${SITE_URL}/` },
+          { name: "مشتریان", url: `${SITE_URL}/customers` },
           { name: company,     url: `${SITE_URL}/customers/${slug}` },
         ])}
       />
@@ -91,7 +91,7 @@ export default function CaseStudyPage({ slug }) {
             textDecoration: 'none',
             marginBottom: 24,
           }}>
-            <ArrowLeft size={14} /> All customers
+            <ArrowLeft size={14} /> همه مشتریان
           </Link>
 
           <div style={{
@@ -191,7 +191,7 @@ export default function CaseStudyPage({ slug }) {
                     }}>
                       {hero.portrait.initial}
                     </div>
-                    <div style={{ textAlign: 'left' }}>
+                    <div style={{ textAlign: 'start' }}>
                       <div style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>
                         {hero.portrait.name}
                       </div>
@@ -246,11 +246,11 @@ export default function CaseStudyPage({ slug }) {
                 {industry}
               </div>
 
-              <ProfileRow label="Industry"  value={profile.sector} />
-              <ProfileRow label="Size"      value={profile.size} />
-              <ProfileRow label="Founded"   value={profile.founded} />
-              <ProfileRow label="Location"  value={profile.location} />
-              <ProfileRow label="Website"   value={profile.website} icon={<ExternalLink size={11} />} />
+              <ProfileRow label={"صنعت"}  value={profile.sector} />
+              <ProfileRow label={"اندازه"}      value={profile.size} />
+              <ProfileRow label={"تاسیس شد"}   value={profile.founded} />
+              <ProfileRow label={"مکان"}  value={profile.location} />
+              <ProfileRow label={"وب سایت"}   value={profile.website} icon={<ExternalLink size={11} />} />
 
               <div style={{
                 marginTop: 18,
@@ -258,7 +258,7 @@ export default function CaseStudyPage({ slug }) {
                 borderTop: '1px solid rgba(255,255,255,0.08)',
               }}>
                 <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(255,255,255,0.45)', marginBottom: 10 }}>
-                  Uses
+                  استفاده می‌کند
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                   {profile.uses.map((u) => (
@@ -281,7 +281,7 @@ export default function CaseStudyPage({ slug }) {
           {/* Long-form */}
           <div style={{ minWidth: 0 }}>
             <ScrollReveal>
-              <SectionLabel accent={accent}>The challenge</SectionLabel>
+              <SectionLabel accent={accent}>چالش</SectionLabel>
               <h2 style={{
                 margin: '8px 0 16px',
                 fontSize: 'clamp(26px, 3.5vw, 36px)',
@@ -306,7 +306,7 @@ export default function CaseStudyPage({ slug }) {
 
             {/* Solution */}
             <ScrollReveal>
-              <SectionLabel accent={accent}>The solution</SectionLabel>
+              <SectionLabel accent={accent}>راه حل</SectionLabel>
               <h2 style={{
                 margin: '8px 0 16px',
                 fontSize: 'clamp(26px, 3.5vw, 36px)',
@@ -346,7 +346,7 @@ export default function CaseStudyPage({ slug }) {
                 background: `linear-gradient(135deg, ${accent}10, rgba(255,255,255,0.02))`,
                 border: `1px solid ${accent}30`,
               }}>
-                <SectionLabel accent={accent}>Results</SectionLabel>
+                <SectionLabel accent={accent}>نتایج</SectionLabel>
                 <h2 style={{
                   margin: '8px 0 12px',
                   fontSize: 'clamp(24px, 3vw, 32px)',
@@ -423,9 +423,9 @@ export default function CaseStudyPage({ slug }) {
             color: '#fff',
             lineHeight: 1.1,
           }}>
-            Ready to write your<br />
+            آماده برای نوشتن شما<br />
             <span style={{ background: `linear-gradient(135deg, ${accent}, #8b5cf6)`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              own success story?
+              داستان موفقیت خود؟
             </span>
           </h2>
 
@@ -436,7 +436,7 @@ export default function CaseStudyPage({ slug }) {
             color: 'rgba(255,255,255,0.75)',
             lineHeight: 1.55,
           }}>
-            Start free. Cancel anytime. Most teams see results in week one.
+            رایگان شروع کنید. هر زمان خواستید لغو کنید. اکثر تیم ها در هفته اول نتایج را می بینند.
           </p>
 
           <div style={{
@@ -448,7 +448,7 @@ export default function CaseStudyPage({ slug }) {
                 background: `linear-gradient(135deg, ${accent}, #00A8D8)`,
                 color: '#0a0e14', border: 'none',
               }}>
-              Start free <ArrowRight size={15} />
+              شروع رایگان <ArrowRight size={15} />
             </Button>
             <Button as={Link} to="/customers" size="lg" variant="ghost"
               style={{
@@ -456,7 +456,7 @@ export default function CaseStudyPage({ slug }) {
                 background: 'rgba(255,255,255,0.08)',
                 border: '1px solid rgba(255,255,255,0.18)',
               }}>
-              <ArrowLeft size={15} /> All customers
+              <ArrowLeft size={15} /> همه مشتریان
             </Button>
           </div>
         </div>

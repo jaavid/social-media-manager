@@ -1,3 +1,4 @@
+import { publicMessage, publicInvitationStatus } from '../../i18n/public-message';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -55,7 +56,7 @@ export default function ManageInvitePage() {
       .then((r) => { if (!cancelled) setInvite(r.data); })
       .catch((e) => {
         if (cancelled) return;
-        setError(e?.response?.data?.error || 'Could not load invitation');
+        setError(e?.response?.data?.error || "دعوتنامه بارگیری نشد");
       })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
@@ -98,7 +99,7 @@ export default function ManageInvitePage() {
       return;
     }
     if (invite?.target_email && user.email && user.email.toLowerCase() !== invite.target_email.toLowerCase()) {
-      toast.error('This invitation is for a different email. Sign in with that account.');
+      toast.error("این دعوت نامه برای ایمیل دیگری است. با آن حساب وارد شوید.");
       return;
     }
     setBusy(true);
@@ -108,10 +109,10 @@ export default function ManageInvitePage() {
         permissions_overrides: overrides,
         requires_approval_for,
       });
-      toast.success('Invitation accepted');
+      toast.success("دعوت پذیرفته شد");
       navigate('/u');
     } catch (e) {
-      toast.error(e?.response?.data?.error || 'Could not accept');
+      toast.error(publicMessage(e?.response?.data?.error || "نمی‌توانست بپذیرد"));
     } finally {
       setBusy(false);
     }
@@ -125,11 +126,11 @@ export default function ManageInvitePage() {
     setBusy(true);
     try {
       await manageRequestAPI.decline(token, { reason: declineReason });
-      toast.success('Invitation declined');
+      toast.success("دعوت رد شد");
       setDeclineOpen(false);
       navigate('/');
     } catch (e) {
-      toast.error(e?.response?.data?.error || 'Could not decline');
+      toast.error(publicMessage(e?.response?.data?.error || "رد نشد"));
     } finally {
       setBusy(false);
     }
@@ -145,8 +146,8 @@ export default function ManageInvitePage() {
         <div style={errorBox}>
           <AlertTriangle size={20} style={{ color: 'var(--danger)' }} />
           <div>
-            <strong style={{ color: 'var(--text-primary)' }}>Invitation unavailable</strong>
-            <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--text-secondary)' }}>{error || 'Unknown error'}</p>
+            <strong style={{ color: 'var(--text-primary)' }}>دعوتنامه در دسترس نیست</strong>
+            <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--text-secondary)' }}>{publicMessage(error) || "خطای ناشناخته"}</p>
           </div>
         </div>
       </CenterFrame>
@@ -162,7 +163,7 @@ export default function ManageInvitePage() {
         <div style={topbarStyle}>
           <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, textDecoration: 'none', color: 'inherit' }}>
             <span style={brandMark}><Sparkles size={14} strokeWidth={2.4} /></span>
-            <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>Social Stats</span>
+            <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>راوینتا</span>
           </Link>
         </div>
 
@@ -171,14 +172,14 @@ export default function ManageInvitePage() {
             <span style={agencyAvatar}><Building2 size={22} strokeWidth={2} /></span>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--brand-primary-hover)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-                Manage-account invitation
+                دعوتنامه مدیریت حساب
               </div>
               <h1 style={{ margin: '2px 0 0', fontSize: 20, fontWeight: 700, color: 'var(--text-primary)' }}>
-                {invite.agency.name} wants to manage your social
+                {invite.agency.name} می خواهد اجتماعی شما را مدیریت کند
               </h1>
               <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', fontSize: 12, color: 'var(--text-tertiary)' }}>
                 {invite.agency.is_verified && (
-                  <span style={verifiedChip}><ShieldCheck size={11} /> Verified</span>
+                  <span style={verifiedChip}><ShieldCheck size={11} /> تأییدشده</span>
                 )}
                 {invite.agency.location && <span>· {invite.agency.location}</span>}
                 {invite.agency.review_count > 0 && <span>· ★ {invite.agency.avg_rating.toFixed(1)} ({invite.agency.review_count})</span>}
@@ -189,7 +190,7 @@ export default function ManageInvitePage() {
           {invite.proposed_message && (
             <div style={messageBox}>
               <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--brand-primary-hover)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-                Message from {invite.agency.name}
+                پیام از {invite.agency.name}
               </div>
               <p style={{ margin: '4px 0 0', fontSize: 14, color: 'var(--text-primary)', lineHeight: 1.55, whiteSpace: 'pre-wrap' }}>
                 {invite.proposed_message}
@@ -199,20 +200,19 @@ export default function ManageInvitePage() {
 
           {invite.proposed_pricing && (
             <div style={pricingChip}>
-              ₹{invite.proposed_pricing.toLocaleString('en-IN')} / month proposed
+              ₹{invite.proposed_pricing.toLocaleString('en-IN')}  در ماه پیشنهادی
             </div>
           )}
 
           <section>
             <div style={sectionHead}>
-              <span>What they'll be able to do</span>
+              <span>کاری که آنها قادر خواهند بود انجام دهند</span>
               <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-tertiary)' }}>
-                {grantedCount} granted
+                {grantedCount} اعطا شد
               </span>
             </div>
             <p style={{ ...hintStyle, marginTop: 4 }}>
-              You're in control. Toggle anything off — or mark sensitive actions as "needs my approval"
-              so they ping you before doing it.
+              شما در کنترل هستید. هر چیزی را خاموش کنید - یا اقدامات حساس را به‌عنوان «نیاز به تأیید من دارد» علامت‌گذاری کنید تا قبل از انجام آن به شما پینگ کنند.
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 12 }}>
@@ -240,7 +240,7 @@ export default function ManageInvitePage() {
                               disabled={decided}
                               onChange={() => toggleApproval(p.key)}
                             />
-                            Ask me first
+                            ابتدا از من بپرسید
                           </label>
                         )}
                       </div>
@@ -255,14 +255,14 @@ export default function ManageInvitePage() {
             <footer style={{ display: 'flex', gap: 10, marginTop: 22, justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
               <span style={{ fontSize: 12, color: 'var(--text-tertiary)', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                 <CalendarClock size={12} />
-                {invite.expires_at ? `Expires ${new Date(invite.expires_at).toLocaleDateString()}` : ''}
+                {invite.expires_at ? `منقضی می‌شود ${new Date(invite.expires_at).toLocaleDateString()}` : ''}
               </span>
               <div style={{ display: 'flex', gap: 8 }}>
                 <button type="button" onClick={() => setDeclineOpen(true)} disabled={busy} style={btnGhost}>
-                  <X size={14} /> Decline
+                  <X size={14} /> رد کردن
                 </button>
                 <button type="button" onClick={accept} disabled={busy} style={btnPrimary}>
-                  {busy ? 'Working…' : <>Accept <ChevronRight size={14} /></>}
+                  {busy ? 'در حال انجام…' : <>قبول کنید <ChevronRight size={14} /></>}
                 </button>
               </div>
             </footer>
@@ -272,12 +272,12 @@ export default function ManageInvitePage() {
             <div style={resolvedBox}>
               <Check size={18} style={{ color: 'var(--success)' }} />
               <div>
-                <strong style={{ color: 'var(--text-primary)' }}>Already {invite.status}</strong>
+                <strong style={{ color: 'var(--text-primary)' }}>در حال حاضر {publicInvitationStatus(invite.status)}</strong>
                 <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--text-secondary)' }}>
-                  {invite.status === 'accepted' && 'You can manage this relationship from your dashboard.'}
-                  {invite.status === 'declined' && 'You can ignore this email — no action needed.'}
-                  {invite.status === 'canceled' && 'The agency canceled this invitation.'}
-                  {invite.status === 'expired' && 'The invitation expired. Ask the agency to resend.'}
+                  {invite.status === 'accepted' && "می‌توانید این رابطه را از داشبورد خود مدیریت کنید."}
+                  {invite.status === 'declined' && "می‌توانید این ایمیل را نادیده بگیرید — هیچ اقدامی لازم نیست."}
+                  {invite.status === 'canceled' && "آژانس این دعوت را لغو کرد."}
+                  {invite.status === 'expired' && "دعوتنامه منقضی شد. از آژانس بخواهید دوباره ارسال کند."}
                 </p>
               </div>
             </div>
@@ -285,25 +285,25 @@ export default function ManageInvitePage() {
         </div>
 
         <p style={{ marginTop: 18, textAlign: 'center', fontSize: 12, color: 'var(--text-tertiary)' }}>
-          You can change permissions or revoke access at any time from your dashboard.
+          می‌توانید در هر زمان از داشبورد خود مجوزها را تغییر دهید یا دسترسی را لغو کنید.
         </p>
       </div>
 
       {declineOpen && (
         <div style={backdropStyle} onClick={(e) => { if (e.target === e.currentTarget) setDeclineOpen(false); }}>
           <div style={{ ...card, width: '100%', maxWidth: 420 }}>
-            <h2 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 700 }}>Decline this invitation?</h2>
+            <h2 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 700 }}>این دعوت را رد کنید؟</h2>
             <textarea
               rows={3}
               value={declineReason}
               onChange={(e) => setDeclineReason(e.target.value)}
-              placeholder="(optional) Tell them why — only the agency sees this."
+              placeholder={"(اختیاری) به آنها بگویید چرا - فقط آژانس این را می بیند."}
               style={textareaStyle}
             />
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 12 }}>
-              <button type="button" onClick={() => setDeclineOpen(false)} style={btnGhost}>Cancel</button>
+              <button type="button" onClick={() => setDeclineOpen(false)} style={btnGhost}>انصراف</button>
               <button type="button" onClick={decline} disabled={busy} style={btnPrimary}>
-                {busy ? 'Working…' : 'Decline'}
+                {busy ? 'در حال انجام…' : 'رد کردن'}
               </button>
             </div>
           </div>
@@ -322,7 +322,7 @@ function CenterFrame({ children }) {
 }
 
 function Spinner() {
-  return <div style={{ color: 'var(--text-tertiary)', fontSize: 13 }}>Loading invitation…</div>;
+  return <div style={{ color: 'var(--text-tertiary)', fontSize: 13 }}>در حال بارگیری دعوت…</div>;
 }
 
 const card = {

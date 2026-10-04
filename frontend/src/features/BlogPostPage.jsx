@@ -60,8 +60,8 @@ export default function BlogPostPage({ slug }) {
       <JsonLd
         id="breadcrumbs"
         data={buildBreadcrumbs([
-          { name: 'Home',  url: `${SITE_URL}/` },
-          { name: 'Blog',  url: `${SITE_URL}/blog` },
+          { name: "خانه",  url: `${SITE_URL}/` },
+          { name: "وبلاگ",  url: `${SITE_URL}/blog` },
           { name: post.title, url: `${SITE_URL}/blog/${post.slug}` },
         ])}
       />
@@ -89,7 +89,7 @@ export default function BlogPostPage({ slug }) {
                 marginBottom: 24,
               }}
             >
-              <ArrowLeft size={13} /> Back to blog
+              <ArrowLeft size={13} /> بازگشت به وبلاگ
             </Link>
 
             <Badge variant="brand" size="sm">{post.category}</Badge>
@@ -111,7 +111,7 @@ export default function BlogPostPage({ slug }) {
                   {post.author.name} · {post.author.role}
                 </div>
                 <div style={{ color: 'var(--text-tertiary)' }}>
-                  {new Date(post.date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
+                  {new Date(post.date).toLocaleDateString('fa-IR', { year: 'numeric', month: 'long', day: 'numeric' })}
                   {' · '}{post.readTime}
                 </div>
               </div>
@@ -166,7 +166,7 @@ export default function BlogPostPage({ slug }) {
                 borderRadius: 'var(--radius-md)',
               }}
             >
-              <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)' }}>Share this post</span>
+              <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)' }}>این پست را به اشتراک بگذارید</span>
               <div style={{ display: 'flex', gap: 6 }}>
                 <BlogShare />
               </div>
@@ -190,7 +190,7 @@ export default function BlogPostPage({ slug }) {
                   {post.author.role}
                 </div>
                 <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6, color: 'var(--text-secondary)' }}>
-                  Writes about {post.tags?.slice(0, 2).join(' and ').toLowerCase() || post.category.toLowerCase()} on the SocialStats journal.
+                  می‌نویسد {post.tags?.slice(0, 2).join("و").toLowerCase() || post.category.toLowerCase()} در مجله راوینتا.
                 </p>
               </div>
             </div>
@@ -215,7 +215,7 @@ export default function BlogPostPage({ slug }) {
                 color: 'var(--text-tertiary)',
                 padding: '4px 8px 10px',
               }}>
-                On this page
+                در این صفحه
               </div>
               <TableOfContents sections={sections} compact />
             </aside>
@@ -233,7 +233,7 @@ export default function BlogPostPage({ slug }) {
               letterSpacing: '0.06em', textTransform: 'uppercase',
               color: 'var(--text-tertiary)',
             }}>
-              Keep reading
+              به خواندن ادامه دهید
             </h2>
             <div
               style={{
@@ -265,14 +265,14 @@ export default function BlogPostPage({ slug }) {
           boxShadow: 'var(--shadow-sm)',
         }}>
           <h3 style={{ margin: 0, fontSize: 22, fontWeight: 600, letterSpacing: '-0.015em', color: 'var(--text-primary)' }}>
-            Build your unified marketing OS today.
+            امروز سیستم عامل بازاریابی یکپارچه خود را بسازید.
           </h3>
           <p style={{ margin: '8px auto 18px', maxWidth: 480, fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-            Free plan, no card. Most teams connect 4–6 platforms before they finish their morning coffee.
+            طرح رایگان، بدون کارت. اکثر تیم ها قبل از اتمام قهوه صبح خود، 4 تا 6 سکو را به هم متصل می‌کنند.
           </p>
           <div style={{ display: 'flex', justifyContent: 'center', gap: 10, flexWrap: 'wrap' }}>
-            <Button as={Link} to="/signup" size="md" iconRight={ArrowRight}>Try Social Stats free</Button>
-            <Button as={Link} to="/blog" variant="ghost" size="md" icon={ArrowLeft}>All posts</Button>
+            <Button as={Link} to="/signup" size="md" iconRight={ArrowRight}>راوینتا را رایگان امتحان کنید</Button>
+            <Button as={Link} to="/blog" variant="ghost" size="md" icon={ArrowLeft}>همه پست‌ها</Button>
           </div>
         </div>
       </section>
@@ -419,7 +419,7 @@ function RelatedCard({ post }) {
 function NotFoundState({ slug }) {
   return (
     <MarketingLayout>
-      <Meta title="Post not found" />
+      <Meta title={"پست یافت نشد"} />
       <section style={{
         padding: '160px 32px 96px',
         textAlign: 'center',
@@ -434,16 +434,16 @@ function NotFoundState({ slug }) {
             letterSpacing: '-0.02em',
             color: 'var(--text-primary)',
           }}>
-            We couldn't find that post.
+            ما نتوانستیم آن پست را پیدا کنیم.
           </h1>
           <p style={{ margin: '0 0 24px', fontSize: 15, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-            The slug <code style={{
+            راب <code style={{
               padding: '2px 8px', background: 'var(--surface-card)',
               border: '1px solid var(--border-subtle)', borderRadius: 4,
               fontSize: 13,
-            }}>{slug}</code> doesn't match any post in our journal.
+            }}>{slug}</code> با هیچ پستی در مجله ما مطابقت ندارد.
           </p>
-          <Button as={Link} to="/blog" size="md" icon={ArrowLeft}>Back to all posts</Button>
+          <Button as={Link} to="/blog" size="md" icon={ArrowLeft}>بازگشت به همه پست‌ها</Button>
         </div>
       </section>
     </MarketingLayout>

@@ -66,8 +66,8 @@ export default function HomePage() {
     <MarketingLayout>
       <Meta
         noSuffix
-        title="Social Stats — The AI marketing OS for modern agencies"
-        description="Manage analytics, content, conversations, and ads for every client — across 5 platforms — in one place. AI-powered, built for modern teams."
+        title={"راوینتا - سیستم عامل بازاریابی هوش مصنوعی برای آژانس‌های مدرن"}
+        description={"تحلیل و آمار، محتوا، مکالمات و تبلیغات را برای هر مشتری - در 5 پلتفرم - در یک مکان مدیریت کنید. مجهز به هوش مصنوعی، ساخته شده برای تیم‌های مدرن."}
       />
       <JsonLd id="organization" data={buildOrganization()} />
       <JsonLd id="website"      data={buildWebSite()} />
@@ -180,7 +180,7 @@ async function Hero() {
                     background: 'linear-gradient(135deg, #00CCF5, #00A8D8)',
                     color: '#0a0e14', border: 'none', fontWeight: 600,
                   }}>
-            Start free <ArrowRight size={15} />
+            شروع رایگان <ArrowRight size={15} />
           </TrackedButton>
           <Button as={Link} to="/customers" size="lg" variant="ghost"
                   style={{
@@ -188,7 +188,7 @@ async function Hero() {
                     background: 'rgba(255,255,255,0.06)',
                     border: '1px solid rgba(255,255,255,0.18)',
                   }}>
-            <PlayCircle size={15} /> Watch 90s demo
+            <PlayCircle size={15} /> دمو دهه 90 را تماشا کنید
           </Button>
         </MotionDiv>
 
@@ -197,7 +197,7 @@ async function Hero() {
           transition={{ duration: 0.5, delay: 0.6 }}
           style={{ marginTop: 14, fontSize: 13, color: 'rgba(255,255,255,0.5)' }}
         >
-          No credit card · Free forever · Setup in 2 minutes
+          بدون کارت اعتباری · برای همیشه رایگان · راه اندازی در 2 دقیقه
         </MotionP>
 
         {/* Hero mockup with floating cards */}
@@ -245,11 +245,11 @@ function NotificationCard() {
         <span style={floatIconStyle('rgba(0,204,245,0.15)', '#00CCF5')}>
           <Inbox size={11} />
         </span>
-        <span style={floatLabel}>NEW MESSAGE · IG</span>
+        <span style={floatLabel}>پیام جدید · اینستاگرام</span>
       </div>
-      <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)' }}>Priya Sharma</div>
+      <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)' }}>پریا شارما</div>
       <div style={{ marginTop: 2, fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.4 }}>
-        Is the 3BHK still available? Can I visit on Saturday?
+        آیا آپارتمان سه‌خوابه هنوز در دسترس است؟ آیا می‌توانم شنبه مراجعه کنم؟
       </div>
     </div>
   );
@@ -262,13 +262,13 @@ function CampaignMetricCard() {
         <span style={floatIconStyle('rgba(139,92,246,0.15)', '#a78bfa')}>
           <BarChart3 size={11} />
         </span>
-        <span style={floatLabel}>WEEKLY REACH</span>
+        <span style={floatLabel}>دسترسی هفتگی</span>
       </div>
       <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', fontVariantNumeric: 'tabular-nums' }}>
         248,392
       </div>
       <div style={{ marginTop: 2, fontSize: 11, color: 'var(--success)', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-        <TrendingUp size={11} /> +23% vs last week
+        <TrendingUp size={11} /> +23٪ در مقایسه با هفته گذشته
       </div>
     </div>
   );
@@ -281,11 +281,11 @@ function LeadCapturedCard() {
         <span style={floatIconStyle('rgba(16,185,129,0.15)', '#34d399')}>
           <Check size={12} strokeWidth={3} />
         </span>
-        <span style={floatLabel}>LEAD CAPTURED</span>
+        <span style={floatLabel}>سرب دستگیر شد</span>
       </div>
-      <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)' }}>Rahul Verma</div>
+      <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)' }}>راهول ورما</div>
       <div style={{ marginTop: 2, fontSize: 11, color: 'var(--text-secondary)' }}>
-        Source: <strong style={{ color: '#34d399' }}>CTWA · Diwali campaign</strong>
+        منبع: <strong style={{ color: '#34d399' }}>CTWA · کمپین دیوالی</strong>
       </div>
     </div>
   );
@@ -298,10 +298,10 @@ function AIPopupCard() {
         <span style={floatIconStyle('rgba(236,72,153,0.15)', '#f472b6')}>
           <Sparkles size={11} />
         </span>
-        <span style={floatLabel}>AI SUGGESTION</span>
+        <span style={floatLabel}>پیشنهاد هوش مصنوعی</span>
       </div>
       <div style={{ fontSize: 12, color: 'var(--text-primary)', lineHeight: 1.5 }}>
-        Try posting Reels on Tue 7pm — your audience is 2.4× more active.
+        سعی کنید حلقه‌ها را در سه‌شنبه 7 بعدازظهر پست کنید - مخاطبان شما 2.4× فعال‌تر هستند.
       </div>
     </div>
   );
@@ -323,7 +323,7 @@ const floatIconStyle = (bg, color) => ({
 // Customer-logo carousel intentionally omitted until we have real customers.
 // ─────────────────────────────────────────────────────────────────────────────
 function TrustStrip() {
-  const platforms = ['Facebook', 'Instagram', 'YouTube', 'LinkedIn', 'Google Business', 'WhatsApp Business'];
+  const platforms = ["فیس‌بوک", "اینستاگرام", "یوتیوب", "لینکدین", 'کسب‌وکار گوگل', "کسب و کار واتس‌اپ"];
   return (
     <section style={{
       padding: '40px 24px 32px',
@@ -338,7 +338,7 @@ function TrustStrip() {
           letterSpacing: '0.08em', textTransform: 'uppercase',
           color: 'var(--text-tertiary)',
         }}>
-          One platform, every channel that matters
+          یک پلتفرم، هر کانالی که اهمیت دارد
         </p>
         <div style={{
           display: 'flex', flexWrap: 'wrap', gap: '20px 32px',
@@ -362,17 +362,17 @@ function TrustStrip() {
 // ─────────────────────────────────────────────────────────────────────────────
 function ThreePillars() {
   const pillars = [
-    { icon: BarChart3, tone: '#00CCF5', toneSoft: 'rgba(0,204,245,0.10)', label: 'ANALYZE',
-      title: 'Track everything',
-      blurb: 'Reach, engagement, and revenue across 5 platforms in one dashboard.',
+    { icon: BarChart3, tone: '#00CCF5', toneSoft: 'rgba(0,204,245,0.10)', label: "تحلیل و آمار",
+      title: "همه چیز را دنبال کنید",
+      blurb: "دسترسی، تعامل و درآمد در 5 پلتفرم در یک داشبورد.",
       preview: <AnalyticsPreview /> },
-    { icon: MessageCircle, tone: '#a78bfa', toneSoft: 'rgba(139,92,246,0.10)', label: 'ENGAGE',
-      title: 'Reply in one place',
-      blurb: 'Every DM, comment, and review across platforms — sorted, AI-prioritised, replyable.',
+    { icon: MessageCircle, tone: '#a78bfa', toneSoft: 'rgba(139,92,246,0.10)', label: "درگیر کردن",
+      title: "در یک جا پاسخ دهید",
+      blurb: "هر پیام خصوصی، نظر، و بررسی در سراسر سیستم عامل - مرتب شده، با اولویت هوش مصنوعی، قابل پاسخ.",
       preview: <InboxPreview /> },
-    { icon: Bot, tone: '#34d399', toneSoft: 'rgba(16,185,129,0.10)', label: 'CONVERT',
-      title: 'Capture more leads',
-      blurb: 'Run CTWA ads with AI bots that qualify customers 24/7 and route them to your CRM.',
+    { icon: Bot, tone: '#34d399', toneSoft: 'rgba(16,185,129,0.10)', label: "تبدیل",
+      title: "سرنخ های بیشتری را جذب کنید",
+      blurb: "تبلیغات CTWA را با ربات های هوش مصنوعی اجرا کنید که مشتریان را 24/7 واجد شرایط می‌کند و آنها را به سمت CRM خود هدایت می‌کند.",
       preview: <BotBuilderPreview /> },
   ];
   return (
@@ -380,9 +380,9 @@ function ThreePillars() {
       <div style={{ maxWidth: 1180, margin: '0 auto' }}>
         <ScrollReveal>
           <SectionHeading
-            eyebrow="What is Social Stats"
-            title="One product, three superpowers"
-            subtitle="Stop juggling 5 different SaaS tools. Social Stats is the single dashboard that runs your client's marketing end-to-end."
+            eyebrow={"راوینتا چیست؟"}
+            title={"یک محصول، سه ابرقدرت"}
+            subtitle={"دستکاری با 5 ابزار مختلف SaaS را متوقف کنید. راوینتا تنها داشبوردی است که بازاریابی مشتری شما را به صورت سرتاسر اجرا می‌کند."}
           />
         </ScrollReveal>
 
@@ -443,38 +443,38 @@ function ThreePillars() {
 // ─────────────────────────────────────────────────────────────────────────────
 function BentoSection() {
   const items = [
-    { id: 'ai-assistant', title: 'AI Assistant',
-      description: 'Talk to your marketing data. Cmd+J anywhere.',
+    { id: 'ai-assistant', title: "دستیار هوش مصنوعی",
+      description: "با داده‌های بازاریابی خود صحبت کنید. Cmd+J در هر جایی.",
       to: '/product/ai-assistant', tone: 'cyan', accentBg: true,
       icon: Sparkles, span: { col: 2, row: 1 },
       preview: <AIAssistantPreview /> },
-    { id: 'composer', title: 'Composer',
-      description: 'Write once, publish 5x.',
+    { id: 'composer', title: "ویرایشگر محتوا",
+      description: "یک بار بنویسید، 5 برابر منتشر کنید.",
       to: '/product/composer', tone: 'purple', icon: PenSquare,
       preview: <ComposerPreview /> },
-    { id: 'inbox', title: 'Unified Inbox',
-      description: 'Every conversation in one place.',
+    { id: 'inbox', title: "صندوق ورودی یکپارچه",
+      description: "هر مکالمه در یک مکان.",
       to: '/product/inbox', tone: 'green', icon: Inbox,
       preview: <InboxPreview /> },
-    { id: 'bot-builder', title: 'Bot Builder',
-      description: 'Visual flow editor for CTWA ads.',
+    { id: 'bot-builder', title: "سازنده ربات",
+      description: "ویرایشگر جریان بصری برای تبلیغات CTWA.",
       to: '/product/bot-builder', tone: 'pink', icon: Bot,
       preview: <BotBuilderPreview /> },
-    { id: 'ai-insights', title: 'AI Insights',
-      description: 'Spot trends + drops before they hurt.',
+    { id: 'ai-insights', title: "بینش هوش مصنوعی",
+      description: "روندهای نقطه ای + افت قبل از اینکه آسیب ببینند.",
       to: '/product/ai', tone: 'amber', icon: TrendingUp,
       preview: <AIInsightPreview /> },
-    { id: 'automations', title: 'Automations',
-      description: 'IF this happens, do that.',
+    { id: 'automations', title: "خودکارسازی",
+      description: "اگر این اتفاق افتاد، آن را انجام دهید.",
       to: '/product/automations', tone: 'cyan', accentBg: true,
       icon: Zap, span: { col: 2, row: 1 },
       preview: <AutomationsPreview /> },
-    { id: 'analytics', title: 'Analytics',
-      description: 'Cross-platform metrics, demystified.',
+    { id: 'analytics', title: "تحلیل و آمار",
+      description: "معیارهای بین پلتفرمی، ابهام زدایی شده.",
       to: '/product/analytics', tone: 'cyan', icon: BarChart3,
       preview: <AnalyticsPreview /> },
-    { id: 'reports', title: 'Reports',
-      description: 'Reports that write themselves.',
+    { id: 'reports', title: "گزارش‌ها",
+      description: "گزارش‌هایی که خودشان می‌نویسند.",
       to: '/product/reports', tone: 'purple', icon: BarChart3,
       preview: <ReportsPreview /> },
   ];
@@ -488,9 +488,9 @@ function BentoSection() {
       <div style={{ maxWidth: 1180, margin: '0 auto' }}>
         <ScrollReveal>
           <SectionHeading
-            eyebrow="Every surface, polished"
-            title="Eight features that make every team faster"
-            subtitle="Hover any tile to see it move. Click for the deep dive."
+            eyebrow={"هر سطح، جلا"}
+            title={"هشت ویژگی که هر تیم را سریعتر می‌کند"}
+            subtitle={"هر کاشی را نگه دارید تا حرکت آن را ببینید. برای شیرجه عمیق کلیک کنید."}
           />
         </ScrollReveal>
         <div style={{ marginTop: 48 }}>
@@ -513,10 +513,10 @@ function BentoSection() {
 // ─────────────────────────────────────────────────────────────────────────────
 function HowItWorks() {
   const steps = [
-    { n: 1, title: 'Sign up free',     blurb: 'Email + password. 5-second flow. No credit card.' },
-    { n: 2, title: 'Connect accounts', blurb: 'Paste tokens or OAuth — Meta + Google + LinkedIn supported.' },
-    { n: 3, title: 'Create with AI',   blurb: 'Generate posts, replies, and reports tuned to your brand voice.' },
-    { n: 4, title: 'Track results',    blurb: 'Cross-platform analytics + AI-narrated PDF reports for clients.' },
+    { n: 1, title: "ثبت نام رایگان",     blurb: "ایمیل + رمز عبور. جریان 5 ثانیه ای. بدون کارت اعتباری" },
+    { n: 2, title: "حساب ها را متصل کنید", blurb: "چسباندن نشانه‌ها یا OAuth - متا + Google + لینکدین پشتیبانی می‌شود." },
+    { n: 3, title: "با هوش مصنوعی ایجاد کنید",   blurb: "پست‌ها، پاسخ‌ها و گزارش‌هایی را با لحن برند شما تنظیم کنید." },
+    { n: 4, title: "نتایج را پیگیری کنید",    blurb: "تحلیل و آمار بین پلتفرمی + گزارش‌های PDF روایت‌شده با هوش مصنوعی برای مشتریان." },
   ];
   return (
     <section style={{
@@ -527,7 +527,7 @@ function HowItWorks() {
     }}>
       <div style={{ maxWidth: 1080, margin: '0 auto' }}>
         <ScrollReveal>
-          <SectionHeading eyebrow="From zero to live" title="Get up and running in 4 steps" />
+          <SectionHeading eyebrow={"از صفر تا زنده"} title={"در 4 مرحله بلند شوید و بدوید"} />
         </ScrollReveal>
 
         <div style={{
@@ -577,11 +577,11 @@ function HowItWorks() {
 // ─────────────────────────────────────────────────────────────────────────────
 function AIEverywhere() {
   const features = [
-    'Brand voice tuned to your business',
-    'Generates posts, replies, and reports',
-    'Predicts best posting times',
-    'Detects PR crises before they spread',
-    'Captures leads with conversational ads',
+    "لحن برند برای کسب و کار شما تنظیم شده است",
+    "پست‌ها، پاسخ‌ها و گزارش‌ها را ایجاد می‌کند",
+    "بهترین زمان ارسال را پیش بینی می‌کند",
+    "بحران های روابط عمومی را قبل از گسترش تشخیص می‌دهد",
+    "با تبلیغات محاوره ای سرنخ ها را جذب می‌کند",
   ];
   return (
     <section style={{ padding: 'clamp(64px, 10vh, 120px) 24px', background: 'var(--surface-page)' }}>
@@ -594,18 +594,18 @@ function AIEverywhere() {
               fontSize: 11, fontWeight: 700,
               color: '#00CCF5', background: 'rgba(0,204,245,0.10)',
               borderRadius: 'var(--radius-pill)', letterSpacing: '0.06em',
-            }}>POWERED BY SOCIAL STATE AI</span>
+            }}>با هوش مصنوعی دولتی اجتماعی</span>
             <h2 style={{
               margin: 0, fontSize: 'clamp(28px, 4vw, 40px)',
               fontWeight: 700, letterSpacing: '-0.02em',
               color: 'var(--text-primary)', lineHeight: 1.15,
-            }}>AI in every corner</h2>
+            }}>هوش مصنوعی در هر گوشه ای</h2>
             <p style={{
               margin: '14px 0 0',
               fontSize: 16, lineHeight: 1.6,
               color: 'var(--text-secondary)', maxWidth: 480,
             }}>
-              Social Stats isn't an "AI feature". It's an AI-native product — Social Stats shows up wherever you're stuck.
+              راوینتا یک "ویژگی هوش مصنوعی" نیست. این یک محصول بومی هوش مصنوعی است - راوینتا هر جا که گیر کرده اید نشان داده می‌شود.
             </p>
             <ul style={{ margin: '24px 0 0', padding: 0, listStyle: 'none' }}>
               {features.map((f) => (
@@ -621,15 +621,15 @@ function AIEverywhere() {
             </ul>
             <div style={{ marginTop: 24 }}>
               <Button as={Link} to="/product/ai" size="md">
-                Explore AI features <ArrowRight size={14} />
+                ویژگی‌های هوش مصنوعی را کاوش کنید <ArrowRight size={14} />
               </Button>
             </div>
           </ScrollReveal>
 
           <ScrollReveal delay={0.15}>
             <AnimatedChat
-              userMessage="How are we doing on Instagram this week?"
-              assistantReply="Your reach grew 23% vs last week — mostly driven by your Reel about the Acme Heights property tour (had 3.2× normal saves). I'd suggest posting 2 more Reels this week. Want me to draft the captions?"
+              userMessage={"وضعیت ما در اینستاگرام این هفته چگونه است؟"}
+              assistantReply={"دسترسی شما در مقایسه با هفته گذشته 23٪ افزایش یافته است - بیشتر توسط Reel شما در مورد تور ملک آکمه Heights هدایت می‌شود (3.2× سیوهای معمولی داشت). من پیشنهاد می کنم این هفته 2 حلقه دیگر ارسال کنید. می‌خواهید زیرنویس‌ها را پیش‌نویس کنم؟"}
               speedMs={16}
             />
           </ScrollReveal>
@@ -646,18 +646,18 @@ function AIEverywhere() {
 // Section 8 — COMPARISON
 // ─────────────────────────────────────────────────────────────────────────────
 function ComparisonSection() {
-  const columns = ['Social Stats', 'Hootsuite', 'Sprout Social', 'Buffer'];
+  const columns = ["راوینتا", 'Hootsuite', "جوانه اجتماعی", "بافر"];
   const rows = [
-    { feature: 'Multi-platform analytics',     cells: ['yes',          'yes',     'yes',     'partial'] },
-    { feature: 'Deep AI assistant',            cells: ['Social Stats',    'partial', 'partial', 'no'] },
-    { feature: 'WhatsApp Business API',        cells: ['yes',          'no',      'no',      'no'] },
-    { feature: 'Click-to-WhatsApp bots',       cells: ['yes',          'no',      'no',      'no'] },
-    { feature: 'Visual bot builder',           cells: ['yes',          'no',      'no',      'no'] },
-    { feature: 'Lead-capture CRM',             cells: ['yes',          'no',      'partial', 'no'] },
-    { feature: 'Two-sided agency marketplace', cells: ['yes',          'no',      'no',      'no'] },
-    { feature: 'Activity audit trail',         cells: ['yes',          'partial', 'yes',     'no'] },
-    { feature: 'Free for end users',           cells: ['yes',          'no',      'no',      'partial'] },
-    { feature: 'Indian payment + GST',         cells: ['yes',          'no',      'no',      'no'] },
+    { feature: "تحلیل و آمار چند پلتفرم",     cells: ['yes',          'yes',     'yes',     'partial'] },
+    { feature: "دستیار عمیق هوش مصنوعی",            cells: ["راوینتا",    'partial', 'partial', 'no'] },
+    { feature: 'API واتس‌اپ بیزینس',        cells: ['yes',          'no',      'no',      'no'] },
+    { feature: "ربات‌های واتس‌اپ کلیک به‌رو",       cells: ['yes',          'no',      'no',      'no'] },
+    { feature: "سازنده ربات بصری",           cells: ['yes',          'no',      'no',      'no'] },
+    { feature: "CRM سرب",             cells: ['yes',          'no',      'partial', 'no'] },
+    { feature: "بازار نمایندگی دو طرفه", cells: ['yes',          'no',      'no',      'no'] },
+    { feature: "دنباله حسابرسی فعالیت",         cells: ['yes',          'partial', 'yes',     'no'] },
+    { feature: "رایگان برای کاربران نهایی",           cells: ['yes',          'no',      'no',      'partial'] },
+    { feature: "پرداخت هندی + GST",         cells: ['yes',          'no',      'no',      'no'] },
   ];
   return (
     <section style={{
@@ -669,9 +669,9 @@ function ComparisonSection() {
       <div style={{ maxWidth: 1080, margin: '0 auto' }}>
         <ScrollReveal>
           <SectionHeading
-            eyebrow="Honest comparison"
-            title="How Social Stats stacks up"
-            subtitle="We're not for everyone. We're built for agencies + businesses serious about AI + WhatsApp."
+            eyebrow={"مقایسه صادقانه"}
+            title={"چگونه راوینتا پشته"}
+            subtitle={"ما برای همه نیستیم. ما برای آژانس‌ها + مشاغل جدی در مورد AI + واتس‌اپ ساخته شده ایم."}
           />
         </ScrollReveal>
         <ScrollReveal delay={0.1}>
@@ -692,19 +692,19 @@ function MarketplaceTeaser() {
   // We don't list specific agencies until we've onboarded them and they've
   // opted into being featured.
   const steps = [
-    { title: 'Browse verified agencies',  body: 'Search by industry, language, budget, and platform.' },
-    { title: 'Match by fit',              body: 'See pricing ranges, specialities, and example workflows up front.' },
-    { title: 'Manage from one inbox',     body: 'Approvals, scheduled posts, and reporting flow through Social Stats.' },
+    { title: "آژانس‌های تایید شده را مرور کنید",  body: "جستجو بر اساس صنعت، زبان، بودجه، و پلتفرم." },
+    { title: "مطابقت با مناسب",              body: "محدوده‌های قیمت‌گذاری، تخصص‌ها، و نمونه گردش کار را از قبل مشاهده کنید." },
+    { title: "از یک صندوق ورودی مدیریت کنید",     body: "تأییدیه‌ها، پست‌های زمان‌بندی‌شده، و گزارش‌دهی از طریق راوینتا جریان دارند." },
   ];
   return (
     <section style={{ padding: 'clamp(64px, 10vh, 120px) 24px', background: 'var(--surface-page)' }}>
       <div style={{ maxWidth: 1180, margin: '0 auto' }}>
         <ScrollReveal>
           <SectionHeading
-            eyebrow="Built-in marketplace"
-            title="Need an agency to help?"
-            subtitle="A two-sided marketplace where verified agencies match with businesses by industry and budget. Onboarding the first cohort of agencies now."
-            cta={{ to: '/agencies', label: 'Browse the marketplace' }}
+            eyebrow={"بازار داخلی"}
+            title={"آیا به آژانسی برای کمک نیاز دارید؟"}
+            subtitle={"یک بازار دو طرفه که در آن آژانس‌های تأیید شده با مشاغل بر اساس صنعت و بودجه مطابقت دارند. اکنون در حال ورود به اولین گروه از آژانس‌ها."}
+            cta={{ to: '/agencies', label: "بازار را مرور کنید" }}
           />
         </ScrollReveal>
 
@@ -759,10 +759,10 @@ function StatsBand() {
   // a customer-volume metric. We swap to real usage numbers once they're
   // real and verifiable.
   const stats = [
-    { value: 5,    suffix: '',   label: 'platforms' },
-    { value: 14,   suffix: '+',  label: 'languages supported' },
-    { value: 2,    suffix: 'min',label: 'time to first post' },
-    { value: 99.9, suffix: '%',  label: 'uptime target', decimals: 1 },
+    { value: 5,    suffix: '',   label: "سکوها" },
+    { value: 14,   suffix: '+',  label: "زبان پشتیبانی می‌شود" },
+    { value: 2,    suffix: 'دقیقه',label: "زمان برای اولین پست" },
+    { value: 99.9, suffix: '%',  label: "هدف زمان کار", decimals: 1 },
   ];
   return (
     <section style={{ position: 'relative', overflow: 'hidden' }}>
@@ -812,11 +812,11 @@ function FinalCTA() {
   return (
     <section style={{ padding: 'clamp(64px, 10vh, 120px) 24px', background: 'var(--surface-page)' }}>
       <CTASection
-        title="Ready to upgrade your marketing?"
-        subtitle="Start free in 2 minutes — no credit card required."
-        primary={{ to: '/signup', label: 'Start free' }}
+        title={"برای ارتقاء بازاریابی خود آماده اید؟"}
+        subtitle={"شروع رایگان در 2 دقیقه - بدون نیاز به کارت اعتباری."}
+        primary={{ to: '/signup', label: "شروع رایگان" }}
         showEmail
-        microCopy="No credit card · Free forever · Setup in 2 minutes"
+        microCopy={"بدون نیاز به کارت بانکی · همیشه رایگان · راه‌اندازی در ۲ دقیقه"}
         variant="cta"
       />
     </section>

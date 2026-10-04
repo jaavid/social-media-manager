@@ -1,5 +1,6 @@
 import { persistentStorage } from '../lib/runtime/storage';
 import { useContext, useEffect, useSyncExternalStore } from 'react';
+import { isPublicRoute } from './public-routes';
 import { LanguageContext } from './LanguageProvider';
 import { messages } from './messages';
 import { message } from './translate';
@@ -23,7 +24,7 @@ export function setLanguage(language) {
   if (!SUPPORTED.has(language) || typeof window === 'undefined') return;
   persistentStorage.setItem('socialstats.language', language);
   document.cookie = `socialstats.language=${language}; Path=/; Max-Age=31536000; SameSite=Lax${location.protocol === 'https:' ? '; Secure' : ''}`;
-  applyDocumentLanguage(language);
+  applyDocumentLanguage(isPublicRoute(window.location.pathname) ? 'fa' : language);
   window.dispatchEvent(new CustomEvent(LANGUAGE_EVENT, { detail: language }));
 }
 export function translate(key, language = getLanguage(), fallback = key) {

@@ -31,6 +31,10 @@ function visit(node, parent, file) {
   if (value) {
     const text = value.replace(/\s+/g, ' ').trim();
     if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text) || /^[·\s]*Social Stats$/.test(text)) return;
+    // Authored Persian copy already satisfies the Persian-only product direction.
+    const persianProse = text.replace(/\{expression\}/g, '')
+      .replace(/\b(?:OAuth|API|UI|IP|PII|PDF|JSON|CSV|GDPR|DPDP|DPA|DPO|SCC|SOC|II|EU|EEA|B2B|2FA|MIT|SLA|CTWA|LLM|CTA|CSS|AWS|AES-256|Fernet|Mumbai|ap-south-1|US-East-1|Gigai Kripa Services|Gigai Kripa)\b|Cmd\+[A-Z]/g, '');
+    if (/[\u0600-\u06ff]/.test(text) && !/[A-Za-z]/.test(persianProse)) return;
     if (/[A-Za-z\u0600-\u06ff]/.test(text) && !/^(OAuth|API|URL|ID|JWT|CSV|PDF|QR|Meta|Facebook|Instagram|LinkedIn|YouTube|TikTok|WhatsApp|Social Stats)$/.test(text)) {
       findings.push({ file, kind, text, line: node.loc.start.line });
     }

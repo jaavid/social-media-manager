@@ -17,31 +17,31 @@ import toast from '../components/ui/toast';
 const CATEGORIES = [
   {
     id: 'essential',
-    name: 'Essential',
+    name: "ضروری",
     required: true,
     description:
-      'Required for the site to function — auth tokens, session state, CSRF protection. Cannot be disabled.',
+      'برای عملکرد سایت، احراز هویت، حفظ نشست و محافظت در برابر جعل درخواست لازم است و نمی‌توان آن را غیرفعال کرد.',
   },
   {
     id: 'functional',
-    name: 'Functional',
+    name: "کارکردی",
     required: false,
     description:
-      'Remember preferences like theme, language, and recently-viewed clients. Improve your experience.',
+      "تنظیمات برگزیده مانند طرح زمینه، زبان و مشتریانی که اخیراً مشاهده شده اند را به خاطر بسپارید. تجربه خود را بهبود بخشید.",
   },
   {
     id: 'analytics',
-    name: 'Analytics',
+    name: "تحلیل و آمار",
     required: false,
     description:
-      'Aggregate usage metrics that help us understand which features are useful (Plausible, no third-party trackers).',
+      "معیارهای مصرف انبوهی که به ما کمک می‌کنند بفهمیم کدام ویژگی‌ها مفید هستند (قابل قبول، بدون ردیاب شخص ثالث).",
   },
   {
     id: 'marketing',
-    name: 'Marketing',
+    name: "بازاریابی",
     required: false,
     description:
-      'Conversion attribution from ads + retargeting pixels. We do not sell your data.',
+      "انتساب تبدیل از تبلیغات + پیکسل‌های هدف‌گیری مجدد. ما داده‌های شما را نمی فروشیم.",
   },
 ];
 export default function CookiePreferences() {
@@ -60,28 +60,28 @@ export default function CookiePreferences() {
   function savePrefs() {
     try {
       persistentStorage.setItem('socialstats_cookie_prefs', JSON.stringify(prefs));
-      toast.success('Cookie preferences saved');
+      toast.success("تنظیمات برگزیده کوکی ذخیره شد");
     } catch {
-      toast.error('Could not save preferences. Try again.');
+      toast.error("تنظیمات برگزیده ذخیره نشد. دوباره امتحان کنید.");
     }
   }
 
   return <><CategoryTable categories={CATEGORIES} prefs={prefs} onToggle={toggle} />
               <div style={{ marginTop: 16, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                <Button onClick={savePrefs} size="md">Save preferences</Button>
+                <Button onClick={savePrefs} size="md">ذخیره انتخاب‌ها</Button>
                 <Button
                   variant="secondary"
                   size="md"
                   onClick={() => setPrefs({ essential: true, functional: true, analytics: true, marketing: true })}
                 >
-                  Accept all
+                  پذیرش همه
                 </Button>
                 <Button
                   variant="ghost"
                   size="md"
                   onClick={() => setPrefs({ essential: true, functional: false, analytics: false, marketing: false })}
                 >
-                  Reject optional
+                  رد اختیاری
                 </Button>
               </div></>;
 }
@@ -122,7 +122,7 @@ function CategoryTable({ categories, prefs, onToggle }) {
                     borderRadius: 'var(--radius-pill)',
                   }}
                 >
-                  Always on
+                  همیشه روشن است
                 </span>
               )}
             </div>
@@ -134,7 +134,7 @@ function CategoryTable({ categories, prefs, onToggle }) {
             checked={!!prefs[c.id]}
             disabled={c.required}
             onChange={() => onToggle(c.id)}
-            aria-label={`Toggle ${c.name} cookies`}
+            aria-label={`تغییر وضعیت ${c.name} کوکی‌ها`}
           />
         </div>
       ))}

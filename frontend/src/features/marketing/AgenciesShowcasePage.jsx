@@ -68,8 +68,8 @@ export default function AgenciesShowcasePage() {
     <>
       <Meta
         noSuffix
-        title="Partner Agencies — Social Stats"
-        description="Find a verified marketing agency built on Social Stats. 50+ partner agencies across India, vetted for compliance, capability, and customer outcomes."
+        title={"آژانس‌های شریک - راوینتا"}
+        description={"یک آژانس بازاریابی تایید شده بر اساس راوینتا پیدا کنید. بیش از 50 آژانس شریک در سرتاسر هند که از نظر انطباق، توانایی و نتایج مشتری بررسی شده‌اند."}
       />
 
       {/* ╭──────────────╮
@@ -93,7 +93,7 @@ export default function AgenciesShowcasePage() {
             border: '1px solid rgba(0,204,245,0.25)',
             borderRadius: 'var(--radius-pill)',
           }}>
-            <Sparkles size={12} /> Partner agencies
+            <Sparkles size={12} /> آژانس‌های شریک
           </span>
 
           <h1 style={{
@@ -104,9 +104,9 @@ export default function AgenciesShowcasePage() {
             color: '#fff',
             lineHeight: 1.05,
           }}>
-            Find a marketing agency<br />
+            یک آژانس بازاریابی پیدا کنید<br />
             <span style={{ background: 'linear-gradient(135deg, #00CCF5, #8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              that already runs on Social Stats
+              که در حال حاضر در راوینتا اجرا می‌شود
             </span>
           </h1>
 
@@ -117,7 +117,7 @@ export default function AgenciesShowcasePage() {
             color: 'rgba(255,255,255,0.75)',
             lineHeight: 1.55,
           }}>
-            50+ vetted agencies across India. Verified credentials. Real customer reviews. The agency you hire here uses the same tools you'll use to monitor them.
+            بیش از 50 آژانس بررسی شده در سراسر هند. اعتبار تایید شده نظرات مشتریان واقعی آژانسی که در اینجا استخدام می‌کنید از همان ابزارهایی استفاده می‌کند که برای نظارت بر آنها استفاده می‌کنید.
           </p>
 
           {/* Search */}
@@ -133,8 +133,8 @@ export default function AgenciesShowcasePage() {
             <Search size={16} color="rgba(255,255,255,0.55)" />
             <input
               type="search"
-              aria-label="Search agencies"
-              placeholder="Search by name, industry, or city…"
+              aria-label={"آژانس‌های جستجو"}
+              placeholder={"جستجو بر اساس نام، صنعت، یا شهر…"}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               style={{
@@ -149,7 +149,7 @@ export default function AgenciesShowcasePage() {
               <button
                 type="button"
                 onClick={() => setQuery('')}
-                aria-label="Clear search"
+                aria-label={"جستجو را پاک کنید"}
                 style={{
                   background: 'transparent', border: 'none',
                   color: 'rgba(255,255,255,0.55)',
@@ -173,10 +173,10 @@ export default function AgenciesShowcasePage() {
           justifyContent: 'center', alignItems: 'center',
           fontSize: 13, color: 'rgba(255,255,255,0.65)',
         }}>
-          <TrustItem icon={ShieldCheck} text="Every partner verified" />
-          <TrustItem icon={BadgeCheck}  text="Social Stats Native trained" />
-          <TrustItem icon={Star}        text="4.8+ avg. customer rating" />
-          <TrustItem icon={Users}       text="50,000+ campaigns delivered" />
+          <TrustItem icon={ShieldCheck} text={"هر شریک تأیید شده است"} />
+          <TrustItem icon={BadgeCheck}  text={"راوینتا بومی آموزش دیده است"} />
+          <TrustItem icon={Star}        text={"4.8+ میانگین رتبه بندی مشتری"} />
+          <TrustItem icon={Users}       text={"بیش از 50000 کمپین ارائه شده است"} />
         </div>
       </section>
 
@@ -192,7 +192,7 @@ export default function AgenciesShowcasePage() {
                 color: 'rgba(255,255,255,0.55)', marginBottom: 16,
                 textAlign: 'center',
               }}>
-                Featured · Top rated
+                ویژه · دارای رتبه برتر
               </div>
             </ScrollReveal>
 
@@ -223,13 +223,13 @@ export default function AgenciesShowcasePage() {
             marginBottom: 28,
           }}>
             <ChipSelect
-              label="Industry"
+              label={"صنعت"}
               value={industry}
               options={industries}
               onChange={setIndustry}
             />
             <ChipSelect
-              label="Service"
+              label={"خدمات"}
               value={service}
               options={services}
               onChange={setService}
@@ -248,7 +248,7 @@ export default function AgenciesShowcasePage() {
                   cursor: 'pointer',
                 }}
               >
-                Clear filters
+                فیلترها را پاک کنید
               </button>
             )}
           </div>
@@ -261,9 +261,9 @@ export default function AgenciesShowcasePage() {
             color: 'rgba(255,255,255,0.55)',
             textAlign: 'center',
           }}>
-            {filtered.length} {filtered.length === 1 ? 'agency' : 'agencies'}
-            {industry && <> in <span style={{ color: '#fff' }}>{industry}</span></>}
-            {service  && <> for <span style={{ color: '#fff' }}>{service}</span></>}
+            {filtered.length} {'آژانس'}
+            {industry && <> در <span style={{ color: '#fff' }}>{industry}</span></>}
+            {service  && <> برای <span style={{ color: '#fff' }}>{service}</span></>}
           </h2>
 
           {filtered.length > 0 ? (
@@ -282,10 +282,10 @@ export default function AgenciesShowcasePage() {
               borderRadius: 'var(--radius-xl)',
             }}>
               <p style={{ margin: 0, fontSize: 15 }}>
-                No agencies match these filters yet.
+                هنوز هیچ آژانسی با این فیلترها مطابقت ندارد.
               </p>
               <p style={{ margin: '8px 0 16px', fontSize: 13 }}>
-                Try widening your search — or apply to be the first.
+                جستجوی خود را گسترش دهید - یا برای اولین نفر درخواست دهید.
               </p>
             </div>
           )}
@@ -317,7 +317,7 @@ export default function AgenciesShowcasePage() {
                 border: '1px solid rgba(0,204,245,0.25)',
                 borderRadius: 'var(--radius-pill)',
               }}>
-                For agencies
+                برای آژانس‌ها
               </div>
               <h2 style={{
                 margin: 0,
@@ -327,8 +327,8 @@ export default function AgenciesShowcasePage() {
                 letterSpacing: '-0.02em',
                 lineHeight: 1.15,
               }}>
-                Run your agency on Social Stats.<br />
-                Get listed here. Earn referral revenue.
+                آژانس خود را در راوینتا اجرا کنید.<br />
+                در اینجا فهرست شوید. کسب درآمد ارجاعی
               </h2>
               <p style={{
                 margin: '14px 0 24px',
@@ -336,7 +336,7 @@ export default function AgenciesShowcasePage() {
                 color: 'rgba(255,255,255,0.75)',
                 lineHeight: 1.55,
               }}>
-                Agencies on the Social Stats Partner Program get listed in this directory, earn 30% on referred customers, and receive priority support.
+                آژانس‌های موجود در برنامه شریک راوینتا در این فهرست فهرست می‌شوند، 30 درصد از مشتریان ارجاع‌شده کسب می‌کنند و پشتیبانی اولویت‌دار را دریافت می‌کنند.
               </p>
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                 <Button as={Link} to="/for-agencies" size="md"
@@ -344,7 +344,7 @@ export default function AgenciesShowcasePage() {
                     background: 'linear-gradient(135deg, #00CCF5, #00A8D8)',
                     color: '#0a0e14', border: 'none',
                   }}>
-                  Become a partner <ArrowRight size={14} />
+                  شریک شوید <ArrowRight size={14} />
                 </Button>
                 <Button as={Link} to="/contact?topic=partnership" size="md" variant="ghost"
                   style={{
@@ -352,7 +352,7 @@ export default function AgenciesShowcasePage() {
                     background: 'rgba(255,255,255,0.06)',
                     border: '1px solid rgba(255,255,255,0.14)',
                   }}>
-                  Talk to partnerships
+                  با شراکت ها صحبت کنید
                 </Button>
               </div>
             </div>
@@ -364,10 +364,10 @@ export default function AgenciesShowcasePage() {
               gap: 12,
             }}>
               {[
-                { value: '50+',  label: 'partner agencies'   },
-                { value: '30%',  label: 'referral commission'},
-                { value: '4.8',  label: 'avg. partner rating'},
-                { value: '14d',  label: 'avg. onboarding'   },
+                { value: '50+',  label: "آژانس‌های شریک"   },
+                { value: '30%',  label: "کمیسیون ارجاع"},
+                { value: '4.8',  label: "میانگین رتبه شریک"},
+                { value: '14d',  label: "میانگین سوار شدن"   },
               ].map((s) => (
                 <div key={s.label} style={{
                   padding: 18,
@@ -409,9 +409,9 @@ export default function AgenciesShowcasePage() {
             color: '#fff',
             lineHeight: 1.1,
           }}>
-            Or skip the agency<br />
+            یا از آژانس رد شوید<br />
             <span style={{ background: 'linear-gradient(135deg, #00CCF5, #8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              and run it in-house
+              و آن را در داخل اجرا کنید
             </span>
           </h2>
 
@@ -422,7 +422,7 @@ export default function AgenciesShowcasePage() {
             color: 'rgba(255,255,255,0.75)',
             lineHeight: 1.55,
           }}>
-            Social Stats is built so a 1-person team can do what a 5-person agency does. Start free and see for yourself.
+            راوینتا طوری ساخته شده است که یک تیم 1 نفره بتواند کاری را که یک آژانس 5 نفره انجام می‌دهد انجام دهد. رایگان شروع کنید و خودتان ببینید.
           </p>
 
           <div style={{
@@ -434,7 +434,7 @@ export default function AgenciesShowcasePage() {
                 background: 'linear-gradient(135deg, #00CCF5, #00A8D8)',
                 color: '#0a0e14', border: 'none',
               }}>
-              Start free <ArrowRight size={15} />
+              شروع رایگان <ArrowRight size={15} />
             </Button>
             <Button as={Link} to="/features" size="lg" variant="ghost"
               style={{
@@ -442,7 +442,7 @@ export default function AgenciesShowcasePage() {
                 background: 'rgba(255,255,255,0.08)',
                 border: '1px solid rgba(255,255,255,0.18)',
               }}>
-              Explore features
+              مشاهده امکانات
             </Button>
           </div>
         </div>
@@ -496,7 +496,7 @@ function ChipSelect({ label, value, options, onChange }) {
           backgroundRepeat: 'no-repeat',
         }}
       >
-        <option value="">Any</option>
+        <option value="">همه</option>
         {options.map((o) => (
           <option key={o} value={o} style={{ background: '#0a0e14', color: '#fff' }}>{o}</option>
         ))}
@@ -551,9 +551,9 @@ function FeaturedCard({ a }) {
           flexWrap: 'wrap',
         }}>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#facc15' }}>
-            <Star size={12} fill="#facc15" /> {a.rating.score} · {a.rating.count} reviews
+            <Star size={12} fill="#facc15" /> {a.rating.score} · {a.rating.count} بررسی
           </span>
-          <span>· From {a.pricing.from}</span>
+          <span>· از {a.pricing.from}</span>
         </div>
 
         <div style={{
@@ -563,7 +563,7 @@ function FeaturedCard({ a }) {
           fontSize: 13, fontWeight: 600,
           color: a.accent,
         }}>
-          View profile <ArrowUpRight size={13} />
+          مشاهده پروفایل <ArrowUpRight size={13} />
         </div>
       </motion.article>
     </Link>
@@ -595,7 +595,7 @@ function AgencyCard({ a }) {
               {a.location}
             </div>
           </div>
-          {a.badges.includes('Top 1%') && (
+          {a.badges.includes("1% برتر") && (
             <span style={{
               padding: '2px 7px',
               fontSize: 10, fontWeight: 600,
@@ -604,7 +604,7 @@ function AgencyCard({ a }) {
               border: '1px solid rgba(251,191,36,0.30)',
               borderRadius: 'var(--radius-pill)',
               whiteSpace: 'nowrap',
-            }}>Top 1%</span>
+            }}>1% برتر</span>
           )}
         </div>
 
@@ -644,7 +644,7 @@ function AgencyCard({ a }) {
             <Star size={11} fill="#facc15" /> {a.rating.score}
             <span style={{ color: 'rgba(255,255,255,0.45)', marginLeft: 4 }}>· {a.rating.count}</span>
           </span>
-          <span>From {a.pricing.from}</span>
+          <span>از {a.pricing.from}</span>
         </div>
       </motion.div>
     </Link>

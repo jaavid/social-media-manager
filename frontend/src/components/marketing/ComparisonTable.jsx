@@ -41,7 +41,7 @@ export default function ComparisonTable({ columns = [], rows = [], highlightInde
       }}>
         <thead>
           <tr>
-            <th style={headFeatureStyle}>Feature</th>
+            <th style={headFeatureStyle}>ویژگی</th>
             {columns.map((c, i) => (
               <th key={c}
                   style={{
@@ -54,7 +54,7 @@ export default function ComparisonTable({ columns = [], rows = [], highlightInde
                     display: 'block', marginTop: 4,
                     fontSize: 10, fontWeight: 600,
                     color: '#00CCF5', letterSpacing: '0.06em',
-                  }}>RECOMMENDED</span>
+                  }}>توصیه می‌شود</span>
                 )}
               </th>
             ))}
@@ -84,15 +84,15 @@ export default function ComparisonTable({ columns = [], rows = [], highlightInde
 
 function CellValue({ value }) {
   if (value === 'yes' || value === true) {
-    return <Check size={16} strokeWidth={2.4} style={{ color: 'var(--success)' }} aria-label="Yes" />;
+    return <Check size={16} strokeWidth={2.4} style={{ color: 'var(--success)' }} aria-label={"بله"} />;
   }
   if (value === 'no' || value === false) {
-    return <X size={16} strokeWidth={2.4} style={{ color: 'var(--text-tertiary)', opacity: 0.5 }} aria-label="No" />;
+    return <X size={16} strokeWidth={2.4} style={{ color: 'var(--text-tertiary)', opacity: 0.5 }} aria-label={"خیر"} />;
   }
   if (value === 'partial' || value === 'limited') {
     return (
       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--warning)' }}>
-        <AlertTriangle size={13} strokeWidth={2.2} /> Limited
+        <AlertTriangle size={13} strokeWidth={2.2} /> محدود
       </span>
     );
   }
@@ -103,7 +103,7 @@ function CellValue({ value }) {
 // ─────────────────────────────────────────────────────────────────────────────
 const headFeatureStyle = {
   position: 'sticky', top: 0, zIndex: 2,
-  textAlign: 'left',
+  textAlign: 'start',
   padding: '14px 18px',
   fontSize: 11, fontWeight: 600,
   letterSpacing: '0.06em', textTransform: 'uppercase',

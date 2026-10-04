@@ -11,214 +11,203 @@ import LegalPageLayout from '../components/marketing/LegalPageLayout';
 export default function PrivacyPolicyPage() {
   return (
     <LegalPageLayout
-      eyebrow="Privacy"
-      title="Privacy Policy"
+      eyebrow={"حریم خصوصی"}
+      title={"سیاست حریم خصوصی"}
       effectiveDate="2026-01-01"
       lastUpdated="2026-04-15"
-      intro="Social Stats is built by people who hate dark patterns. This page explains, in plain English, what data we collect, why we need it, and how we keep it safe."
+      intro={"راوینتا توسط افرادی ساخته می‌شود که از الگوهای تاریک متنفرند. این صفحه به زبان انگلیسی ساده توضیح می‌دهد که چه داده‌هایی را جمع‌آوری می‌کنیم، چرا به آن‌ها نیاز داریم، و چگونه آن‌ها را ایمن نگه‌داریم."}
       sections={[
         {
           id: 'who',
-          title: '1. Who we are',
+          title: "1. ما که هستیم",
           body: (
             <>
               <p>
-                Social Stats is operated by Gigai Kripa Services, an early-stage product team
-                building marketing tooling. For corporate / registration details, write to
-                 the administrator of this Social Stats instance.
+                راوینتا توسط Gigai Kripa Services، یک ابزار بازاریابی تیمی در مراحل اولیه، اداره می‌شود. برای جزئیات شرکت / ثبت نام، به مدیر این نمونه راوینتا بنویسید.
               </p>
               <p>
-                This policy applies to the Social Stats web app and any
-                related services. For business customers (agencies, brands, creators), Social Stats is the
-                <strong> data processor</strong> for content and audience data they upload — they remain the data
-                controller for that data.
+                این خط‌مشی برای برنامه وب راوینتا و هر سرویس مرتبط اعمال می‌شود. برای مشتریان تجاری (آژانس‌ها، برندها، سازندگان)، راوینتا است
+                <strong> پردازشگر داده</strong> برای داده‌های محتوا و مخاطبی که آپلود می‌کنند - آنها کنترل‌کننده داده برای آن داده‌ها باقی می‌مانند.
               </p>
             </>
           ),
         },
         {
           id: 'collect',
-          title: '2. What we collect',
+          title: "2. آنچه ما جمع آوری می کنیم",
           body: (
             <>
-              <p>We collect only what we need to run the product. There are four buckets:</p>
-              <h3>a. Account data</h3>
-              <p>Name, email, phone (optional), password hash, organization name, and role. Social Stats is free and open source — we do not process payments or store any card/billing details.</p>
-              <h3>b. Connected-account data</h3>
-              <p>When you connect Facebook, Instagram, YouTube, Google Business, LinkedIn, or WhatsApp, we receive OAuth tokens, your platform username and ID, and access to the data scopes you authorise. Tokens are encrypted (AES-256 / Fernet) at rest.</p>
-              <h3>c. Content data</h3>
-              <p>Posts, captions, media files, comments, DMs, scheduled drafts, analytics pulled from connected platforms, and customer-uploaded audience lists.</p>
-              <h3>d. Usage data</h3>
-              <p>Pages visited, features used, IP address (truncated), device + browser, referrer, and timestamps. Used for product analytics, security, and performance monitoring.</p>
+              <p>ما فقط آنچه را که برای اجرای محصول نیاز داریم جمع آوری می کنیم. چهار سطل وجود دارد:</p>
+              <h3>الف. داده‌های حساب</h3>
+              <p>نام، ایمیل، تلفن (اختیاری)، رمز عبور، نام سازمان، و نقش. راوینتا رایگان و منبع باز است - ما پرداخت ها را پردازش نمی کنیم یا جزئیات کارت/صورتحساب را ذخیره نمی کنیم.</p>
+              <h3>ب. داده‌های حساب متصل</h3>
+              <p>هنگامی که فیس‌بوک، اینستاگرام، یوتیوب، کسب‌وکار گوگل، لینکدین یا واتس‌اپ را متصل می‌کنید، نشانه‌های OAuth، نام کاربری و شناسه پلتفرم شما و دسترسی به حوزه‌های داده‌ای که شما مجاز کرده‌اید را دریافت می‌کنیم. توکن‌ها در حالت استراحت (AES-256 / Fernet) رمزگذاری می‌شوند.</p>
+              <h3>ج. داده‌های محتوا</h3>
+              <p>پست‌ها، زیرنویس‌ها، فایل‌های رسانه‌ای، نظرات، پیام‌های پیامکی، پیش‌نویس‌های زمان‌بندی‌شده، تحلیل و آمار‌های استخراج‌شده از پلتفرم‌های متصل، و فهرست‌های مخاطبان بارگذاری‌شده توسط مشتری.</p>
+              <h3>د. داده‌های استفاده</h3>
+              <p>صفحات بازدید شده، ویژگی‌های استفاده شده، آدرس IP (قطع شده)، دستگاه + مرورگر، ارجاع دهنده، و مُهرهای زمانی. برای تحلیل و آمار محصول، امنیت و نظارت بر عملکرد استفاده می‌شود.</p>
             </>
           ),
         },
         {
           id: 'why',
-          title: '3. Why we collect it',
+          title: "3. چرا آن را جمع آوری می کنیم",
           body: (
             <>
-              <p>We use your data only for these purposes:</p>
+              <p>ما از داده‌های شما فقط برای این اهداف استفاده می کنیم:</p>
               <ul>
-                <li><strong>Provide the service</strong> — schedule posts, fetch analytics, route messages, build reports.</li>
-                <li><strong>Account security</strong> — detect suspicious sign-ins, abuse, and fraud.</li>
-                <li><strong>Billing and invoicing</strong> — process payments, send invoices, comply with tax law.</li>
-                <li><strong>Product improvement</strong> — aggregated, de-identified analytics. Never sold.</li>
-                <li><strong>Customer support</strong> — answer your tickets, debug issues, improve documentation.</li>
-                <li><strong>Legal compliance</strong> — respond to lawful requests, prevent illegal use of the platform.</li>
+                <li><strong>ارائه خدمات</strong> - زمان‌بندی پست‌ها، واکشی تحلیل و آمار، پیام‌های مسیر، گزارش‌های ساخت.</li>
+                <li><strong>امنیت حساب</strong> - ورود به سیستم مشکوک، سوء استفاده و کلاهبرداری را شناسایی کنید.</li>
+                <li><strong>صورتحساب و صورتحساب</strong> - پرداخت ها را پردازش کنید، فاکتورها را ارسال کنید، با قانون مالیات مطابقت کنید.</li>
+                <li><strong>بهبود محصول</strong> - تحلیل و آمار تجمیع شده، شناسایی نشده. هرگز فروخته نشد.</li>
+                <li><strong>پشتیبانی مشتری</strong> - به بلیط های خود پاسخ دهید، مشکلات را رفع کنید، اسناد را بهبود بخشید.</li>
+                <li><strong>انطباق قانونی</strong> - پاسخ به درخواست های قانونی، جلوگیری از استفاده غیرقانونی از پلتفرم.</li>
               </ul>
-              <p>We <strong>do not</strong> sell your data, train AI models on your private content without explicit consent, or share it with advertisers.</p>
+              <p>ما <strong>نکن</strong> داده‌های خود را بفروشید، مدل های هوش مصنوعی را در محتوای خصوصی خود بدون رضایت صریح آموزش دهید، یا آن را با تبلیغ کنندگان به اشتراک بگذارید.</p>
             </>
           ),
         },
         {
           id: 'ai',
-          title: '4. AI features and your content',
+          title: "4. ویژگی‌های هوش مصنوعی و محتوای شما",
           body: (
             <>
               <p>
-                Social Stats uses Anthropic's Claude API to power the AI Assistant, Composer drafts, brand-voice training,
-                and analytics summaries. When you use these features:
+                راوینتا از کلود API آنتروپیک برای تقویت دستیار هوش مصنوعی، پیش‌نویس‌های ویرایشگر محتوا، آموزش لحن برند، و خلاصه‌های تحلیلی استفاده می‌کند. وقتی از این ویژگی ها استفاده می‌کنید:
               </p>
               <ul>
-                <li>Your prompts and the relevant context are sent to Anthropic for inference.</li>
-                <li>Anthropic does <strong>not</strong> train models on your content (per their Enterprise terms).</li>
-                <li>Generated drafts stay in your workspace — we don't reuse them across customers.</li>
-                <li>Brand-voice training samples stay in your tenant. They are never blended with another customer's data.</li>
+                <li>درخواست های شما و زمینه مربوطه برای استنباط به آنتروپیک ارسال می‌شود.</li>
+                <li>آنتروپیک انجام می‌دهد <strong>نه</strong> مدل‌های مربوط به محتوای خود را آموزش دهید (بر اساس شرایط سازمانی آنها).</li>
+                <li>پیش‌نویس‌های تولید شده در فضای کاری شما باقی می‌مانند - ما از آن‌ها در بین مشتریان استفاده مجدد نمی‌کنیم.</li>
+                <li>نمونه های آموزش لحن برند در مستاجر شما باقی می ماند. آنها هرگز با داده‌های مشتری دیگر ترکیب نمی‌شوند.</li>
               </ul>
-              <p>You can disable AI features at any time from <strong>Settings → AI</strong>.</p>
+              <p>می‌توانید ویژگی‌های هوش مصنوعی را در هر زمان از اینجا غیرفعال کنید <strong>تنظیمات → هوش مصنوعی</strong>.</p>
             </>
           ),
         },
         {
           id: 'share',
-          title: '5. Who we share data with',
+          title: "5. داده ها را با چه کسانی به اشتراک می گذاریم",
           body: (
             <>
-              <p>We share data only with sub-processors that are essential to running the service:</p>
+              <p>ما داده ها را فقط با زیرپردازنده هایی که برای اجرای سرویس ضروری هستند به اشتراک می گذاریم:</p>
               <ul>
-                <li><strong>AWS</strong> — hosting (Mumbai region for Indian customers).</li>
-                <li><strong>Anthropic</strong> — Claude AI inference.</li>
-                <li><strong>SendGrid</strong> — transactional email.</li>
-                <li><strong>Sentry</strong> — error monitoring (PII scrubbed).</li>
-                <li><strong>Pinbot.ai</strong> — WhatsApp Business API gateway.</li>
-                <li><strong>Meta / Google / LinkedIn / X</strong> — only when you connect those accounts; we send the minimum data each platform requires for the action you requested.</li>
+                <li><strong>AWS</strong> - میزبانی (منطقه بمبئی برای مشتریان هندی).</li>
+                <li><strong>آنتروپیک</strong> - استنباط هوش مصنوعی کلود.</li>
+                <li><strong>SendGrid</strong> - ایمیل تراکنشی.</li>
+                <li><strong>نگهبانی</strong> - نظارت بر خطا (PII پاک شده).</li>
+                <li><strong>Pinbot.ai</strong> - دروازه واتس‌اپ کسب و کار API.</li>
+                <li><strong>متا / گوگل / لینکدین / ایکس</strong> - فقط زمانی که آن حساب ها را متصل می‌کنید. ما حداقل داده‌ای را که هر پلتفرم برای اقدامی که درخواست کرده‌اید، ارسال می‌کنیم.</li>
               </ul>
-              <p>A complete, current list lives at <a href="/security#subprocessors">/security#subprocessors</a>.</p>
+              <p>یک لیست کامل و جاری در آن زندگی می‌کند <a href="/security#subprocessors">/security#subprocessors</a>.</p>
             </>
           ),
         },
         {
           id: 'retention',
-          title: '6. How long we keep it',
+          title: "6. چه مدت آن را نگه می داریم",
           body: (
             <>
               <ul>
-                <li><strong>Active account data</strong> — for as long as your account is active.</li>
-                <li><strong>Canceled accounts</strong> — content retained 30 days, then permanently deleted.</li>
-                <li><strong>Audit logs</strong> — 12 months on Growth, configurable on Enterprise.</li>
-                <li><strong>Backups</strong> — encrypted, retained 30 days, then rotated out.</li>
-                <li><strong>Invoices and tax records</strong> — 7 years (mandatory under Indian tax law).</li>
+                <li><strong>داده‌های حساب فعال</strong> - تا زمانی که حساب شما فعال است.</li>
+                <li><strong>حساب های لغو شده</strong> - محتوا 30 روز حفظ شد، سپس برای همیشه حذف شد.</li>
+                <li><strong>سیاهههای مربوط به حسابرسی</strong> - 12 ماه در رشد، قابل تنظیم در سازمانی.</li>
+                <li><strong>پشتیبان گیری</strong> - رمزگذاری شده، 30 روز نگهداری می‌شود، سپس خارج می‌شود.</li>
+                <li><strong>فاکتورها و سوابق مالیاتی</strong> - 7 سال (بر اساس قانون مالیات هند اجباری).</li>
               </ul>
-              <p>You can request earlier deletion at any time — see <a href="#rights">section 8</a>.</p>
+              <p>می‌توانید در هر زمانی درخواست حذف قبلی را بدهید - ببینید <a href="#rights">بخش 8</a>.</p>
             </>
           ),
         },
         {
           id: 'security',
-          title: '7. How we protect it',
+          title: "7. چگونه از آن محافظت می کنیم",
           body: (
             <>
               <ul>
-                <li><strong>TLS 1.3</strong> in transit, <strong>AES-256-GCM (Fernet)</strong> at rest for tokens and secrets.</li>
-                <li><strong>2FA</strong> available on all accounts; mandatory for Enterprise.</li>
-                <li><strong>Role-based access control</strong> down to per-account level.</li>
-                <li><strong>Audit log</strong> for every privileged action (auth, OAuth connect, publish, role change).</li>
-                <li><strong>Quarterly penetration tests</strong> by independent third parties.</li>
-                <li><strong>SOC 2 Type II</strong> in progress (target: Q4 2026).</li>
-                <li><strong>Incident response</strong> — affected customers notified within 72 hours of confirmed breach.</li>
+                <li><strong>TLS 1.3</strong> در حمل و نقل، <strong>AES-256-GCM (Fernet)</strong> در حال استراحت برای نشانه ها و اسرار.</li>
+                <li><strong>2FA</strong> در همه حساب ها موجود است. اجباری برای شرکت</li>
+                <li><strong>کنترل دسترسی مبتنی بر نقش</strong> به سطح هر حساب.</li>
+                <li><strong>گزارش حسابرسی</strong> برای هر اقدام حساس، از ورود و اتصال حساب گرفته تا انتشار و تغییر نقش.</li>
+                <li><strong>آزمون های نفوذ فصلی</strong> توسط اشخاص ثالث مستقل.</li>
+                <li><strong>SOC 2 نوع II</strong> در حال انجام است (هدف: سه‌ماهه چهارم ۲۰۲۶).</li>
+                <li><strong>پاسخ حادثه</strong> - مشتریان تحت تأثیر در عرض 72 ساعت پس از تأیید نقض مطلع شدند.</li>
               </ul>
-              <p>Full details at <a href="/security">/security</a>.</p>
+              <p>جزئیات کامل در <a href="/security">/security</a>.</p>
             </>
           ),
         },
         {
           id: 'rights',
-          title: '8. Your rights',
+          title: "8. حقوق شما",
           body: (
             <>
-              <p>Under the DPDP Act 2023 (India) and GDPR (EU), you have the right to:</p>
+              <p>طبق قانون DPDP 2023 (هند) و GDPR (EU)، شما حق دارید:</p>
               <ul>
-                <li><strong>Access</strong> a copy of all data we hold about you.</li>
-                <li><strong>Correct</strong> inaccurate data.</li>
-                <li><strong>Delete</strong> your account and personal data.</li>
-                <li><strong>Export</strong> your data in a portable format (JSON or CSV).</li>
-                <li><strong>Object</strong> to specific processing activities.</li>
-                <li><strong>Withdraw consent</strong> for marketing communications at any time.</li>
+                <li><strong>دسترسی</strong> یک کپی از تمام داده‌هایی که در مورد شما نگهداری می کنیم.</li>
+                <li><strong>درست است</strong> داده‌های نادرست.</li>
+                <li><strong>حذف</strong> حساب و اطلاعات شخصی شما.</li>
+                <li><strong>خروجی گرفتن</strong> داده‌های شما در قالب قابل حمل (JSON یا CSV).</li>
+                <li><strong>شیء</strong> به فعالیت های پردازشی خاص.</li>
+                <li><strong>لغو رضایت</strong> برای ارتباطات بازاریابی در هر زمان.</li>
               </ul>
               <p>
-                Submit a request at <a href="/dpdp">/dpdp</a> (India) or <a href="/gdpr">/gdpr</a> (EU/EEA). We respond within
-                <strong> 30 days</strong> as required by law.
+                ارسال درخواست در <a href="/dpdp">/dpdp</a> (هند) یا <a href="/gdpr">/gdpr</a> (EU/EEA). ما در درون پاسخ می‌دهیم
+                <strong> 30 روز</strong> طبق قانون.
               </p>
             </>
           ),
         },
         {
           id: 'cookies',
-          title: '9. Cookies and tracking',
+          title: "9. کوکی‌ها و ردیابی",
           body: (
             <p>
-              We use a small number of cookies for authentication, preferences, and product analytics. We don't use
-              third-party advertising trackers. See our <a href="/cookies">Cookie Policy</a> for the full list and
-              opt-out controls.
+              ما از تعداد کمی کوکی برای احراز هویت، اولویت‌ها و تحلیل و آمار محصول استفاده می‌کنیم. ما از ردیاب های تبلیغاتی شخص ثالث استفاده نمی کنیم. ما را ببینید <a href="/cookies">خط مشی کوکی</a> برای لیست کامل و کنترل های انصراف.
             </p>
           ),
         },
         {
           id: 'children',
-          title: '10. Children',
+          title: "10. فرزندان",
           body: (
             <p>
-              SocialStats is a B2B product not intended for children under 18. We do not knowingly collect data from
-              minors. If you believe a child has created an account, email{' '}
-              the administrator of this Social Stats instance and it will be deleted.
+              راوینتا یک محصول B2B است که برای کودکان زیر 18 سال در نظر گرفته نشده است. ما آگاهانه داده ها را از خردسالان جمع آوری نمی کنیم. اگر فکر می‌کنید کودکی یک حساب کاربری ایجاد کرده است، ایمیل بزنید{' '}
+              مدیر این نمونه راوینتا و حذف خواهد شد.
             </p>
           ),
         },
         {
           id: 'transfers',
-          title: '11. International transfers',
+          title: "11. نقل و انتقالات بین المللی",
           body: (
             <p>
-              Indian customer data is hosted in AWS Mumbai (ap-south-1). For EU/EEA customers, we use Standard
-              Contractual Clauses for any onward transfer. For US customers, AWS US-East-1 is available on Enterprise.
+              داده‌های مشتری هند در AWS Mumbai (ap-south-1) میزبانی می‌شود. برای مشتریان اتحادیه اروپا / منطقه اقتصادی اروپا، ما از بندهای قراردادی استاندارد برای هر گونه انتقال بعدی استفاده می کنیم. برای مشتریان ایالات متحده، AWS US-East-1 در سازمانی در دسترس است.
             </p>
           ),
         },
         {
           id: 'changes',
-          title: '12. Changes to this policy',
+          title: "12. تغییرات در این سیاست",
           body: (
             <p>
-              We update this policy when laws change or we add features. Material changes are announced via email and
-              an in-product banner at least <strong>30 days</strong> in advance. Continued use after the effective
-              date constitutes acceptance.
+              هنگامی که قوانین تغییر می‌کنند یا ویژگی‌هایی اضافه می کنیم، این خط مشی را به روز می کنیم. تغییرات مواد حداقل از طریق ایمیل و بنر داخل محصول اعلام می‌شود <strong>30 روز</strong> پیشاپیش. ادامه استفاده پس از تاریخ اجرا به منزله پذیرش است.
             </p>
           ),
         },
         {
           id: 'contact',
-          title: '13. Contact us',
+          title: "13. با ما تماس بگیرید",
           body: (
             <>
               <p>
-                Questions? Reach our DPO (Data Protection Officer) at{' '}
-                the administrator of this Social Stats instance:
+                سوال؟ با DPO (افسر حفاظت از داده) ما تماس بگیرید{' '}
+                مدیر این نمونه راوینتا:
               </p>
               <p>
-                <strong>Gigai Kripa Services</strong><br />
-                Attn: Data Protection Officer<br />
-                Bengaluru, Karnataka, India
+                <strong>خدمات Gigai Kripa</strong><br />
+                توجه: افسر حفاظت از داده ها<br />
+                بنگالورو، کارناتاکا، هند
               </p>
             </>
           ),

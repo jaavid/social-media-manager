@@ -17,46 +17,46 @@ const COMMITMENTS = [
   {
     icon: Lock,
     color: '#3b82f6',
-    title: 'Encryption everywhere',
+    title: "رمزگذاری در همه جا",
     body:
-      'TLS 1.3 in transit. AES-256-GCM (Fernet) at rest for OAuth tokens, API keys, and customer secrets. Keys rotated quarterly.',
+      "TLS 1.3 در حال حمل و نقل. AES-256-GCM (Fernet) در حالت استراحت برای نشانه‌های OAuth، کلیدهای API و اسرار مشتری. کلیدها هر سه ماه یکبار می چرخند.",
   },
   {
     icon: Server,
     color: '#10b981',
-    title: 'Hardened infrastructure',
+    title: "زیرساخت های سخت شده",
     body:
-      'AWS multi-AZ deployments. Per-environment isolation. WAF + DDoS mitigation. Automated patching + vulnerability scans daily.',
+      "استقرار AWS multi-AZ. جداسازی در هر محیط کاهش WAF + DDoS. وصله خودکار + اسکن آسیب پذیری روزانه.",
   },
   {
     icon: Eye,
     color: '#8b5cf6',
-    title: 'Audit log, always-on',
+    title: "ورود حسابرسی، همیشه روشن",
     body:
-      'Every action — auth, OAuth connect, publish, role change — is logged with actor, timestamp, IP, and result. Searchable for 1 year on Growth, custom on Enterprise.',
+      "هر اقدام - auth، OAuth connect، انتشار، تغییر نقش - با بازیگر، مهر زمانی، IP و نتیجه ثبت می‌شود. قابل جستجو برای 1 سال در رشد، سفارشی در سازمانی.",
   },
   {
     icon: FileCheck,
     color: '#f59e0b',
-    title: 'Compliance-ready',
+    title: "آماده رعایت الزامات",
     body:
-      'GDPR + India DPDP compliant by design. SOC 2 Type II in progress (target Q3 2026). HIPAA, ISO 27001 on Enterprise contracts.',
+      "GDPR + هند DPDP مطابق با طراحی. SOC 2 Type II در حال انجام است (هدف Q3 2026). HIPAA، ISO 27001 در مورد قراردادهای سازمانی.",
   },
 ];
 
 const CERTIFICATIONS = [
-  { name: 'GDPR',          status: 'Compliant',    description: 'EU/EEA data protection.' },
-  { name: 'India DPDP',    status: 'Compliant',    description: 'Indian Data Protection Act 2023.' },
-  { name: 'SOC 2 Type II', status: 'In progress', description: 'Audit underway, expected Q3 2026.' },
-  { name: 'ISO 27001',     status: 'Roadmap',     description: 'Targeted for 2027.' },
+  { name: 'GDPR',          status: 'Compliant',    description: "حفاظت از داده‌های اتحادیه اروپا / منطقه اقتصادی اروپا." },
+  { name: "هند DPDP",    status: 'Compliant',    description: "قانون حفاظت از داده هند 2023." },
+  { name: "SOC 2 نوع II", status: 'In progress', description: "حسابرسی در حال انجام است، انتظار می رود سه ماهه سوم 2026." },
+  { name: 'ISO 27001',     status: 'Roadmap',     description: "برای سال 2027 هدف گذاری شده است." },
 ];
 
 export default function SecurityPage() {
   return (
     <MarketingLayout>
       <Meta
-        title="Security"
-        description="Encryption at rest with Fernet, TLS 1.3 in transit, audit log on every action, GDPR + DPDP compliant. SOC 2 Type II in progress."
+        title={"امنیت"}
+        description={"رمزگذاری در حالت استراحت با Fernet، TLS 1.3 در حال انتقال، گزارش حسابرسی در هر اقدام، مطابق با GDPR + DPDP. SOC 2 Type II در حال انجام است."}
       />
       {/* Hero */}
       <section style={{ padding: '128px 32px 56px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
@@ -69,7 +69,7 @@ export default function SecurityPage() {
           }}
         />
         <div style={{ position: 'relative', maxWidth: 760, margin: '0 auto' }}>
-          <Badge variant="brand" size="md" icon={ShieldCheck}>Security</Badge>
+          <Badge variant="brand" size="md" icon={ShieldCheck}>امنیت</Badge>
           <h1 style={{
             margin: '20px 0 18px',
             fontSize: 'clamp(40px, 5vw, 56px)',
@@ -78,11 +78,10 @@ export default function SecurityPage() {
             fontWeight: 600,
             color: 'var(--text-primary)',
           }}>
-            Security by design.
+            امنیت بر اساس طراحی.
           </h1>
           <p style={{ margin: 0, fontSize: 18, lineHeight: 1.65, color: 'var(--text-secondary)' }}>
-            Social Stats is built on the same security primitives banks and hospitals rely on. We treat your data — and
-            your customers' data — like it's our own.
+            راوینتا بر اساس همان امنیت اولیه ای است که بانک ها و بیمارستان ها به آن تکیه می‌کنند. ما با داده‌های شما - و داده‌های مشتریانتان - طوری رفتار می‌کنیم که مانند داده‌های ما باشد.
           </p>
         </div>
       </section>
@@ -139,10 +138,10 @@ export default function SecurityPage() {
         <div style={{ maxWidth: 'var(--container-xl)', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 32 }}>
             <h2 style={{ margin: 0, fontSize: 'clamp(28px, 3.4vw, 36px)', fontWeight: 600, letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
-              Certifications & compliance.
+              گواهینامه ها و انطباق.
             </h2>
             <p style={{ margin: '12px auto 0', maxWidth: 560, fontSize: 15, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-              Where we are today, and where we're headed.
+              امروز کجا هستیم و به کجا می رویم.
             </p>
           </div>
           <div
@@ -182,7 +181,7 @@ export default function SecurityPage() {
                     size="sm"
                     variant={cert.status === 'Compliant' ? 'success' : cert.status === 'In progress' ? 'warning' : 'default'}
                   >
-                    {cert.status}
+                    {({ Compliant: 'مطابق الزامات', 'In progress': 'در حال انجام', Roadmap: 'در برنامه توسعه' })[cert.status] || cert.status}
                   </Badge>
                 </div>
                 <p style={{ margin: '8px 0 0', fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
@@ -226,19 +225,18 @@ export default function SecurityPage() {
           </span>
           <div style={{ minWidth: 0, flex: 1 }}>
             <h3 style={{ margin: 0, fontSize: 22, fontWeight: 600, letterSpacing: '-0.015em', color: 'var(--text-primary)' }}>
-              Found a vulnerability?
+              آسیب پذیری پیدا کردید؟
             </h3>
             <p style={{ margin: '8px 0 16px', fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.65 }}>
-              We run a private bug bounty program with payouts up to <strong>₹1,00,000</strong> for critical issues.
-              Report privately via <a href="https://github.com/cbsshekhawat18-lab/social-stats-social-media-manager/security/advisories/new" target="_blank" rel="noreferrer" style={{ color: 'var(--text-link)' }}>GitHub security advisories</a>{' '}
-              with reproduction steps and impact assessment. We acknowledge within 24 hours and triage within 72.
+              ما یک برنامه پاداش باگ خصوصی را با پرداخت تا سقف اجرا می کنیم <strong>₹1,00,000</strong> برای مسائل بحرانی. گزارش خصوصی از طریق <a href="https://github.com/cbsshekhawat18-lab/social-stats-social-media-manager/security/advisories/new" target="_blank" rel="noreferrer" style={{ color: 'var(--text-link)' }}>توصیه های امنیتی گیت‌هاب</a>{' '}
+              با مراحل بازتولید و ارزیابی تاثیر. ما ظرف 24 ساعت تأیید می کنیم و در 72 ساعت تریاژ می کنیم.
             </p>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <Button as="a" href="https://github.com/cbsshekhawat18-lab/social-stats-social-media-manager/security/advisories/new" size="md" iconRight={ArrowRight}>
-                Report a vulnerability
+                یک آسیب پذیری را گزارش کنید
               </Button>
               <Button as={Link} to="/status" variant="secondary" size="md">
-                System status
+                وضعیت سامانه
               </Button>
             </div>
           </div>
@@ -251,10 +249,10 @@ export default function SecurityPage() {
       {/* Bottom links */}
       <section style={{ padding: '0 32px 120px', textAlign: 'center' }}>
         <p style={{ margin: 0, fontSize: 13, color: 'var(--text-tertiary)' }}>
-          Looking for our{' '}
-          <Link to="/privacy" style={{ color: 'var(--text-link)', fontWeight: 500 }}>privacy policy</Link>,{' '}
-          <Link to="/gdpr"    style={{ color: 'var(--text-link)', fontWeight: 500 }}>GDPR information</Link>,{' '}
-          or <Link to="/dpdp" style={{ color: 'var(--text-link)', fontWeight: 500 }}>DPDP details</Link>?
+          به دنبال ما{' '}
+          <Link to="/privacy" style={{ color: 'var(--text-link)', fontWeight: 500 }}>سیاست حفظ حریم خصوصی</Link>,{' '}
+          <Link to="/gdpr"    style={{ color: 'var(--text-link)', fontWeight: 500 }}>اطلاعات GDPR</Link>,{' '}
+          یا <Link to="/dpdp" style={{ color: 'var(--text-link)', fontWeight: 500 }}>جزئیات DPDP</Link>?
         </p>
       </section>
     </MarketingLayout>

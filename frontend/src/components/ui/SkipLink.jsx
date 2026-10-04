@@ -21,7 +21,11 @@
  * have either `tabindex="-1"` or be naturally focusable for the skip to
  * actually move focus on click.
  */
-export default function SkipLink({ targetId = 'main-content', label = 'Skip to main content' }) {
+import { useLanguage } from '../../i18n';
+
+export default function SkipLink({ targetId = 'main-content', label }) {
+  const { tr } = useLanguage();
+  const text = label || tr('Skip to main content');
   return (
     <a
       href={`#${targetId}`}
@@ -46,7 +50,7 @@ export default function SkipLink({ targetId = 'main-content', label = 'Skip to m
       onFocus={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}
       onBlur={(e) => { e.currentTarget.style.transform = 'translateY(-200%)'; }}
     >
-      {label}
+      {text}
     </a>
   );
 }

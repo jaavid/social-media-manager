@@ -6,6 +6,7 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
+import { translateRaw } from '../../i18n';
 import { isProduction } from '../../lib/runtime/config';
 
 import { Component } from 'react';
@@ -97,7 +98,7 @@ export default class ErrorBoundary extends Component {
             color: 'var(--danger)',
             marginBottom: 8,
           }}>
-            Render error
+            {translateRaw('Render error')}
           </div>
           <h1 style={{
             margin: 0,
@@ -105,7 +106,7 @@ export default class ErrorBoundary extends Component {
             fontWeight: 600,
             letterSpacing: '-0.025em',
           }}>
-            Something went wrong on this page.
+            {translateRaw('Something went wrong on this page.')}
           </h1>
           <p style={{
             margin: '12px auto 24px',
@@ -113,19 +114,18 @@ export default class ErrorBoundary extends Component {
             fontSize: 15, lineHeight: 1.65,
             color: 'var(--text-secondary)',
           }}>
-            A problem broke this view. The rest of the app is still fine — try reloading.
-            If the issue keeps happening, our status page will tell you if it's something on our end.
+            {translateRaw('A problem broke this view. Try reloading or check the status page.')}
           </p>
 
           <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Button onClick={this.handleReload} size="lg" icon={RefreshCw}>Reload</Button>
-            <Button as={Link} to="/status"  variant="secondary" size="lg" icon={Activity}>Check status</Button>
-            <Button as={Link} to="/contact" variant="ghost" size="lg" icon={MessageCircle}>Report it</Button>
+            <Button onClick={this.handleReload} size="lg" icon={RefreshCw}>{translateRaw('Reload')}</Button>
+            <Button as={Link} to="/status"  variant="secondary" size="lg" icon={Activity}>{translateRaw('Check status')}</Button>
+            <Button as={Link} to="/contact" variant="ghost" size="lg" icon={MessageCircle}>{translateRaw('Report it')}</Button>
           </div>
 
           {this.state.ref && (
             <p style={{ marginTop: 28, fontSize: 12, color: 'var(--text-tertiary)' }}>
-              Reference ID: <span style={{ fontFamily: 'var(--font-mono)' }}>{this.state.ref}</span>
+              {translateRaw('Reference ID:')} <span style={{ fontFamily: 'var(--font-mono)' }}>{this.state.ref}</span>
             </p>
           )}
 
@@ -145,7 +145,7 @@ export default class ErrorBoundary extends Component {
               }}
             >
               <summary style={{ cursor: 'pointer', fontWeight: 600, color: 'var(--text-primary)' }}>
-                Stack trace (dev only)
+                {translateRaw('Stack trace (dev only)')}
               </summary>
               <pre style={{ marginTop: 12, whiteSpace: 'pre-wrap', overflow: 'auto' }}>
                 {String(this.state.error?.stack || this.state.error)}

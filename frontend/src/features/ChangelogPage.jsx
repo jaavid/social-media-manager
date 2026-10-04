@@ -17,69 +17,69 @@ const RELEASES = [
   {
     version: 'v3.2.0',
     date: '2026-04-30',
-    title: 'Marketing OS visual refresh',
+    title: "به‌روزرسانی بصری سیستم عامل بازاریابی",
     entries: [
-      { tag: 'new', text: 'Brand-new design system: tokens, dark mode, full component library.' },
-      { tag: 'new', text: 'Public site redesign — landing page, features, pricing, customers, about, contact.' },
-      { tag: 'improved', text: 'Auth pages share a unified split-screen layout with rotating testimonials.' },
-      { tag: 'improved', text: 'Help Center, Status, and Security pages get full content and improved visuals.' },
+      { tag: 'new', text: "سیستم طراحی کاملاً جدید: نشانه‌ها، حالت تاریک، کتابخانه کامل اجزا." },
+      { tag: 'new', text: "طراحی مجدد سایت عمومی - صفحه فرود، ویژگی ها، قیمت گذاری، مشتریان، درباره، تماس." },
+      { tag: 'improved', text: "صفحات Auth یک طرح بندی یکپارچه صفحه نمایش را با توصیفات چرخشی به اشتراک می گذارند." },
+      { tag: 'improved', text: "صفحات مرکز راهنمایی، وضعیت و امنیت محتوای کامل و تصاویر بهبود یافته را دریافت می‌کنند." },
     ],
   },
   {
     version: 'v3.1.4',
     date: '2026-04-12',
-    title: 'WhatsApp Pinbot stability + AI improvements',
+    title: "پایداری واتس‌اپ پین‌بات + بهبود هوش مصنوعی",
     entries: [
-      { tag: 'new', text: 'AI brand-voice training now supports up to 20 sample posts (was 10).' },
-      { tag: 'improved', text: 'WhatsApp inbound webhook resilience: automatic retry on transient Pinbot errors.' },
-      { tag: 'fixed', text: 'Inbox filter "unassigned" no longer leaks across clients.' },
+      { tag: 'new', text: "آموزش لحن برند هوش مصنوعی اکنون حداکثر 20 پست نمونه را پشتیبانی می‌کند (10 مورد)." },
+      { tag: 'improved', text: "انعطاف‌پذیری وب هوک ورودی واتس‌اپ: سعی مجدد خودکار روی خطاهای گذرا پین‌بات." },
+      { tag: 'fixed', text: "فیلتر صندوق ورودی \"تخصیص نشده\" دیگر در بین مشتریان نشت نمی‌کند." },
     ],
   },
   {
     version: 'v3.1.0',
     date: '2026-03-21',
-    title: 'Permissions overhaul + audit log',
+    title: "بازنگری مجوزها + گزارش حسابرسی",
     entries: [
-      { tag: 'new', text: 'Granular permission codes per page and action (composer, inbox, video, automations, audience, competitors, audit).' },
-      { tag: 'new', text: 'Audit log searchable across all account actions for 1 year on Growth, custom on Enterprise.' },
-      { tag: 'improved', text: 'Approval workflow now sends in-app + email notifications to designated approvers.' },
+      { tag: 'new', text: "کدهای مجوز ریز در هر صفحه و اقدام (ویرایشگر محتوا، صندوق ورودی، ویدئو، اتوماسیون، مخاطب، رقبا، ممیزی)." },
+      { tag: 'new', text: "گزارش حسابرسی قابل جستجو در همه اقدامات حساب برای 1 سال در رشد، سفارشی در سازمانی." },
+      { tag: 'improved', text: "گردش کار تأیید اکنون اعلان‌های درون برنامه‌ای + ایمیل را به تأییدکنندگان تعیین‌شده ارسال می‌کند." },
     ],
   },
   {
     version: 'v3.0.0',
     date: '2026-02-14',
-    title: 'Unified Marketing OS launch',
+    title: "راه اندازی سیستم عامل بازاریابی یکپارچه",
     entries: [
-      { tag: 'new', text: 'Composer: cross-platform publishing with per-platform overrides.' },
-      { tag: 'new', text: 'Unified inbox with sentiment + AI reply suggestions.' },
-      { tag: 'new', text: 'Automations engine — visual rule builder for keyword, schedule, and sentiment triggers.' },
-      { tag: 'new', text: 'Video Studio: trim, resize, watermark, and publish.' },
+      { tag: 'new', text: "ویرایشگر محتوا: انتشار بین پلتفرمی با نادیده گرفتن هر پلتفرم." },
+      { tag: 'new', text: "صندوق ورودی یکپارچه با احساسات + پیشنهادات پاسخ هوش مصنوعی." },
+      { tag: 'new', text: "موتور اتوماسیون - سازنده قوانین بصری برای کلیدواژه، برنامه زمان‌بندی و محرک های احساسات." },
+      { tag: 'new', text: "استودیوی ویدیویی: برش، تغییر اندازه، واترمارک، و انتشار." },
     ],
   },
   {
     version: 'v2.8.2',
     date: '2026-01-18',
-    title: 'Reporting + integrations polish',
+    title: "پرداخت گزارش + ادغام",
     entries: [
-      { tag: 'new', text: 'Scheduled report delivery (weekly + monthly) via email.' },
-      { tag: 'improved', text: 'GMB integration handles location-based metrics with new APIs.' },
-      { tag: 'fixed', text: 'YouTube watch-time pulled correctly across reauthentications.' },
+      { tag: 'new', text: "تحویل گزارش برنامه‌ریزی شده (هفتگی + ماهانه) از طریق ایمیل." },
+      { tag: 'improved', text: "ادغام GMB معیارهای مبتنی بر مکان را با APIهای جدید مدیریت می‌کند." },
+      { tag: 'fixed', text: "زمان تماشای یوتیوب به درستی در احراز هویت مجدد انجام شد." },
     ],
   },
 ];
 
 const TAGS = {
-  new:      { label: 'New',      bg: 'var(--brand-primary-soft)', color: 'var(--brand-primary-hover)', icon: Sparkles },
-  improved: { label: 'Improved', bg: 'var(--info-bg)',            color: 'var(--info)',                 icon: Wrench },
-  fixed:    { label: 'Fixed',    bg: 'var(--success-bg)',         color: 'var(--success)',              icon: Bug },
+  new:      { label: "جدید",      bg: 'var(--brand-primary-soft)', color: 'var(--brand-primary-hover)', icon: Sparkles },
+  improved: { label: "بهبودیافته", bg: 'var(--info-bg)',            color: 'var(--info)',                 icon: Wrench },
+  fixed:    { label: "اصلاح‌شده",    bg: 'var(--success-bg)',         color: 'var(--success)',              icon: Bug },
 };
 
 export default function ChangelogPage() {
   return (
     <MarketingLayout>
       <Meta
-        title="Changelog"
-        description="Every release, every fix. The latest features, improvements, and bug fixes shipped to Social Stats."
+        title={"تاریخچه تغییرات"}
+        description={"هر انتشار، هر اصلاح. آخرین ویژگی‌ها، بهبودها و رفع اشکال‌ها به راوینتا ارسال شده است."}
       />
       {/* Hero */}
       <section style={{ padding: '128px 32px 56px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
@@ -92,7 +92,7 @@ export default function ChangelogPage() {
           }}
         />
         <div style={{ position: 'relative', maxWidth: 720, margin: '0 auto' }}>
-          <Badge variant="brand" size="md">Changelog</Badge>
+          <Badge variant="brand" size="md">تاریخچه تغییرات</Badge>
           <h1 style={{
             margin: '20px 0 16px',
             fontSize: 'clamp(36px, 4.4vw, 48px)',
@@ -101,10 +101,10 @@ export default function ChangelogPage() {
             fontWeight: 600,
             color: 'var(--text-primary)',
           }}>
-            What's new in Social Stats.
+            آنچه در راوینتا جدید است.
           </h1>
           <p style={{ margin: '0 auto', maxWidth: 560, fontSize: 16, lineHeight: 1.65, color: 'var(--text-secondary)' }}>
-            Every release, every fix. Watch <a href="https://github.com/cbsshekhawat18-lab/social-stats-social-media-manager/releases" target="_blank" rel="noreferrer" style={{ color: 'var(--text-link)', fontWeight: 500 }}>releases on GitHub</a> to get notified.
+            هر انتشار، هر اصلاح. تماشا کنید <a href="https://github.com/cbsshekhawat18-lab/social-stats-social-media-manager/releases" target="_blank" rel="noreferrer" style={{ color: 'var(--text-link)', fontWeight: 500 }}>در گیت‌هاب منتشر می‌شود</a> برای دریافت خبر.
           </p>
         </div>
       </section>
@@ -157,7 +157,7 @@ export default function ChangelogPage() {
                   {r.version}
                 </span>
                 <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
-                  {new Date(r.date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
+                  {new Date(r.date).toLocaleDateString('fa-IR', { year: 'numeric', month: 'long', day: 'numeric' })}
                 </span>
               </div>
 
@@ -214,7 +214,7 @@ export default function ChangelogPage() {
           {/* Older releases CTA */}
           <div style={{ paddingLeft: 56, marginTop: 32 }}>
             <Button as={Link} to="/contact" variant="secondary" size="md" iconRight={ArrowRight}>
-              Looking for older releases?
+              به دنبال نسخه های قدیمی تر هستید؟
             </Button>
           </div>
         </div>

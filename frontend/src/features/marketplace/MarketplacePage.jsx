@@ -23,10 +23,10 @@ import { marketplaceAPI } from '../../services/api';
 import toast from '../../components/ui/toast';
 
 const SORT_OPTIONS = [
-  { value: 'relevance', label: 'Relevance' },
-  { value: 'rating',    label: 'Top rated' },
-  { value: 'newest',    label: 'Newest' },
-  { value: 'cheapest',  label: 'Best price' },
+  { value: 'relevance', label: "مرتبط‌ترین" },
+  { value: 'rating',    label: "دارای رتبه برتر" },
+  { value: 'newest',    label: "جدیدترین" },
+  { value: 'cheapest',  label: "بهترین قیمت" },
 ];
 
 export default function MarketplacePage() {
@@ -61,7 +61,7 @@ export default function MarketplacePage() {
     Object.entries(filters).forEach(([k, v]) => { if (v) params[k] = v === true ? '1' : v; });
     marketplaceAPI.list(params)
       .then((r) => { setAgencies(r.data?.agencies || []); setCount(r.data?.count || 0); })
-      .catch(() => toast.error('Could not load marketplace'))
+      .catch(() => toast.error("بازار بارگیری نشد"))
       .finally(() => setLoading(false));
   }, [filters]);
 
@@ -80,13 +80,13 @@ export default function MarketplacePage() {
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         <header style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 24 }}>
           <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--brand-primary-hover)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-            Marketplace
+            بازار خدمات
           </span>
           <h1 style={{ margin: 0, fontSize: 28, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
-            Find an agency that fits your business
+            آژانسی متناسب با کسب و کار خود بیابید
           </h1>
           <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: 15 }}>
-            Verified agencies. You stay in control of your data, permissions, and access.
+            آژانس‌های تایید شده. شما کنترل داده ها، مجوزها و دسترسی خود را حفظ می‌کنید.
           </p>
         </header>
 
@@ -97,7 +97,7 @@ export default function MarketplacePage() {
             type="text"
             value={filters.q}
             onChange={(e) => setFilter('q', e.target.value)}
-            placeholder="Search agencies by name, industry, or location"
+            placeholder={"آژانس‌ها را بر اساس نام، صنعت یا مکان جستجو کنید"}
             style={searchInput}
           />
           <select
@@ -113,7 +113,7 @@ export default function MarketplacePage() {
         {featured.length > 0 && !filters.q && !filters.industry && !filters.service && (
           <section style={{ marginTop: 24 }}>
             <h2 style={sectionTitle}>
-              <Sparkles size={14} style={{ color: 'var(--brand-primary-hover)' }} /> Featured
+              <Sparkles size={14} style={{ color: 'var(--brand-primary-hover)' }} /> برجسته
             </h2>
             <div style={cardGrid}>
               {featured.map((a) => <AgencyCard key={a.id} agency={a} />)}
@@ -124,16 +124,16 @@ export default function MarketplacePage() {
         {/* Filter chips */}
         <section style={{ marginTop: 28 }}>
           <h2 style={sectionTitle}>
-            <Filter size={13} style={{ color: 'var(--text-tertiary)' }} /> Filters
+            <Filter size={13} style={{ color: 'var(--text-tertiary)' }} /> فیلترها
           </h2>
           <FilterChips
-            label="Industry"
+            label={"صنعت"}
             value={filters.industry}
             options={categories.industries}
             onChange={(v) => setFilter('industry', v)}
           />
           <FilterChips
-            label="Service"
+            label={"خدمات"}
             value={filters.service}
             options={categories.services}
             onChange={(v) => setFilter('service', v)}
@@ -145,12 +145,12 @@ export default function MarketplacePage() {
                 checked={filters.verified}
                 onChange={(e) => setFilter('verified', e.target.checked ? '1' : '')}
               />
-              Verified only
+              فقط تأیید شده است
             </label>
             <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-secondary)' }}>
-              Min rating:
+              حداقل امتیاز:
               <select value={filters.rating_min} onChange={(e) => setFilter('rating_min', e.target.value)} style={miniSelect}>
-                <option value="">Any</option>
+                <option value="">همه</option>
                 <option value="3">★ 3+</option>
                 <option value="4">★ 4+</option>
                 <option value="4.5">★ 4.5+</option>
@@ -162,12 +162,12 @@ export default function MarketplacePage() {
         {/* Results */}
         <section style={{ marginTop: 28 }}>
           <h2 style={sectionTitle}>
-            All agencies <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-tertiary)' }}>· {count}</span>
+            همه آژانس‌ها <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-tertiary)' }}>· {count}</span>
           </h2>
           {loading ? (
-            <div style={{ padding: 36, textAlign: 'center', color: 'var(--text-tertiary)' }}>Loading…</div>
+            <div style={{ padding: 36, textAlign: 'center', color: 'var(--text-tertiary)' }}>در حال بارگذاری…</div>
           ) : agencies.length === 0 ? (
-            <div style={emptyBox}>No agencies match your filters yet. Try widening the search.</div>
+            <div style={emptyBox}>هنوز هیچ آژانسی با فیلترهای شما مطابقت ندارد. جستجو را گسترده تر کنید.</div>
           ) : (
             <div style={cardGrid}>
               {agencies.map((a) => <AgencyCard key={a.id} agency={a} />)}
@@ -186,7 +186,7 @@ function FilterChips({ label, value, options, onChange }) {
       <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)', letterSpacing: '0.04em', textTransform: 'uppercase', marginRight: 4 }}>
         {label}
       </span>
-      <Chip active={!value} onClick={() => onChange('')}>All</Chip>
+      <Chip active={!value} onClick={() => onChange('')}>همه</Chip>
       {options.map((opt) => (
         <Chip key={opt.value} active={value === opt.value} onClick={() => onChange(opt.value)}>
           {opt.value} <em style={{ fontStyle: 'normal', color: 'var(--text-tertiary)', marginLeft: 4 }}>{opt.count}</em>
@@ -247,7 +247,7 @@ function AgencyCard({ agency }) {
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
             <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>{agency.name}</span>
-            {agency.is_verified && <ShieldCheck size={13} color="var(--success)" aria-label="Verified" />}
+            {agency.is_verified && <ShieldCheck size={13} color="var(--success)" aria-label={"تأییدشده"} />}
           </div>
           {agency.location && (
             <div style={{ fontSize: 12, color: 'var(--text-tertiary)', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
@@ -290,18 +290,18 @@ function AgencyCard({ agency }) {
           {agency.review_count > 0 ? (
             <><Star size={12} fill="var(--warning)" stroke="var(--warning)" /> {agency.avg_rating.toFixed(1)} <span style={{ color: 'var(--text-tertiary)' }}>({agency.review_count})</span></>
           ) : (
-            <span style={{ color: 'var(--text-tertiary)' }}>No reviews yet</span>
+            <span style={{ color: 'var(--text-tertiary)' }}>هنوز هیچ بررسی وجود ندارد</span>
           )}
         </div>
         {agency.pricing_starting_at && (
           <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
-            from <strong style={{ color: 'var(--text-primary)' }}>{agency.pricing_currency} {Number(agency.pricing_starting_at).toLocaleString()}</strong>/mo
+            از <strong style={{ color: 'var(--text-primary)' }}>{agency.pricing_currency} {Number(agency.pricing_starting_at).toLocaleString('fa-IR')}</strong> در ماه
           </div>
         )}
       </div>
 
       <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 600, color: 'var(--brand-primary-hover)' }}>
-        View profile <ChevronRight size={12} />
+        مشاهده پروفایل <ChevronRight size={12} />
       </div>
     </Link>
   );

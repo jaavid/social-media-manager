@@ -28,8 +28,8 @@ export default function NotFoundPage() {
   return (
     <>
       <Meta
-        title="Page not found"
-        description="The page you're looking for doesn't exist, has moved, or was never here."
+        title={"صفحه یافت نشد"}
+        description={"صفحه ای که به دنبال آن هستید وجود ندارد، منتقل شده است یا هرگز اینجا نبوده است."}
       />
       <section
         style={{
@@ -80,11 +80,10 @@ export default function NotFoundPage() {
             letterSpacing: '-0.025em',
             color: 'var(--text-primary)',
           }}>
-            Page not found
+            صفحه یافت نشد
           </h1>
           <p style={{ margin: '12px auto 28px', maxWidth: 440, fontSize: 16, lineHeight: 1.65, color: 'var(--text-secondary)' }}>
-            The page you're looking for doesn't exist, has moved, or was never here.
-            Try the home page or search our help center.
+            صفحه ای که به دنبال آن هستید وجود ندارد، منتقل شده است یا هرگز اینجا نبوده است. صفحه اصلی را امتحان کنید یا مرکز راهنمایی ما را جستجو کنید.
           </p>
 
           <form onSubmit={handleSearch} style={{ maxWidth: 420, margin: '0 auto 24px' }}>
@@ -92,20 +91,20 @@ export default function NotFoundPage() {
               name="q"
               type="search"
               size="lg"
-              placeholder="Search the help center…"
+              placeholder={"جستجوی مرکز راهنمایی…"}
               prefix={<Search size={16} />}
             />
           </form>
 
           <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Button as={Link} to="/" size="lg" icon={Home}>Go home</Button>
+            <Button as={Link} to="/" size="lg" icon={Home}>برو به خانه</Button>
             <Button as={Link} to="/help" variant="secondary" size="lg" icon={BookOpen} iconRight={ArrowRight}>
-              Help center
+              مرکز راهنما
             </Button>
           </div>
 
           <p style={{ marginTop: 28, fontSize: 12, color: 'var(--text-tertiary)' }}>
-            Think this is a bug? <Link to="/contact" style={{ color: 'var(--text-link)', fontWeight: 500 }}>Let us know</Link>.
+            فکر می‌کنید این یک اشکال است؟ <Link to="/contact" style={{ color: 'var(--text-link)', fontWeight: 500 }}>به ما اطلاع دهید</Link>.
           </p>
         </div>
       </section>

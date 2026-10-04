@@ -27,45 +27,45 @@ import SkipLink from '../ui/SkipLink';
 // Nav data
 // ─────────────────────────────────────────────────────────────────────────────
 const PRODUCT_MENU = [
-  { label: 'Analytics',     to: '/product/analytics',         icon: BarChart3,    desc: 'Cross-platform metrics' },
-  { label: 'Composer',      to: '/product/composer',          icon: PenSquare,    desc: 'Write once, publish 5x' },
-  { label: 'Inbox',         to: '/product/inbox',             icon: Inbox,        desc: 'Every conversation, one place' },
-  { label: 'WhatsApp',      to: '/product/whatsapp',          icon: MessageCircle,desc: 'Campaigns + two-way chat' },
-  { label: 'Bot Builder',   to: '/product/bot-builder',       icon: Bot,          desc: 'Visual CTWA flow editor' },
-  { label: 'AI Studio',     to: '/product/ai',                icon: Sparkles,     desc: 'Social Stats in every corner' },
-  { label: 'AI Assistant',  to: '/product/ai-assistant',      icon: MessagesSquare, desc: 'Cmd+J — talk to your data' },
-  { label: 'Reports',       to: '/product/reports',           icon: FileText,     desc: 'Reports that write themselves' },
-  { label: 'Automations',   to: '/product/automations',       icon: Zap,          desc: 'IF this, do that' },
-  { label: 'Marketplace',   to: '/product/marketplace-product', icon: Star,       desc: 'Two-sided marketplace' },
+  { label: "تحلیل و آمار",     to: '/product/analytics',         icon: BarChart3,    desc: "معیارهای بین پلتفرمی" },
+  { label: "ویرایشگر محتوا",      to: '/product/composer',          icon: PenSquare,    desc: "یک بار بنویسید، در پنج پلتفرم منتشر کنید" },
+  { label: "صندوق پیام‌ها",         to: '/product/inbox',             icon: Inbox,        desc: "هر مکالمه، یک مکان" },
+  { label: "واتس‌اپ",      to: '/product/whatsapp',          icon: MessageCircle,desc: "کمپین ها + چت دو طرفه" },
+  { label: "سازنده ربات",   to: '/product/bot-builder',       icon: Bot,          desc: "ویرایشگر جریان CTWA ویژوال" },
+  { label: "استودیوی هوش مصنوعی",     to: '/product/ai',                icon: Sparkles,     desc: "راوینتا در هر گوشه" },
+  { label: "دستیار هوش مصنوعی",  to: '/product/ai-assistant',      icon: MessagesSquare, desc: "Cmd+J - با داده‌های خود صحبت کنید" },
+  { label: "گزارش‌ها",       to: '/product/reports',           icon: FileText,     desc: "گزارش‌هایی که خودشان می‌نویسند" },
+  { label: "خودکارسازی",   to: '/product/automations',       icon: Zap,          desc: "اجرای خودکار کارها بر اساس شرط‌ها" },
+  { label: "بازار خدمات",   to: '/product/marketplace-product', icon: Star,       desc: "بازار دو طرفه" },
 ];
 
 const SOLUTIONS_BY_ROLE = [
-  { label: 'For Agencies',   to: '/solutions/agencies',   icon: Briefcase, desc: 'Manage 100+ clients' },
-  { label: 'For Businesses', to: '/solutions/businesses', icon: Building2, desc: 'Take back control' },
-  { label: 'For Creators',   to: '/solutions/creators',   icon: Palette,   desc: 'Track your creator economy' },
+  { label: "برای آژانس‌ها",   to: '/solutions/agencies',   icon: Briefcase, desc: "بیش از ۱۰۰ فضای کاری را مدیریت کنید" },
+  { label: "برای کسب‌وکارها", to: '/solutions/businesses', icon: Building2, desc: "کنترل را پس بگیرید" },
+  { label: "برای تولیدکنندگان محتوا",   to: '/solutions/creators',   icon: Palette,   desc: "عملکرد و درآمد محتوای خود را دنبال کنید" },
 ];
 
 const SOLUTIONS_BY_INDUSTRY = [
-  { label: 'Real Estate', to: '/solutions/real-estate', icon: Building2,        desc: 'Sell more properties' },
-  { label: 'Healthcare',  to: '/solutions/clinics',     icon: Stethoscope,      desc: 'Engage patients' },
-  { label: 'Restaurants', to: '/solutions/restaurants', icon: UtensilsCrossed,  desc: 'Fill more tables' },
-  { label: 'E-commerce',  to: '/solutions/ecommerce',   icon: ShoppingBag,      desc: 'Drive sales from social' },
-  { label: 'Education',   to: '/solutions/education',   icon: GraduationCap,    desc: 'Reach more students' },
+  { label: "املاک", to: '/solutions/real-estate', icon: Building2,        desc: "فروش املاک بیشتر" },
+  { label: "سلامت و درمان",  to: '/solutions/clinics',     icon: Stethoscope,      desc: "ارتباط با بیماران را تقویت کنید" },
+  { label: "رستوران‌ها", to: '/solutions/restaurants', icon: UtensilsCrossed,  desc: "مشتریان بیشتری به رستوران جذب کنید" },
+  { label: "تجارت الکترونیکی",  to: '/solutions/ecommerce',   icon: ShoppingBag,      desc: "فروش را از شبکه‌های اجتماعی هدایت کنید" },
+  { label: "آموزش",   to: '/solutions/education',   icon: GraduationCap,    desc: "به دانش آموزان بیشتری دسترسی پیدا کنید" },
 ];
 
 const SIMPLE_LINKS = [
-  { label: 'Customers',   to: '/customers' },
-  { label: 'Resources',   to: null,
+  { label: "مشتریان",   to: '/customers' },
+  { id: 'resources', label: "منابع",   to: null,
     menu: { single: [
-      { label: 'Blog',          to: '/blog',         desc: 'Marketing tips + product updates' },
-      { label: 'Help Center',   to: '/help',         desc: 'Guides + how-tos' },
-      { label: 'Changelog',     to: '/changelog',    desc: 'What shipped this week' },
-      { label: 'Status',        to: '/status',       desc: 'System uptime' },
-      { label: 'Integrations',  to: '/integrations', desc: 'Connect your stack' },
-      { label: 'Contact',       to: '/contact',      desc: 'Sales + support' },
+      { label: "وبلاگ",          to: '/blog',         desc: "نکات بازاریابی و تازه‌های محصول" },
+      { label: "مرکز راهنما",   to: '/help',         desc: "راهنماها + نحوه کار" },
+      { label: "تاریخچه تغییرات",     to: '/changelog',    desc: "امکانات تازه و بهبودهای محصول" },
+      { label: "وضعیت",        to: '/status',       desc: "وضعیت دسترس‌پذیری سامانه" },
+      { label: "اتصال‌ها",  to: '/integrations', desc: "ابزارهای خود را متصل کنید" },
+      { label: "تماس با ما",       to: '/contact',      desc: "فروش + پشتیبانی" },
     ]},
   },
-  { label: 'About',       to: '/about' },
+  { label: "درباره ما",       to: '/about' },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -179,18 +179,18 @@ export default function MarketingNav() {
           gap: 16,
         }}
       >
-        <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', flexShrink: 0 }} aria-label="Social Stats home">
+        <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', flexShrink: 0 }} aria-label={"صفحه اصلی راوینتا"}>
           <Logo variant="horizontal" height={isMobile ? 26 : 30} />
         </Link>
 
         {/* Desktop nav */}
         {!isMobile && (
           <nav style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <MegaTrigger label="Product"
+            <MegaTrigger menuId="product" label={"محصول"}
                          active={openMenu === 'product'}
                          onToggle={() => { cancelClose(); setOpenMenu(openMenu === 'product' ? null : 'product'); }}
                          onEnter={() => { cancelClose(); setOpenMenu('product'); }} />
-            <MegaTrigger label="Solutions"
+            <MegaTrigger menuId="solutions" label={"راهکارها"}
                          active={openMenu === 'solutions'}
                          onToggle={() => { cancelClose(); setOpenMenu(openMenu === 'solutions' ? null : 'solutions'); }}
                          onEnter={() => { cancelClose(); setOpenMenu('solutions'); }} />
@@ -201,10 +201,10 @@ export default function MarketingNav() {
                 {l.label}
               </NavLink>
             ) : (
-              <MegaTrigger key={l.label} label={l.label}
-                           active={openMenu === l.label.toLowerCase()}
-                           onToggle={() => { cancelClose(); setOpenMenu(openMenu === l.label.toLowerCase() ? null : l.label.toLowerCase()); }}
-                           onEnter={() => { cancelClose(); setOpenMenu(l.label.toLowerCase()); }} />
+              <MegaTrigger key={l.id} menuId={l.id} label={l.label}
+                           active={openMenu === l.id}
+                           onToggle={() => { cancelClose(); setOpenMenu(openMenu === l.id ? null : l.id); }}
+                           onEnter={() => { cancelClose(); setOpenMenu(l.id); }} />
             ))}
           </nav>
         )}
@@ -213,14 +213,14 @@ export default function MarketingNav() {
           <ThemeToggle size="md" variant="ghost" />
           {!isMobile && (
             <>
-              <Button as={Link} to="/login" variant="ghost" size="sm">Sign in</Button>
-              <Button as={Link} to="/signup" size="sm" variant="primary">Get started free</Button>
+              <Button as={Link} to="/login" variant="ghost" size="sm">ورود</Button>
+              <Button as={Link} to="/signup" size="sm" variant="primary">شروع رایگان</Button>
             </>
           )}
           {isMobile && (
             <button
               type="button"
-              aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+              aria-label={mobileOpen ? "بستن منو" : "باز کردن منو"}
               aria-expanded={mobileOpen}
               onClick={() => setMobileOpen((v) => !v)}
               style={{
@@ -253,13 +253,13 @@ export default function MarketingNav() {
         <MegaPanel id={`mkt-${openMenu}`} onMouseEnter={cancelClose} onMouseLeave={scheduleClose}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 32 }}>
             <div>
-              <MegaHeader>By role</MegaHeader>
+              <MegaHeader>بر اساس نقش</MegaHeader>
               <MegaGrid columns={1}>
                 {SOLUTIONS_BY_ROLE.map((item) => <MegaItem key={item.to} {...item} />)}
               </MegaGrid>
             </div>
             <div>
-              <MegaHeader>By industry</MegaHeader>
+              <MegaHeader>بر اساس صنعت</MegaHeader>
               <MegaGrid columns={1}>
                 {SOLUTIONS_BY_INDUSTRY.map((item) => <MegaItem key={item.to} {...item} />)}
               </MegaGrid>
@@ -270,7 +270,7 @@ export default function MarketingNav() {
       {!isMobile && openMenu === 'resources' && (
         <MegaPanel id={`mkt-${openMenu}`} onMouseEnter={cancelClose} onMouseLeave={scheduleClose}>
           <MegaGrid columns={2}>
-            {SIMPLE_LINKS.find((l) => l.label === 'Resources').menu.single.map((item) => (
+            {SIMPLE_LINKS.find((l) => l.id === 'resources').menu.single.map((item) => (
               <MegaItem key={item.to} {...item} />
             ))}
           </MegaGrid>
@@ -315,7 +315,7 @@ function NavLink({ to, active, children, onMouseEnter }) {
   );
 }
 
-function MegaTrigger({ label, active, onEnter, onToggle }) {
+function MegaTrigger({ menuId, label, active, onEnter, onToggle }) {
   return (
     <button
       type="button"
@@ -327,7 +327,7 @@ function MegaTrigger({ label, active, onEnter, onToggle }) {
           onEnter();
         }
       }}
-      aria-controls={`mkt-${label.toLowerCase()}`}
+      aria-controls={`mkt-${menuId}`}
       aria-expanded={active}
       style={{
         padding: '8px 12px',
@@ -471,7 +471,7 @@ function MobileDrawer({ location, onClose }) {
       ref={drawerRef}
       role="dialog"
       aria-modal="true"
-      aria-label="Navigation"
+      aria-label={"منوی اصلی"}
       tabIndex={-1}
       style={{
         position: 'fixed',
@@ -483,25 +483,25 @@ function MobileDrawer({ location, onClose }) {
         animation: 'mkt-drawer-slide 220ms var(--ease-out)',
       }}
     >
-      <Accordion title="Product"
+      <Accordion title={"محصول"}
                  open={openSection === 'product'}
                  onToggle={() => setOpenSection((s) => s === 'product' ? null : 'product')}>
         {PRODUCT_MENU.map((item) => (
           <DrawerItem key={item.to} {...item} active={location.pathname === item.to} />
         ))}
       </Accordion>
-      <Accordion title="Solutions"
+      <Accordion title={"راهکارها"}
                  open={openSection === 'solutions'}
                  onToggle={() => setOpenSection((s) => s === 'solutions' ? null : 'solutions')}>
         <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.06em',
                       textTransform: 'uppercase', color: 'var(--text-tertiary)',
-                      padding: '8px 14px 4px' }}>By role</div>
+                      padding: '8px 14px 4px' }}>بر اساس نقش</div>
         {SOLUTIONS_BY_ROLE.map((item) => (
           <DrawerItem key={item.to} {...item} active={location.pathname === item.to} />
         ))}
         <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.06em',
                       textTransform: 'uppercase', color: 'var(--text-tertiary)',
-                      padding: '12px 14px 4px' }}>By industry</div>
+                      padding: '12px 14px 4px' }}>بر اساس صنعت</div>
         {SOLUTIONS_BY_INDUSTRY.map((item) => (
           <DrawerItem key={item.to} {...item} active={location.pathname === item.to} />
         ))}
@@ -522,8 +522,8 @@ function MobileDrawer({ location, onClose }) {
           >{l.label}</Link>
         ) : (
           <Accordion key={l.label} title={l.label}
-                     open={openSection === l.label.toLowerCase()}
-                     onToggle={() => setOpenSection((s) => s === l.label.toLowerCase() ? null : l.label.toLowerCase())}>
+                     open={openSection === l.id}
+                     onToggle={() => setOpenSection((s) => s === l.id ? null : l.id)}>
             {l.menu.single.map((item) => (
               <DrawerItem key={item.to} {...item} active={location.pathname === item.to} />
             ))}
@@ -532,8 +532,8 @@ function MobileDrawer({ location, onClose }) {
       )}
       <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border-subtle)',
                     display: 'grid', gap: 8 }}>
-        <Button as={Link} to="/login" variant="secondary" size="lg" fullWidth>Sign in</Button>
-        <Button as={Link} to="/signup" size="lg" fullWidth>Get started free</Button>
+        <Button as={Link} to="/login" variant="secondary" size="lg" fullWidth>ورود</Button>
+        <Button as={Link} to="/signup" size="lg" fullWidth>شروع رایگان</Button>
       </div>
       <style>{`
         @keyframes mkt-drawer-slide {

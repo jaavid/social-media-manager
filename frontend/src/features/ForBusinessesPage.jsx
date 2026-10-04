@@ -30,8 +30,8 @@ export default function ForBusinessesPage() {
   return (
     <MarketingLayout>
       <Meta
-        title="Social Stats for businesses — take control of your social media"
-        description="Free forever for individuals and small businesses. Connect Instagram, Facebook, YouTube, LinkedIn and Google My Business in 5 minutes. Bring an agency on-board (or don't) — you stay in control."
+        title={"راوینتا برای مشاغل - کنترل شبکه‌های اجتماعی خود را در دست بگیرید"}
+        description={"رایگان برای همیشه برای افراد و مشاغل کوچک. اینستاگرام، فیسبوک، یوتیوب، لینکدین و گوگل برای کسب و کار من را در 5 دقیقه متصل کنید. یک آژانس را در هیئت مدیره بیاورید (یا نگیرید) - کنترل را در دست خواهید داشت."}
       />
       <Hero />
       <ValueProps />
@@ -53,7 +53,7 @@ function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <Badge variant="brand" icon={Sparkles} size="md">For business owners · free forever</Badge>
+          <Badge variant="brand" icon={Sparkles} size="md">برای صاحبان مشاغل · رایگان برای همیشه</Badge>
         </MotionDiv>
         <MotionH1
           initial={{ opacity: 0, y: 12 }}
@@ -66,9 +66,9 @@ function Hero() {
             fontWeight: 600, color: 'var(--text-primary)',
           }}
         >
-          Take control of your{' '}
+          کنترل خود را در دست بگیرید{' '}
           <span style={{ backgroundImage: 'var(--brand-gradient)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>
-            social media.
+            شبکه‌های اجتماعی.
           </span>
         </MotionH1>
         <MotionP
@@ -77,8 +77,7 @@ function Hero() {
           transition={{ duration: 0.6, delay: 0.1 }}
           style={{ margin: '0 auto', maxWidth: 640, fontSize: 18, lineHeight: 1.6, color: 'var(--text-secondary)' }}
         >
-          Real-estate agents, clinics, restaurants, creators — connect your accounts in 5 minutes
-          and start posting, replying, and tracking what's working. Free forever for individuals.
+          نمایندگان املاک، کلینیک‌ها، رستوران‌ها، سازندگان - حساب‌های خود را در 5 دقیقه به هم متصل کنید و شروع به پست کردن، پاسخ دادن و ردیابی آنچه در حال انجام است، کنید. رایگان برای همیشه برای افراد.
         </MotionP>
         <MotionDiv
           initial={{ opacity: 0, y: 12 }}
@@ -87,14 +86,14 @@ function Hero() {
           style={{ marginTop: 28, display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}
         >
           <Button as={Link} to="/auth/end-user/signup" size="xl" iconRight={ArrowRight}>
-            Get started — it's free
+            شروع کنید — رایگان است
           </Button>
           <Button as={Link} to="/agencies" size="xl" variant="secondary" icon={Search}>
-            Browse agencies
+            آژانس‌ها را مرور کنید
           </Button>
         </MotionDiv>
         <p style={{ marginTop: 14, fontSize: 13, color: 'var(--text-tertiary)' }}>
-          No credit card · 5 platforms · ✨ AI-assisted from day one
+          بدون کارت اعتباری · 5 سیستم عامل · ✨ از روز اول با کمک هوش مصنوعی
         </p>
       </div>
     </section>
@@ -104,16 +103,16 @@ function Hero() {
 
 function ValueProps() {
   const items = [
-    { icon: Plug,       title: 'Connect in 5 minutes',  body: 'OAuth into Instagram, Facebook, YouTube, LinkedIn and Google My Business. We handle token refresh and platform quirks.' },
-    { icon: BarChart3,  title: 'See what\'s working',   body: 'Unified analytics across every platform — so you stop tab-hopping and start making decisions.' },
-    { icon: Bot,        title: 'AI built-in',           body: 'Draft posts, suggest replies, and surface the best time to post — without copying anything into a separate tool.' },
-    { icon: ShieldCheck,title: 'Your data, your rules', body: 'Disconnect anytime. Export anytime. Audit log of every action — by you, by AI, by an agency if you bring one on.' },
+    { icon: Plug,       title: "در 5 دقیقه وصل شوید",  body: "OAuth به اینستاگرام، فیس‌بوک، یوتیوب، لینکدین و Google My Business. ما به نوسازی رمز و خصلت های پلتفرم رسیدگی می کنیم." },
+    { icon: BarChart3,  title: "ببینید چه چیزی کار می‌کند",   body: "تحلیل و آمار یکپارچه در همه پلتفرم‌ها - به این ترتیب از تب پرش خودداری می‌کنید و شروع به تصمیم‌گیری می‌کنید." },
+    { icon: Bot,        title: "هوش مصنوعی داخلی",           body: "پست‌ها را پیش‌نویس کنید، پاسخ‌ها را پیشنهاد دهید و بهترین زمان برای پست کردن را نشان دهید - بدون کپی کردن چیزی در ابزار جداگانه." },
+    { icon: ShieldCheck,title: "داده‌های شما، قوانین شما", body: "هرزمان خواستید اتصال را قطع کنید. صادرات در هر زمان. گزارش حسابرسی هر اقدام - توسط شما، توسط هوش مصنوعی، توسط آژانس در صورت انجام." },
   ];
   return (
     <section style={{ padding: '64px 32px', background: 'var(--surface-card)' }}>
       <div style={{ maxWidth: 'var(--container-2xl)', margin: '0 auto' }}>
-        <h2 style={sectionH}>Built for the way you actually work</h2>
-        <p style={sectionSub}>Five connected platforms. One dashboard. Zero spreadsheets.</p>
+        <h2 style={sectionH}>برای روشی که واقعاً کار می‌کنید ساخته شده است</h2>
+        <p style={sectionSub}>پنج سکوی متصل. یک داشبورد صفحات گسترده صفر</p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, marginTop: 32 }}>
           {items.map((it) => (
             <article key={it.title} style={featureCard}>
@@ -140,24 +139,23 @@ function AgencyOptional() {
     <section style={{ padding: '72px 32px' }}>
       <div style={{ maxWidth: 920, margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 40, alignItems: 'center' }} className="fb-grid">
         <div>
-          <Badge variant="brand" icon={Users2} size="md">Agency-friendly</Badge>
+          <Badge variant="brand" icon={Users2} size="md">مناسب آژانس‌ها</Badge>
           <h2 style={{ margin: '14px 0 10px', fontSize: 28, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
-            Already work with an agency? They can join you for free.
+            قبلاً با آژانس کار می‌کنید؟ آنها می‌توانند به صورت رایگان به شما بپیوندند.
           </h2>
           <p style={{ margin: '0 0 20px', fontSize: 15, color: 'var(--text-secondary)', lineHeight: 1.65 }}>
-            Invite them by email — they get an account on Social Stats at no cost. You set the permissions, mark sensitive actions
-            "ask me first", and revoke access in a single click. No more shared logins.
+            آنها را از طریق ایمیل دعوت کنید - آنها بدون هیچ هزینه ای یک حساب کاربری در راوینتا دریافت می‌کنند. شما مجوزها را تنظیم می‌کنید، اقدامات حساس را علامت گذاری می‌کنید "اول از من بپرس" و دسترسی را با یک کلیک لغو می‌کنید. دیگر هیچ ورود مشترکی وجود ندارد.
           </p>
           <Button as={Link} to="/agencies" variant="secondary" size="md" icon={Search}>
-            Browse the agency marketplace
+            بازار آژانس را مرور کنید
           </Button>
         </div>
         <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
           {[
-            'Permissions matrix — toggle what they can and can\'t do',
-            '"Ask me first" approvals for risky actions (publishing, ad spend, deletions)',
-            'Activity log — every agency action is logged for audit',
-            'Pause access for vacations; revoke entirely when you part ways',
+            "ماتریس مجوزها - کارهایی که می‌توانند انجام دهند و نمی‌توانند انجام دهند را تغییر دهند",
+            "تأییدیه‌های «اول از من بپرس» برای اقدامات مخاطره‌آمیز (انتشار، هزینه تبلیغات، حذف)",
+            "گزارش فعالیت - هر اقدام آژانس برای ممیزی ثبت می‌شود",
+            "توقف دسترسی برای تعطیلات. زمانی که راه خود را از هم جدا کردید به طور کامل لغو کنید",
           ].map((s) => (
             <li key={s} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 14, color: 'var(--text-primary)' }}>
               <Check size={16} style={{ color: 'var(--success)', flexShrink: 0, marginTop: 2 }} />
@@ -185,11 +183,10 @@ function PrivacyTrust() {
           <ShieldCheck size={22} strokeWidth={2.2} />
         </span>
         <h2 style={{ margin: '0 0 10px', fontSize: 28, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
-          Your data stays yours.
+          داده‌های شما از آن شما می ماند.
         </h2>
         <p style={{ margin: 0, fontSize: 15, color: 'var(--text-secondary)', lineHeight: 1.65 }}>
-          We never sell your data. We never train on your private posts. Disconnecting a platform takes one click —
-          even if an agency is managing your account. Export anytime. Delete anytime.
+          ما هرگز داده‌های شما را نمی فروشیم. ما هرگز در پست‌های خصوصی شما آموزش نمی‌دهیم. قطع ارتباط یک پلتفرم یک کلیک طول می کشد - حتی اگر آژانسی حساب شما را مدیریت کند. صادرات در هر زمان. در هر زمان حذف کنید.
         </p>
       </div>
     </section>
@@ -202,13 +199,13 @@ function FinalCTA() {
     <section style={{ padding: '72px 32px', background: 'var(--surface-card)', borderTop: '1px solid var(--border-subtle)' }}>
       <div style={{ maxWidth: 720, margin: '0 auto', textAlign: 'center' }}>
         <h2 style={{ margin: 0, fontSize: 30, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
-          Ready in 5 minutes.
+          در 5 دقیقه آماده است.
         </h2>
         <p style={{ margin: '8px 0 22px', fontSize: 15, color: 'var(--text-secondary)' }}>
-          No credit card. No agency required. Bring one when you want.
+          بدون کارت اعتباری. بدون نیاز به نمایندگی هر وقت خواستی یکی بیار
         </p>
         <Button as={Link} to="/auth/end-user/signup" size="xl" iconRight={ArrowRight}>
-          Create my account
+          حساب کاربری من را ایجاد کنید
         </Button>
       </div>
     </section>

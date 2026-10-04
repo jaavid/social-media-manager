@@ -23,120 +23,120 @@ const FEATURES = [
     id: 'analytics',
     icon: BarChart3,
     color: 'var(--module-analytics)',
-    eyebrow: 'Analytics',
-    title: 'Cross-platform metrics, unified.',
+    eyebrow: "تحلیل و آمار",
+    title: "معیارهای بین پلتفرمی، یکپارچه.",
     body:
-      'Pull Facebook, Instagram, YouTube, LinkedIn, GMB, X, and more into a single live dashboard. Drill into any post, any platform, any window — without spreadsheets.',
+      "فیس‌بوک، اینستاگرام، یوتیوب، لینکدین، جی ام بی، ایکس و موارد دیگر را به یک داشبورد زنده بکشید. در هر پست، هر پلتفرم، هر پنجره - بدون صفحات گسترده، سوراخ کنید.",
     bullets: [
-      'Real-time follower, engagement, and reach metrics',
-      'Custom date ranges with on-the-fly comparisons',
-      'Per-platform breakdowns and aggregate views',
-      'White-label PDF exports for clients',
+      "معیارهای فالوور، تعامل و رسیدن به زمان واقعی",
+      "محدوده تاریخ سفارشی با مقایسه در لحظه",
+      "تفکیک هر پلتفرم و نماهای کل",
+      "صادرات PDF با برند اختصاصی برای مشتریان",
     ],
   },
   {
     id: 'composer',
     icon: PenSquare,
     color: '#8b5cf6',
-    eyebrow: 'Composer',
-    title: 'Write once. Publish everywhere.',
+    eyebrow: "ویرایشگر محتوا",
+    title: "یک بار بنویس. همه جا منتشر کنید.",
     body:
-      'Compose a single post and tailor it per platform inline. Attach assets from the media library, schedule into queues, or publish immediately.',
+      "یک پست واحد بنویسید و آن را در هر پلتفرم به صورت خطی تنظیم کنید. دارایی ها را از کتابخانه رسانه ضمیمه کنید، در صف ها برنامه‌ریزی کنید یا فورا منتشر کنید.",
     bullets: [
-      'Per-platform overrides without rewriting',
-      'Smart scheduling with timezone-aware queues',
-      'Approval gates before publish',
-      'Built-in media library + asset transformations',
+      "هر پلتفرم بدون بازنویسی لغو می‌شود",
+      "برنامه‌ریزی هوشمند با صف های آگاه از منطقه زمانی",
+      "دروازه های تایید قبل از انتشار",
+      "کتابخانه رسانه داخلی + تحولات دارایی",
     ],
   },
   {
     id: 'inbox',
     icon: Inbox,
     color: 'var(--module-messaging)',
-    eyebrow: 'Inbox',
-    title: 'Every reply in one timeline.',
+    eyebrow: "صندوق پیام‌ها",
+    title: "هر پاسخ در یک جدول زمانی.",
     body:
-      'Comments, DMs, mentions, reviews, and WhatsApp messages — all merged into one unified inbox with sentiment tagging and AI-suggested replies.',
+      "نظرات، پیامک‌ها، اشاره‌ها، بررسی‌ها و پیام‌های واتس‌اپ - همه در یک صندوق ورودی یکپارچه با برچسب‌گذاری احساسات و پاسخ‌های پیشنهادی هوش مصنوعی ادغام شدند.",
     bullets: [
-      'Cross-platform conversation threads',
-      'Sentiment + intent tagging out of the box',
-      'AI reply suggestions in your brand voice',
-      'Assign, snooze, and resolve workflows',
+      "موضوعات مکالمه بین پلتفرمی",
+      "عواطف + نشانه گذاری هدف از جعبه",
+      "پیشنهادات پاسخ هوش مصنوعی در لحن برند شما",
+      "تخصیص، به تعویق انداختن، و حل و فصل گردش کار",
     ],
   },
   {
     id: 'ai',
     icon: Sparkles,
     color: 'var(--module-ai)',
-    eyebrow: 'AI',
-    title: 'AI that knows your brand voice.',
+    eyebrow: "هوش مصنوعی",
+    title: "هوش مصنوعی که لحن برند شما را می شناسد.",
     body:
-      'Upload sample posts to train a private brand voice profile. Generate captions, hashtags, replies, and predictions — every output carries your tone.',
+      "برای آموزش نمایه لحن برند خصوصی، پست‌های نمونه را آپلود کنید. زیرنویس‌ها، هشتگ‌ها، پاسخ‌ها و پیش‌بینی‌ها را ایجاد کنید - هر خروجی صدای شما را دارد.",
     bullets: [
-      'Caption generation in your tone',
-      'Hashtag research with engagement scoring',
-      'Best-time-to-post predictions',
-      'Auto-summaries of weekly performance',
+      "تولید شرح با لحن شما",
+      "تحقیق هشتگ با امتیازدهی تعامل",
+      "پیش‌بینی‌های بهترین زمان برای ارسال",
+      "خلاصه خودکار عملکرد هفتگی",
     ],
   },
   {
     id: 'automations',
     icon: Zap,
     color: '#f59e0b',
-    eyebrow: 'Automations',
-    title: 'Smart automations, no code.',
+    eyebrow: "خودکارسازی",
+    title: "اتوماسیون هوشمند، بدون کد.",
     body:
-      'Trigger actions on schedule, sentiment, or keywords. Auto-reply to FAQs, escalate negative reviews, and notify the right human at the right moment.',
+      "اقدامات بر اساس برنامه، احساسات، یا کلمات کلیدی را آغاز کنید. پاسخ خودکار به پرسش‌های متداول، تشدید بررسی‌های منفی، و اطلاع دادن به انسان مناسب در لحظه مناسب.",
     bullets: [
-      'Visual rule builder — no code',
-      'Trigger on schedule, keyword, or sentiment',
-      'Built-in connectors to Slack, email, WhatsApp',
-      'Run history with full audit trail',
+      "سازنده قوانین بصری - بدون کد",
+      "در برنامه، کلمه کلیدی، یا احساسات ماشه",
+      "رابط های داخلی به اسلک، ایمیل، واتس‌اپ",
+      "اجرای تاریخچه با دنباله حسابرسی کامل",
     ],
   },
   {
     id: 'reports',
     icon: FileText,
     color: '#3b82f6',
-    eyebrow: 'Reports',
-    title: 'Polished reports clients love.',
+    eyebrow: "گزارش‌ها",
+    title: "گزارش‌های صیقلی که مشتریان دوست دارند.",
     body:
-      'Generate beautiful, white-labelled performance reports in minutes. Schedule weekly or monthly delivery, share via secure links, or export to PDF.',
+      "در چند دقیقه گزارش عملکرد با برند خود بسازید. تحویل هفتگی یا ماهانه را زمان‌بندی کنید، با پیوند امن به اشتراک بگذارید یا خروجی PDF بگیرید.",
     bullets: [
-      'Branded PDF and shareable web links',
-      'Auto-scheduled delivery cadence',
-      'Drag-and-drop section ordering',
-      'AI-generated executive summary',
+      "پی دی اف مارک دار و پیوندهای وب قابل اشتراک گذاری",
+      "آهنگ تحویل برنامه‌ریزی شده خودکار",
+      "سفارش بخش کشیدن و رها کردن",
+      "خلاصه اجرایی ایجاد شده توسط هوش مصنوعی",
     ],
   },
   {
     id: 'team',
     icon: Users,
     color: '#10b981',
-    eyebrow: 'Team',
-    title: 'Granular collaboration controls.',
+    eyebrow: "تیم",
+    title: "کنترل های همکاری دانه ای.",
     body:
-      'Invite teammates, assign clients, scope permissions per page or action. Approval workflows keep brand integrity tight without slowing you down.',
+      "از هم تیمی ها دعوت کنید، مشتریان را اختصاص دهید، مجوزهای دامنه را در هر صفحه یا عمل انجام دهید. گردش کار تایید یکپارچگی نام تجاری را بدون کاهش سرعت شما حفظ می‌کند.",
     bullets: [
-      'Role-based + per-user permission overrides',
-      'Multi-client workspace assignments',
-      'Approval chains with comment threads',
-      'SAML SSO on Enterprise',
+      "مجوز بر اساس نقش + هر کاربر لغو می‌شود",
+      "تکالیف فضای کاری چند مشتری",
+      "زنجیره های تایید با موضوعات نظر",
+      "SAML SSO در سازمانی",
     ],
   },
   {
     id: 'security',
     icon: ShieldCheck,
     color: '#ef4444',
-    eyebrow: 'Security',
-    title: 'Enterprise-grade by default.',
+    eyebrow: "امنیت",
+    title: "به طور پیش فرض درجه سازمانی.",
     body:
-      'Tokens encrypted at rest with Fernet. JWT auth with rotating refresh. Full audit log of every action. SOC 2 in progress; GDPR + DPDP-ready.',
+      "رمزگذاری شده در حالت استراحت با Fernet. تأیید اعتبار JWT با به‌روزرسانی چرخشی. گزارش حسابرسی کامل از هر اقدام. SOC 2 در حال انجام است. GDPR + DPDP-ready.",
     bullets: [
-      'Encryption at rest (Fernet) + in transit (TLS 1.3)',
-      'Audit log searchable across every action',
-      'GDPR + India DPDP compliant',
-      'Bug bounty program + 24/7 incident response',
+      "رمزگذاری در حالت استراحت (Fernet) + در حال انتقال (TLS 1.3)",
+      "گزارش حسابرسی قابل جستجو در هر اقدام",
+      "مطابق با GDPR + هند DPDP",
+      "برنامه پاداش اشکال + پاسخ حادثه 24/7",
     ],
   },
 ];
@@ -145,8 +145,8 @@ export default function FeaturesPage() {
   return (
     <>
       <Meta
-        title="Features"
-        description="Cross-platform analytics, AI-powered composer, unified inbox, automations, white-label reports, granular team permissions — every workflow your agency needs in one platform."
+        title={"امکانات"}
+        description={"تحلیل و آمار بین پلتفرمی، ویرایشگر محتوا مبتنی بر هوش مصنوعی، صندوق ورودی یکپارچه، اتوماسیون، گزارش‌های برند اختصاصی، مجوزهای گروهی - هر گردش کاری که آژانس شما در یک پلتفرم نیاز دارد."}
       />
       {/* ── Hero ─────────────────────────────────────── */}
       <section style={{ padding: '128px 32px 64px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
@@ -159,7 +159,7 @@ export default function FeaturesPage() {
           }}
         />
         <div style={{ position: 'relative', maxWidth: 760, margin: '0 auto' }}>
-          <Badge variant="brand" size="md">Features</Badge>
+          <Badge variant="brand" size="md">امکانات</Badge>
           <h1 style={{
             margin: '20px 0 18px',
             fontSize: 'clamp(40px, 5vw, 56px)',
@@ -168,11 +168,10 @@ export default function FeaturesPage() {
             fontWeight: 600,
             color: 'var(--text-primary)',
           }}>
-            One platform. Every workflow.
+            یک سکو. هر گردش کار
           </h1>
           <p style={{ margin: 0, fontSize: 18, lineHeight: 1.65, color: 'var(--text-secondary)' }}>
-            Everything you need to run a modern agency. From the first OAuth connect to the polished
-            client report — Social Stats handles the entire growth loop.
+            همه آنچه برای اداره یک آژانس مدرن نیاز دارید. از اولین اتصال OAuth به گزارش مشتری صیقلی - راوینتا کل حلقه رشد را کنترل می‌کند.
           </p>
         </div>
       </section>
@@ -215,7 +214,7 @@ export default function FeaturesPage() {
               color: 'var(--text-tertiary)',
               padding: '4px 8px 10px',
             }}>
-              On this page
+              در این صفحه
             </div>
             <FeaturesNav features={FEATURES.map(f => ({ id: f.id, eyebrow: f.eyebrow, icon: <f.icon size={13} strokeWidth={2.2} style={{ color: f.color, flexShrink: 0 }} /> }))} />
           </aside>
@@ -232,13 +231,13 @@ export default function FeaturesPage() {
       {/* ── Final CTA ────────────────────────────────── */}
       <section style={{ padding: '64px 32px 120px', textAlign: 'center', background: 'var(--surface-card)', borderTop: '1px solid var(--border-subtle)' }}>
         <h2 style={{ margin: 0, fontSize: 'clamp(28px, 3.4vw, 40px)', fontWeight: 600, letterSpacing: '-0.025em', color: 'var(--text-primary)' }}>
-          See it in your workflow.
+          آن را در گردش کار خود ببینید.
         </h2>
         <p style={{ margin: '12px auto 28px', maxWidth: 480, fontSize: 16, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-          Free and open source. Self-host it or run it locally — no credit card.
+          رایگان و منبع باز. خود میزبانی کنید یا آن را به صورت محلی اجرا کنید - بدون کارت اعتباری.
         </p>
         <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-          <Button as={Link} to="/signup" size="lg" iconRight={ArrowRight}>Get started free</Button>
+          <Button as={Link} to="/signup" size="lg" iconRight={ArrowRight}>شروع رایگان</Button>
         </div>
       </section>
     </>
@@ -402,7 +401,7 @@ function FeatureVisual({ feature }) {
           borderRadius: 'var(--radius-pill)',
         }}
       >
-        Live
+        زنده
       </div>
     </div>
   );

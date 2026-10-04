@@ -2,7 +2,11 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import TelegramComposer, { RichPreview } from './TelegramComposer';
 import { setLanguage } from '../i18n';
 
-beforeEach(() => setLanguage('en'));
+beforeEach(() => {
+  // The editor lives in the authenticated workspace, whose locale remains selectable.
+  window.history.replaceState({}, '', '/dashboard');
+  setLanguage('en');
+});
 
 test('Rich preview preserves RTL and distinguishes slideshow from an album', () => {
   render(<RichPreview value={{ is_rtl: true, blocks: [{ type: 'heading', text: 'عنوان' }, { type: 'slideshow', blocks: [] }] }} />);

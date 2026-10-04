@@ -12,42 +12,42 @@ import SocialPlatformIcon from '../components/ui/SocialPlatformIcon';
 const PLATFORMS = [
   {
     key: 'facebook',
-    label: 'Facebook & Instagram',
-    badge: 'Meta',
+    label: "فیس‌بوک و اینستاگرام",
+    badge: "متا",
     steps: [
-      <>Go to your <strong>Facebook account</strong> and click the top-right menu</>,
-      <><strong>Settings &amp; Privacy</strong> → <strong>Settings</strong></>,
-      <>Click <strong>Apps and Websites</strong> in the left menu</>,
-      <>Find <strong>Social Stats</strong> in the list → click <strong>View and edit</strong></>,
-      <>Scroll down and click <strong>Remove</strong> → <strong>Remove</strong> to confirm</>,
-      <>Meta automatically notifies our servers via our registered data deletion callback — we will delete your data within 30 days</>,
+      <>برو به خودت <strong>حساب فیس‌بوک</strong> و روی منوی بالا سمت راست کلیک کنید</>,
+      <><strong>تنظیمات و حریم خصوصی</strong> → <strong>تنظیمات</strong></>,
+      <>کلیک کنید <strong>برنامه ها و وب سایت ها</strong> در منوی سمت چپ</>,
+      <>پیدا کنید <strong>راوینتا</strong> در لیست ← کلیک کنید <strong>مشاهده و ویرایش کنید</strong></>,
+      <>به پایین بروید و کلیک کنید <strong>حذف</strong> → <strong>حذف</strong> برای تأیید</>,
+      <>متا به طور خودکار سرورهای ما را از طریق پاسخ به تماس حذف داده‌های ثبت‌شده ما مطلع می‌کند - ما داده‌های شما را ظرف 30 روز حذف خواهیم کرد.</>,
     ],
-    note: 'Removing Social Stats also revokes access to any connected Instagram Business accounts linked to the same Facebook Page.',
+    note: "حذف راوینتا همچنین دسترسی به هر حساب تجاری مرتبط اینستاگرام مرتبط با همان صفحه فیس‌بوک را لغو می‌کند.",
   },
   {
     key: 'google',
-    label: 'Google & YouTube',
-    badge: 'Google',
+    label: "گوگل و یوتیوب",
+    badge: "گوگل",
     steps: [
-      <>Go to <a href="https://myaccount.google.com/permissions" target="_blank" rel="noreferrer" style={{ color: '#007a9a' }}>myaccount.google.com/permissions</a></>,
-      <>Find <strong>Social Stats</strong> in the list of third-party apps</>,
-      <>Click <strong>Social Stats</strong> → click <strong>Remove Access</strong></>,
-      <>Confirm removal — we will delete your cached analytics data within 30 days</>,
+      <>برو به <a href="https://myaccount.google.com/permissions" target="_blank" rel="noreferrer" style={{ color: '#007a9a' }}>myaccount.google.com/permissions</a></>,
+      <>پیدا کنید <strong>راوینتا</strong> در لیست برنامه های شخص ثالث</>,
+      <>کلیک کنید <strong>راوینتا</strong> ← کلیک کنید <strong>دسترسی را حذف کنید</strong></>,
+      <>حذف را تأیید کنید - ما داده‌های تحلیل و آمار حافظه پنهان شما را ظرف 30 روز حذف خواهیم کرد</>,
     ],
-    note: 'This revokes Social Stats\'s access to YouTube Data API, YouTube Analytics API, and Google Business Profile API data.',
+    note: "این امکان دسترسی راوینتا به یوتیوب Data API، یوتیوب تحلیل و آمار API و داده‌های نمایه کسب‌وکار گوگل API را لغو می‌کند.",
   },
   {
     key: 'linkedin',
-    label: 'LinkedIn',
-    badge: 'LinkedIn',
+    label: "لینکدین",
+    badge: "لینکدین",
     steps: [
-      <>Go to your <strong>LinkedIn account</strong> and click <strong>Me</strong> in the top navigation</>,
-      <>Click <strong>Settings &amp; Privacy</strong></>,
-      <>Click <strong>Data Privacy</strong> in the left menu → <strong>Other applications</strong></>,
-      <>Find <strong>Social Stats</strong> in the list → click <strong>Remove</strong></>,
-      <>Confirm removal — we will delete your cached Page analytics data within 30 days</>,
+      <>برو به خودت <strong>حساب لینکدین</strong> و کلیک کنید <strong>من</strong> در ناوبری بالا</>,
+      <>کلیک کنید <strong>تنظیمات و حریم خصوصی</strong></>,
+      <>کلیک کنید <strong>حریم خصوصی داده ها</strong> در منوی سمت چپ → <strong>برنامه های کاربردی دیگر</strong></>,
+      <>پیدا کنید <strong>راوینتا</strong> در لیست ← کلیک کنید <strong>حذف</strong></>,
+      <>حذف را تأیید کنید - ما داده‌های تحلیل و آمار صفحه ذخیره شده شما را ظرف 30 روز حذف خواهیم کرد</>,
     ],
-    note: 'This revokes access to your LinkedIn Page analytics, post performance data, and follower statistics.',
+    note: "این امکان دسترسی به تحلیل و آمار صفحه لینکدین، داده‌های عملکرد پست و آمار دنبال کنندگان را لغو می‌کند.",
   },
 ];
 
@@ -64,22 +64,20 @@ export default function DataDeletionPage() {
         </div>
 
         <div style={styles.card}>
-          <div style={styles.badge}>Data Deletion Instructions</div>
-          <h2 style={styles.title}>User Data Deletion</h2>
-          <p style={styles.meta}>Last Updated: April 3, 2026</p>
+          <div style={styles.badge}>دستورالعمل حذف داده ها</div>
+          <h2 style={styles.title}>حذف داده‌های کاربر</h2>
+          <p style={styles.meta}>آخرین به‌روزرسانی: 3 آوریل 2026</p>
 
           <p style={styles.intro}>
-            Social Stats connects to Facebook, Instagram, Google, YouTube, and LinkedIn to display
-            your social media analytics. You can revoke access and delete your data in three ways:{' '}
-            <strong>(1)</strong> directly from each platform's settings below,{' '}
-            <strong>(2)</strong> from your Social Stats account settings (Settings → Delete Account), or{' '}
-            <strong>(3)</strong> by emailing us at{' '}
-            the administrator of this Social Stats instance.
-            All data is permanently deleted within <strong>30 days</strong> of a valid request.
+            راوینتا به فیس‌بوک، اینستاگرام، گوگل، یوتیوب و لینکدین متصل می‌شود تا تحلیل و آمار شبکه‌های اجتماعی شما را نمایش دهد. شما می‌توانید به سه روش دسترسی را لغو و داده‌های خود را حذف کنید:{' '}
+            <strong>(1)</strong> مستقیماً از تنظیمات هر پلتفرم زیر،{' '}
+            <strong>(2)</strong> از تنظیمات حساب راوینتا شما (تنظیمات → حذف حساب)، یا{' '}
+            <strong>(3)</strong> با ارسال ایمیل به ما در{' '}
+            مدیر این نمونه راوینتا. تمام داده ها به طور دائم در داخل حذف می‌شوند <strong>30 روز</strong> یک درخواست معتبر.
           </p>
 
           {/* Per-platform sections */}
-          <h3 style={styles.sectionGroupTitle}>Remove Access by Platform</h3>
+          <h3 style={styles.sectionGroupTitle}>حذف دسترسی توسط پلتفرم</h3>
 
           {PLATFORMS.map((platform) => (
             <div key={platform.key} style={styles.platformBlock}>
@@ -107,64 +105,63 @@ export default function DataDeletionPage() {
           {/* Email request */}
           <div style={styles.divider} />
 
-          <h3 style={styles.sectionGroupTitle}>Or — Email Us Directly</h3>
+          <h3 style={styles.sectionGroupTitle}>یا - مستقیماً به ما ایمیل بزنید</h3>
           <p style={styles.p}>
-            If you prefer, send a deletion request to our privacy team and we will remove
-            all data across all connected platforms:
+            اگر ترجیح می‌دهید، یک درخواست حذف را به تیم حریم خصوصی ما ارسال کنید و ما همه داده‌ها را در همه سیستم عامل‌های متصل حذف خواهیم کرد:
           </p>
           <div style={styles.emailBox}>
             <span style={styles.emailIcon}>✉</span>
             <a href="https://github.com/cbsshekhawat18-lab/social-stats-social-media-manager/issues" target="_blank" rel="noreferrer" style={styles.emailLink}>
-              GitHub Issues
+              مشکلات گیت‌هاب
             </a>
           </div>
-          <p style={styles.p}>Please include in your email:</p>
+          <p style={styles.p}>لطفاً در ایمیل خود بنویسید:</p>
           <ul style={styles.ul}>
-            <li>Your full name</li>
-            <li>Email address associated with your Social Stats account</li>
-            <li>Platform(s) you want data removed from (Facebook, Google, LinkedIn, or all)</li>
-            <li>Subject line: <strong>"Data Deletion Request"</strong></li>
+            <li>نام کامل شما</li>
+            <li>آدرس ایمیل مرتبط با حساب راوینتا شما</li>
+            <li>پلتفرم(هایی) که می خواهید داده ها از آنها حذف شود (فیس‌بوک، گوگل، لینکدین، یا همه)</li>
+            <li>خط موضوع: <strong>"درخواست حذف داده ها"</strong></li>
           </ul>
 
           <div style={styles.divider} />
 
           {/* What we delete */}
-          <h3 style={styles.sectionGroupTitle}>What We Delete</h3>
-          <p style={styles.p}>Upon a valid request, we permanently remove:</p>
+          <h3 style={styles.sectionGroupTitle}>آنچه را حذف می کنیم</h3>
+          <p style={styles.p}>در صورت درخواست معتبر، ما برای همیشه حذف می کنیم:</p>
           <ul style={styles.ul}>
-            <li>Your Social Stats account and login credentials</li>
-            <li>All OAuth access tokens for every connected platform</li>
-            <li>All analytics data: impressions, reach, likes, follower counts, post metrics</li>
-            <li>Any reports or exports generated from your data</li>
-            <li>Scheduled sync jobs associated with your accounts</li>
+            <li>حساب راوینتا و اعتبارنامه ورود شما</li>
+            <li>همه نشانه‌های دسترسی OAuth برای هر پلتفرم متصل</li>
+            <li>همه داده‌های تحلیلی: برداشت‌ها، دسترسی، لایک‌ها، تعداد دنبال‌کنندگان، معیارهای پست</li>
+            <li>هرگونه گزارش یا صادراتی که از داده‌های شما ایجاد می‌شود</li>
+            <li>کارهای همگام سازی برنامه‌ریزی شده مرتبط با حساب های شما</li>
           </ul>
 
           <div style={styles.divider} />
 
           {/* Timeline */}
-          <h3 style={styles.sectionGroupTitle}>Confirmation &amp; Timeline</h3>
+          <h3 style={styles.sectionGroupTitle}>تأیید و جدول زمانی</h3>
           <ul style={styles.ul}>
-            <li>Confirmation email sent within <strong>72 hours</strong></li>
-            <li>All data permanently deleted within <strong>30 days</strong></li>
-            <li>Final confirmation email once deletion is complete</li>
-            <li>Anonymised aggregate data may be kept for legal compliance — never linked to your identity</li>
+            <li>ایمیل تایید در داخل ارسال شد <strong>72 ساعت</strong></li>
+            <li>همه داده ها به طور دائم در داخل حذف شدند <strong>30 روز</strong></li>
+            <li>ایمیل تایید نهایی پس از اتمام حذف</li>
+            <li>داده‌های انبوه ناشناس ممکن است برای انطباق قانونی نگهداری شوند - هرگز به هویت شما مرتبط نشده است</li>
           </ul>
 
           <div style={styles.contactBox}>
-            <p style={styles.contactTitle}>Questions?</p>
+            <p style={styles.contactTitle}>سوال؟</p>
             <p style={styles.contactText}>
-              Contact our privacy team at{' '}
-              <a href="https://github.com/cbsshekhawat18-lab/social-stats-social-media-manager/issues" target="_blank" rel="noreferrer" style={styles.inlineLink}>the project's GitHub Issues</a>
-              {' '}or visit our{' '}
-              <a href="/privacy" style={styles.inlineLink}>Privacy Policy</a>.
+              با تیم حریم خصوصی ما تماس بگیرید{' '}
+              <a href="https://github.com/cbsshekhawat18-lab/social-stats-social-media-manager/issues" target="_blank" rel="noreferrer" style={styles.inlineLink}>مشکلات گیت‌هاب پروژه</a>
+              {' '}یا به ما مراجعه کنید{' '}
+              <a href="/privacy" style={styles.inlineLink}>سیاست حریم خصوصی</a>.
             </p>
           </div>
         </div>
 
         <p style={styles.footer}>
-          © 2026 Social Stats ·{' '}
-          <a href="/privacy" style={styles.footerLink}>Privacy Policy</a>{' '}·{' '}
-          <a href="/terms" style={styles.footerLink}>Terms of Service</a>
+          © 2026 راوینتا ·{' '}
+          <a href="/privacy" style={styles.footerLink}>سیاست حریم خصوصی</a>{' '}·{' '}
+          <a href="/terms" style={styles.footerLink}>شرایط استفاده از خدمات</a>
         </p>
       </div>
     </div>

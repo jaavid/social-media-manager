@@ -22,11 +22,11 @@ import Select from '../components/ui/Select';
 import Meta from '../components/Meta';
 
 const REASONS = [
-  { value: 'sales',     label: 'Sales — pricing or demo' },
-  { value: 'support',   label: 'Support — I\'m a customer' },
-  { value: 'partner',   label: 'Partnership / integration' },
-  { value: 'press',     label: 'Press / media inquiry' },
-  { value: 'other',     label: 'Something else' },
+  { value: 'sales',     label: "فروش - قیمت گذاری یا نسخه ی نمایشی" },
+  { value: 'support',   label: "پشتیبانی - من یک مشتری هستم" },
+  { value: 'partner',   label: "مشارکت / ادغام" },
+  { value: 'press',     label: "استعلام مطبوعاتی / رسانه ای" },
+  { value: 'other',     label: "چیز دیگری" },
 ];
 
 export default function ContactPage() {
@@ -41,11 +41,11 @@ export default function ContactPage() {
 
   function validate() {
     const e = {};
-    if (!name.trim()) e.name = 'Your name helps us reply properly.';
-    if (!email.trim()) e.email = 'We need your email to reply.';
-    else if (!/\S+@\S+\.\S+/.test(email)) e.email = 'That doesn\'t look like a valid email.';
-    if (!message.trim()) e.message = 'Tell us a bit about what you\'re working on.';
-    else if (message.trim().length < 10) e.message = 'A few more words, please.';
+    if (!name.trim()) e.name = "نام شما به ما کمک می‌کند تا به درستی پاسخ دهیم.";
+    if (!email.trim()) e.email = "برای پاسخ به ایمیل شما نیاز داریم.";
+    else if (!/\S+@\S+\.\S+/.test(email)) e.email = "این ایمیل معتبر به نظر نمی رسد.";
+    if (!message.trim()) e.message = "کمی در مورد آنچه که روی آن کار می‌کنید به ما بگویید.";
+    else if (message.trim().length < 10) e.message = "چند کلمه دیگر لطفا.";
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -67,8 +67,8 @@ export default function ContactPage() {
   return (
     <>
       <Meta
-        title="Contact"
-        description="Sales, support, partnerships, press — get in touch with the Social Stats team. We typically reply within one business day."
+        title={"تماس با ما"}
+        description={"فروش، پشتیبانی، مشارکت، مطبوعات - با تیم راوینتا در تماس باشید. ما معمولاً ظرف یک روز کاری پاسخ می‌دهیم."}
       />
       {/* Hero */}
       <section style={{ padding: '128px 32px 56px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
@@ -81,7 +81,7 @@ export default function ContactPage() {
           }}
         />
         <div style={{ position: 'relative', maxWidth: 720, margin: '0 auto' }}>
-          <Badge variant="brand" size="md">Contact</Badge>
+          <Badge variant="brand" size="md">تماس با ما</Badge>
           <h1 style={{
             margin: '20px 0 18px',
             fontSize: 'clamp(40px, 5vw, 56px)',
@@ -90,10 +90,10 @@ export default function ContactPage() {
             fontWeight: 600,
             color: 'var(--text-primary)',
           }}>
-            Let's talk.
+            بیایید صحبت کنیم.
           </h1>
           <p style={{ margin: 0, fontSize: 18, lineHeight: 1.65, color: 'var(--text-secondary)' }}>
-            Sales, support, partnerships, press — pick a reason and we'll route you to the right human.
+            فروش، پشتیبانی، مشارکت، مطبوعات - یک دلیل انتخاب کنید و ما شما را به سمت انسان مناسب هدایت خواهیم کرد.
           </p>
         </div>
       </section>
@@ -137,35 +137,35 @@ export default function ContactPage() {
                   <CheckCircle size={26} strokeWidth={1.8} />
                 </div>
                 <h2 style={{ margin: 0, fontSize: 22, fontWeight: 600, letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
-                  Thanks — we got your message.
+                  با تشکر - ما پیام شما را دریافت کردیم.
                 </h2>
                 <p style={{ margin: '8px auto 20px', maxWidth: 380, fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-                  We usually reply within one business day. If it's urgent, open an issue{' '}
-                  <a href="https://github.com/cbsshekhawat18-lab/social-stats-social-media-manager/issues" target="_blank" rel="noreferrer" style={{ color: 'var(--text-link)', fontWeight: 500 }}>on GitHub</a>.
+                  ما معمولاً ظرف یک روز کاری پاسخ می‌دهیم. اگر فوری است، موضوعی را باز کنید{' '}
+                  <a href="https://github.com/cbsshekhawat18-lab/social-stats-social-media-manager/issues" target="_blank" rel="noreferrer" style={{ color: 'var(--text-link)', fontWeight: 500 }}>در گیت‌هاب</a>.
                 </p>
-                <Button as={Link} to="/" variant="secondary" size="md">Back to home</Button>
+                <Button as={Link} to="/" variant="secondary" size="md">بازگشت به صفحه اصلی</Button>
               </div>
             ) : (
               <>
                 <h2 style={{ margin: 0, fontSize: 22, fontWeight: 600, letterSpacing: '-0.01em', color: 'var(--text-primary)' }}>
-                  Send us a message
+                  ارسال پیام به پشتیبانی
                 </h2>
                 <p style={{ margin: '6px 0 22px', fontSize: 14, color: 'var(--text-secondary)' }}>
-                  We typically reply within one business day.
+                  ما معمولاً ظرف یک روز کاری پاسخ می‌دهیم.
                 </p>
 
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }} className="contact-row">
                     <Input
-                      label="Your name"
+                      label={"نام شما"}
                       value={name}
                       onChange={(e) => { setName(e.target.value); setErrors((p) => ({ ...p, name: undefined })); }}
-                      placeholder="Your full name"
+                      placeholder={"نام کامل شما"}
                       error={errors.name}
                       size="lg"
                     />
                     <Input
-                      label="Work email"
+                      label={"ایمیل کاری"}
                       type="email"
                       value={email}
                       onChange={(e) => { setEmail(e.target.value); setErrors((p) => ({ ...p, email: undefined })); }}
@@ -176,15 +176,15 @@ export default function ContactPage() {
                   </div>
 
                   <Input
-                    label="Company (optional)"
+                    label={"شرکت (اختیاری)"}
                     value={company}
                     onChange={(e) => setCompany(e.target.value)}
-                    placeholder="Your agency or company"
+                    placeholder={"آژانس یا شرکت شما"}
                     size="lg"
                   />
 
                   <Select
-                    label="What's this about?"
+                    label={"این در مورد چیست؟"}
                     value={reason}
                     onChange={setReason}
                     options={REASONS}
@@ -192,10 +192,10 @@ export default function ContactPage() {
                   />
 
                   <Textarea
-                    label="Message"
+                    label={"پیام"}
                     value={message}
                     onChange={(e) => { setMessage(e.target.value); setErrors((p) => ({ ...p, message: undefined })); }}
-                    placeholder="Tell us a bit about what you're working on…"
+                    placeholder={"کمی در مورد آنچه که روی آن کار می‌کنید به ما بگویید…"}
                     minRows={4}
                     maxRows={10}
                     error={errors.message}
@@ -204,12 +204,12 @@ export default function ContactPage() {
                   />
 
                   <Button type="submit" size="lg" icon={Send} fullWidth loading={submitting}>
-                    Send message
+                    ارسال پیام
                   </Button>
 
                   <p style={{ margin: 0, fontSize: 11, color: 'var(--text-tertiary)', textAlign: 'center' }}>
-                    By sending you agree to our{' '}
-                    <Link to="/privacy" style={{ color: 'var(--text-link)' }}>Privacy Policy</Link>.
+                    با ارسال شما با ما موافقت می‌کنید{' '}
+                    <Link to="/privacy" style={{ color: 'var(--text-link)' }}>سیاست حریم خصوصی</Link>.
                   </p>
                 </form>
               </>
@@ -223,30 +223,30 @@ export default function ContactPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <ContactInfoCard
               icon={Mail}
-              title="GitHub Issues"
-              body="Bugs & feature requests"
-              detail="The fastest way to reach the maintainers."
+              title={"مشکلات گیت‌هاب"}
+              body={"گزارش خطا و پیشنهاد امکانات"}
+              detail={"سریع‌ترین راه ارتباط با تیم نگهداری محصول."}
               link="https://github.com/cbsshekhawat18-lab/social-stats-social-media-manager/issues"
             />
             <ContactInfoCard
               icon={MessageSquare}
-              title="Repository"
-              body="Source code & docs"
-              detail="Self-hosting guides, configuration, and releases."
+              title={"مخزن"}
+              body={"کد منبع و مستندات"}
+              detail={"راهنمای میزبانی، تنظیمات و نسخه‌های منتشرشده."}
               link="https://github.com/cbsshekhawat18-lab/social-stats-social-media-manager"
             />
             <ContactInfoCard
               icon={Phone}
-              title="Support"
-              body="GitHub-first support"
-              detail="Open an issue — we reply on the repository."
+              title={"پشتیبانی"}
+              body={"پشتیبانی در گیت‌هاب"}
+              detail={"یک مسئله ثبت کنید؛ در مخزن پروژه پاسخ می‌دهیم."}
               link="https://github.com/cbsshekhawat18-lab/social-stats-social-media-manager/issues"
             />
             <ContactInfoCard
               icon={MapPin}
-              title="Office"
-              body="Bengaluru, India"
-              detail="Open-source project — no physical office."
+              title={"دفتر"}
+              body={"بنگلور، هند"}
+              detail={"پروژه متن‌باز است و دفتر حضوری ندارد."}
             />
           </div>
         </div>
@@ -261,7 +261,7 @@ export default function ContactPage() {
         <div style={{ maxWidth: 'var(--container-xl)', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 32 }}>
             <h2 style={{ margin: 0, fontSize: 'clamp(24px, 2.8vw, 32px)', fontWeight: 600, letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
-              Looking for something specific?
+              به دنبال چیزی خاص هستید؟
             </h2>
           </div>
           <div
@@ -274,20 +274,20 @@ export default function ContactPage() {
           >
             <SupportLinkCard
               icon={BookOpen}
-              title="Help Center"
-              body="Setup guides, troubleshooting, FAQs."
+              title={"مرکز راهنما"}
+              body={"راهنمای راه‌اندازی، رفع مشکل و پرسش‌های متداول."}
               to="/help"
             />
             <SupportLinkCard
               icon={Activity}
-              title="System Status"
-              body="Live uptime, incidents, scheduled maintenance."
+              title={"وضعیت سیستم"}
+              body={"دسترس‌پذیری زنده، رخدادها و نگهداری برنامه‌ریزی‌شده."}
               to="/status"
             />
             <SupportLinkCard
               icon={ShieldCheck}
-              title="Security"
-              body="Compliance, certifications, vulnerability reports."
+              title={"امنیت"}
+              body={"الزامات، گواهی‌ها و گزارش آسیب‌پذیری."}
               to="/security"
             />
           </div>
@@ -376,7 +376,7 @@ function SupportLinkCard({ icon: Icon, title, body, to }) {
         {body}
       </p>
       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 600, color: 'var(--text-link)' }}>
-        Open <ArrowRight size={12} />
+        باز کردن <ArrowRight size={12} />
       </span>
     </Link>
   );

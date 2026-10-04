@@ -31,31 +31,31 @@ import POSTS from './marketing/blogPosts';
  * hidden and all matching posts go into the grid.
  */
 
-const CATEGORIES = ['All', ...Array.from(new Set(POSTS.map((p) => p.category)))];
+const CATEGORIES = ["همه", ...Array.from(new Set(POSTS.map((p) => p.category)))];
 
 export default function BlogIndexPage() {
-  const [filter, setFilter] = useState('All');
+  const [filter, setFilter] = useState('همه');
   const [query,  setQuery]  = useState('');
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return POSTS
-      .filter((p) => filter === 'All' || p.category === filter)
+      .filter((p) => filter === 'همه' || p.category === filter)
       .filter((p) => !q
         || p.title.toLowerCase().includes(q)
         || p.excerpt.toLowerCase().includes(q)
         || (p.tags || []).some((t) => t.toLowerCase().includes(q)));
   }, [filter, query]);
 
-  const isPristine = filter === 'All' && !query;
+  const isPristine = filter === 'همه' && !query;
   const featured   = isPristine ? POSTS[0] : null;
   const grid       = isPristine ? POSTS.slice(1) : filtered;
 
   return (
     <>
       <Meta
-        title="Blog"
-        description="Product updates, agency playbooks, AI experiments, and design decisions from the team building Social Stats."
+        title={"وبلاگ"}
+        description={"به‌روزرسانی‌های محصول، کتاب‌های بازی آژانس، آزمایش‌های هوش مصنوعی و تصمیم‌گیری‌های طراحی از آمارهای اجتماعی ساختمان تیم."}
       />
 
       {/* ╭──────────────╮
@@ -71,7 +71,7 @@ export default function BlogIndexPage() {
           }}
         />
         <div style={{ position: 'relative', maxWidth: 720, margin: '0 auto' }}>
-          <Badge variant="brand" size="md">Blog</Badge>
+          <Badge variant="brand" size="md">وبلاگ</Badge>
           <h1 style={{
             margin: '20px 0 12px',
             fontSize: 'clamp(36px, 4.4vw, 48px)',
@@ -80,10 +80,10 @@ export default function BlogIndexPage() {
             fontWeight: 600,
             color: 'var(--text-primary)',
           }}>
-            The Social Stats journal.
+            مجله راوینتا.
           </h1>
           <p style={{ margin: 0, fontSize: 16, lineHeight: 1.6, color: 'var(--text-secondary)' }}>
-            Product updates, agency playbooks, AI experiments, design decisions — written by the team building Social Stats.
+            به‌روزرسانی‌های محصول، کتاب‌های بازی آژانس، آزمایش‌های هوش مصنوعی، تصمیم‌گیری‌های طراحی - نوشته‌شده توسط راوینتا ساختمان تیم.
           </p>
 
           {/* Search */}
@@ -99,8 +99,8 @@ export default function BlogIndexPage() {
             <Search size={15} color="var(--text-tertiary)" />
             <input
               type="search"
-              aria-label="Search blog posts"
-              placeholder="Search articles, tags, topics…"
+              aria-label={"پست‌های وبلاگ را جستجو کنید"}
+              placeholder={"جستجو در مقالات، برچسب‌ها، موضوعات…"}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               style={{
@@ -116,7 +116,7 @@ export default function BlogIndexPage() {
               <button
                 type="button"
                 onClick={() => setQuery('')}
-                aria-label="Clear search"
+                aria-label={"جستجو را پاک کنید"}
                 style={{
                   background: 'transparent', border: 'none',
                   color: 'var(--text-tertiary)',
@@ -139,7 +139,7 @@ export default function BlogIndexPage() {
         }}>
           {CATEGORIES.map((cat) => {
             const active = filter === cat;
-            const count = cat === 'All' ? POSTS.length : POSTS.filter((p) => p.category === cat).length;
+            const count = cat === 'همه' ? POSTS.length : POSTS.filter((p) => p.category === cat).length;
             return (
               <button
                 key={cat}
@@ -219,7 +219,7 @@ export default function BlogIndexPage() {
               <div>
                 <Badge variant="brand" size="sm">
                   <Sparkles size={11} style={{ marginRight: 4, verticalAlign: -1 }} />
-                  Featured · {featured.category}
+                  ویژه · {featured.category}
                 </Badge>
                 <h2 style={{
                   margin: '12px 0 12px',
@@ -239,13 +239,13 @@ export default function BlogIndexPage() {
                   <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
                     <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{featured.author.name}</span>
                     {' · '}
-                    {new Date(featured.date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                    {new Date(featured.date).toLocaleDateString('fa-IR', { year: 'numeric', month: 'short', day: 'numeric' })}
                     {' · '}
                     {featured.readTime}
                   </div>
                 </div>
                 <div style={{ marginTop: 16, display: 'inline-flex', alignItems: 'center', gap: 4, color: 'var(--text-link)', fontWeight: 600, fontSize: 13 }}>
-                  Read article <ArrowRight size={13} />
+                  مقاله را بخوانید <ArrowRight size={13} />
                 </div>
               </div>
             </Link>
@@ -270,12 +270,12 @@ export default function BlogIndexPage() {
             letterSpacing: '0.06em', textTransform: 'uppercase',
             color: 'var(--text-tertiary)',
           }}>
-            {isPristine ? 'Recent posts' : `${filtered.length} ${filtered.length === 1 ? 'post' : 'posts'}`}
-            {!isPristine && filter !== 'All' && (
-              <> in <span style={{ color: 'var(--text-secondary)' }}>{filter}</span></>
+            {isPristine ? "پست‌های اخیر" : `${filtered.length} ${filtered.length === 1 ? 'post' : 'posts'}`}
+            {!isPristine && filter !== 'همه' && (
+              <> در <span style={{ color: 'var(--text-secondary)' }}>{filter}</span></>
             )}
             {!isPristine && query && (
-              <> matching <span style={{ color: 'var(--text-secondary)' }}>"{query}"</span></>
+              <> تطبیق <span style={{ color: 'var(--text-secondary)' }}>"{query}"</span></>
             )}
           </h2>
 
@@ -287,10 +287,10 @@ export default function BlogIndexPage() {
               borderRadius: 'var(--radius-xl)',
               color: 'var(--text-tertiary)',
             }}>
-              <p style={{ margin: 0, fontSize: 14 }}>No posts match your filter.</p>
+              <p style={{ margin: 0, fontSize: 14 }}>هیچ پستی با فیلتر شما مطابقت ندارد.</p>
               <button
                 type="button"
-                onClick={() => { setFilter('All'); setQuery(''); }}
+                onClick={() => { setFilter('همه'); setQuery(''); }}
                 style={{
                   marginTop: 14,
                   padding: '8px 14px',
@@ -302,7 +302,7 @@ export default function BlogIndexPage() {
                   cursor: 'pointer',
                 }}
               >
-                Clear filters
+                فیلترها را پاک کنید
               </button>
             </div>
           ) : (
@@ -341,10 +341,10 @@ export default function BlogIndexPage() {
           }}
         >
           <h3 style={{ margin: 0, fontSize: 22, fontWeight: 600, letterSpacing: '-0.015em', color: 'var(--text-primary)' }}>
-            Get our best playbooks, monthly.
+            بهترین کتاب های بازی ما را به صورت ماهانه دریافت کنید.
           </h3>
           <p style={{ margin: '8px auto 18px', maxWidth: 480, fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-            One email a month. Real frameworks. No fluff. Unsubscribe in one click.
+            یک ایمیل در ماه. چارچوب های واقعی بدون کرک. لغو اشتراک با یک کلیک
           </p>
           <form
             onSubmit={(e) => {
@@ -357,7 +357,7 @@ export default function BlogIndexPage() {
               type="email"
               required
               placeholder="you@company.com"
-              aria-label="Email for newsletter"
+              aria-label={"ایمیل برای خبرنامه"}
               style={{
                 flex: '1 1 220px',
                 minWidth: 0,
@@ -387,7 +387,7 @@ export default function BlogIndexPage() {
                 boxShadow: 'var(--shadow-sm)',
               }}
             >
-              Subscribe
+              مشترک شوید
             </button>
           </form>
         </div>
@@ -432,7 +432,7 @@ function PostCard({ post }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
           <Avatar name={post.author.name} size="xs" />
           <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
-            {post.author.name} · {new Date(post.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })} · {post.readTime}
+            {post.author.name} · {new Date(post.date).toLocaleDateString('fa-IR', { month: 'short', day: 'numeric', year: 'numeric' })} · {post.readTime}
           </span>
         </div>
       </div>

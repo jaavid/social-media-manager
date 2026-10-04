@@ -1,3 +1,4 @@
+import { publicMessage } from '../i18n/public-message';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -66,9 +67,9 @@ export default function LoginPage() {
 
   function validate() {
     const e = {};
-    if (!email.trim()) e.email = 'Email is required.';
-    else if (!/\S+@\S+\.\S+/.test(email)) e.email = 'Enter a valid email address.';
-    if (!password.trim()) e.password = 'Password is required.';
+    if (!email.trim()) e.email = "وارد کردن ایمیل الزامی است.";
+    else if (!/\S+@\S+\.\S+/.test(email)) e.email = "یک نشانی ایمیل معتبر وارد کنید.";
+    if (!password.trim()) e.password = "وارد کردن رمز عبور الزامی است.";
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -104,8 +105,8 @@ export default function LoginPage() {
       const detail = err?.response?.data?.detail;
       setServerError(
         detail === 'email_not_verified'
-          ? 'Please verify your email before signing in. Check your inbox for the verification link.'
-          : 'Invalid email or password. Please try again.'
+          ? "پیش از ورود، ایمیل خود را تأیید کنید. لینک تأیید را در صندوق ورودی بررسی کنید."
+          : "ایمیل یا رمز عبور نادرست است. دوباره تلاش کنید."
       );
     } finally {
       setLoading(false);
@@ -127,9 +128,9 @@ export default function LoginPage() {
       const status = err?.response?.status;
       if (status === 401 && err?.response?.data?.error?.includes('expired')) {
         setMfaToken('');
-        setServerError('Your verification session expired. Please sign in again.');
+        setServerError("نشست تأیید شما منقضی شده است. دوباره وارد شوید.");
       } else {
-        setServerError(useBackupCode ? 'Invalid backup code.' : 'Invalid verification code.');
+        setServerError(useBackupCode ? "کد پشتیبان نامعتبر است." : "کد تأیید نامعتبر است.");
       }
     } finally {
       setLoading(false);
@@ -166,18 +167,18 @@ export default function LoginPage() {
                 color: 'var(--text-primary)',
               }}
             >
-              {tr('Two-factor verification')}
+              {tr("تأیید دومرحله‌ای")}
             </h1>
             <p style={{ margin: '6px 0 0', fontSize: 14, color: 'var(--text-secondary)' }}>
               {tr(useBackupCode
-                ? 'Enter one of your backup codes.'
-                : 'Enter the 6-digit code from your authenticator app.')}
+                ? "یکی از کدهای پشتیبان خود را وارد کنید."
+                : "کد ۶ رقمی برنامه احراز هویت را وارد کنید.")}
             </p>
           </header>
 
           <form onSubmit={handleMfaSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <Input
-              label={tr(useBackupCode ? 'Backup code' : 'Verification code')}
+              label={tr(useBackupCode ? "کد پشتیبان" : "کد تأیید")}
               type="text"
               inputMode={useBackupCode ? 'text' : 'numeric'}
               autoComplete="one-time-code"
@@ -205,7 +206,7 @@ export default function LoginPage() {
                 }}
               >
                 <AlertCircle size={15} style={{ flexShrink: 0, marginTop: 1 }} />
-                <span>{tr(serverError)}</span>
+                <span>{publicMessage(serverError)}</span>
               </div>
             )}
 
@@ -220,14 +221,14 @@ export default function LoginPage() {
               onClick={() => { setUseBackupCode((v) => !v); setMfaCode(''); setServerError(''); }}
               style={{ background: 'none', border: 0, padding: 0, color: 'var(--text-link)', fontWeight: 500, cursor: 'pointer' }}
             >
-              {tr(useBackupCode ? 'Use authenticator code' : 'Use a backup code')}
+              {tr(useBackupCode ? "استفاده از کد احراز هویت" : "استفاده از کد پشتیبان")}
             </button>
             <button
               type="button"
               onClick={() => { setMfaToken(''); setMfaCode(''); setServerError(''); }}
               style={{ background: 'none', border: 0, padding: 0, color: 'var(--text-secondary)', cursor: 'pointer' }}
             >
-              {tr('Back to sign in')}
+              {tr("بازگشت به ورود")}
             </button>
           </div>
         </div>
@@ -239,9 +240,9 @@ export default function LoginPage() {
     <AuthLayout
       footer={
         <>
-          {tr('New to Social Stats?')}{' '}
+          {tr("تازه به راوینتا آمده‌اید؟")}{' '}
           <Link to="/signup" style={{ color: 'var(--text-link)', fontWeight: 600, textDecoration: 'none' }}>
-            {tr('Create an account')}
+            {tr("ساخت حساب کاربری")}
           </Link>
         </>
       }
@@ -265,10 +266,10 @@ export default function LoginPage() {
               color: 'var(--text-primary)',
             }}
           >
-            {tr('Welcome back')}
+            {tr("خوش آمدید")}
           </h1>
           <p style={{ margin: '6px 0 0', fontSize: 14, color: 'var(--text-secondary)' }}>
-            {tr('Sign in to your Social Stats workspace.')}
+            {tr("وارد فضای کاری راوینتا شوید.")}
           </p>
         </header>
 
@@ -292,7 +293,7 @@ export default function LoginPage() {
               autoComplete="current-password"
               value={password}
               onChange={(e) => { setPassword(e.target.value); if (errors.password) setErrors((p) => ({ ...p, password: undefined })); }}
-              placeholder={tr('Enter your password')}
+              placeholder={tr("رمز عبور خود را وارد کنید")}
               error={errors.password ? tr(errors.password) : undefined}
               size="lg"
             />
@@ -301,7 +302,7 @@ export default function LoginPage() {
                 to="/forgot-password"
                 style={{ fontSize: 12, color: 'var(--text-link)', fontWeight: 500, textDecoration: 'none' }}
               >
-                {tr('Forgot password?')}
+                {tr("رمز عبور را فراموش کرده‌اید؟")}
               </Link>
             </div>
           </div>
@@ -311,10 +312,10 @@ export default function LoginPage() {
             onChange={(e) => setAccepted(e.target.checked)}
             label={
               <>
-                {tr('I agree to the')}{' '}
-                <Link to="/terms" style={{ color: 'var(--text-link)', fontWeight: 500 }}>{tr('Terms of Service')}</Link>
+                {tr("من با")}{' '}
+                <Link to="/terms" style={{ color: 'var(--text-link)', fontWeight: 500 }}>{tr("شرایط استفاده از خدمات")}</Link>
                 {' '}{tr('and')}{' '}
-                <Link to="/privacy" style={{ color: 'var(--text-link)', fontWeight: 500 }}>{tr('Privacy Policy')}</Link>
+                <Link to="/privacy" style={{ color: 'var(--text-link)', fontWeight: 500 }}>{tr("سیاست حریم خصوصی")}</Link>
               </>
             }
           />
@@ -336,7 +337,7 @@ export default function LoginPage() {
               }}
             >
               <AlertCircle size={15} style={{ flexShrink: 0, marginTop: 1 }} />
-              <span>{tr(serverError || decodeURIComponent(urlError))}</span>
+              <span>{publicMessage(serverError || decodeURIComponent(urlError))}</span>
             </div>
           )}
 
@@ -348,7 +349,7 @@ export default function LoginPage() {
             loading={loading}
             disabled={!accepted}
           >
-            {tr('Sign in')}
+            {tr("ورود")}
           </Button>
         </form>
 
@@ -364,7 +365,7 @@ export default function LoginPage() {
         >
           <span style={{ flex: 1, height: 1, background: 'var(--border-subtle)' }} />
           <span style={{ fontSize: 11, fontWeight: 600 }}>
-            {tr('or continue with')}
+            {tr("یا ادامه با")}
           </span>
           <span style={{ flex: 1, height: 1, background: 'var(--border-subtle)' }} />
         </div>
@@ -377,7 +378,7 @@ export default function LoginPage() {
             fullWidth
             onClick={() => { window.location.href = `${API_BASE}/auth/social/google/start/`; }}
           >
-            <SocialPlatformIcon platform="google" size={16} /> Google
+            <SocialPlatformIcon platform="google" size={16} /> گوگل
           </Button>
           <Button
             variant="secondary"
@@ -385,7 +386,7 @@ export default function LoginPage() {
             fullWidth
             onClick={() => { window.location.href = `${API_BASE}/auth/social/facebook/start/`; }}
           >
-            <SocialPlatformIcon platform="facebook" size={16} /> Facebook
+            <SocialPlatformIcon platform="facebook" size={16} /> فیس‌بوک
           </Button>
         </div>
 
@@ -397,7 +398,7 @@ export default function LoginPage() {
               fullWidth
               onClick={() => { window.location.href = `${API_BASE}/auth/sso/start/`; }}
             >
-              <Shield size={16} /> {tr(ssoConfig.label || 'Organization SSO')}
+              <Shield size={16} /> {tr(ssoConfig.label || "سازمان SSO")}
             </Button>
           </div>
         )}

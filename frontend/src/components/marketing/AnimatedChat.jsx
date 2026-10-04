@@ -93,7 +93,7 @@ export default function AnimatedChat({
           letterSpacing: '-0.01em',
           color: 'var(--text-primary)',
         }}>
-          Social Stats
+          راوینتا
         </span>
         <span style={{
           marginLeft: 'auto',
@@ -103,7 +103,7 @@ export default function AnimatedChat({
           background: 'var(--success-bg)',
           borderRadius: 'var(--radius-pill)',
           textTransform: 'uppercase', letterSpacing: '0.06em',
-        }}>online</span>
+        }}>آنلاین</span>
       </div>
 
       <div style={{ paddingTop: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>

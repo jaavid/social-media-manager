@@ -57,7 +57,7 @@ export default function AgencyShowcasePage({ slug }) {
     <MarketingLayout>
       <Meta
         noSuffix
-        title={`${name} — Social Stats Partner Agency`}
+        title={`${name} - آژانس همکار راوینتا`}
         description={tagline}
       />
       <JsonLd
@@ -70,8 +70,8 @@ export default function AgencyShowcasePage({ slug }) {
       <JsonLd
         id="breadcrumbs"
         data={buildBreadcrumbs([
-          { name: 'Home',     url: `${SITE_URL}/` },
-          { name: 'Agencies', url: `${SITE_URL}/agencies` },
+          { name: "خانه",     url: `${SITE_URL}/` },
+          { name: "آژانس‌ها", url: `${SITE_URL}/agencies` },
           { name,             url: `${SITE_URL}/agencies/${slug}` },
         ])}
       />
@@ -97,7 +97,7 @@ export default function AgencyShowcasePage({ slug }) {
             textDecoration: 'none',
             marginBottom: 24,
           }}>
-            <ArrowLeft size={14} /> All agencies
+            <ArrowLeft size={14} /> همه آژانس‌ها
           </Link>
 
           <div style={{
@@ -162,10 +162,10 @@ export default function AgencyShowcasePage({ slug }) {
               }}>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: '#facc15' }}>
                   <Star size={13} fill="#facc15" /> {rating.score}
-                  <span style={{ color: 'rgba(255,255,255,0.55)', marginLeft: 2 }}>· {rating.count} reviews</span>
+                  <span style={{ color: 'rgba(255,255,255,0.55)', marginLeft: 2 }}>· {rating.count} بررسی</span>
                 </span>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                  <Briefcase size={13} /> From {pricing.from}
+                  <Briefcase size={13} /> از {pricing.from}
                 </span>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
                   <Users size={13} /> {size}
@@ -181,7 +181,7 @@ export default function AgencyShowcasePage({ slug }) {
                     background: `linear-gradient(135deg, ${accent}, ${accent}cc)`,
                     color: '#0a0e14', border: 'none',
                   }}>
-                  Contact agency <ArrowRight size={14} />
+                  با آژانس تماس بگیرید <ArrowRight size={14} />
                 </Button>
                 <Button as="a" href={`https://${contact.website}`} target="_blank" rel="noopener noreferrer" size="md" variant="ghost"
                   style={{
@@ -189,7 +189,7 @@ export default function AgencyShowcasePage({ slug }) {
                     background: 'rgba(255,255,255,0.06)',
                     border: '1px solid rgba(255,255,255,0.14)',
                   }}>
-                  <Globe size={14} /> Visit website
+                  <Globe size={14} /> از وب سایت بازدید کنید
                 </Button>
               </div>
             </div>
@@ -258,20 +258,20 @@ export default function AgencyShowcasePage({ slug }) {
               border: '1px solid rgba(255,255,255,0.08)',
               position: 'sticky', top: 96,
             }}>
-              <ProfileRow icon={Calendar} label="Founded"   value={founded} />
-              <ProfileRow icon={Users}    label="Team"      value={size} />
-              <ProfileRow icon={MapPin}   label="Location"  value={location} />
-              <ProfileRow icon={Briefcase}label="Pricing"   value={pricing.model} />
+              <ProfileRow icon={Calendar} label={"تاسیس شد"}   value={founded} />
+              <ProfileRow icon={Users}    label={"تیم"}      value={size} />
+              <ProfileRow icon={MapPin}   label={"مکان"}  value={location} />
+              <ProfileRow icon={Briefcase}label={"قیمت گذاری"}   value={pricing.model} />
 
-              <SidebarBlock title="Industries">
+              <SidebarBlock title={"صنایع"}>
                 {industries.map((i) => <Chip key={i}>{i}</Chip>)}
               </SidebarBlock>
 
-              <SidebarBlock title="Services">
+              <SidebarBlock title={"خدمات"}>
                 {services.map((s) => <Chip key={s}>{s}</Chip>)}
               </SidebarBlock>
 
-              <SidebarBlock title="Languages">
+              <SidebarBlock title={"زبان ها"}>
                 {languages.map((l) => <Chip key={l}>{l}</Chip>)}
               </SidebarBlock>
 
@@ -292,8 +292,8 @@ export default function AgencyShowcasePage({ slug }) {
           {/* Long form */}
           <div style={{ minWidth: 0 }}>
             <ScrollReveal>
-              <SectionLabel accent={accent}>About</SectionLabel>
-              <h2 style={sectionH2}>About {name}</h2>
+              <SectionLabel accent={accent}>درباره ما</SectionLabel>
+              <h2 style={sectionH2}>درباره ما {name}</h2>
               {about.map((p, i) => <p key={i} style={paraStyle}>{p}</p>)}
             </ScrollReveal>
 
@@ -306,7 +306,7 @@ export default function AgencyShowcasePage({ slug }) {
                 background: `linear-gradient(135deg, ${accent}10, rgba(255,255,255,0.02))`,
                 border: `1px solid ${accent}30`,
               }}>
-                <SectionLabel accent={accent}>By the numbers</SectionLabel>
+                <SectionLabel accent={accent}>با اعداد</SectionLabel>
                 <div style={{
                   marginTop: 18,
                   display: 'grid',
@@ -341,8 +341,8 @@ export default function AgencyShowcasePage({ slug }) {
             {/* Services detail */}
             <ScrollReveal>
               <div style={{ marginTop: 48 }}>
-                <SectionLabel accent={accent}>Services</SectionLabel>
-                <h2 style={sectionH2}>What they do</h2>
+                <SectionLabel accent={accent}>خدمات</SectionLabel>
+                <h2 style={sectionH2}>آنچه انجام می دهند</h2>
                 <div style={{
                   display: 'grid',
                   gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
@@ -382,8 +382,8 @@ export default function AgencyShowcasePage({ slug }) {
             {/* Portfolio */}
             <ScrollReveal>
               <div style={{ marginTop: 48 }}>
-                <SectionLabel accent={accent}>Portfolio</SectionLabel>
-                <h2 style={sectionH2}>Featured work</h2>
+                <SectionLabel accent={accent}>نمونه کارها</SectionLabel>
+                <h2 style={sectionH2}>کار برجسته</h2>
                 <div style={{
                   display: 'grid',
                   gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
@@ -423,8 +423,8 @@ export default function AgencyShowcasePage({ slug }) {
             {/* Reviews */}
             <ScrollReveal>
               <div style={{ marginTop: 48 }}>
-                <SectionLabel accent={accent}>Reviews</SectionLabel>
-                <h2 style={sectionH2}>What customers say</h2>
+                <SectionLabel accent={accent}>بازخوردها</SectionLabel>
+                <h2 style={sectionH2}>آنچه مشتریان می گویند</h2>
                 <div style={{ marginTop: 18, display: 'grid', gap: 12 }}>
                   {reviews.map((r, i) => (
                     <article key={i} style={{
@@ -487,7 +487,7 @@ export default function AgencyShowcasePage({ slug }) {
               color: 'rgba(255,255,255,0.55)',
               textAlign: 'center',
             }}>
-              Similar agencies
+              نمایندگی های مشابه
             </h2>
             <div style={{
               display: 'grid',
@@ -542,7 +542,7 @@ export default function AgencyShowcasePage({ slug }) {
             color: '#fff',
             lineHeight: 1.1,
           }}>
-            Ready to work with {name}?
+            آماده کار با {name}?
           </h2>
 
           <p style={{
@@ -552,7 +552,7 @@ export default function AgencyShowcasePage({ slug }) {
             color: 'rgba(255,255,255,0.75)',
             lineHeight: 1.55,
           }}>
-            All Social Stats partner agencies use the same product you would. You stay in control of your data, permissions, and access.
+            همه آژانس‌های همکار راوینتا از همان محصولی که شما استفاده می‌کنید استفاده می‌کنند. شما کنترل داده ها، مجوزها و دسترسی خود را حفظ می‌کنید.
           </p>
 
           <div style={{
@@ -564,7 +564,7 @@ export default function AgencyShowcasePage({ slug }) {
                 background: `linear-gradient(135deg, ${accent}, ${accent}cc)`,
                 color: '#0a0e14', border: 'none',
               }}>
-              Contact {name} <ArrowRight size={15} />
+              تماس با ما {name} <ArrowRight size={15} />
             </Button>
             <Button as={Link} to="/agencies" size="lg" variant="ghost"
               style={{
@@ -572,7 +572,7 @@ export default function AgencyShowcasePage({ slug }) {
                 background: 'rgba(255,255,255,0.08)',
                 border: '1px solid rgba(255,255,255,0.18)',
               }}>
-              <ArrowLeft size={15} /> All agencies
+              <ArrowLeft size={15} /> همه آژانس‌ها
             </Button>
           </div>
         </div>

@@ -9,6 +9,6 @@ import { ToastProvider } from '../../components/ui/toast';
 import ClientRuntime from '../ClientRuntime';
 
 /** Browser preferences and notifications, without session or private data. */
-export default function SiteProviders({ children, language, theme, hasSession }: PropsWithChildren<{ language: Language; theme: ThemePreference; hasSession?: boolean }>) {
-  return <SessionHint.Provider value={hasSession || false}><LanguageProvider language={language}><ThemeProvider initialPreference={theme}><ClientRuntime />{children}<ToastProvider /></ThemeProvider></LanguageProvider></SessionHint.Provider>;
+export default function SiteProviders({ children, language, preferredLanguage, theme, hasSession }: PropsWithChildren<{ language: Language; preferredLanguage?: Language; theme: ThemePreference; hasSession?: boolean }>) {
+  return <SessionHint.Provider value={hasSession || false}><LanguageProvider language={language} preferredLanguage={preferredLanguage}><ThemeProvider initialPreference={theme}><ClientRuntime />{children}<ToastProvider /></ThemeProvider></LanguageProvider></SessionHint.Provider>;
 }

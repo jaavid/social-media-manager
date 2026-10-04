@@ -93,7 +93,7 @@ export default function AnimatedDashboardMockup() {
               fontSize: 11, color: 'rgba(255,255,255,0.4)',
             }}>
               <span style={{ width: 10, height: 10, borderRadius: 2, background: 'rgba(255,255,255,0.15)' }} />
-              Search…
+              جست‌وجو…
             </div>
             <div style={{
               width: 28, height: 28, borderRadius: '50%',
@@ -103,9 +103,9 @@ export default function AnimatedDashboardMockup() {
 
           {/* Stat cards row */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
-            <StatCard label="Reach" value="248K" delta="+23%" tone="cyan" delay={0.2} />
-            <StatCard label="Engagement" value="14.2K" delta="+12%" tone="purple" delay={0.4} />
-            <StatCard label="Leads" value="312" delta="+5x" tone="green" delay={0.6} />
+            <StatCard label={"دسترسی مخاطبان"} value="248K" delta="+23%" tone="cyan" delay={0.2} />
+            <StatCard label={"نامزدی"} value="14.2K" delta="+12%" tone="purple" delay={0.4} />
+            <StatCard label={"سرنخ‌ها"} value="312" delta="+5x" tone="green" delay={0.6} />
           </div>
 
           {/* Chart + side widget */}
@@ -121,7 +121,7 @@ export default function AnimatedDashboardMockup() {
             }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                  Last 30 days
+                  30 روز گذشته
                 </span>
                 <TrendingUp size={11} color="#00CCF5" />
               </div>
@@ -164,12 +164,12 @@ export default function AnimatedDashboardMockup() {
               padding: 12, display: 'flex', flexDirection: 'column', gap: 8,
             }}>
               <span style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                Top channels
+                کانال های برتر
               </span>
-              <ChannelRow name="Instagram" pct={68} tone="#E4405F" delay={1.4} />
-              <ChannelRow name="Facebook"  pct={52} tone="#1877F2" delay={1.6} />
-              <ChannelRow name="WhatsApp"  pct={41} tone="#25D366" delay={1.8} />
-              <ChannelRow name="YouTube"   pct={28} tone="#FF0000" delay={2.0} />
+              <ChannelRow name="اینستاگرام" pct={68} tone="#E4405F" delay={1.4} />
+              <ChannelRow name="فیس‌بوک"  pct={52} tone="#1877F2" delay={1.6} />
+              <ChannelRow name="واتس‌اپ"  pct={41} tone="#25D366" delay={1.8} />
+              <ChannelRow name="یوتیوب"   pct={28} tone="#FF0000" delay={2.0} />
             </div>
           </div>
         </div>

@@ -43,16 +43,16 @@ import SkipLink from '../ui/SkipLink';
 const DEFAULT_TESTIMONIALS = [];
 
 const DEFAULT_STATS = [
-  { value: '5',    label: 'Platforms' },
-  { value: 'AI',   label: 'Native' },
-  { value: '24/7', label: 'Uptime target' },
+  { value: '5',    label: "پلتفرم‌ها" },
+  { value: 'AI',   label: "یکپارچه" },
+  { value: '24/7', label: "هدف دسترس‌پذیری" },
 ];
 
 export default function AuthLayout({
   children,
-  eyebrow = 'Marketing OS',
-  heroTitle = 'The marketing OS for modern agencies.',
-  heroSub = 'Manage analytics, messaging, and ads for every client — from one beautiful dashboard.',
+  eyebrow = "سامانه مدیریت بازاریابی",
+  heroTitle = "سامانه مدیریت بازاریابی برای آژانس‌های امروزی.",
+  heroSub = "آمار، پیام‌ها و تبلیغات هر فضای کاری را از یک داشبورد مشترک مدیریت کنید.",
   testimonials = DEFAULT_TESTIMONIALS,
   stats = DEFAULT_STATS,
   footer,
@@ -231,7 +231,7 @@ export default function AuthLayout({
                       <button
                         type="button"
                         key={i}
-                        aria-label={`Show testimonial ${i + 1}`}
+                        aria-label={`نمایش گواهینامه ${i + 1}`}
                         onClick={() => setTIndex(i)}
                         style={{
                           width: i === tIndex ? 18 : 6,
@@ -375,9 +375,9 @@ export default function AuthLayout({
               color: 'var(--text-tertiary)',
             }}
           >
-            <Link to="/privacy" style={legalLinkStyle}>Privacy</Link>
-            <Link to="/terms"   style={legalLinkStyle}>Terms</Link>
-            <a href="https://github.com/cbsshekhawat18-lab/social-stats-social-media-manager/issues" target="_blank" rel="noreferrer" style={legalLinkStyle}>Support</a>
+            <Link to="/privacy" style={legalLinkStyle}>حریم خصوصی</Link>
+            <Link to="/terms"   style={legalLinkStyle}>شرایط استفاده</Link>
+            <a href="https://github.com/cbsshekhawat18-lab/social-stats-social-media-manager/issues" target="_blank" rel="noreferrer" style={legalLinkStyle}>پشتیبانی</a>
           </div>
         </div>
       </main>

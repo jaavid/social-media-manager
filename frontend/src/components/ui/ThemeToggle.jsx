@@ -8,6 +8,7 @@
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
 import { Sun, Moon } from 'lucide-react';
+import { useLanguage } from '../../i18n';
 import { useTheme } from '../../hooks/useTheme';
 
 /**
@@ -17,11 +18,12 @@ import { useTheme } from '../../hooks/useTheme';
  * → Appearance page.
  */
 export default function ThemeToggle({ size = 'md', className, variant = 'default' }) {
+  const { tr } = useLanguage();
   const { theme, toggle } = useTheme();
 
   const isDark = theme === 'dark';
   const Icon = isDark ? Sun : Moon;
-  const label = isDark ? 'Switch to light mode' : 'Switch to dark mode';
+  const label = tr(isDark ? 'Switch to light mode' : 'Switch to dark mode');
 
   const dim = size === 'sm' ? 32 : size === 'lg' ? 44 : 36;
 

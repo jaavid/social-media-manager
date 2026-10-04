@@ -1,3 +1,4 @@
+import { publicMessage } from '../i18n/public-message';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -73,14 +74,14 @@ export default function SignupPage() {
 
   function validate() {
     const e = {};
-    if (!fullName.trim()) e.fullName = 'Full name is required.';
-    if (!email.trim()) e.email = 'Email is required.';
-    else if (!/\S+@\S+\.\S+/.test(email)) e.email = 'Enter a valid email address.';
-    if (!password) e.password = 'Password is required.';
-    else if (password.length < 8) e.password = 'Password must be at least 8 characters.';
-    if (!confirmPwd) e.confirmPwd = 'Please confirm your password.';
-    else if (password !== confirmPwd) e.confirmPwd = 'Passwords do not match.';
-    if (!accepted) e.terms = 'You must accept the Terms of Service.';
+    if (!fullName.trim()) e.fullName = "نام کامل الزامی است.";
+    if (!email.trim()) e.email = "وارد کردن ایمیل الزامی است.";
+    else if (!/\S+@\S+\.\S+/.test(email)) e.email = "یک نشانی ایمیل معتبر وارد کنید.";
+    if (!password) e.password = "وارد کردن رمز عبور الزامی است.";
+    else if (password.length < 8) e.password = "رمز عبور باید حداقل 8 کاراکتر باشد.";
+    if (!confirmPwd) e.confirmPwd = "لطفاً رمز عبور خود را تأیید کنید.";
+    else if (password !== confirmPwd) e.confirmPwd = "رمزهای عبور مطابقت ندارند.";
+    if (!accepted) e.terms = "شما باید شرایط خدمات را بپذیرید.";
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -107,7 +108,7 @@ export default function SignupPage() {
         if (data.errors.password) m.password = data.errors.password;
         setErrors(m);
       } else {
-        setServerError(data?.detail || 'Something went wrong. Please try again.');
+        setServerError(data?.detail || "مشکلی پیش آمد. لطفا دوباره امتحان کنید.");
       }
     } finally {
       setLoading(false);
@@ -119,9 +120,9 @@ export default function SignupPage() {
     setResentMsg('');
     try {
       await authAPI.resendVerification(email);
-      setResentMsg('A new verification email has been sent.');
+      setResentMsg("یک ایمیل تأیید جدید ارسال شده است.");
     } catch {
-      setResentMsg('Could not resend. Please try again.');
+      setResentMsg("امکان ارسال مجدد وجود ندارد. لطفا دوباره امتحان کنید.");
     } finally {
       setResending(false);
     }
@@ -142,8 +143,8 @@ export default function SignupPage() {
       <>
         <Confetti />
         <AuthLayout
-          heroTitle="One last step."
-          heroSub="We just sent a verification link to your inbox — open it to activate your account."
+          heroTitle={"آخرین مرحله."}
+          heroSub={"ما به تازگی یک پیوند تأیید به صندوق ورودی شما ارسال کردیم - آن را برای فعال کردن حساب خود باز کنید."}
         >
         <div
           style={{
@@ -169,11 +170,10 @@ export default function SignupPage() {
             <Mail size={26} strokeWidth={1.8} />
           </div>
           <h1 style={{ margin: 0, fontSize: 22, fontWeight: 600, letterSpacing: '-0.01em', color: 'var(--text-primary)' }}>
-            Check your inbox
+            صندوق ورودی خود را بررسی کنید
           </h1>
           <p style={{ margin: '8px 0 20px', fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-            We sent a verification link to <strong style={{ color: 'var(--text-primary)' }}>{email}</strong>.
-            Click the link in the email to activate your account.
+            ما یک پیوند تأیید را به <strong style={{ color: 'var(--text-primary)' }}>{email}</strong>. روی لینک موجود در ایمیل کلیک کنید تا حساب کاربری خود را فعال کنید.
           </p>
 
           {resentMsg && (
@@ -189,7 +189,7 @@ export default function SignupPage() {
                 fontSize: 13,
               }}
             >
-              {resentMsg}
+              {publicMessage(resentMsg, "درخواست شما پردازش شد.")}
             </div>
           )}
 
@@ -201,12 +201,12 @@ export default function SignupPage() {
             loading={resending}
             onClick={handleResend}
           >
-            Resend verification email
+            ایمیل تأیید مجدد را ارسال کنید
           </Button>
           <div style={{ marginTop: 14, fontSize: 13, color: 'var(--text-secondary)' }}>
-            Already verified?{' '}
+            قبلاً تأیید شده‌اید؟{' '}
             <Link to="/login" style={{ color: 'var(--text-link)', fontWeight: 600, textDecoration: 'none' }}>
-              Sign in
+              ورود
             </Link>
           </div>
         </div>
@@ -220,9 +220,9 @@ export default function SignupPage() {
     <AuthLayout
       footer={
         <>
-          Already have an account?{' '}
+          آیا از قبل حساب کاربری دارید؟{' '}
           <Link to="/login" style={{ color: 'var(--text-link)', fontWeight: 600, textDecoration: 'none' }}>
-            Sign in
+            ورود
           </Link>
         </>
       }
@@ -238,10 +238,10 @@ export default function SignupPage() {
       >
         <header style={{ marginBottom: 22 }}>
           <h1 style={{ margin: 0, fontSize: 24, fontWeight: 600, letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
-            Create your account
+            حساب خود را ایجاد کنید
           </h1>
           <p style={{ margin: '6px 0 0', fontSize: 14, color: 'var(--text-secondary)' }}>
-            Start your 14-day free trial. No credit card required.
+            آزمایشی رایگان 14 روزه خود را شروع کنید. بدون نیاز به کارت اعتباری
           </p>
         </header>
 
@@ -262,57 +262,56 @@ export default function SignupPage() {
           >
             <Building2 size={15} style={{ color: 'var(--brand-primary-hover)', flexShrink: 0, marginTop: 1 }} />
             <span>
-              You've been invited by <strong style={{ color: 'var(--text-primary)' }}>{inv.agency_name}</strong>.
-              Sign up below to join their workspace.
+              شما توسط دعوت شده اید <strong style={{ color: 'var(--text-primary)' }}>{inv.agency_name}</strong>. برای پیوستن به فضای کاری آنها در زیر ثبت نام کنید.
             </span>
           </div>
         )}
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <Input
-            label="Full name"
+            label={"نام کامل"}
             autoComplete="name"
             value={fullName}
             onChange={(e) => { setFullName(e.target.value); clearField('fullName'); }}
-            placeholder="Your full name"
-            error={errors.fullName}
+            placeholder={"نام کامل شما"}
+            error={publicMessage(errors.fullName, "انجام درخواست ممکن نشد. لطفاً اطلاعات واردشده را بررسی کنید.")}
             size="lg"
             autoFocus
           />
 
           <Input
-            label="Work email"
+            label={"ایمیل کاری"}
             type="email"
             autoComplete="email"
             value={email}
             onChange={(e) => { setEmail(e.target.value); clearField('email'); }}
             placeholder="you@company.com"
-            error={errors.email}
+            error={publicMessage(errors.email, "انجام درخواست ممکن نشد. لطفاً اطلاعات واردشده را بررسی کنید.")}
             size="lg"
           />
 
           <div>
             <Input
-              label="Password"
+              label={"گذرواژه"}
               type="password"
               autoComplete="new-password"
               value={password}
               onChange={(e) => { setPassword(e.target.value); clearField('password'); }}
-              placeholder="At least 8 characters"
-              error={errors.password}
+              placeholder={"حداقل 8 کاراکتر"}
+              error={publicMessage(errors.password, "انجام درخواست ممکن نشد. لطفاً اطلاعات واردشده را بررسی کنید.")}
               size="lg"
             />
             <PasswordStrength password={password} />
           </div>
 
           <Input
-            label="Confirm password"
+            label={"تکرار گذرواژه"}
             type="password"
             autoComplete="new-password"
             value={confirmPwd}
             onChange={(e) => { setConfirmPwd(e.target.value); clearField('confirmPwd'); }}
-            placeholder="Re-enter your password"
-            error={errors.confirmPwd}
+            placeholder={"رمز عبور خود را دوباره وارد کنید"}
+            error={publicMessage(errors.confirmPwd, "انجام درخواست ممکن نشد. لطفاً اطلاعات واردشده را بررسی کنید.")}
             success={!!confirmPwd && confirmPwd === password && password.length >= 8 && !errors.confirmPwd}
             size="lg"
           />
@@ -322,15 +321,15 @@ export default function SignupPage() {
             onChange={(e) => { setAccepted(e.target.checked); if (errors.terms) clearField('terms'); }}
             label={
               <>
-                I agree to the{' '}
-                <Link to="/terms" style={{ color: 'var(--text-link)', fontWeight: 500 }}>Terms</Link>
-                {' '}and{' '}
-                <Link to="/privacy" style={{ color: 'var(--text-link)', fontWeight: 500 }}>Privacy Policy</Link>
+                من با{' '}
+                <Link to="/terms" style={{ color: 'var(--text-link)', fontWeight: 500 }}>شرایط استفاده</Link>
+                {' '}و{' '}
+                <Link to="/privacy" style={{ color: 'var(--text-link)', fontWeight: 500 }}>سیاست حریم خصوصی</Link>
               </>
             }
           />
           {errors.terms && (
-            <div style={{ fontSize: 12, color: 'var(--danger)', marginTop: -6 }}>{errors.terms}</div>
+            <div style={{ fontSize: 12, color: 'var(--danger)', marginTop: -6 }}>{publicMessage(errors.terms, "انجام درخواست ممکن نشد. لطفاً اطلاعات واردشده را بررسی کنید.")}</div>
           )}
 
           {serverError && (
@@ -349,12 +348,12 @@ export default function SignupPage() {
               }}
             >
               <AlertCircle size={15} style={{ flexShrink: 0, marginTop: 1 }} />
-              <span>{serverError}</span>
+              <span>{publicMessage(serverError, "انجام درخواست ممکن نشد. لطفاً اطلاعات واردشده را بررسی کنید.")}</span>
             </div>
           )}
 
           <Button type="submit" size="lg" iconRight={ArrowRight} fullWidth loading={loading}>
-            Create account
+            ایجاد حساب
           </Button>
         </form>
 
@@ -369,17 +368,17 @@ export default function SignupPage() {
         >
           <span style={{ flex: 1, height: 1, background: 'var(--border-subtle)' }} />
           <span style={{ fontSize: 11, fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-            or sign up with
+            یا ثبت نام کنید
           </span>
           <span style={{ flex: 1, height: 1, background: 'var(--border-subtle)' }} />
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
           <Button variant="secondary" size="lg" fullWidth onClick={handleGoogle}>
-            <SocialPlatformIcon platform="google" size={16} /> Google
+            <SocialPlatformIcon platform="google" size={16} /> گوگل
           </Button>
           <Button variant="secondary" size="lg" fullWidth onClick={handleFacebook}>
-            <SocialPlatformIcon platform="facebook" size={16} /> Facebook
+            <SocialPlatformIcon platform="facebook" size={16} /> فیس‌بوک
           </Button>
         </div>
       </div>

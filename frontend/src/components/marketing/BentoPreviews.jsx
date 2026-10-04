@@ -27,9 +27,9 @@ import {
 export function AIAssistantPreview() {
   return (
     <div style={cardStyle}>
-      <Bubble side="user" tone="cyan">Write 3 posts for our new property launch</Bubble>
+      <Bubble side="user" tone="cyan">برای راه اندازی ملک جدید ما 3 پست بنویسید</Bubble>
       <Bubble side="ai">
-        Here are three drafts tuned to your brand voice
+        در اینجا سه پیش‌نویس برای لحن برند شما تنظیم شده است
         <span style={dotsStyle}>
           <span style={dot(0)} /><span style={dot(0.15)} /><span style={dot(0.3)} />
         </span>
@@ -43,9 +43,9 @@ export function AIAssistantPreview() {
 // ─────────────────────────────────────────────────────────────────────────────
 export function ComposerPreview() {
   const platforms = [
-    { name: 'Instagram', tone: '#E4405F', active: true },
-    { name: 'Facebook',  tone: '#1877F2' },
-    { name: 'LinkedIn',  tone: '#0A66C2' },
+    { name: "اینستاگرام", tone: '#E4405F', active: true },
+    { name: "فیس‌بوک",  tone: '#1877F2' },
+    { name: "لینکدین",  tone: '#0A66C2' },
   ];
   return (
     <div style={cardStyle}>
@@ -67,10 +67,10 @@ export function ComposerPreview() {
         borderRadius: 'var(--radius-sm)',
         fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.5,
       }}>
-        New launch — luxury 3BHK at <strong style={{ color: 'var(--text-primary)' }}>Acme Heights</strong>. Rooftop pool, smart home, ready to move in. Site visits open this weekend 🌅
+        راه اندازی جدید - لوکس آپارتمان سه‌خوابه در <strong style={{ color: 'var(--text-primary)' }}>ارتفاعات آکم</strong>. استخر روی پشت بام، خانه هوشمند، آماده نقل مکان. بازدید از سایت این آخر هفته باز است 🌅
       </div>
       <div style={{ marginTop: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ fontSize: 10, color: 'var(--text-tertiary)' }}>Auto-resized for IG · 220 chars</span>
+        <span style={{ fontSize: 10, color: 'var(--text-tertiary)' }}>تغییر اندازه خودکار برای اینستاگرام · 220 کاراکتر</span>
         <Send size={11} style={{ color: '#00CCF5' }} />
       </div>
     </div>
@@ -82,9 +82,9 @@ export function ComposerPreview() {
 // ─────────────────────────────────────────────────────────────────────────────
 export function InboxPreview() {
   const messages = [
-    { name: 'Priya S.',    plat: 'IG', text: 'Is this still available?',     tone: '#E4405F', delay: 0 },
-    { name: 'Acme Group',  plat: 'WA', text: 'Can we visit on Saturday?',    tone: '#25D366', delay: 0.15 },
-    { name: 'Rahul Verma', plat: 'FB', text: 'What is the price range?',     tone: '#1877F2', delay: 0.3 },
+    { name: "پریا اس.",    plat: 'IG', text: "آیا این هنوز موجود است؟",     tone: '#E4405F', delay: 0 },
+    { name: "گروه آکمه",  plat: 'WA', text: "آیا می‌توانیم شنبه بازدید کنیم؟",    tone: '#25D366', delay: 0.15 },
+    { name: "راهول ورما", plat: 'FB', text: "محدوده قیمت چیست؟",     tone: '#1877F2', delay: 0.3 },
   ];
   return (
     <div style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
@@ -147,10 +147,10 @@ export function BotBuilderPreview() {
                    initial={{ pathLength: 0 }} whileInView={{ pathLength: 1 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.6 }} />
 
       {/* Nodes */}
-      <Node x={20}  y={30} label="Start"   tone="#00CCF5" />
-      <Node x={140} y={30} label="Ask"     tone="#a78bfa" delay={0.4} />
-      <Node x={200} y={65} label="Capture" tone="#34d399" delay={0.8} />
-      <Node x={80}  y={100} label="Reply"  tone="#fbbf24" delay={0.8} />
+      <Node x={20}  y={30} label={"شروع کنید"}   tone="#00CCF5" />
+      <Node x={140} y={30} label={"بپرسید"}     tone="#a78bfa" delay={0.4} />
+      <Node x={200} y={65} label={"گرفتن"} tone="#34d399" delay={0.8} />
+      <Node x={80}  y={100} label={"پاسخ"}  tone="#fbbf24" delay={0.8} />
     </svg>
   );
 }
@@ -190,14 +190,14 @@ export function AIInsightPreview() {
         }}><Sparkles size={11} /></span>
         <span style={{ fontSize: 10, fontWeight: 700, color: '#f59e0b',
                        textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-          AI insight · just now
+          بینش هوش مصنوعی · همین الان
         </span>
       </div>
       <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.45 }}>
-        Engagement dropped 30% on Tuesdays
+        نامزدی در روزهای سه شنبه 30 درصد کاهش یافت
       </div>
       <div style={{ marginTop: 6, fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.55 }}>
-        Try moving your Tuesday post to 7pm — your audience is most active then.
+        سعی کنید پست سه شنبه خود را به ساعت 7 بعدازظهر منتقل کنید - در آن زمان مخاطبان شما بیشتر فعال هستند.
       </div>
     </div>
   );
@@ -210,18 +210,18 @@ export function AutomationsPreview() {
   return (
     <div style={cardStyle}>
       <div style={ruleRowStyle}>
-        <span style={kindStyle('cyan')}>IF</span>
-        <span style={ruleTextStyle}>Comment matches keyword "price"</span>
+        <span style={kindStyle('cyan')}>اگر</span>
+        <span style={ruleTextStyle}>نظر با کلمه کلیدی "قیمت" مطابقت دارد</span>
       </div>
       <ChainArrow />
       <div style={ruleRowStyle}>
-        <span style={kindStyle('purple')}>THEN</span>
-        <span style={ruleTextStyle}>Reply with template <strong style={{ color: 'var(--text-primary)' }}>"Pricing"</strong></span>
+        <span style={kindStyle('purple')}>سپس</span>
+        <span style={ruleTextStyle}>پاسخ با الگو <strong style={{ color: 'var(--text-primary)' }}>"قیمت"</strong></span>
       </div>
       <ChainArrow />
       <div style={ruleRowStyle}>
-        <span style={kindStyle('green')}>AND</span>
-        <span style={ruleTextStyle}>Tag contact as <strong style={{ color: 'var(--text-primary)' }}>hot lead</strong></span>
+        <span style={kindStyle('green')}>و</span>
+        <span style={ruleTextStyle}>مخاطب را به عنوان برچسب بزنید <strong style={{ color: 'var(--text-primary)' }}>سرب داغ</strong></span>
       </div>
     </div>
   );
@@ -247,7 +247,7 @@ export function AnalyticsPreview() {
   return (
     <div style={cardStyle}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-        <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)' }}>Reach · 30d</span>
+        <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)' }}>رسیدن · 30 روز</span>
         <span style={{
           display: 'inline-flex', alignItems: 'center', gap: 2,
           fontSize: 11, fontWeight: 700, color: 'var(--success)',
@@ -272,7 +272,7 @@ export function AnalyticsPreview() {
                      viewport={{ once: true }} transition={{ duration: reduced ? 0 : 1.2, ease: 'easeOut' }} />
       </svg>
       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'var(--text-tertiary)' }}>
-        <span>Apr 1</span><span>Apr 15</span><span>Apr 30</span>
+        <span>1 آوریل</span><span>15 آوریل</span><span>30 آوریل</span>
       </div>
     </div>
   );
@@ -295,18 +295,18 @@ export function ReportsPreview() {
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           paddingBottom: 8, borderBottom: '1px solid #e2e8f0',
         }}>
-          <span style={{ fontSize: 11, fontWeight: 700 }}>Acme Realty · April</span>
+          <span style={{ fontSize: 11, fontWeight: 700 }}>آکمه املاک · آوریل</span>
           <FileText size={11} style={{ color: '#64748b' }} />
         </div>
         <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-          <ReportStat label="Reach"  value="248K" />
-          <ReportStat label="Posts"  value="42"   />
-          <ReportStat label="Leads"  value="312"  />
+          <ReportStat label={"دسترسی مخاطبان"}  value="248K" />
+          <ReportStat label={"پست‌ها"}  value="42"   />
+          <ReportStat label={"سرنخ‌ها"}  value="312"  />
         </div>
         <div style={{ marginTop: 8, height: 24, background: 'linear-gradient(90deg, #00CCF5 65%, #e2e8f0 65%)',
                       borderRadius: 4 }} />
         <div style={{ marginTop: 6, fontSize: 9, color: '#64748b' }}>
-          AI summary: Your reach grew 23% MoM, driven by Reels…
+          خلاصه هوش مصنوعی: میزان دسترسی شما 23 درصد افزایش یافته است که توسط ریلز هدایت می‌شود…
         </div>
       </div>
     </div>
@@ -360,7 +360,7 @@ const dotsStyle = {
 const dot = (delay) => ({
   width: 4, height: 4, borderRadius: '50%',
   background: 'var(--text-tertiary)', display: 'inline-block',
-  animation: `mkt-dot 1.4s ease-in-out ${delay}s infinite`,
+  animation: `mkt-dot 1.4s ease-in-out ${delay}ثانیه بی نهایت`,
 });
 
 const ruleRowStyle = {

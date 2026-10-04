@@ -38,71 +38,71 @@ import { track }       from '../services/analytics';
 
 // ── Categories ────────────────────────────────────────────────────────
 const CATEGORIES = [
-  { id: 'all',         label: 'All',          icon: Sparkles  },
-  { id: 'social',      label: 'Social',       icon: Megaphone },
-  { id: 'messaging',   label: 'Messaging',    icon: MessageSquare },
-  { id: 'analytics',   label: 'Analytics',    icon: BarChart3 },
+  { id: 'all',         label: "همه",          icon: Sparkles  },
+  { id: 'social',      label: "اجتماعی",       icon: Megaphone },
+  { id: 'messaging',   label: "پیام‌رسانی",    icon: MessageSquare },
+  { id: 'analytics',   label: "تحلیل و آمار",    icon: BarChart3 },
   { id: 'crm',         label: 'CRM',          icon: Database  },
-  { id: 'commerce',    label: 'Commerce',     icon: ShoppingBag },
-  { id: 'automation',  label: 'Automation',   icon: Workflow  },
-  { id: 'ai',          label: 'AI',           icon: Brain     },
-  { id: 'productivity',label: 'Productivity', icon: Calendar  },
+  { id: 'commerce',    label: "تجارت",     icon: ShoppingBag },
+  { id: 'automation',  label: "خودکارسازی",   icon: Workflow  },
+  { id: 'ai',          label: "هوش مصنوعی",           icon: Brain     },
+  { id: 'productivity',label: "بهره وری", icon: Calendar  },
 ];
 
 // ── Integrations ──────────────────────────────────────────────────────
 // `live: true` = fully shipped; otherwise shows a "Coming soon" badge.
 const INTEGRATIONS = [
   // Social
-  { slug: 'facebook',   name: 'Facebook',   tagline: 'Pages, posts, ads, comments.',          category: 'social',     live: true,  badge: 'Native', accent: '#1877F2', initial: 'f' },
-  { slug: 'instagram',  name: 'Instagram',  tagline: 'Posts, reels, stories, DMs.',           category: 'social',     live: true,  badge: 'Native', accent: '#E4405F', initial: 'I' },
-  { slug: 'youtube',    name: 'YouTube',    tagline: 'Uploads, comments, analytics.',         category: 'social',     live: true,  badge: 'Native', accent: '#FF0000', initial: 'Y' },
-  { slug: 'linkedin',   name: 'LinkedIn',   tagline: 'Pages, posts, lead-gen forms.',         category: 'social',     live: true,  badge: 'Native', accent: '#0A66C2', initial: 'in' },
+  { slug: 'facebook',   name: "فیس‌بوک",   tagline: "صفحات، پست‌ها، تبلیغات، نظرات.",          category: 'social',     live: true,  badge: "یکپارچه", accent: '#1877F2', initial: 'f' },
+  { slug: 'instagram',  name: "اینستاگرام",  tagline: "پست‌ها، قرقره ها، داستان ها، پیامک ها.",           category: 'social',     live: true,  badge: "یکپارچه", accent: '#E4405F', initial: 'I' },
+  { slug: 'youtube',    name: "یوتیوب",    tagline: "بارگذاری، نظرات، تحلیل و آمار.",         category: 'social',     live: true,  badge: "یکپارچه", accent: '#FF0000', initial: 'Y' },
+  { slug: 'linkedin',   name: "لینکدین",   tagline: "صفحات، پست‌ها، فرم‌های اصلی.",         category: 'social',     live: true,  badge: "یکپارچه", accent: '#0A66C2', initial: 'in' },
 
   // Messaging
-  { slug: 'whatsapp',   name: 'WhatsApp Business', tagline: 'Two-way chat, campaigns, CTWA.', category: 'messaging',  live: true,  badge: 'Native', accent: '#25D366', initial: 'W' },
-  { slug: 'pinbot',     name: 'Pinbot.ai',  tagline: 'WhatsApp Business API gateway.',         category: 'messaging',  live: true,                   accent: '#22c55e', initial: 'pb' },
-  { slug: 'messenger',  name: 'Messenger',  tagline: 'Conversations from Facebook.',          category: 'messaging',  live: true,                   accent: '#0084FF', initial: 'M' },
-  { slug: 'telegram',   name: 'Telegram',   tagline: 'Channels and bot replies.',             category: 'messaging',  live: false,                  accent: '#26A5E4', initial: 'tg' },
-  { slug: 'slack',      name: 'Slack',      tagline: 'Notifications, approvals, alerts.',     category: 'messaging',  live: true,                   accent: '#4A154B', initial: 'S' },
-  { slug: 'discord',    name: 'Discord',    tagline: 'Server announcements via webhook.',     category: 'messaging',  live: false,                  accent: '#5865F2', initial: 'D' },
+  { slug: 'whatsapp',   name: "کسب و کار واتس‌اپ", tagline: "چت دو طرفه، کمپین ها، CTWA.", category: 'messaging',  live: true,  badge: "یکپارچه", accent: '#25D366', initial: 'W' },
+  { slug: 'pinbot',     name: 'Pinbot.ai',  tagline: "درگاه واتس‌اپ کسب و کار API.",         category: 'messaging',  live: true,                   accent: '#22c55e', initial: 'pb' },
+  { slug: 'messenger',  name: "مسنجر",  tagline: "مکالمات از فیس‌بوک.",          category: 'messaging',  live: true,                   accent: '#0084FF', initial: 'M' },
+  { slug: 'telegram',   name: "تلگرام",   tagline: "کانال ها و پاسخ های ربات.",             category: 'messaging',  live: false,                  accent: '#26A5E4', initial: 'tg' },
+  { slug: 'slack',      name: "اسلک",      tagline: "اطلاعیه ها، تأییدیه ها، هشدارها.",     category: 'messaging',  live: true,                   accent: '#4A154B', initial: 'S' },
+  { slug: 'discord',    name: "دیسکورد",    tagline: "اطلاعیه های سرور از طریق webhook.",     category: 'messaging',  live: false,                  accent: '#5865F2', initial: 'D' },
 
   // Analytics
-  { slug: 'ga4',        name: 'Google Analytics 4', tagline: 'Sessions, conversions, paths.', category: 'analytics',  live: true,                   accent: '#E37400', initial: 'GA' },
-  { slug: 'gsc',        name: 'Search Console',     tagline: 'SEO performance and queries.',  category: 'analytics',  live: true,                   accent: '#4285F4', initial: 'SC' },
-  { slug: 'gmb',        name: 'Google Business',    tagline: 'Reviews, posts, local insights.',category: 'analytics',  live: true,  badge: 'Native', accent: '#34A853', initial: 'GB' },
-  { slug: 'ga-meta-ads',name: 'Meta Ads',           tagline: 'Spend, ROAS, creative scoring.',category: 'analytics',  live: true,  badge: 'Native', accent: '#1877F2', initial: 'MA' },
-  { slug: 'google-ads', name: 'Google Ads',         tagline: 'Campaigns, keywords, spend.',   category: 'analytics',  live: false,                  accent: '#4285F4', initial: 'gA' },
+  { slug: 'ga4',        name: "گوگل آنالیتیکس ۴", tagline: "جلسات، تبدیل ها، مسیرها.", category: 'analytics',  live: true,                   accent: '#E37400', initial: 'GA' },
+  { slug: 'gsc',        name: "کنسول جستجو",     tagline: "عملکرد سئو و پرس و جو.",  category: 'analytics',  live: true,                   accent: '#4285F4', initial: 'SC' },
+  { slug: 'gmb',        name: 'کسب‌وکار گوگل',    tagline: "نظرات، پست‌ها، بینش‌های محلی.",category: 'analytics',  live: true,  badge: "یکپارچه", accent: '#34A853', initial: 'GB' },
+  { slug: 'ga-meta-ads',name: "تبلیغات متا",           tagline: "خرج کردن، ROAS، امتیازدهی خلاق.",category: 'analytics',  live: true,  badge: "یکپارچه", accent: '#1877F2', initial: 'MA' },
+  { slug: 'google-ads', name: "تبلیغات گوگل",         tagline: "کمپین ها، کلمات کلیدی، هزینه.",   category: 'analytics',  live: false,                  accent: '#4285F4', initial: 'gA' },
 
   // CRM
-  { slug: 'hubspot',    name: 'HubSpot',    tagline: 'Sync contacts and conversations.',     category: 'crm',         live: true,                   accent: '#FF7A59', initial: 'H' },
-  { slug: 'salesforce', name: 'Salesforce', tagline: 'Lead, contact, and deal sync.',        category: 'crm',         live: false,                  accent: '#00A1E0', initial: 'sf' },
-  { slug: 'zoho',       name: 'Zoho CRM',   tagline: 'Two-way sync — leads + activities.',   category: 'crm',         live: true,                   accent: '#C8202C', initial: 'Z' },
-  { slug: 'freshsales', name: 'Freshsales', tagline: 'Pipeline and contact sync.',           category: 'crm',         live: false,                  accent: '#21B573', initial: 'fs' },
+  { slug: 'hubspot',    name: 'HubSpot',    tagline: "مخاطبین و مکالمات را همگام کنید.",     category: 'crm',         live: true,                   accent: '#FF7A59', initial: 'H' },
+  { slug: 'salesforce', name: "سیلزفورس", tagline: "همگام سازی هدایت، تماس و معامله.",        category: 'crm',         live: false,                  accent: '#00A1E0', initial: 'sf' },
+  { slug: 'zoho',       name: 'Zoho CRM',   tagline: "همگام سازی دو طرفه - سرنخ ها + فعالیت ها.",   category: 'crm',         live: true,                   accent: '#C8202C', initial: 'Z' },
+  { slug: 'freshsales', name: "فرش‌سیلز", tagline: "خط لوله و همگام سازی تماس.",           category: 'crm',         live: false,                  accent: '#21B573', initial: 'fs' },
 
   // Commerce
-  { slug: 'shopify',    name: 'Shopify',    tagline: 'Products, orders, customers.',          category: 'commerce',    live: true,                   accent: '#96BF48', initial: 'sh' },
-  { slug: 'woocommerce',name: 'WooCommerce',tagline: 'WordPress + WooCommerce sync.',         category: 'commerce',    live: true,                   accent: '#7F54B3', initial: 'W' },
-  { slug: 'magento',    name: 'Magento',    tagline: 'Adobe Commerce sync.',                  category: 'commerce',    live: false,                  accent: '#EE672F', initial: 'm' },
+  { slug: 'shopify',    name: 'Shopify',    tagline: "محصولات، سفارشات، مشتریان.",          category: 'commerce',    live: true,                   accent: '#96BF48', initial: 'sh' },
+  { slug: 'woocommerce',name: "ووکامرس",tagline: "همگام سازی وردپرس + ووکامرس.",         category: 'commerce',    live: true,                   accent: '#7F54B3', initial: 'W' },
+  { slug: 'magento',    name: "مجنتو",    tagline: "همگام سازی Adobe Commerce.",                  category: 'commerce',    live: false,                  accent: '#EE672F', initial: 'm' },
 
   // Automation
-  { slug: 'zapier',     name: 'Zapier',     tagline: '5,000+ apps via Zapier triggers.',      category: 'automation',  live: true,                   accent: '#FF4F00', initial: 'Z' },
-  { slug: 'make',       name: 'Make',       tagline: 'Visual automation, deep flows.',        category: 'automation',  live: true,                   accent: '#6D00CC', initial: 'M' },
-  { slug: 'n8n',        name: 'n8n',        tagline: 'Self-hosted automation.',               category: 'automation',  live: false,                  accent: '#EA4B71', initial: 'n8' },
-  { slug: 'webhook',    name: 'Webhooks',   tagline: 'Bring your own — outbound + inbound.', category: 'automation',  live: true,                   accent: '#6b7280', initial: 'wh' },
+  { slug: 'zapier',     name: "زاپیر",     tagline: "بیش از 5000 برنامه از طریق محرک‌های زاپیر.",      category: 'automation',  live: true,                   accent: '#FF4F00', initial: 'Z' },
+  { slug: 'make',       name: "میک",       tagline: "اتوماسیون بصری، جریان‌های عمیق.",        category: 'automation',  live: true,                   accent: '#6D00CC', initial: 'M' },
+  { slug: 'n8n',        name: 'n8n',        tagline: "اتوماسیون خود میزبان.",               category: 'automation',  live: false,                  accent: '#EA4B71', initial: 'n8' },
+  { slug: 'webhook',    name: "وب‌هوک‌ها",   tagline: "خود را بیاورید - خروجی + ورودی.", category: 'automation',  live: true,                   accent: '#6b7280', initial: 'wh' },
 
   // AI
-  { slug: 'anthropic',  name: 'Anthropic Claude', tagline: 'Bring your own Anthropic API key (Enterprise).', category: 'ai',         live: false,                  accent: '#D97706', initial: 'C' },
-  { slug: 'openai',     name: 'OpenAI',      tagline: 'Bring your own GPT key (Enterprise).',category: 'ai',         live: false,                  accent: '#10a37f', initial: 'o' },
-  { slug: 'gemini',     name: 'Google Gemini', tagline: 'Bring your own Gemini API key (Enterprise).', category: 'ai',         live: false,                  accent: '#4285F4', initial: 'G' },
+  { slug: 'anthropic',  name: "آنتروپیک کلود", tagline: "کلید آنتروپیک API خود را (سازمانی) بیاورید.", category: 'ai',         live: false,                  accent: '#D97706', initial: 'C' },
+  { slug: 'openai',     name: 'OpenAI',      tagline: "کلید GPT خود را (سازمانی) بیاورید.",category: 'ai',         live: false,                  accent: '#10a37f', initial: 'o' },
+  { slug: 'gemini',     name: "گوگل جمینی", tagline: "کلید Gemini API خود را (سازمانی) بیاورید.", category: 'ai',         live: false,                  accent: '#4285F4', initial: 'G' },
 
   // Productivity
-  { slug: 'gcal',       name: 'Google Calendar', tagline: 'Sync content calendar.',           category: 'productivity',live: true,                   accent: '#4285F4', initial: 'gc' },
-  { slug: 'gmail',      name: 'Gmail',       tagline: 'Send replies and digests.',            category: 'productivity',live: true,                   accent: '#EA4335', initial: 'gm' },
-  { slug: 'gdrive',     name: 'Google Drive',tagline: 'Pull media into Composer.',            category: 'productivity',live: true,                   accent: '#0F9D58', initial: 'gd' },
-  { slug: 'dropbox',    name: 'Dropbox',     tagline: 'Pull media into Composer.',            category: 'productivity',live: false,                  accent: '#0061FF', initial: 'db' },
-  { slug: 'notion',     name: 'Notion',      tagline: 'Push briefs to Notion pages.',         category: 'productivity',live: false,                  accent: '#000000', initial: 'N' },
-  { slug: 'figma',      name: 'Figma',       tagline: 'Pull designs into the Composer.',      category: 'productivity',live: false,                  accent: '#F24E1E', initial: 'F' },
-  { slug: 'canva',      name: 'Canva',       tagline: 'Push to Canva for design.',            category: 'productivity',live: true,                   accent: '#00C4CC', initial: 'cv' },
+  { slug: 'gcal',       name: "تقویم گوگل", tagline: "همگام سازی تقویم محتوا.",           category: 'productivity',live: true,                   accent: '#4285F4', initial: 'gc' },
+  { slug: 'gmail',      name: "جیمیل",       tagline: "ارسال پاسخ و خلاصه.",            category: 'productivity',live: true,                   accent: '#EA4335', initial: 'gm' },
+  { slug: 'gdrive',     name: "گوگل درایو",tagline: "رسانه را به ویرایشگر محتوا بکشید.",            category: 'productivity',live: true,                   accent: '#0F9D58', initial: 'gd' },
+  { slug: 'dropbox',    name: "دراپ باکس",     tagline: "رسانه را به ویرایشگر محتوا بکشید.",            category: 'productivity',live: false,                  accent: '#0061FF', initial: 'db' },
+  { slug: 'notion',     name: "نوشن",      tagline: "خلاصه‌ها را به صفحات مفهومی فشار دهید.",         category: 'productivity',live: false,                  accent: '#000000', initial: 'N' },
+  { slug: 'figma',      name: "فیگما",       tagline: "طرح ها را به ویرایشگر محتوا بکشید.",      category: 'productivity',live: false,                  accent: '#F24E1E', initial: 'F' },
+  { slug: 'canva',      name: "کانوا",       tagline: "برای طراحی به Canva فشار دهید.",            category: 'productivity',live: true,                   accent: '#00C4CC', initial: 'cv' },
 
 ];
 
@@ -126,8 +126,8 @@ export default function IntegrationsPage() {
     <>
       <Meta
         noSuffix
-        title="Integrations — Social Stats"
-        description="40+ native integrations across social, messaging, analytics, CRM, commerce, AI and more. Plug Social Stats into your existing stack in minutes."
+        title={"ادغام - راوینتا"}
+        description={"بیش از 40 ادغام بومی در شبکه‌های اجتماعی، پیام‌رسانی، تحلیل و آمار، CRM، تجارت، هوش مصنوعی و موارد دیگر. راوینتا را در عرض چند دقیقه به پشته موجود خود وصل کنید."}
       />
 
       {/* ╭──────────────╮
@@ -151,7 +151,7 @@ export default function IntegrationsPage() {
             border: '1px solid rgba(0,204,245,0.25)',
             borderRadius: 'var(--radius-pill)',
           }}>
-            <Sparkles size={12} /> Integrations
+            <Sparkles size={12} /> اتصال‌ها
           </span>
 
           <h1 style={{
@@ -162,9 +162,9 @@ export default function IntegrationsPage() {
             color: '#fff',
             lineHeight: 1.05,
           }}>
-            Plug Social Stats into the<br />
+            راوینتا را به آن وصل کنید<br />
             <span style={{ background: 'linear-gradient(135deg, #00CCF5, #8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              tools you already use
+              ابزارهایی که قبلاً استفاده می‌کنید
             </span>
           </h1>
 
@@ -175,7 +175,7 @@ export default function IntegrationsPage() {
             color: 'rgba(255,255,255,0.75)',
             lineHeight: 1.55,
           }}>
-            40+ native integrations across social, messaging, analytics, CRM, commerce, AI and more. Native means &quot;built and maintained by us, not Zapier.&quot;
+            بیش از ۴۰ اتصال یکپارچه برای شبکه‌های اجتماعی، پیام‌رسانی، تحلیل و آمار، مدیریت ارتباط با مشتری، تجارت و هوش مصنوعی. این اتصال‌ها را تیم ما توسعه می‌دهد و نگهداری می‌کند.
           </p>
 
           {/* Search */}
@@ -191,8 +191,8 @@ export default function IntegrationsPage() {
             <Search size={16} color="rgba(255,255,255,0.55)" />
             <input
               type="search"
-              aria-label="Search integrations"
-              placeholder="Search integrations…"
+              aria-label={"ادغام جستجو"}
+              placeholder={"ادغام جستجو…"}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               style={{
@@ -207,7 +207,7 @@ export default function IntegrationsPage() {
               <button
                 type="button"
                 onClick={() => setQuery('')}
-                aria-label="Clear search"
+                aria-label={"جستجو را پاک کنید"}
                 style={{
                   background: 'transparent', border: 'none',
                   color: 'rgba(255,255,255,0.55)',
@@ -233,7 +233,7 @@ export default function IntegrationsPage() {
                 color: 'rgba(255,255,255,0.55)', marginBottom: 16,
                 textAlign: 'center',
               }}>
-                Featured
+                برجسته
               </div>
             </ScrollReveal>
 
@@ -313,10 +313,10 @@ export default function IntegrationsPage() {
               borderRadius: 'var(--radius-xl)',
             }}>
               <p style={{ margin: 0, fontSize: 15 }}>
-                No integrations match &quot;{query}&quot;.
+                هیچ ادغامی مطابقت ندارد "{query}&quot;.
               </p>
               <p style={{ margin: '8px 0 16px', fontSize: 13 }}>
-                Try a different keyword — or request it below.
+                کلمه کلیدی دیگری را امتحان کنید - یا آن را در زیر درخواست کنید.
               </p>
               <Button as={Link} to="/contact" size="sm" variant="ghost"
                 style={{
@@ -324,7 +324,7 @@ export default function IntegrationsPage() {
                   background: 'rgba(255,255,255,0.08)',
                   border: '1px solid rgba(255,255,255,0.18)',
                 }}>
-                Request integration
+                درخواست ادغام
               </Button>
             </div>
           )}
@@ -343,21 +343,21 @@ export default function IntegrationsPage() {
           }}>
             <Tile
               icon={Zap}
-              title="Build your own"
-              body="Public REST API + outbound webhooks + Zapier/Make. Build any integration we haven't shipped yet."
-              cta={{ to: '/contact?topic=api', label: 'Get API access' }}
+              title={"خود را بسازید"}
+              body={"با API عمومی، وب‌هوک‌های خروجی، زاپیر و میک، اتصال موردنیاز خود را بسازید."}
+              cta={{ to: '/contact?topic=api', label: "دسترسی API را دریافت کنید" }}
             />
             <Tile
               icon={Mail}
-              title="Don't see your tool?"
-              body="Tell us what you use. We ship 2–3 new native integrations every quarter, and customer requests jump the queue."
-              cta={{ to: '/contact', label: 'Request integration' }}
+              title={"آیا ابزار خود را نمی بینید؟"}
+              body={"ابزارهای موردنیازتان را به ما بگویید. هر سه ماه دو تا سه اتصال تازه ارائه می‌کنیم و درخواست‌های مشتریان در اولویت قرار می‌گیرند."}
+              cta={{ to: '/contact', label: "درخواست ادغام" }}
             />
             <Tile
               icon={Image}
-              title="Enterprise integrations"
-              body="SCIM provisioning, SSO (SAML / OIDC), private webhooks. Available on Enterprise plans."
-              cta={{ to: '/contact?topic=enterprise', label: 'Talk to sales' }}
+              title={"ادغام سازمانی"}
+              body={"مدیریت کاربران با SCIM، ورود یکپارچه با SAML یا OIDC و وب‌هوک خصوصی، در طرح سازمانی در دسترس است."}
+              cta={{ to: '/contact?topic=enterprise', label: "با فروشندگان صحبت کنید" }}
             />
           </div>
         </div>
@@ -383,9 +383,9 @@ export default function IntegrationsPage() {
             color: '#fff',
             lineHeight: 1.1,
           }}>
-            Connect your stack<br />
+            پشته خود را وصل کنید<br />
             <span style={{ background: 'linear-gradient(135deg, #00CCF5, #8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              in under 10 minutes
+              در کمتر از 10 دقیقه
             </span>
           </h2>
 
@@ -396,7 +396,7 @@ export default function IntegrationsPage() {
             color: 'rgba(255,255,255,0.75)',
             lineHeight: 1.55,
           }}>
-            Most customers connect 4-6 platforms before they finish their morning coffee. Free plan, no card.
+            اکثر مشتریان قبل از اینکه قهوه صبح خود را تمام کنند، 4-6 پلتفرم را به هم متصل می‌کنند. طرح رایگان، بدون کارت.
           </p>
 
           <div style={{
@@ -409,7 +409,7 @@ export default function IntegrationsPage() {
                 background: 'linear-gradient(135deg, #00CCF5, #00A8D8)',
                 color: '#0a0e14', border: 'none',
               }}>
-              Start free <ArrowRight size={15} />
+              شروع رایگان <ArrowRight size={15} />
             </Button>
             <Button as={Link} to="/contact" size="lg" variant="ghost"
               style={{
@@ -417,7 +417,7 @@ export default function IntegrationsPage() {
                 background: 'rgba(255,255,255,0.08)',
                 border: '1px solid rgba(255,255,255,0.18)',
               }}>
-              Talk to sales
+              با فروشندگان صحبت کنید
             </Button>
           </div>
         </div>
@@ -472,7 +472,7 @@ function FeaturedCard({ i }) {
         fontSize: 12, fontWeight: 600,
         color: '#00CCF5',
       }}>
-        <CheckCircle2 size={13} /> Live now
+        <CheckCircle2 size={13} /> اکنون زندگی کنید
       </div>
     </motion.article>
   );
@@ -518,7 +518,7 @@ function IntegrationCard({ i }) {
             borderRadius: 'var(--radius-pill)',
             whiteSpace: 'nowrap',
           }}>
-            Live
+            زنده
           </span>
         ) : (
           <span style={{
@@ -530,7 +530,7 @@ function IntegrationCard({ i }) {
             borderRadius: 'var(--radius-pill)',
             whiteSpace: 'nowrap',
           }}>
-            Soon
+            به‌زودی
           </span>
         )}
       </div>

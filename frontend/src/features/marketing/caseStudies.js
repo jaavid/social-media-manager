@@ -28,69 +28,69 @@ const STUDIES = {
   'acme-realty': {
     slug: 'acme-realty',
     company: 'Acme Realty',
-    industry: 'Real Estate',
+    industry: "املاک",
     accent: '#00CCF5',
-    tagline: 'How Acme 4.2x-ed leads with WhatsApp + a unified inbox.',
+    tagline: "چگونه آکمه 4.2x-ed با واتس‌اپ + صندوق ورودی یکپارچه پیشتاز است.",
     hero: {
-      metric: { value: 4.2, suffix: 'x', label: 'lead volume in 9 months' },
+      metric: { value: 4.2, suffix: 'x', label: "حجم سرب در 9 ماه" },
       portrait: {
-        name: 'Priya Sharma',
-        role: 'Marketing Head, Acme Realty',
+        name: "پریا شارما",
+        role: "رئیس بازاریابی، آکمه املاک",
         initial: 'PS',
       },
       logoText: 'A',
     },
 
     profile: {
-      sector: 'Real Estate',
-      size: '120 agents · 6 cities',
+      sector: "املاک",
+      size: "120 نماینده · 6 شهر",
       founded: '2014',
-      location: 'Mumbai · Pune · Bengaluru',
+      location: "بمبئی · پونا · بنگالورو",
       website: 'acmerealty.example',
-      uses: ['WhatsApp Business', 'Unified Inbox', 'Composer', 'Reports'],
+      uses: ["کسب و کار واتس‌اپ", "صندوق ورودی یکپارچه", "ویرایشگر محتوا", "گزارش‌ها"],
     },
 
     challenge: {
-      title: 'The "where do I respond first?" problem',
+      title: "\"اول کجا پاسخ بدهم؟\" مشکل",
       body: [
-        'Acme Realty was running on three platforms — Instagram DMs, Facebook Messenger, and WhatsApp — with one shared Google Sheet to track leads. By 2024, they were getting over 12,000 enquiries a month. Agents would miss DMs for 6+ hours, leads would go cold, and the spreadsheet became a graveyard of duplicates.',
-        '"We had two full-time interns whose only job was to manually copy WhatsApp numbers into HubSpot," says Priya Sharma, their marketing head. "Every Monday morning, the team would spend half a day reconciling lists."',
+        "آکمه املاک روی سه پلتفرم – پیام‌های پیامکی اینستاگرام، فیس‌بوک مسنجر و واتس‌اپ – با یک گوگل شیت مشترک برای ردیابی سرنخ‌ها اجرا می‌شد. تا سال 2024، آنها بیش از 12000 درخواست در ماه دریافت می کردند. نمایندگان برای بیش از 6 ساعت پیام خصوصی را از دست می‌دادند، سرنخ‌ها سرد می‌شدند و صفحه‌گسترده به گورستانی از موارد تکراری تبدیل می‌شد.",
+        "پریا شارما، مدیر بازاریابی آنها می گوید: «ما دو کارآموز تمام وقت داشتیم که تنها کارشان کپی دستی شماره های واتس‌اپ در HubSpot بود. هر دوشنبه صبح، تیم نیم روز را صرف تطبیق لیست ها می کرد.»",
       ],
     },
 
     solution: {
-      title: 'One inbox. Two-way WhatsApp. Auto-routing.',
+      title: "یک صندوق ورودی واتس‌اپ دو طرفه. مسیریابی خودکار",
       body: [
-        'Acme migrated all three channels into the Social Stats unified inbox. Incoming messages now route automatically to the right city agent based on the property mentioned. WhatsApp campaigns went out via the Composer, with brand-trained voice tuned to "warm, fast, and professional."',
-        'The Reports module gives Priya a single view of "leads by source, by city, by agent" — refreshed live, white-labelled, sent to her CEO every Monday at 9am sharp.',
+        "آکمه هر سه کانال را به صندوق ورودی یکپارچه راوینتا منتقل کرد. اکنون پیام‌های دریافتی بر اساس ویژگی ذکر شده به‌طور خودکار به نماینده شهر مناسب می‌روند. کمپین‌های واتس‌اپ از طریق ویرایشگر محتوا با صدایی که توسط برند آموزش داده شده بود، به صورت «گرم، سریع و حرفه‌ای» تنظیم شد.",
+        "ماژول گزارش‌ها به پریا یک نمای واحد از «سرنخ‌ها بر اساس منبع، بر اساس شهر، توسط نماینده» ارائه می‌دهد - تازه‌سازی شده زنده، با برند اختصاصی، هر دوشنبه در ساعت 9 صبح برای مدیر عامل او ارسال می‌شود.",
       ],
       bullets: [
-        'Instagram, Facebook, WhatsApp — one unified inbox, one queue.',
-        'Auto-routing rules by city, property type, and budget mentioned.',
-        'WhatsApp broadcast campaigns segmented by lead score.',
-        'Shared note threads so any agent can pick up any lead.',
+        "اینستاگرام، فیس‌بوک، واتس‌اپ - یک صندوق ورودی یکپارچه، یک صف.",
+        "قوانین مسیریابی خودکار بر اساس شهر، نوع ملک و بودجه ذکر شده است.",
+        "کمپین‌های پخش واتس‌اپ بخش‌بندی شده بر اساس امتیاز سرب.",
+        "رشته‌های یادداشت به اشتراک گذاشته می‌شود تا هر نماینده بتواند هر سرنخ را انتخاب کند.",
       ],
     },
 
     results: {
-      title: '4.2x leads. 60-second response time.',
-      body: 'In nine months on Social Stats, Acme grew enquiries from ~12,000/month to over 50,000 — without adding a single new lead-handling role. Response time is now sub-60 seconds across all channels.',
+      title: "4.2 برابر منجر. زمان پاسخگویی 60 ثانیه",
+      body: "در نه ماه در راوینتا، آکمه درخواست‌ها را از ~ 12000 در ماه به بیش از 50000 افزایش داد - بدون افزودن یک نقش اصلی جدید. اکنون زمان پاسخگویی در همه کانال ها زیر 60 ثانیه است.",
       stats: [
-        { value: 4.2,    suffix: 'x',  label: 'lead volume',          decimals: 1 },
-        { value: 50000,  suffix: '+',  label: 'monthly enquiries' },
-        { value: 60,     suffix: 's',  label: 'avg. response time' },
-        { value: 92,     suffix: '%',  label: 'lead-to-tour conv.' },
+        { value: 4.2,    suffix: 'x',  label: "حجم سرب",          decimals: 1 },
+        { value: 50000,  suffix: '+',  label: "پرسش های ماهانه" },
+        { value: 60,     suffix: 's',  label: "میانگین زمان پاسخگویی" },
+        { value: 92,     suffix: '%',  label: "تبدیل سرب به تور." },
       ],
     },
 
     pulls: [
       {
-        quote: 'Social Stats is the only thing that scaled with us. We grew 4x and our team got smaller, not larger.',
-        person: 'Priya Sharma · Marketing Head',
+        quote: "راوینتا تنها چیزی است که با ما مقیاس‌پذیر است. ما 4 برابر رشد کردیم و تیم ما کوچکتر شد، نه بزرگتر.",
+        person: "پریا شارما · رئیس بازاریابی",
       },
       {
-        quote: 'The auto-routing is the single best thing. Every message goes to the right person on the first try.',
-        person: 'Vikas Rao · Pune City Manager',
+        quote: "مسیریابی خودکار بهترین چیز است. هر پیامی در اولین تلاش به شخص مناسب می رسد.",
+        person: "Vikas Rao · مدیر شهر پونا",
       },
     ],
   },
@@ -98,70 +98,70 @@ const STUDIES = {
   // ── 2. Sunrise Clinics ────────────────────────────────────────────
   'sunrise-clinics': {
     slug: 'sunrise-clinics',
-    company: 'Sunrise Clinics',
-    industry: 'Healthcare',
+    company: "کلینیک های طلوع آفتاب",
+    industry: "سلامت و درمان",
     accent: '#8b5cf6',
-    tagline: '12 clinics. One inbox. 32% fewer no-shows.',
+    tagline: "12 درمانگاه. یک صندوق ورودی عدم نمایش 32 درصد کمتر.",
     hero: {
-      metric: { value: 32, suffix: '%', label: 'drop in patient no-shows' },
+      metric: { value: 32, suffix: '%', label: "کاهش عدم حضور بیمار" },
       portrait: {
-        name: 'Dr. Anjali Verma',
-        role: 'Founder, Sunrise Clinics',
+        name: "دکتر انجلی ورما",
+        role: "موسس، کلینیک های Sunrise",
         initial: 'AV',
       },
       logoText: 'S',
     },
 
     profile: {
-      sector: 'Healthcare · Multi-location',
-      size: '12 clinics · 80 staff',
+      sector: "بهداشت و درمان · چند مکان",
+      size: "12 کلینیک · 80 پرسنل",
       founded: '2018',
-      location: 'Bengaluru · Mysore · Hubli',
+      location: "بنگالورو · میسور · هابلی",
       website: 'sunriseclinics.example',
-      uses: ['WhatsApp Business', 'Automations', 'Unified Inbox', 'Analytics'],
+      uses: ["کسب و کار واتس‌اپ", "خودکارسازی", "صندوق ورودی یکپارچه", "تحلیل و آمار"],
     },
 
     challenge: {
-      title: 'No-shows were eating 28% of revenue',
+      title: "عدم نمایش 28 درصد از درآمد را می خورد",
       body: [
-        'Sunrise Clinics had a quiet but expensive problem: 28% of patients booked appointments and didn\'t show up. SMS reminders were ignored — read rates were below 20%. The receptionist at each clinic was making manual reminder calls, but with 200+ daily appointments per location, half went unconfirmed.',
-        '"We were losing about ₹14 lakh a month to no-shows," says Dr. Anjali Verma. "And our front-desk staff was spending 3 hours a day on the phone instead of looking after patients."',
+        "کلینیک های Sunrise یک مشکل آرام اما گران داشتند: 28٪ از بیماران قرار ملاقات رزرو کردند و حاضر نشدند. یادآوری پیامک نادیده گرفته شد - نرخ خواندن زیر 20٪ بود. مسئول پذیرش در هر کلینیک تماس‌های یادآوری دستی برقرار می‌کرد، اما با بیش از 200 قرار روزانه در هر مکان، نیمی از آنها تایید نشد.",
+        "دکتر انجلی ورما می‌گوید: «ما حدود 14 لک در ماه به دلیل عدم نمایش ضرر می‌کردیم. و کارکنان میز پذیرش ما به جای مراقبت از بیماران، 3 ساعت در روز را با تلفن سپری می کردند.",
       ],
     },
 
     solution: {
-      title: 'WhatsApp reminders, smart automations, one master inbox',
+      title: "یادآوری واتس‌اپ، اتوماسیون هوشمند، یک صندوق ورودی اصلی",
       body: [
-        'Sunrise wired their appointment system into Social Stats with two automations: a 24-hour WhatsApp reminder, and a 2-hour confirm/reschedule prompt. Patients can confirm with a single tap or reschedule via a smart flow — without picking up the phone.',
-        'All 12 clinics now share a unified inbox. The central operations team can see every conversation, every clinic, in real time. Analytics tracks no-show rate by clinic, by doctor, by day-of-week.',
+        "Sunrise سیستم قرارهای خود را با دو اتوماسیون به راوینتا متصل کرد: یک یادآوری 24 ساعته واتس‌اپ و یک اعلان تأیید/تجدید برنامه 2 ساعته. بیماران می‌توانند با یک ضربه ضربه بزنید یا از طریق یک جریان هوشمند - بدون برداشتن تلفن - زمان‌بندی مجدد را تأیید کنند.",
+        "همه 12 کلینیک اکنون یک صندوق ورودی یکپارچه دارند. تیم عملیات مرکزی می‌تواند هر مکالمه، هر کلینیک را در زمان واقعی مشاهده کند. تحلیل و آمار نرخ عدم نمایش بر اساس کلینیک، پزشک، بر اساس روز از هفته را ردیابی می‌کند.",
       ],
       bullets: [
-        '24-hour and 2-hour WhatsApp reminders with one-tap confirm.',
-        'Reschedule flow — patients pick a new slot in chat.',
-        'Cross-clinic master inbox for the central ops team.',
-        'No-show analytics by clinic, doctor, time-of-day.',
+        "یادآوری‌های 24 ساعته و 2 ساعته واتس‌اپ با تأیید یک ضربه.",
+        "زمان‌بندی مجدد جریان - بیماران یک شکاف جدید در چت انتخاب می‌کنند.",
+        "صندوق ورودی اصلی بین کلینیک برای تیم عملیات مرکزی.",
+        "تحلیل و آمار عدم نمایش توسط کلینیک، پزشک، زمان از روز.",
       ],
     },
 
     results: {
-      title: 'No-shows down 32%. Bookings up 2x.',
-      body: 'After three months, no-show rates dropped from 28% to 19% — a 32% relative improvement. With reminder workload off the front desk, Sunrise re-deployed staff to outbound bookings and grew total appointments 2x.',
+      title: "عدم حضور 32% کاهش یافت. رزرو تا 2 برابر",
+      body: "پس از سه ماه، نرخ عدم نمایش از 28٪ به 19٪ کاهش یافت - یک بهبود نسبی 32٪. با بار کاری یادآوری خارج از میز پذیرش، Sunrise کارکنان را مجدداً به رزروهای خروجی اعزام کرد و مجموع قرارها را 2 برابر افزایش داد.",
       stats: [
-        { value: 32,    suffix: '%',  label: 'fewer no-shows' },
-        { value: 2,     suffix: 'x',  label: 'total bookings' },
-        { value: 3,     suffix: 'h',  label: 'staff time saved daily' },
-        { value: 87,    suffix: '%',  label: 'WhatsApp read rate' },
+        { value: 32,    suffix: '%',  label: "عدم نمایش کمتر" },
+        { value: 2,     suffix: 'x',  label: "کل رزرو" },
+        { value: 3,     suffix: 'h',  label: "در زمان کارکنان روزانه صرفه جویی می‌شود" },
+        { value: 87,    suffix: '%',  label: "میزان خواندن واتس‌اپ" },
       ],
     },
 
     pulls: [
       {
-        quote: 'We doubled bookings without hiring anyone. The math is unreal.',
-        person: 'Dr. Anjali Verma · Founder',
+        quote: "ما بدون استخدام کسی، رزروها را دو برابر کردیم. ریاضی غیر واقعی است.",
+        person: "دکتر انجلی ورما · موسس",
       },
       {
-        quote: 'Patients actually reply on WhatsApp. They never replied to SMS.',
-        person: 'Anita Kumar · Operations Manager',
+        quote: "بیماران در واقع در واتس‌اپ پاسخ می دهند. هرگز به اس ام اس جواب ندادند.",
+        person: "آنیتا کومار · مدیر عملیات",
       },
     ],
   },
@@ -169,70 +169,70 @@ const STUDIES = {
   // ── 3. BlueWave Agency ────────────────────────────────────────────
   'bluewave-agency': {
     slug: 'bluewave-agency',
-    company: 'BlueWave Agency',
-    industry: 'Agencies',
+    company: "آژانس بلووِیو",
+    industry: "آژانس‌ها",
     accent: '#f472b6',
-    tagline: 'Six humans. 120 clients. One Social Stats tenant.',
+    tagline: "شش انسان. 120 مشتری. یک مستاجر راوینتا.",
     hero: {
-      metric: { value: 120, suffix: '+', label: 'clients managed concurrently' },
+      metric: { value: 120, suffix: '+', label: "مشتریان به طور همزمان مدیریت می‌شوند" },
       portrait: {
-        name: 'Rohit Mehta',
-        role: 'Founder & CEO, BlueWave',
+        name: "روهیت مهتا",
+        role: "موسس و مدیر عامل، بلووِیو",
         initial: 'RM',
       },
       logoText: 'B',
     },
 
     profile: {
-      sector: 'Marketing Agency',
-      size: '6 staff · 120+ clients',
+      sector: "آژانس بازاریابی",
+      size: "6 کارمند · بیش از 120 مشتری",
       founded: '2021',
-      location: 'Gurgaon, India',
+      location: "گورگان، هند",
       website: 'bluewave.example',
-      uses: ['Multi-tenant', 'White-label portals', 'Composer', 'AI Assistant', 'Reports'],
+      uses: ['Multi-tenant', "پورتال های برند اختصاصی", "ویرایشگر محتوا", "دستیار هوش مصنوعی", "گزارش‌ها"],
     },
 
     challenge: {
-      title: 'Tools that broke at 30 clients',
+      title: "ابزارهایی که در 30 مشتری شکست خوردند",
       body: [
-        'BlueWave grew from 12 to 80 clients in 18 months. Their tool stack — Hootsuite for scheduling, Notion for approvals, Google Sheets for reporting, Slack for client comms — all started cracking. Approvals were slipping through the gaps. White-label reporting required manual screenshots into PowerPoint every Friday.',
-        '"By client 30, we were paying ₹2.8 lakh a month across four tools," says Rohit Mehta. "And we still had three full-time people whose job was just stitching them together."',
+        "بلووِیو از 12 به 80 مشتری در 18 ماه افزایش یافت. پشته ابزار آنها - Hootsuite برای زمان‌بندی، مفهومی برای تأییدیه‌ها، گوگل شیتs برای گزارش‌دهی، اسلک برای کام‌های مشتری - همه شروع به شکستن کردند. تصویب ها از میان شکاف ها می لغزید. گزارش برند اختصاصی هر جمعه نیاز به اسکرین شات دستی در پاورپوینت دارد.",
+        "روهیت مهتا می‌گوید: «تا مشتری 30، ما 2.8 لک در ماه از طریق چهار ابزار پرداخت می‌کردیم. و ما هنوز سه نفر تمام وقت داشتیم که کارشان فقط دوختن آنها بود.\"",
       ],
     },
 
     solution: {
-      title: 'One tenant per client. Brand assets baked in.',
+      title: "یک مستاجر به ازای هر مشتری. دارایی های نام تجاری پخته شده در.",
       body: [
-        'Social Stats\'s multi-tenant architecture meant every BlueWave client got their own isolated workspace under the BlueWave parent account. White-label portals carry the client\'s logo and the agency\'s branding. The AI Assistant trained on each client\'s past content writes new posts in their exact voice.',
-        'Reports are generated and delivered automatically every Monday. The Composer plans a month ahead. Approvals happen in-product — no PowerPoint exports, no chasing emails.',
+        "معماری چند فضای کاری راوینتا به این معنی است که هر مشتری بلووِیو فضای کاری مجزای خود را تحت حساب مادر بلووِیو دارد. پورتال های دارای برند اختصاصی لوگوی مشتری و برند آژانس را حمل می‌کنند. دستیار هوش مصنوعی که در مورد محتوای گذشته هر مشتری آموزش دیده است، پست‌های جدید را با صدای دقیق آنها می‌نویسد.",
+        "گزارش ها هر دوشنبه به طور خودکار تولید و تحویل می‌شوند. ویرایشگر محتوا یک ماه آینده برنامه‌ریزی می‌کند. تأییدیه‌ها در داخل محصول انجام می‌شوند - بدون صادرات پاورپوینت، بدون ایمیل‌های تعقیب‌کننده.",
       ],
       bullets: [
-        'Multi-tenant isolation — every client in their own workspace.',
-        'White-label portals with per-client branding.',
-        'AI Assistant trained per-client for brand-voice consistency.',
-        'Auto-generated white-label reports every Monday.',
+        "جداسازی چند فضای کاری - هر مشتری در فضای کاری خودش.",
+        "پورتال های دارای برند اختصاصی با نام تجاری برای هر مشتری.",
+        "دستیار هوش مصنوعی به ازای هر مشتری برای ثبات لحن برند آموزش دیده است.",
+        "گزارش‌های برند اختصاصی به‌طور خودکار هر دوشنبه.",
       ],
     },
 
     results: {
-      title: '120+ clients. ₹2.8L/mo saved. Zero added headcount.',
-      body: 'BlueWave 8x-ed their client roster — from 12 to 120+ — without adding new operational staff. They retired three legacy tools, saving ₹2.8L/month, and turned that into margin.',
+      title: "بیش از 120 مشتری. 2.8 لیتر در ماه صرفه جویی شد. صفر اضافه تعداد کارمندان",
+      body: "بلووِیو 8x فهرست مشتریان خود را - از 12 تا 120+ - بدون اضافه کردن کارکنان عملیاتی جدید، ویرایش کرد. آنها سه ابزار قدیمی را بازنشسته کردند و 2.8 لیتر در ماه پس انداز کردند و آن را به حاشیه تبدیل کردند.",
       stats: [
-        { value: 120,   suffix: '+',  label: 'clients managed' },
-        { value: 2.8,   suffix: 'L',  label: '₹/month saved on tools', decimals: 1 },
-        { value: 7,     suffix: 'x',  label: 'production throughput' },
-        { value: 4,     suffix: '',   label: 'tools replaced' },
+        { value: 120,   suffix: '+',  label: "مشتریان مدیریت می‌شوند" },
+        { value: 2.8,   suffix: 'L',  label: "₹/ماه در ابزار صرفه جویی شده است", decimals: 1 },
+        { value: 7,     suffix: 'x',  label: "توان تولید" },
+        { value: 4,     suffix: '',   label: "ابزار جایگزین شد" },
       ],
     },
 
     pulls: [
       {
-        quote: 'We replaced four tools with Social Stats. Four. The savings funded the agency for a year.',
-        person: 'Rohit Mehta · Founder & CEO',
+        quote: "ما چهار ابزار را با راوینتا جایگزین کردیم. چهار پس انداز بودجه آژانس را برای یک سال تامین کرد.",
+        person: "روهیت مهتا · بنیانگذار و مدیر عامل",
       },
       {
-        quote: 'Clients ask which agency dashboard we built. It\'s just Social Stats in our colors.',
-        person: 'Karan Bhatia · Operations',
+        quote: "مشتریان می پرسند که داشبورد کدام آژانس را ساخته ایم. این فقط راوینتا در رنگ های ما است.",
+        person: "کاران بهاتیا · عملیات",
       },
     ],
   },

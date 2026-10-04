@@ -29,8 +29,8 @@ export default function ForAgenciesPage() {
   return (
     <MarketingLayout>
       <Meta
-        title="Social Stats for agencies — manage 100+ clients from one place"
-        description="One dashboard for analytics, content, inbox, ads, and WhatsApp campaigns across every client. Marketplace listing brings inbound leads. Trust + permissions built into the foundation."
+        title={"راوینتا برای آژانس‌ها - بیش از 100 مشتری را از یک مکان مدیریت کنید"}
+        description={"یک داشبورد برای تحلیل و آمار، محتوا، صندوق ورودی، تبلیغات و کمپین‌های واتس‌اپ در هر مشتری. فهرست بازار سرنخ های ورودی را به ارمغان می آورد. اعتماد + مجوزهای تعبیه شده در بنیاد."}
       />
       <Hero />
       <ROIBand />
@@ -48,7 +48,7 @@ function Hero() {
       <div aria-hidden style={meshBg} />
       <div style={{ position: 'relative', maxWidth: 880, margin: '0 auto', textAlign: 'center' }}>
         <MotionDiv initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-          <Badge variant="brand" icon={Building2} size="md">For agencies · marketplace included</Badge>
+          <Badge variant="brand" icon={Building2} size="md">برای آژانس‌ها · بازار گنجانده شده است گیره</Badge>
         </MotionDiv>
         <MotionH1
           initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
@@ -60,9 +60,9 @@ function Hero() {
             fontWeight: 600, color: 'var(--text-primary)',
           }}
         >
-          Manage 100+ clients from{' '}
+          بیش از 100 مشتری را مدیریت کنید{' '}
           <span style={{ backgroundImage: 'var(--brand-gradient)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>
-            one place.
+            یک مکان.
           </span>
         </MotionH1>
         <MotionP
@@ -70,8 +70,7 @@ function Hero() {
           transition={{ duration: 0.6, delay: 0.1 }}
           style={{ margin: '0 auto', maxWidth: 640, fontSize: 18, lineHeight: 1.6, color: 'var(--text-secondary)' }}
         >
-          Analytics, content, inbox, WhatsApp campaigns, ads, AI — every client in one beautiful dashboard.
-          List in our marketplace and get inbound leads. Built on trust: every action logged, every permission revocable.
+          تحلیل و آمار، محتوا، صندوق ورودی، کمپین‌های واتس‌اپ، تبلیغات، هوش مصنوعی - هر مشتری در یک داشبورد زیبا. در بازار ما فهرست کنید و سرنخ های ورودی دریافت کنید. بر اساس اعتماد ساخته شده است: هر اقدام ثبت شده، هر مجوز قابل لغو.
         </MotionP>
         <MotionDiv
           initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
@@ -79,14 +78,14 @@ function Hero() {
           style={{ marginTop: 28, display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}
         >
           <Button as={Link} to="/signup" size="xl" iconRight={ArrowRight}>
-            Start free trial
+            آزمایش رایگان را شروع کنید
           </Button>
           <Button as={Link} to="/agencies" size="xl" variant="secondary" icon={Building2}>
-            See the marketplace
+            به بازار مراجعه کنید
           </Button>
         </MotionDiv>
         <p style={{ marginTop: 14, fontSize: 13, color: 'var(--text-tertiary)' }}>
-          14-day free trial · No credit card · 5 connected platforms per client
+          آزمایش رایگان 14 روزه · بدون کارت اعتباری · 5 سیستم عامل متصل به ازای هر مشتری
         </p>
       </div>
     </section>
@@ -96,10 +95,10 @@ function Hero() {
 
 function ROIBand() {
   const items = [
-    { stat: '15+ hrs',      label: 'saved per agency-week vs juggling 5 platforms' },
-    { stat: '40% faster',   label: 'inbox response time with AI suggestions' },
-    { stat: '3× clients',   label: 'manageable per AM with the unified workflow' },
-    { stat: '0 logins',     label: 'shared with clients — they keep their accounts' },
+    { stat: "15+ ساعت",      label: "ذخیره شده در هر هفته آژانس در مقابل شعبده بازی 5 سیستم عامل" },
+    { stat: "40٪ سریعتر",   label: "زمان پاسخگویی صندوق ورودی با پیشنهادات هوش مصنوعی" },
+    { stat: "3× مشتریان",   label: "قابل مدیریت در هر AM با گردش کار یکپارچه" },
+    { stat: "0 ورود",     label: "به اشتراک گذاشته شده با مشتریان - آنها حساب های خود را حفظ می‌کنند" },
   ];
   return (
     <section style={{ padding: '40px 32px', background: 'var(--surface-card)', borderTop: '1px solid var(--border-subtle)', borderBottom: '1px solid var(--border-subtle)' }}>
@@ -123,25 +122,24 @@ function MarketplaceExposure() {
     <section style={{ padding: '72px 32px' }}>
       <div style={{ maxWidth: 920, margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 40, alignItems: 'center' }} className="fa-grid">
         <div>
-          <Badge variant="brand" icon={Star} size="md">New: Marketplace</Badge>
+          <Badge variant="brand" icon={Star} size="md">جدید: بازار</Badge>
           <h2 style={{ margin: '14px 0 10px', fontSize: 28, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
-            Inbound leads, not cold-emailing.
+            سرنخ های ورودی، نه ارسال ایمیل سرد.
           </h2>
           <p style={{ margin: '0 0 20px', fontSize: 15, color: 'var(--text-secondary)', lineHeight: 1.65 }}>
-            List your agency in the Social Stats marketplace. Verified businesses search by industry, location, and rating —
-            then send you a manage-request directly. Reviews come from clients with real, verified relationships.
+            آژانس خود را در بازار راوینتا فهرست کنید. کسب‌وکارهای تأیید شده براساس صنعت، مکان و رتبه‌بندی جستجو می‌کنند - سپس مستقیماً یک درخواست مدیریت برای شما ارسال می‌کنند. نظرات از مشتریانی با روابط واقعی و تأیید شده است.
           </p>
           <Button as={Link} to="/agencies" variant="secondary" size="md" icon={Building2}>
-            See the marketplace
+            به بازار مراجعه کنید
           </Button>
         </div>
         <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
           {[
-            'Verified badge after our team checks your registration',
-            'Filterable by industry, services, location, price, rating',
-            'Reviews from real, relation-verified clients (no fake reviews)',
-            'Public profile with services, pricing, portfolio (live editor)',
-            'Featured placement for verified agencies with 4.5+ stars',
+            "پس از اینکه تیم ما ثبت نام شما را بررسی کرد، نشان تأیید شد",
+            "قابل فیلتر بر اساس صنعت، خدمات، مکان، قیمت، رتبه بندی",
+            "نظرات مشتریان واقعی و تأیید شده توسط رابطه (بدون بررسی جعلی)",
+            "نمایه عمومی با خدمات، قیمت گذاری، نمونه کارها (ویرایشگر زنده)",
+            "قرار دادن ویژه برای آژانس‌های تأیید شده با ستاره های بیش از 4.5",
           ].map((s) => (
             <li key={s} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 14, color: 'var(--text-primary)' }}>
               <Check size={16} style={{ color: 'var(--success)', flexShrink: 0, marginTop: 2 }} />
@@ -158,18 +156,18 @@ function MarketplaceExposure() {
 
 function FeatureBlocks() {
   const items = [
-    { icon: TrendingUp,  title: 'Unified analytics',     body: 'One dashboard across Facebook, Instagram, YouTube, LinkedIn, GMB. Cross-client benchmarking. White-label exports.' },
-    { icon: Inbox,       title: 'Unified inbox',         body: 'DMs, comments, and reviews on one screen. AI-suggested replies tuned to each client\'s brand voice. Approval rules where the client wants them.' },
-    { icon: Wand2,       title: 'Composer + scheduler',  body: 'Draft once, post everywhere. Per-platform overrides. AI image alt-text, hashtag research, optimal-time recommendations.' },
-    { icon: Users2,      title: 'WhatsApp campaigns',    body: 'Pinbot-powered campaigns with consented contacts, templates, scheduling, and full delivery analytics.' },
-    { icon: ShieldCheck, title: 'Trust by design',       body: 'Every action logged. Permissions you and the client both see. End-user-disconnect always works — no lock-in stories.' },
-    { icon: Sparkles,    title: 'AI Studio across the board', body: 'Brand voice training, post writer, insight generation, anomaly detection, report narration. The whole AI stack we ship sits inside your dashboard.' },
+    { icon: TrendingUp,  title: "تحلیل و آمار یکپارچه",     body: "یک داشبورد در فیس‌بوک، اینستاگرام، یوتیوب، لینکدین، GMB. معیار بین مشتری صادرات با برند اختصاصی" },
+    { icon: Inbox,       title: "صندوق ورودی یکپارچه",         body: "پیامک، نظرات، و نظرات در یک صفحه. پاسخ‌های پیشنهادی هوش مصنوعی با لحن برند هر مشتری تنظیم می‌شود. قوانین تایید در جایی که مشتری آنها را می خواهد." },
+    { icon: Wand2,       title: "ویرایشگر محتوا + زمانبندی",  body: "یک بار پیش‌نویس کنید، همه جا پست کنید. نادیده گرفتن هر پلتفرم متن جایگزین تصویر هوش مصنوعی، تحقیق هشتگ، توصیه های زمان بهینه." },
+    { icon: Users2,      title: "کمپین‌های واتس‌اپ",    body: "کمپین‌های مبتنی بر پین‌بات با مخاطبین، الگوها، زمان‌بندی، و تحلیل و آمار کامل تحویل." },
+    { icon: ShieldCheck, title: "اعتماد از طریق طراحی",       body: "هر اقدام ثبت شده است. مجوزهایی که شما و مشتری هر دو می بینید. قطع ارتباط کاربر نهایی همیشه کار می‌کند - بدون داستان قفل." },
+    { icon: Sparkles,    title: "AI Studio در سراسر هیئت مدیره", body: "آموزش لحن برند، نویسنده پست، تولید بینش، تشخیص ناهنجاری، روایت گزارش. کل پشته هوش مصنوعی که ما ارسال می کنیم داخل داشبورد شما قرار دارد." },
   ];
   return (
     <section style={{ padding: '64px 32px', background: 'var(--surface-card)' }}>
       <div style={{ maxWidth: 'var(--container-2xl)', margin: '0 auto' }}>
-        <h2 style={sectionH}>Everything an agency needs, in one place</h2>
-        <p style={sectionSub}>No more 5-tab switching, no more spreadsheet exports, no more shared client logins.</p>
+        <h2 style={sectionH}>هر چیزی که یک آژانس نیاز دارد، در یک مکان</h2>
+        <p style={sectionSub}>دیگر نیازی به تعویض 5 تب، صادرات صفحه گسترده، ورود به سیستم مشترک مشتری نیست.</p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16, marginTop: 32 }}>
           {items.map((it) => (
             <article key={it.title} style={featureCard}>
@@ -196,13 +194,13 @@ function FinalCTA() {
     <section style={{ padding: '72px 32px', background: 'var(--surface-card)', borderTop: '1px solid var(--border-subtle)' }}>
       <div style={{ maxWidth: 720, margin: '0 auto', textAlign: 'center' }}>
         <h2 style={{ margin: 0, fontSize: 30, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
-          See how much time you'll get back.
+          ببینید چقدر زمان خواهید داشت.
         </h2>
         <p style={{ margin: '8px 0 22px', fontSize: 15, color: 'var(--text-secondary)' }}>
-          Free and open source. Bring your real clients — self-host with no per-seat fees.
+          رایگان و منبع باز. مشتریان واقعی خود را بیاورید - میزبان خود بدون هزینه برای هر صندلی.
         </p>
         <Button as={Link} to="/signup" size="xl" iconRight={ArrowRight}>
-          Get started free
+          شروع رایگان
         </Button>
       </div>
     </section>

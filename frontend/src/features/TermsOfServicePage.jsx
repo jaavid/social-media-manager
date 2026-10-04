@@ -11,224 +11,199 @@ import LegalPageLayout from '../components/marketing/LegalPageLayout';
 export default function TermsOfServicePage() {
   return (
     <LegalPageLayout
-      eyebrow="Terms"
-      title="Terms of Service"
+      eyebrow={"شرایط استفاده"}
+      title={"شرایط استفاده از خدمات"}
       effectiveDate="2026-01-01"
       lastUpdated="2026-04-15"
-      intro="These Terms govern your use of Social Stats. They are deliberately written in plain English so you can read them all the way through. By signing up for an account, you agree to these terms."
+      intro={"این شرایط بر استفاده شما از راوینتا حاکم است. آنها عمدا به زبان انگلیسی ساده نوشته شده اند تا بتوانید آنها را تا آخر بخوانید. با ثبت نام برای یک حساب کاربری، با این شرایط موافقت می‌کنید."}
       sections={[
         {
           id: 'acceptance',
-          title: '1. Acceptance of terms',
+          title: "1. قبول شرایط",
           body: (
             <>
               <p>
-                By creating a Social Stats account, accessing the Social Stats web app, mobile apps, APIs, or any related
-                services (collectively, the "<strong>Service</strong>"), you agree to be bound by these Terms of
-                Service ("<strong>Terms</strong>") and our <a href="/privacy">Privacy Policy</a>.
+                با ایجاد یک حساب راوینتا، دسترسی به برنامه وب، برنامه های تلفن همراه، API ها، یا هر سرویس مرتبط (مجموعا، "<strong>خدمات</strong>")، شما موافقت می‌کنید که به این شرایط خدمات متعهد باشید ("<strong>شرایط استفاده</strong>") و ما <a href="/privacy">سیاست حریم خصوصی</a>.
               </p>
               <p>
-                If you are accepting these Terms on behalf of an organization, you represent that you have authority
-                to bind that organization. In that case "<strong>you</strong>" refers to that organization.
+                اگر از طرف یک سازمان این شرایط را می‌پذیرید، نشان می‌دهید که اختیار دارید آن سازمان را ملزم کنید. در آن صورت"<strong>شما</strong>» اشاره به آن سازمان است.
               </p>
             </>
           ),
         },
         {
           id: 'account',
-          title: '2. Your account',
+          title: "2. حساب شما",
           body: (
             <>
               <ul>
-                <li>You must be at least <strong>18 years old</strong> to create an account.</li>
-                <li>You are responsible for keeping your credentials secure. We strongly recommend enabling 2FA.</li>
-                <li>You are responsible for all activity under your account, including activity by your team members.</li>
-                <li>Notify the administrator of this Social Stats instance immediately if you suspect unauthorised access.</li>
-                <li>You may not share, sell, or transfer your account to another person or company without our consent.</li>
+                <li>شما باید حداقل باشید <strong>18 ساله</strong> برای ایجاد یک حساب کاربری.</li>
+                <li>شما مسئول حفظ امنیت اعتبارنامه خود هستید. ما قویاً توصیه می کنیم 2FA را فعال کنید.</li>
+                <li>شما مسئول تمام فعالیت‌های زیر حساب خود، از جمله فعالیت اعضای تیم خود هستید.</li>
+                <li>اگر مشکوک به دسترسی غیرمجاز هستید، فوراً به مدیر این نمونه راوینتا اطلاع دهید.</li>
+                <li>شما نمی‌توانید بدون رضایت ما حساب خود را به اشتراک بگذارید، بفروشید یا به شخص یا شرکت دیگری منتقل کنید.</li>
               </ul>
             </>
           ),
         },
         {
           id: 'plans',
-          title: '3. Pricing',
+          title: "3. قیمت گذاری",
           body: (
             <>
-              <p>Social Stats is <strong>free and open source</strong> (MIT licensed). All features are
-              available at no cost — there are no paid plans, subscriptions, or payment processing.</p>
+              <p>راوینتا است <strong>رایگان و متن باز</strong> (مجوز MIT). همه ویژگی‌ها بدون هیچ هزینه‌ای در دسترس هستند - هیچ طرح پرداختی، اشتراک یا پردازش پرداخت وجود ندارد.</p>
               <ul>
-                <li><strong>No charges</strong> — the software is free to use and self-host.</li>
-                <li><strong>Your own costs</strong> — when self-hosting, you are responsible for your own
-                infrastructure and any third-party API usage (e.g. your Anthropic API key).</li>
+                <li><strong>بدون هزینه</strong> - استفاده از نرم افزار رایگان و میزبان خود است.</li>
+                <li><strong>هزینه های خود شما</strong> - هنگام میزبانی شخصی، شما مسئول زیرساخت های خود و هرگونه استفاده از API شخص ثالث (به عنوان مثال کلید آنتروپیک API خود) هستید.</li>
               </ul>
             </>
           ),
         },
         {
           id: 'use',
-          title: '4. Acceptable use',
+          title: "4. استفاده قابل قبول",
           body: (
             <>
-              <p>Social Stats is a powerful tool, and powerful tools require responsible use. You agree NOT to:</p>
+              <p>راوینتا ابزار قدرتمندی است و ابزارهای قدرتمند نیاز به استفاده مسئولانه دارند. شما موافقت می‌کنید که:</p>
               <ul>
-                <li>Send spam, mass unsolicited messages, or violate platform-specific (e.g. WhatsApp, Meta) policy.</li>
-                <li>Post or distribute content that is illegal, defamatory, hateful, harassing, sexually explicit involving minors, or that infringes intellectual property.</li>
-                <li>Reverse-engineer, decompile, or attempt to bypass our security or rate limits.</li>
-                <li>Use Social Stats to impersonate another person, brand, or organization without authority.</li>
-                <li>Build a competing product by copying our APIs, UI, or proprietary algorithms.</li>
-                <li>Resell access without an Agency / Partner agreement signed with us.</li>
+                <li>ارسال هرزنامه، پیام‌های ناخواسته انبوه، یا نقض خط‌مشی خاص پلتفرم (مانند واتس‌اپ، متا).</li>
+                <li>محتوای غیرقانونی، افتراآمیز، نفرت‌انگیز، آزاردهنده، صریح جنسی که شامل خردسالان می‌شود یا دارایی معنوی را نقض می‌کند، پست یا توزیع کنید.</li>
+                <li>مهندسی معکوس، دیکامپایل، یا تلاش برای دور زدن محدودیت های امنیتی یا نرخ ما.</li>
+                <li>از راوینتا برای جعل هویت شخص، برند یا سازمانی بدون مجوز استفاده کنید.</li>
+                <li>با کپی کردن API ها، UI، یا الگوریتم های اختصاصی، یک محصول رقیب بسازید.</li>
+                <li>دسترسی مجدد بدون قرارداد آژانس / شریک امضا شده با ما.</li>
               </ul>
               <p>
-                We may suspend or terminate accounts that violate these rules, without refund. Repeat or egregious
-                violations may be reported to law enforcement.
+                ما ممکن است حساب هایی را که این قوانین را نقض می‌کنند، بدون بازپرداخت معلق یا فسخ کنیم. ممکن است تخلفات مکرر یا فاحش به مجریان قانون گزارش شود.
               </p>
             </>
           ),
         },
         {
           id: 'content',
-          title: '5. Your content',
+          title: "5. مطالب شما",
           body: (
             <>
               <p>
-                You retain all rights to the content (posts, media, captions, audience lists) you upload to Social Stats.
-                You grant us a worldwide, non-exclusive license to host, store, transmit, and process that content
-                solely for the purpose of providing the Service to you.
+                شما تمامی حقوق محتوایی (پست‌ها، رسانه ها، زیرنویس ها، فهرست مخاطبان) را که در راوینتا آپلود می‌کنید، حفظ می‌کنید. شما مجوز جهانی و غیر انحصاری برای میزبانی، ذخیره، انتقال و پردازش آن محتوا را صرفاً به منظور ارائه خدمات به شما به ما می دهید.
               </p>
               <p>
-                We will <strong>never</strong>:
+                ما خواهیم کرد <strong>هرگز</strong>:
               </p>
               <ul>
-                <li>Sell your content to third parties.</li>
-                <li>Use your content to train AI models without your explicit, opt-in consent.</li>
-                <li>Display your private content to other customers.</li>
+                <li>محتوای خود را به اشخاص ثالث بفروشید.</li>
+                <li>از محتوای خود برای آموزش مدل های هوش مصنوعی بدون رضایت صریح و انتخابی خود استفاده کنید.</li>
+                <li>محتوای خصوصی خود را به مشتریان دیگر نمایش دهید.</li>
               </ul>
               <p>
-                Public-facing case studies and testimonials require your written consent each time.
+                مطالعات موردی و شهادت‌نامه‌ها هر بار به رضایت کتبی شما نیاز دارند.
               </p>
             </>
           ),
         },
         {
           id: 'thirdparty',
-          title: '6. Third-party platforms',
+          title: "6. سیستم عامل های شخص ثالث",
           body: (
             <>
               <p>
-                Social Stats connects to third-party platforms (Facebook, Instagram, YouTube, Google, LinkedIn, X, WhatsApp).
-                Your use of those platforms via Social Stats is also subject to their terms. We are not responsible for:
+                راوینتا به سیستم عامل های شخص ثالث (فیس‌بوک، اینستاگرام، یوتیوب، گوگل، لینکدین، ایکس، واتس‌اپ) متصل می‌شود. استفاده شما از آن پلتفرم‌ها از طریق راوینتا نیز مشمول شرایط آن‌ها است. ما مسئول نیستیم:
               </p>
               <ul>
-                <li>Outages, rate limits, or policy changes on third-party platforms.</li>
-                <li>Account bans or content takedowns issued by those platforms.</li>
-                <li>Pricing changes by Meta (WhatsApp conversation rates) or other vendors.</li>
+                <li>قطع، محدودیت نرخ، یا تغییر خط مشی در سیستم عامل های شخص ثالث.</li>
+                <li>ممنوعیت حساب یا حذف محتوای صادر شده توسط آن پلتفرم‌ها.</li>
+                <li>تغییرات قیمت توسط متا (نرخ مکالمه واتس‌اپ) یا سایر فروشندگان.</li>
               </ul>
               <p>
-                We do our best to inform you proactively when a third-party policy change affects your usage.
+                ما تمام تلاش خود را می کنیم تا زمانی که تغییر خط مشی شخص ثالث بر استفاده شما تأثیر می گذارد، فعالانه به شما اطلاع دهیم.
               </p>
             </>
           ),
         },
         {
           id: 'ip',
-          title: '7. Our intellectual property',
+          title: "7. مالکیت معنوی ما",
           body: (
             <p>
-              The Social Stats name, logo, software, designs, and documentation are our property and protected by
-              intellectual-property law. These Terms do not transfer any IP rights to you, except for the limited
-              right to use the Service while your account is active.
+              نام، نشان‌واره، نرم‌افزار، طرح‌ها و اسناد راوینتا دارایی ما هستند و توسط قانون مالکیت معنوی محافظت می‌شوند. این شرایط هیچ گونه حق IP را به شما منتقل نمی‌کند، به جز حق محدود استفاده از سرویس در زمانی که حساب شما فعال است.
             </p>
           ),
         },
         {
           id: 'warranties',
-          title: '8. Warranties and disclaimers',
+          title: "8. ضمانت ها و سلب مسئولیت",
           body: (
             <>
               <p>
-                We work hard to keep Social Stats running smoothly, but the Service is provided "<strong>as is</strong>" and
-                "<strong>as available</strong>", without warranties of any kind, express or implied, including
-                merchantability, fitness for a particular purpose, and non-infringement.
+                ما سخت کار می کنیم تا راوینتا را به خوبی اجرا کنیم، اما این سرویس ارائه می‌شود.<strong>همانطور که هست</strong>"و"<strong>به صورت موجود</strong>"، بدون ضمانت از هر نوع، صریح یا ضمنی، از جمله قابلیت خرید و فروش، مناسب بودن برای یک هدف خاص، و عدم نقض.
               </p>
               <p>
-                We <strong>do not</strong> guarantee that the Service will be uninterrupted, error-free, or that any
-                particular result (e.g., engagement growth, lead volume) will be achieved.
+                ما <strong>نکن</strong> تضمین می‌کند که سرویس بدون وقفه، بدون خطا یا هر نتیجه خاصی (به عنوان مثال، رشد تعامل، حجم سرنخ) به دست می آید.
               </p>
               <p>
-                Our public uptime target is <strong>99.9%</strong>, with an SLA available on Enterprise plans. See
-                <a href="/status"> /status</a> for current and historical uptime.
+                هدف ما در زمان آماده‌سازی عمومی است <strong>99.9%</strong>، با SLA موجود در طرح‌های سازمانی. ببینید
+                <a href="/status"> /status</a> برای زمان جاری و تاریخی.
               </p>
             </>
           ),
         },
         {
           id: 'liability',
-          title: '9. Limitation of liability',
+          title: "9. محدودیت مسئولیت",
           body: (
             <p>
-              To the maximum extent permitted by law, our total liability arising out of or relating to these Terms or
-              your use of the Service is limited to the <strong>fees you paid us in the 12 months preceding the claim</strong>.
-              We are not liable for indirect, incidental, special, consequential, or punitive damages, including loss
-              of profits, revenue, or data.
+              تا حداکثر میزان مجاز توسط قانون، مسئولیت کلی ما ناشی از یا مربوط به این شرایط یا استفاده شما از سرویس محدود به <strong>هزینه هایی که در 12 ماه قبل از ادعا به ما پرداخت کردید</strong>. ما مسئولیتی در قبال خسارات غیرمستقیم، اتفاقی، خاص، تبعی یا تنبیهی، از جمله از دست دادن سود، درآمد یا داده ها نداریم.
             </p>
           ),
         },
         {
           id: 'indemnity',
-          title: '10. Indemnification',
+          title: "10. غرامت",
           body: (
             <p>
-              You agree to indemnify and hold harmless Social Stats, its directors, employees, and affiliates from any claim
-              or liability arising out of (a) your content, (b) your violation of these Terms, or (c) your violation of
-              any law or third-party right.
+              شما موافقت می‌کنید که راوینتا، مدیران، کارمندان و شرکت‌های وابسته به آن را از هرگونه ادعا یا مسئولیت ناشی از (الف) محتوای شما، (ب) نقض این شرایط، یا (ج) نقض هر قانون یا حق شخص ثالث غرامت و نگهداری کنید.
             </p>
           ),
         },
         {
           id: 'termination',
-          title: '11. Termination',
+          title: "11. فسخ",
           body: (
             <>
               <p>
-                You can delete your account anytime from <strong>Settings</strong>. We may terminate or
-                suspend your account for material breach of these Terms with reasonable notice — except for severe
-                violations (e.g. spam, fraud, illegal use), where suspension may be immediate.
+                می‌توانید هر زمان که بخواهید حساب خود را حذف کنید <strong>تنظیمات</strong>. ما ممکن است حساب شما را به دلیل نقض با اهمیت این شرایط با اخطار معقول فسخ یا تعلیق کنیم - به استثنای موارد نقض شدید (مانند هرزنامه، کلاهبرداری، استفاده غیرقانونی)، که تعلیق ممکن است فوری باشد.
               </p>
               <p>
-                On termination, you have <strong>30 days</strong> to export your data before it is permanently deleted
-                from our systems. Backups are rotated out within 30 days thereafter.
+                در فسخ، شما <strong>30 روز</strong> فرصت دارید داده‌های خود را پیش از حذف دائمی از سامانه دریافت کنید. نسخه‌های پشتیبان نیز ظرف ۳۰ روز پس از آن حذف می‌شوند.
               </p>
             </>
           ),
         },
         {
           id: 'law',
-          title: '12. Governing law & disputes',
+          title: "12. قانون حاکم و اختلافات",
           body: (
             <p>
-              These Terms are governed by the laws of <strong>India</strong>. Disputes will first be attempted to be
-              resolved through good-faith negotiation. If unresolved, exclusive jurisdiction lies with the courts of
-              <strong> Bengaluru, Karnataka</strong>.
+              این شرایط توسط قوانین کشور کنترل می‌شود <strong>هند</strong>. ابتدا سعی می‌شود اختلافات از طریق مذاکره حسن نیت حل شود. در صورت حل نشدن، صلاحیت انحصاری در اختیار دادگاه‌های کشور است
+              <strong> بنگالورو، کارناتاکا</strong>.
             </p>
           ),
         },
         {
           id: 'changes',
-          title: '13. Changes to these Terms',
+          title: "13. تغییرات در این شرایط",
           body: (
             <p>
-              We may update these Terms occasionally. Material changes are announced via email and in-product banner
-              at least <strong>30 days</strong> in advance. Continued use after the effective date constitutes acceptance.
+              ممکن است هر از گاهی این شرایط را به روز کنیم. تغییرات مواد حداقل از طریق ایمیل و بنر داخل محصول اعلام می‌شود <strong>30 روز</strong> پیشاپیش. ادامه استفاده پس از تاریخ اجرا به منزله پذیرش است.
             </p>
           ),
         },
         {
           id: 'contact',
-          title: '14. Contact',
+          title: "14. تماس",
           body: (
             <p>
-              Questions about these Terms? Contact the administrator of this Social Stats instance or visit
-              our <a href="/contact">contact page</a>.
+              درباره این شرایط سوال دارید؟ با مدیر این نمونه راوینتا تماس بگیرید یا از ما دیدن کنید <a href="/contact">صفحه تماس</a>.
             </p>
           ),
         },
