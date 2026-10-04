@@ -7,9 +7,9 @@ async function preferences(context, language = 'en', theme = 'light') {
 test('parallel locales render independent HTML, semantic content and metadata without JavaScript', async ({ browser, request }) => {
   const results = await Promise.all(['fa', 'en'].map(language => request.get('/', { headers: { Cookie: `socialstats.language=${language}` } }).then(response => response.text())));
   expect(results[0]).toContain('lang="fa"'); expect(results[0]).toContain('dir="rtl"');
-  expect(results[0]).toContain('سیستم بازاریابی هوشمند'); expect(results[0]).toContain('سیستم بازاریابی برای تیم‌های مدرن');
+  expect(results[0]).toContain('سیستم بازاریابی هوشمند'); expect(results[0]).toContain('راوینتا — از ایده تا اثر');
   expect(results[1]).toContain('lang="en"'); expect(results[1]).toContain('dir="ltr"');
-  expect(results[1]).toContain('AI marketing OS'); expect(results[1]).toContain('The marketing OS for modern teams');
+  expect(results[1]).toContain('AI marketing OS'); expect(results[1]).toContain('Ravinta — From idea to impact');
   for (const language of ['fa', 'en']) {
     const context = await browser.newContext({ javaScriptEnabled: false, reducedMotion: 'reduce' });
     await preferences(context, language);
@@ -50,7 +50,12 @@ test('product typography, radius, shadow, and self-hosted fonts match their toke
   expect(samples.shadow).not.toBe('none'); expect(samples.font).toContain('arabicFont'); expect(samples.fonts).toContain('loaded');
   expect(externalFonts).toEqual([]);
   const primary = page.getByRole('button', { name: 'Primary action' });
-  expect(await primary.evaluate(element => getComputedStyle(element).backgroundImage)).toContain('linear-gradient');
+  const primaryStyle = await primary.evaluate(element => {
+    const style = getComputedStyle(element);
+    return { backgroundImage: style.backgroundImage, backgroundColor: style.backgroundColor };
+  });
+  expect(primaryStyle.backgroundImage).toBe('none');
+  expect(primaryStyle.backgroundColor).toBe('rgb(18, 61, 58)');
 });
 test('semantic foreground/background and control contrast meets AA in both themes', async ({ page }, testInfo) => {
   const evidence = [];

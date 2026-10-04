@@ -58,7 +58,7 @@ export default function ModuleRail({
       <button
         type="button"
         onClick={() => navigate(`${basePath}/${currentModule || 'analytics'}`)}
-        aria-label="Social Stats home"
+        aria-label="Ravinta home"
         className={cn(
           '[width:36px]',
           '[height:36px]',

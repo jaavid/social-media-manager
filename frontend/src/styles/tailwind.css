@@ -94,8 +94,7 @@
    * their current styling and can migrate independently in later PRs.
    */
   .ds-module-rail {
-    background:
-      linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 94%, var(--brand-primary) 6%), var(--surface-card)) !important;
+    background: var(--surface-card) !important;
     border-inline-end-color: var(--border-default) !important;
     box-shadow: 1px 0 0 rgba(0, 0, 0, 0.01);
   }
@@ -122,9 +121,7 @@
   }
 
   .main-content {
-    background:
-      radial-gradient(circle at top left, color-mix(in srgb, var(--brand-primary) 4%, transparent), transparent 28rem),
-      var(--surface-page);
+    background: var(--surface-page);
   }
 
   .ds-mobile-nav {
