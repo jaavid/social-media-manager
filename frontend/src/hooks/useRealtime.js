@@ -7,16 +7,16 @@
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
 import { apiBaseUrl, websocketUrl } from '../lib/runtime/config';
-import { persistentStorage } from '../lib/runtime/storage';
+import { useSession } from '../core/session';
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { invalidateSession, refreshAccessToken } from '../lib/auth/session';
+import { invalidateSession } from '../lib/auth/session';
 
 /**
  * Real-time event bus over WebSocket.
  *
- * Mounts once at the root (RealtimeProvider). Connects to ws[s]://host/ws/realtime/?token=<JWT>
- * when a JWT is present in localStorage; reconnects with exponential backoff;
+ * Mounts once at the root (RealtimeProvider). Connects to ws[s]://host/ws/realtime/ using the HttpOnly session cookie
+ * when a validated identity is present; reconnects with exponential backoff;
  * pings every 30s to keep the socket warm.
  *
  * Consumers register via `useRealtime((event) => ...)` — the callback fires
@@ -59,151 +59,69 @@ function wsBaseURL() {
 
 
 export function RealtimeProvider({ children }) {
+  const { user } = useSession();
+  const identity = user ? JSON.stringify([user.id, user.role, user.workspace_id, user.client_id]) : null;
   const [status, setStatus] = useState('closed');
   const subscribers = useRef(new Set());
-  const wsRef = useRef(null);
-  const reconnectTimer = useRef(null);
-  const pingTimer = useRef(null);
-  const attempt = useRef(0);
-  const connectionGeneration = useRef(0);
-
   const subscribe = useCallback((cb) => {
     subscribers.current.add(cb);
     return () => subscribers.current.delete(cb);
   }, []);
-
-  const dispatch = useCallback((event) => {
-    for (const cb of subscribers.current) {
-      try { cb(event); } catch (e) { /* swallow per-subscriber errors */ }
+  useEffect(() => {
+    if (!identity) return;
+    let active = true;
+    let socket;
+    let timer;
+    let ping;
+    let attempt = 0;
+    function reconnect() {
+      timer = setTimeout(connect, Math.min(RECONNECT_BASE_MS * 2 ** attempt++, RECONNECT_MAX_MS));
     }
-  }, []);
-
-  const close = useCallback(() => {
-    connectionGeneration.current += 1;
-    if (reconnectTimer.current) { clearTimeout(reconnectTimer.current); reconnectTimer.current = null; }
-    if (pingTimer.current) { clearInterval(pingTimer.current); pingTimer.current = null; }
-    if (wsRef.current) {
-      try { wsRef.current.close(); } catch {}
-      wsRef.current = null;
-    }
-    setStatus('closed');
-  }, []);
-
-  const connect = useCallback(() => {
-    const token = (typeof localStorage !== 'undefined') ? persistentStorage.getItem('access_token') : null;
-    if (!token) return;
-
-    const generation = ++connectionGeneration.current;
-    setStatus('connecting');
-    const url = `${wsBaseURL()}/ws/realtime/?token=${encodeURIComponent(token)}`;
-    let ws;
-    try {
-      ws = new WebSocket(url);
-    } catch (e) {
-      scheduleReconnect();
-      return;
-    }
-    wsRef.current = ws;
-
-    ws.onopen = () => {
-      if (connectionGeneration.current !== generation || wsRef.current !== ws) return;
-      attempt.current = 0;
-      setStatus('open');
-      pingTimer.current = setInterval(() => {
-        try { ws.send(JSON.stringify({ type: 'ping' })); } catch {}
-      }, PING_INTERVAL_MS);
-    };
-
-    ws.onmessage = (e) => {
-      if (connectionGeneration.current !== generation || wsRef.current !== ws) return;
-      try {
-        const event = JSON.parse(e.data);
-        if (event && event.type) dispatch(event);
-      } catch {}
-    };
-
-    ws.onclose = async (e) => {
-      if (connectionGeneration.current !== generation || wsRef.current !== ws) return;
-
-      if (pingTimer.current) { clearInterval(pingTimer.current); pingTimer.current = null; }
-      wsRef.current = null;
-      setStatus('closed');
-
-      if (e.code === 4401) {
+    function connect() {
+      if (!active) return;
+      setStatus('connecting');
+      try { socket = new WebSocket(`${wsBaseURL()}/ws/realtime/`); }
+      catch { reconnect(); return; }
+      socket.onopen = () => {
+        if (!active) return;
+        attempt = 0;
+        setStatus('open');
+        ping = setInterval(() => {
+          if (socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ type: 'ping' }));
+        }, PING_INTERVAL_MS);
+      };
+      socket.onmessage = event => {
+        if (!active) return;
         try {
-          await refreshAccessToken(token);
-          if (connectionGeneration.current !== generation) return;
-          attempt.current = 0;
-          connect();
-        } catch {
-          if (connectionGeneration.current === generation) {
-            invalidateSession({ expectedAccessToken: token });
-          }
-        }
-        return;
-      }
-      if (e.code === 4403) return;
-      if (connectionGeneration.current === generation) scheduleReconnect();
-    };
-
-    ws.onerror = () => {
-      // onclose will follow; reconnect logic lives there.
-    };
-  // eslint-disable-next-line
-  }, [dispatch]);
-
-  const scheduleReconnect = useCallback(() => {
-    if (reconnectTimer.current) return;
-    const delay = Math.min(
-      RECONNECT_BASE_MS * Math.pow(2, attempt.current),
-      RECONNECT_MAX_MS,
-    );
-    attempt.current += 1;
-    reconnectTimer.current = setTimeout(() => {
-      reconnectTimer.current = null;
-      connect();
-    }, delay);
-  }, [connect]);
-
-  useEffect(() => {
-    connect();
-    return () => close();
-  // eslint-disable-next-line
-  }, []);
-
-  useEffect(() => {
-    function onStorage(e) {
-      if (e.key === 'access_token') {
-        close();
-        attempt.current = 0;
-        connect();
-      }
+          const data = JSON.parse(event.data);
+          if (data?.type) for (const callback of subscribers.current) callback(data);
+        } catch { /* Malformed messages and individual subscribers cannot break the transport. */ }
+      };
+      socket.onclose = event => {
+        clearInterval(ping);
+        if (!active) return;
+        setStatus('closed');
+        if (event.code === 4401) { invalidateSession(); return; }
+        if (event.code !== 4403) reconnect();
+      };
     }
-    window.addEventListener('storage', onStorage);
-    return () => window.removeEventListener('storage', onStorage);
-  // eslint-disable-next-line
-  }, [close, connect]);
-
-  const value = useMemo(() => ({ status, subscribe }), [status, subscribe]);
-
-  return (
-    <RealtimeCtx.Provider value={value}>
-      {children}
-    </RealtimeCtx.Provider>
-  );
+    connect();
+    return () => { active = false; clearTimeout(timer); clearInterval(ping); socket?.close(); };
+  }, [identity]);
+  const value = useMemo(() => ({ status: identity ? status : 'closed', subscribe }), [status, identity, subscribe]);
+  return <RealtimeCtx.Provider value={value}>{children}</RealtimeCtx.Provider>;
 }
 
 
 export function useRealtime(callback) {
   const ctx = useContext(RealtimeCtx);
   const cbRef = useRef(callback);
-  cbRef.current = callback;
+  useEffect(() => { cbRef.current = callback; }, [callback]);
 
   useEffect(() => {
     if (typeof callback !== 'function') return;
     return ctx.subscribe((event) => cbRef.current?.(event));
-  // eslint-disable-next-line
-  }, [ctx]);
+  }, [ctx, callback]);
 
   return { status: ctx.status };
 }

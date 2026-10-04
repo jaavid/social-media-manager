@@ -6,7 +6,6 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
-import { persistentStorage } from '../../lib/runtime/storage';
 
 /**
  * LeadsPage — pipeline of every captured lead.
@@ -99,9 +98,8 @@ export default function LeadsPage() {
     const params = {};
     if (filters.status) params.status = filters.status;
     if (filters.q)      params.q = filters.q;
-    const tok = persistentStorage.getItem('access_token');
     fetch(leadAPI.exportCsvUrl(params), {
-      headers: tok ? { Authorization: `Bearer ${tok}` } : {},
+      credentials: 'same-origin',
     })
       .then((r) => r.blob())
       .then((blob) => {

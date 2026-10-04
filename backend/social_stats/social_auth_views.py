@@ -73,18 +73,18 @@ def _finish_social_login(request, user):
         from .security.mfa import issue_mfa_token
         from .security.sessions import _client_ip
         token = issue_mfa_token(user_id=user.id, ip=_client_ip(request))
-        return redirect(
-            f'{FRONTEND_CALLBACK}?mfa_required=1&mfa_token={urllib.parse.quote(token)}'
-        )
+        request.session['browser_pending_mfa'] = token
+        return redirect(f'{FRONTEND_CALLBACK}?mfa_required=1')
 
-    access, refresh = _make_jwt(user)
+    from .browser_session import establish_session
+    establish_session(request._request, user)
     try:
         has_client = user.profile.client_id is not None
     except Exception:
         has_client = False
     if not has_client:
-        return redirect(f'{FRONTEND_CALLBACK}?access={access}&refresh={refresh}&state=self')
-    return redirect(f'{FRONTEND_CALLBACK}?access={access}&refresh={refresh}')
+        return redirect(f'{FRONTEND_CALLBACK}?state=self')
+    return redirect(f'{FRONTEND_CALLBACK}')
 
 
 

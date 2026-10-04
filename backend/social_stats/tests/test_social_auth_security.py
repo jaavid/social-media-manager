@@ -67,7 +67,8 @@ class SocialLoginStateValidationTests(TestCase):
         res = self.http.get('/api/auth/social/google/callback/',
                             {'code': 'good-code', 'state': state})
         self.assertEqual(res.status_code, 302)
-        self.assertIn('access=', res['Location'])
+        self.assertNotIn('access=', res['Location'])
+        self.assertIn('_auth_user_id', self.http.session)
         mock_http.post.assert_called_once()
 
     @patch('social_stats.social_auth_views.http_requests')
@@ -77,7 +78,8 @@ class SocialLoginStateValidationTests(TestCase):
         mock_http.post.return_value, mock_http.get.return_value = _google_provider_ok()
         first = self.http.get('/api/auth/social/google/callback/',
                               {'code': 'good-code', 'state': state})
-        self.assertIn('access=', first['Location'])
+        self.assertNotIn('access=', first['Location'])
+        self.assertIn('_auth_user_id', self.http.session)
         replay = self.http.get('/api/auth/social/google/callback/',
                                {'code': 'good-code', 'state': state})
         self.assertIn('/login?error=', replay['Location'])
@@ -116,20 +118,20 @@ class SocialLoginMFATests(TestCase):
                             {'code': 'good-code', 'state': state})
         self.assertEqual(res.status_code, 302)
         self.assertIn('mfa_required=1', res['Location'])
-        self.assertIn('mfa_token=', res['Location'])
+        self.assertNotIn('mfa_token=', res['Location'])
+        self.assertIn('browser_pending_mfa', self.http.session)
         self.assertNotIn('access=', res['Location'])
         self.assertNotIn('refresh=', res['Location'])
 
     @patch('social_stats.social_auth_views.http_requests')
     def test_handshake_token_completes_via_mfa_login(self, mock_http):
         import pyotp
-        from urllib.parse import urlparse, parse_qs
         self.http.get('/api/auth/social/google/start/')
         state = self.http.session['social_state']
         mock_http.post.return_value, mock_http.get.return_value = _google_provider_ok()
         res = self.http.get('/api/auth/social/google/callback/',
                             {'code': 'good-code', 'state': state})
-        mfa_token = parse_qs(urlparse(res['Location']).query)['mfa_token'][0]
+        mfa_token = self.http.session['browser_pending_mfa']
 
         api = APIClient()
         verify = api.post('/api/auth/mfa/login/', {
@@ -142,14 +144,15 @@ class SocialLoginMFATests(TestCase):
         self.assertIn('refresh', verify.data)
 
     @patch('social_stats.social_auth_views.http_requests')
-    def test_non_mfa_user_still_gets_tokens_directly(self, mock_http):
+    def test_non_mfa_user_gets_cookie_session(self, mock_http):
         UserMFA.objects.filter(user=self.user).update(is_enabled=False)
         self.http.get('/api/auth/social/google/start/')
         state = self.http.session['social_state']
         mock_http.post.return_value, mock_http.get.return_value = _google_provider_ok()
         res = self.http.get('/api/auth/social/google/callback/',
                             {'code': 'good-code', 'state': state})
-        self.assertIn('access=', res['Location'])
+        self.assertNotIn('access=', res['Location'])
+        self.assertIn('_auth_user_id', self.http.session)
         self.assertNotIn('mfa_required', res['Location'])
 
 

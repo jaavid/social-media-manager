@@ -189,6 +189,8 @@ def mfa_login(request):
     from datetime import datetime, timezone as dt_tz
 
     mfa_token = (request.data.get('mfa_token') or '').strip()
+    if mfa_token == 'session':
+        mfa_token = request.session.get('browser_pending_mfa', '')
     code        = (request.data.get('code') or '').strip()
     backup_code = (request.data.get('backup_code') or '').strip()
 

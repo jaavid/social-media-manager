@@ -1,0 +1,88 @@
+/* ============================================================================
+ *  Social Stats — Social Media Management & Marketing Platform
+ *  Author    : Chandrabhan Shekhawat
+ *  Company   : Gigai Kripa Services
+ *  Website   : https://gigaikripaservices.com/
+ *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
+ *  Released under the MIT License — see LICENSE. Keep this notice.
+ * ========================================================================== */
+import { api } from '../http/client';
+import { apiBaseUrl } from '../../lib/runtime/config';
+
+export const profileAPI = {
+  get:               ()       => api.get('/profile/'),
+  update:            (data)   => api.patch('/profile/', data, data instanceof FormData ? { headers: { 'Content-Type': 'multipart/form-data' } } : undefined),
+  changePassword:    (data)   => api.post('/profile/change-password/', data),
+  agencyInfo:        ()       => api.get('/profile/agency/'),
+  disconnectAgency:  ()       => api.post('/profile/disconnect-agency/'),
+  deleteAccount:     (data)   => api.delete('/profile/delete-account/', { data }),
+};
+
+export { authAPI } from './auth';
+
+export const endUserAPI = {
+  signup:        (data) => api.post('/end-user/signup/',    data),
+  me:            ()     => api.get ('/end-user/me/'),
+  updateProfile: (data) => api.put ('/end-user/profile/',   data),
+  workspace:     ()     => api.get ('/end-user/workspace/'),
+  updateWorkspace: (data) => api.put('/end-user/workspace/', data),
+  incomingRequests: () => api.get ('/end-user/incoming-requests/'),
+};
+
+export const socialAuthAPI = {
+  googleUrl:    () => `${apiBaseUrl()}/auth/social/google/start/`,
+  facebookUrl:  () => `${apiBaseUrl()}/auth/social/facebook/start/`,
+  microsoftUrl: () => `${apiBaseUrl()}/auth/social/microsoft/start/`,
+};
+
+export const invitationAPI = {
+  send:       (data)         => api.post('/invitations/send/', data),
+  getByToken: (token)        => api.get(`/invitations/token/${token}/`),
+  respond:    (token, action) => api.post(`/invitations/token/${token}/respond/`, { action }),
+  mine:       ()             => api.get('/invitations/mine/'),
+  cancel:     (id)           => api.delete(`/invitations/${id}/cancel/`),
+};
+
+export const soloAPI = {
+  setup: () => api.post('/workspace/setup-solo/'),
+};
+
+export const sessionsAPI = {
+  list:      ()        => api.get  ('/auth/sessions/'),
+  revoke:    (id)      => api.post (`/auth/sessions/${id}/revoke/`, {}),
+  revokeAll: (keepJti) => api.post ('/auth/sessions/revoke-all/',  { keep_jti: keepJti || '' }),
+};
+
+export const mfaAPI = {
+  status:               ()       => api.get  ('/auth/mfa/status/'),
+  setup:                ()       => api.post ('/auth/mfa/setup/', {}),
+  verifySetup:          (code)   => api.post ('/auth/mfa/verify-setup/', { code }),
+  login:                (data)   => api.post ('/auth/mfa/login/', data),
+  disable:              (data)   => api.post ('/auth/mfa/disable/', data),
+  regenerateBackupCodes: (code)   => api.post ('/auth/mfa/regenerate-backup-codes/', { code }),
+};
+
+export const apiKeysAPI = {
+  list:    (includeInactive) => api.get  ('/api-keys/', { params: includeInactive ? { include_inactive: 1 } : {} }),
+  create:  (data)            => api.post ('/api-keys/', data),
+  revoke:  (id, reason)      => api.post (`/api-keys/${id}/revoke/`, { reason: reason || 'user_revoked' }),
+};
+
+export const privacyAPI = {
+  exportList:    ()       => api.get  ('/privacy/export-request/'),
+  exportRequest: ()       => api.post ('/privacy/export-request/', {}),
+  // download is a direct file URL — no JSON wrapper
+
+  deleteAccount:       (reason) => api.post ('/privacy/delete-account/',         { reason: reason || '' }),
+  cancelDeleteAccount: ()       => api.post ('/privacy/delete-account/cancel/',  {}),
+
+  processingStatus:    ()                     => api.get  ('/privacy/processing-status/'),
+  setProcessingPaused: (paused, clientId)     => api.post ('/privacy/processing-status/', {
+    paused: !!paused, ...(clientId ? { client_id: clientId } : {}),
+  }),
+
+  consents:    ()                          => api.get ('/privacy/consents/'),
+  setConsent:  (consentType, given, via)   => api.post('/privacy/consents/', {
+    consent_type: consentType, given: !!given, given_via: via || 'settings_page',
+  }),
+};

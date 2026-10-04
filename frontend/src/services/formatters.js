@@ -6,29 +6,15 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
+import { getLanguage } from '../i18n';
 export function formatTimeAgo(dateStr, options = {}) {
-  const { includeSeconds = true, empty = '—' } = options;
-
-  if (!dateStr) return empty;
-
+  const { includeSeconds = true, empty = '—', language = getLanguage(), now = Date.now() } = options;
   const timestamp = new Date(dateStr).getTime();
-  if (Number.isNaN(timestamp)) return empty;
-
-  const diffSeconds = Math.max(0, Math.floor((Date.now() - timestamp) / 1000));
-
-  if (includeSeconds && diffSeconds < 60) {
-    return `${diffSeconds}s ago`;
-  }
-
-  const diffMinutes = Math.floor(diffSeconds / 60);
-  if (diffMinutes < 60) {
-    return `${diffMinutes}m ago`;
-  }
-
-  const diffHours = Math.floor(diffMinutes / 60);
-  if (diffHours < 24) {
-    return `${diffHours}h ago`;
-  }
-
-  return `${Math.floor(diffHours / 24)}d ago`;
+  if (!dateStr || Number.isNaN(timestamp)) return empty;
+  const seconds = Math.round((timestamp - now) / 1000);
+  const [unit, divisor] = Math.abs(seconds) < 60 && includeSeconds ? ['second', 1]
+    : Math.abs(seconds) < 3600 ? ['minute', 60]
+    : Math.abs(seconds) < 86400 ? ['hour', 3600] : ['day', 86400];
+  return new Intl.RelativeTimeFormat(language === 'fa' ? 'fa-IR' : 'en-US', { numeric: 'auto' })
+    .format(Math.trunc(seconds / divisor), unit);
 }

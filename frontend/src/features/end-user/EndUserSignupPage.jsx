@@ -6,6 +6,7 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
+import { useAuth } from '../../hooks/useAuth';
 import { persistentStorage } from '../../lib/runtime/storage';
 
 /**
@@ -14,8 +15,7 @@ import { persistentStorage } from '../../lib/runtime/storage';
  *   2. About   — industry + company name + phone (skippable except industry)
  *   3. Confirm — terms + go
  *
- * After signup the API returns access + refresh tokens; we drop them in
- * localStorage (matching the existing pattern in LoginPage) and route to /u.
+ * After signup Django establishes the browser session; we resolve /me and route to /u.
  */
 import { useState } from 'react';
 import { AppLink as Link, useAppNavigate as useNavigate } from '../../core/navigation';
@@ -35,6 +35,7 @@ const INDUSTRY_OPTIONS = [
 ];
 
 export default function EndUserSignupPage() {
+  const { refreshAuth } = useAuth();
   const navigate = useNavigate();
   const [step,    setStep]    = useState(1);
   const [loading, setLoading] = useState(false);
@@ -74,9 +75,8 @@ export default function EndUserSignupPage() {
         phone:        form.phone.trim(),
         terms_accepted: true,
       });
-      const { access, refresh, user, workspace } = res.data;
-      persistentStorage.setItem('access_token',  access);
-      persistentStorage.setItem('refresh_token', refresh);
+      const { user, workspace } = res.data;
+      await refreshAuth();
       persistentStorage.setItem('end_user_signup_workspace', JSON.stringify(workspace || {}));
       toast.success(`Welcome to Social Stats, ${user?.first_name || ''}!`);
       // Trigger a fresh /me bootstrap by routing through /auth-callback so the

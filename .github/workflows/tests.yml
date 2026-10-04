@@ -115,6 +115,18 @@ jobs:
         working-directory: frontend
         run: npm run check:next
 
+      - name: ESLint warning ratchet
+        working-directory: frontend
+        run: npm run lint
+
+      - name: Source architecture
+        working-directory: frontend
+        run: npm run check:architecture
+
+      - name: Locale and user-facing string contracts
+        working-directory: frontend
+        run: npm run i18n:check
+
       - name: TypeScript boundaries
         working-directory: frontend
         run: npm run typecheck
@@ -124,6 +136,12 @@ jobs:
         env:
           CI: "true"
         run: npm run build
+
+      - name: API and WebSocket proxy contracts
+        working-directory: frontend
+        run: |
+          npm run test:proxy
+          npm run test:proxy -- --mismatch
 
       - name: Run Jest tests
         working-directory: frontend
@@ -201,6 +219,21 @@ jobs:
           npm ci --prefer-offline --no-audit --no-fund
           npx playwright install --with-deps chromium
           npm run test:next
+
+      - name: Actual browser session through nginx and the server DAL
+        env:
+          BROWSER_TEST_EMAIL: contract-tests@example.invalid
+          BROWSER_TEST_PASSWORD: LocalContractTests!234
+        run: |
+          docker compose exec -T app python manage.py shell <<'PYTHON'
+          from django.contrib.auth.models import User
+          from social_stats.models import UserProfile
+          user, _ = User.objects.get_or_create(username='contract-tests@example.invalid', defaults={'email': 'contract-tests@example.invalid'})
+          user.set_password('LocalContractTests!234')
+          user.save()
+          UserProfile.objects.update_or_create(user=user, defaults={'role': 'superadmin', 'account_type': 'legacy'})
+          PYTHON
+          python3 scripts/check_browser_session.py http://localhost:3000
 
       - name: Seed demo data inside app container
         run: docker compose exec -T app python manage.py demo_setup

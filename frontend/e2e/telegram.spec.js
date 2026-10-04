@@ -4,6 +4,7 @@ const rich = { is_rtl: true, blocks: [{ type: 'heading', text: 'عنوان خب�
 const post = { id: 1, client: 1, title: 'Telegram review', content: '', media_type: 'rich', target_platforms: ['telegram'], media_urls: [], platform_overrides: { telegram: { social_account_id: 1, rich_message: rich } } };
 
 async function setup(page, onWrite) {
+  await page.context().addCookies([{ name: 'socialstats.language', value: 'en', url: process.env.E2E_BASE_URL || 'http://127.0.0.1:3000' }, { name: 'csrftoken', value: 'e2e-csrf', url: process.env.E2E_BASE_URL || 'http://127.0.0.1:3000' }]);
   await page.addInitScript(() => {
     localStorage.setItem('access_token', 'test-token');
     localStorage.setItem('socialstats.language', 'en');

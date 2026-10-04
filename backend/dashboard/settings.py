@@ -63,6 +63,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'social_stats.browser_session.BrowserSessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'axes.middleware.AxesMiddleware',
@@ -256,6 +257,7 @@ SIMPLE_JWT = {
 # ── DRF ───────────────────────────────────────────────
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
+        'social_stats.browser_auth.BrowserSessionAuthentication',
         'social_stats.security.api_keys.APIKeyAuthentication',
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),

@@ -27,6 +27,8 @@
  * are intentionally absent until we have real customers to feature.
  */
 
+import { requestLanguage } from '../i18n/server';
+import { message } from '../i18n/translate';
 import Link from '../components/marketing/MarketingLink';
 import { MotionDiv, MotionH1, MotionP } from '../components/marketing/Motion';
 import UseCaseTabs from '../components/marketing/HomeUseCaseTabs';
@@ -87,7 +89,9 @@ export default function HomePage() {
 // ─────────────────────────────────────────────────────────────────────────────
 // Section 1 — HERO
 // ─────────────────────────────────────────────────────────────────────────────
-function Hero() {
+async function Hero() {
+  const language = await requestLanguage();
+  const t = key => message(key, language);
   return (
     <section style={{
       position: 'relative',
@@ -119,8 +123,8 @@ function Hero() {
             backdropFilter: 'blur(10px)',
           }}>
             <Sparkles size={12} style={{ color: '#00CCF5' }} />
-            <span style={{ color: 'rgba(255,255,255,0.65)' }}>NEW</span>
-            CTWA Bot Builder is live
+            <span style={{ color: 'rgba(255,255,255,0.65)' }}>{t('home.new')}</span>
+            {t('home.announcement')}
             <ArrowRight size={11} style={{ opacity: 0.6 }} />
           </Link>
         </MotionDiv>
@@ -136,15 +140,15 @@ function Hero() {
             color: '#fff', maxWidth: 900, marginInline: 'auto',
           }}
         >
-          The{' '}
+          {t('home.hero.prefix')}{' '}
           <span style={{
             background: 'linear-gradient(135deg, #00CCF5 0%, #8b5cf6 100%)',
             WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
             backgroundClip: 'text',
           }}>
-            AI marketing OS
+            {t('home.hero.product')}
           </span>
-          <br />for modern agencies
+          <br />{t('home.hero.audience')}
         </MotionH1>
 
         {/* Subheading */}
@@ -158,8 +162,7 @@ function Hero() {
             maxWidth: 640,
           }}
         >
-          Manage analytics, content, conversations, and ads for every client —
-          across 5 platforms — in one place.
+          {t('home.hero.description')}
         </MotionP>
 
         {/* CTAs */}

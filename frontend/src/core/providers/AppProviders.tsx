@@ -1,4 +1,5 @@
 'use client';
+import type { SessionUser } from '../../lib/auth/contracts';
 import type { PropsWithChildren } from 'react';
 import { useEffect, useMemo } from 'react';
 import dynamic from 'next/dynamic';
@@ -11,12 +12,12 @@ import ErrorBoundary from '../../components/ui/ErrorBoundary';
 const CookieBanner = dynamic(() => import('../../components/legal/CookieBanner'), { ssr: false });
 
 export default function AppProviders({
-  children,
-}: PropsWithChildren) {
+  children, initialUser,
+}: PropsWithChildren<{ initialUser?: SessionUser | null }>) {
   return (
     <NavigationProvider>
       <ErrorBoundary>
-        <AuthProvider>
+        <AuthProvider initialUser={initialUser}>
           <SessionProviders>{children}</SessionProviders>
         </AuthProvider>
       </ErrorBoundary>

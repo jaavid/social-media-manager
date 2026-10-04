@@ -22,6 +22,7 @@ export function ToastProvider() {
       dir={isPersian ? 'rtl' : 'ltr'}
       position={isPersian ? 'top-left' : 'top-right'}
       closeButton
+      style={{ zIndex: 'var(--z-toast)' }}
       toastOptions={{
         classNames: {
           toast: 'ds-toast',

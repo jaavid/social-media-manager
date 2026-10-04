@@ -1,4 +1,6 @@
 const config = {
+  // Django API/WS paths require their trailing slash, including Upgrade requests.
+  skipTrailingSlashRedirect: true,
   // Local builds use next start; container builds ship the standalone server.
   output: process.env.NEXT_OUTPUT === 'standalone' ? 'standalone' : undefined,
   // Explicit public compatibility keys; never expose the entire environment.

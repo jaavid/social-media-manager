@@ -6,12 +6,11 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
-import { persistentStorage } from '../lib/runtime/storage';
 
 /**
  * AuthCallbackPage — handles the redirect from social login (Google / Microsoft).
- * The backend redirects here with ?access=...&refresh=... in the URL.
- * We store the tokens, fetch /me, then send the user to the right place.
+ * The backend establishes an HttpOnly session and redirects with a non-sensitive flow marker.
+ * We fetch /me, then send the user to the appropriate account route.
  */
 import { useEffect, useState } from 'react';
 import { useAppNavigate as useNavigate } from '../core/navigation';
@@ -23,8 +22,6 @@ export default function AuthCallbackPage() {
 
   useEffect(() => {
     const params   = new URLSearchParams(window.location.search);
-    const access   = params.get('access');
-    const refresh  = params.get('refresh');
     const errorMsg = params.get('error');
 
     if (errorMsg) {
@@ -36,20 +33,11 @@ export default function AuthCallbackPage() {
     // Social login for an MFA-enabled account: the backend withholds JWTs
     // and sends a short-lived handshake token — finish on the login page's
     // second-factor step.
-    const mfaToken = params.get('mfa_token');
+    const mfaToken = 'session';
     if (params.get('mfa_required') && mfaToken) {
       navigate('/login', { state: { mfaToken } });
       return;
     }
-
-    if (!access || !refresh) {
-      setError('Missing tokens. Redirecting to login…');
-      setTimeout(() => navigate('/login'), 2000);
-      return;
-    }
-
-    persistentStorage.setItem('access_token',  access);
-    persistentStorage.setItem('refresh_token', refresh);
 
     const state = params.get('state');
 
@@ -69,7 +57,6 @@ export default function AuthCallbackPage() {
         }
       })
       .catch(() => {
-        persistentStorage.clear();
         setError('Authentication failed. Redirecting to login…');
         setTimeout(() => navigate('/login'), 2000);
       });

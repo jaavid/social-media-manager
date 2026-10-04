@@ -37,25 +37,25 @@
   /* ── Text — light mode ────────────────────────────────────────────────── */
   --text-primary:    #0a0e14;
   --text-secondary:  #475569;
-  --text-tertiary:   #64748b;
+  --text-tertiary:   #56667e;
   --text-quaternary: #cbd5e1;
   --text-on-brand:   #0f172a;
-  --text-link:       #00A8D8;
+  --text-link:       #00748f;
 
   /* ── Borders — light mode ─────────────────────────────────────────────── */
   --border-subtle:  rgba(10, 14, 20, 0.06);
   --border-default: rgba(10, 14, 20, 0.10);
   --border-strong:  rgba(10, 14, 20, 0.16);
-  --border-focus:   rgba(0, 204, 245, 0.6);
+  --border-focus:   #007e9c;
 
   /* Overlays (modals, drawers, sheets) */
   --overlay-backdrop: rgba(10, 14, 20, 0.45);
 
   /* ── Semantic ─────────────────────────────────────────────────────────── */
-  --success:    #10b981;  --success-bg:    rgba(16, 185, 129, 0.10);
-  --warning:    #f59e0b;  --warning-bg:    rgba(245, 158, 11, 0.10);
-  --danger:     #ef4444;  --danger-bg:     rgba(239,  68,  68, 0.10);
-  --info:       #3b82f6;  --info-bg:       rgba( 59, 130, 246, 0.10);
+  --success:    #047857;  --success-bg:    rgba(16, 185, 129, 0.10);
+  --warning:    #92400e;  --warning-bg:    rgba(245, 158, 11, 0.10);
+  --danger:     #b91c1c;  --danger-bg:     rgba(239,  68,  68, 0.10);
+  --info:       #1d4ed8;  --info-bg:       rgba( 59, 130, 246, 0.10);
 
   /* ── Module accents ───────────────────────────────────────────────────── */
   --module-analytics: #00CCF5;
@@ -64,22 +64,22 @@
   --module-ai:        #8b5cf6;
 
   /* ── Radii ────────────────────────────────────────────────────────────── */
-  --radius-xs:   4px;
-  --radius-sm:   6px;
-  --radius-md:  10px;
-  --radius-lg:  14px;
-  --radius-xl:  20px;
-  --radius-2xl: 28px;
-  --radius-pill: 999px;
+  --product-radius-xs:   4px;
+  --product-radius-sm:   6px;
+  --product-radius-md:  10px;
+  --product-radius-lg:  14px;
+  --product-radius-xl:  20px;
+  --product-radius-2xl: 28px;
+  --product-radius-pill: 999px;
 
   /* ── Shadows (light mode — premium, subtle) ───────────────────────────── */
-  --shadow-xs: 0 1px 2px rgba(10, 14, 20, 0.04);
-  --shadow-sm: 0 2px 4px rgba(10, 14, 20, 0.06);
-  --shadow-md: 0 4px 12px rgba(10, 14, 20, 0.08);
-  --shadow-lg: 0 12px 28px rgba(10, 14, 20, 0.10);
-  --shadow-xl: 0 24px 56px rgba(10, 14, 20, 0.14);
-  --shadow-glow:  0 0 0 4px rgba(0, 204, 245, 0.16);
-  --shadow-brand: 0 8px 24px rgba(0, 204, 245, 0.25);
+  --product-shadow-xs: 0 1px 2px rgba(10, 14, 20, 0.04);
+  --product-shadow-sm: 0 2px 4px rgba(10, 14, 20, 0.06);
+  --product-shadow-md: 0 4px 12px rgba(10, 14, 20, 0.08);
+  --product-shadow-lg: 0 12px 28px rgba(10, 14, 20, 0.10);
+  --product-shadow-xl: 0 24px 56px rgba(10, 14, 20, 0.14);
+  --product-shadow-glow:  0 0 0 4px rgba(0, 204, 245, 0.16);
+  --product-shadow-brand: 0 8px 24px rgba(0, 204, 245, 0.25);
 
   /* ── Spacing ──────────────────────────────────────────────────────────── */
   --space-1: 4px;   --space-2: 8px;   --space-3: 12px;  --space-4: 16px;
@@ -87,14 +87,14 @@
   --space-12: 48px; --space-16: 64px; --space-20: 80px; --space-24: 96px;
 
   /* ── Typography ───────────────────────────────────────────────────────── */
-  --font-sans:    'Noto Sans Arabic', sans-serif;
+  --font-sans:    var(--font-product-arabic, 'Noto Sans Arabic'), var(--font-product-latin, Arial), sans-serif;
   --font-display: var(--font-sans);
   --font-mono:    'JetBrains Mono', 'SF Mono', Menlo, monospace;
 
-  --text-xs:  11px;  --text-sm:  13px;  --text-base: 14px;
-  --text-md:  15px;  --text-lg:  16px;  --text-xl:   18px;
-  --text-2xl: 22px;  --text-3xl: 28px;  --text-4xl:  36px;
-  --text-5xl: 48px;  --text-6xl: 60px;  --text-7xl:  72px;
+  --product-text-xs:  11px;  --product-text-sm:  13px;  --product-text-base: 14px;
+  --product-text-md:  15px;  --product-text-lg:  16px;  --product-text-xl:   18px;
+  --product-text-2xl: 22px;  --product-text-3xl: 28px;  --product-text-4xl:  36px;
+  --product-text-5xl: 48px;  --product-text-6xl: 60px;  --product-text-7xl:  72px;
 
   /* ── Transitions ──────────────────────────────────────────────────────── */
   --ease-out:     cubic-bezier(0.16, 1, 0.3, 1);
@@ -106,11 +106,11 @@
   --transition-slower:  600ms var(--ease-out);
 
   /* ── Layout ───────────────────────────────────────────────────────────── */
-  --container-sm:  640px;
-  --container-md:  768px;
-  --container-lg: 1024px;
-  --container-xl: 1280px;
-  --container-2xl: 1440px;
+  --product-container-sm:  640px;
+  --product-container-md:  768px;
+  --product-container-lg: 1024px;
+  --product-container-xl: 1280px;
+  --product-container-2xl: 1440px;
   --module-rail-width:     64px;
   --feature-sidebar-width: 240px;
   --topbar-height:         56px;
@@ -126,6 +126,8 @@
 
 /* ── Dark mode ────────────────────────────────────────────────────────── */
 [data-theme="dark"] {
+  --success: #34d399; --warning: #fbbf24; --danger: #f87171; --info: #60a5fa;
+  --border-focus: #00CCF5;
   --surface-page:     #06080c;
   --surface-card:     #0d1219;
   --surface-elevated: #131923;
@@ -147,13 +149,13 @@
   /* Overlays — heavier in dark mode for separation */
   --overlay-backdrop: rgba(0, 0, 0, 0.62);
 
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
-  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
-  --shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.6);
-  --shadow-xl: 0 24px 56px rgba(0, 0, 0, 0.7);
-  --shadow-glow:  0 0 0 4px rgba(0, 204, 245, 0.22);
-  --shadow-brand: 0 8px 24px rgba(0, 204, 245, 0.30);
+  --product-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --product-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.4);
+  --product-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+  --product-shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.6);
+  --product-shadow-xl: 0 24px 56px rgba(0, 0, 0, 0.7);
+  --product-shadow-glow:  0 0 0 4px rgba(0, 204, 245, 0.22);
+  --product-shadow-brand: 0 8px 24px rgba(0, 204, 245, 0.30);
 
   --brand-primary-glow: rgba(0, 204, 245, 0.22);
   --success-bg: rgba(16, 185, 129, 0.16);
@@ -177,7 +179,7 @@ html[data-theme] body * {
 
 /* Keyboard-only focus ring (mouse users get no ring; keyboard users always do) */
 :focus-visible {
-  outline: 2px solid var(--brand-primary);
+  outline: 2px solid var(--border-focus);
   outline-offset: 2px;
   border-radius: inherit;
 }
@@ -189,7 +191,7 @@ textarea:focus-visible,
 [role="button"]:focus-visible,
 [role="option"]:focus-visible,
 [role="tab"]:focus-visible {
-  outline: 2px solid var(--brand-primary);
+  outline: 2px solid var(--border-focus);
   outline-offset: 2px;
 }
 
@@ -218,4 +220,90 @@ textarea:focus-visible,
   --radius: var(--radius-md); --ease: cubic-bezier(0.4, 0, 0.2, 1); --transition: var(--transition-default);
   --sidebar-bg: var(--surface-card); --sidebar-surface: var(--surface-sunken); --sidebar-border: var(--border-default);
   --sidebar-text: var(--text-secondary); --sidebar-muted: var(--text-tertiary); --sidebar-active-bg: var(--brand-primary-soft); --sidebar-active-border: var(--brand-primary);
+}
+
+:root {
+  --line-height-body: 1.6; --line-height-heading: 1.25;
+  --chart-1: var(--module-analytics); --chart-2: var(--module-messaging);
+  --chart-3: var(--module-ads); --chart-4: var(--module-ai);
+  --motion-fast: 120ms; --motion-default: 200ms; --motion-slow: 320ms;
+  --control-border: #7c8799; --destructive-foreground: #ffffff;
+}
+[data-theme="dark"] { --control-border: #718096; --destructive-foreground: #0a0e14; }
+:disabled, [aria-disabled="true"] { cursor: not-allowed; }
+.bidi-isolate { direction: ltr; unicode-bidi: isolate; }
+
+:root {
+  --text-xs: var(--product-text-xs);
+  --text-sm: var(--product-text-sm);
+  --text-base: var(--product-text-base);
+  --text-md: var(--product-text-md);
+  --text-lg: var(--product-text-lg);
+  --text-xl: var(--product-text-xl);
+  --text-2xl: var(--product-text-2xl);
+  --text-3xl: var(--product-text-3xl);
+  --text-4xl: var(--product-text-4xl);
+  --text-5xl: var(--product-text-5xl);
+  --text-6xl: var(--product-text-6xl);
+  --text-7xl: var(--product-text-7xl);
+  --radius-xs: var(--product-radius-xs);
+  --radius-sm: var(--product-radius-sm);
+  --radius-md: var(--product-radius-md);
+  --radius-lg: var(--product-radius-lg);
+  --radius-xl: var(--product-radius-xl);
+  --radius-2xl: var(--product-radius-2xl);
+  --radius-pill: var(--product-radius-pill);
+  --shadow-xs: var(--product-shadow-xs);
+  --shadow-sm: var(--product-shadow-sm);
+  --shadow-md: var(--product-shadow-md);
+  --shadow-lg: var(--product-shadow-lg);
+  --shadow-xl: var(--product-shadow-xl);
+  --shadow-glow: var(--product-shadow-glow);
+  --shadow-brand: var(--product-shadow-brand);
+  --container-sm: var(--product-container-sm);
+  --container-md: var(--product-container-md);
+  --container-lg: var(--product-container-lg);
+  --container-xl: var(--product-container-xl);
+  --container-2xl: var(--product-container-2xl);
+}
+
+@media (prefers-color-scheme: dark) {
+:root[data-preference="system"] {
+  --success: #34d399; --warning: #fbbf24; --danger: #f87171; --info: #60a5fa;
+  --border-focus: #00CCF5;
+  --surface-page:     #06080c;
+  --surface-card:     #0d1219;
+  --surface-elevated: #131923;
+  --surface-sunken:   #0a0e14;
+  --surface-hover:    #181f2a;
+  --surface-overlay:  rgba(13, 18, 25, 0.85);
+  --surface-glass:    rgba(13, 18, 25, 0.62);
+
+  --text-primary:    #f1f5f9;
+  --text-secondary:  #cbd5e1;
+  --text-tertiary:   #94a3b8;
+  --text-quaternary: #64748b;
+  --text-link:       #00CCF5;
+
+  --border-subtle:  rgba(255, 255, 255, 0.06);
+  --border-default: rgba(255, 255, 255, 0.10);
+  --border-strong:  rgba(255, 255, 255, 0.16);
+
+  /* Overlays — heavier in dark mode for separation */
+  --overlay-backdrop: rgba(0, 0, 0, 0.62);
+
+  --product-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --product-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.4);
+  --product-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+  --product-shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.6);
+  --product-shadow-xl: 0 24px 56px rgba(0, 0, 0, 0.7);
+  --product-shadow-glow:  0 0 0 4px rgba(0, 204, 245, 0.22);
+  --product-shadow-brand: 0 8px 24px rgba(0, 204, 245, 0.30);
+
+  --brand-primary-glow: rgba(0, 204, 245, 0.22);
+  --success-bg: rgba(16, 185, 129, 0.16);
+  --warning-bg: rgba(245, 158, 11, 0.16);
+  --danger-bg:  rgba(239,  68,  68, 0.16);
+  --info-bg:    rgba( 59, 130, 246, 0.16);
+}
 }

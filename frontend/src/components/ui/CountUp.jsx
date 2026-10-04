@@ -58,7 +58,7 @@ export default function CountUp({
 
     rafRef.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafRef.current);
-  // eslint-disable-line — we don't include `n` to avoid restarting mid-animation
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- Updating n must not restart the animation.
   }, [value, duration, reduced]);
 
   const formatted = format

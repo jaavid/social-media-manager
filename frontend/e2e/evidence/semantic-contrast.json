@@ -1,0 +1,660 @@
+[
+  {
+    "theme": "light",
+    "pairs": [
+      {
+        "foreground": "text-primary",
+        "surface": "surface-page",
+        "ratio": 18.66725481516818,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "text-secondary",
+        "surface": "surface-page",
+        "ratio": 7.314006637159244,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "text-tertiary",
+        "surface": "surface-page",
+        "ratio": 5.634270284956484,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "text-link",
+        "surface": "surface-page",
+        "ratio": 5.2042146514959455,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "success",
+        "surface": "success-bg/surface-page",
+        "ratio": 4.830121808645647,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "warning",
+        "surface": "warning-bg/surface-page",
+        "ratio": 6.357642656395843,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "danger",
+        "surface": "danger-bg/surface-page",
+        "ratio": 5.493192480369683,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "info",
+        "surface": "info-bg/surface-page",
+        "ratio": 5.784903650270884,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "border-focus",
+        "surface": "surface-page",
+        "ratio": 4.540210907132695,
+        "minimum": 3
+      },
+      {
+        "foreground": "control-border",
+        "surface": "surface-page",
+        "ratio": 3.5052343495599723,
+        "minimum": 3
+      },
+      {
+        "foreground": "text-primary",
+        "surface": "surface-card",
+        "ratio": 19.34017713432947,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "text-secondary",
+        "surface": "surface-card",
+        "ratio": 7.577663953533317,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "text-tertiary",
+        "surface": "surface-card",
+        "ratio": 5.837376004810572,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "text-link",
+        "surface": "surface-card",
+        "ratio": 5.391817607976305,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "success",
+        "surface": "success-bg/surface-card",
+        "ratio": 4.991689231152123,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "warning",
+        "surface": "warning-bg/surface-card",
+        "ratio": 6.570399143688586,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "danger",
+        "surface": "danger-bg/surface-card",
+        "ratio": 5.681019217362841,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "info",
+        "surface": "info-bg/surface-card",
+        "ratio": 5.98006563674377,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "border-focus",
+        "surface": "surface-card",
+        "ratio": 4.703877674601181,
+        "minimum": 3
+      },
+      {
+        "foreground": "control-border",
+        "surface": "surface-card",
+        "ratio": 3.631591998344682,
+        "minimum": 3
+      },
+      {
+        "foreground": "text-primary",
+        "surface": "surface-elevated",
+        "ratio": 19.34017713432947,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "text-secondary",
+        "surface": "surface-elevated",
+        "ratio": 7.577663953533317,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "text-tertiary",
+        "surface": "surface-elevated",
+        "ratio": 5.837376004810572,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "text-link",
+        "surface": "surface-elevated",
+        "ratio": 5.391817607976305,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "success",
+        "surface": "success-bg/surface-elevated",
+        "ratio": 4.991689231152123,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "warning",
+        "surface": "warning-bg/surface-elevated",
+        "ratio": 6.570399143688586,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "danger",
+        "surface": "danger-bg/surface-elevated",
+        "ratio": 5.681019217362841,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "info",
+        "surface": "info-bg/surface-elevated",
+        "ratio": 5.98006563674377,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "border-focus",
+        "surface": "surface-elevated",
+        "ratio": 4.703877674601181,
+        "minimum": 3
+      },
+      {
+        "foreground": "control-border",
+        "surface": "surface-elevated",
+        "ratio": 3.631591998344682,
+        "minimum": 3
+      },
+      {
+        "foreground": "text-primary",
+        "surface": "surface-sunken",
+        "ratio": 17.707647545970293,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "text-secondary",
+        "surface": "surface-sunken",
+        "ratio": 6.938023451336086,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "text-tertiary",
+        "surface": "surface-sunken",
+        "ratio": 5.344635479217577,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "text-link",
+        "surface": "surface-sunken",
+        "ratio": 4.936687248056648,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "success",
+        "surface": "success-bg/surface-sunken",
+        "ratio": 4.5990509102086605,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "warning",
+        "surface": "warning-bg/surface-sunken",
+        "ratio": 6.053699994993141,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "danger",
+        "surface": "danger-bg/surface-sunken",
+        "ratio": 5.22528154052482,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "info",
+        "surface": "info-bg/surface-sunken",
+        "ratio": 5.506149776659691,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "border-focus",
+        "surface": "surface-sunken",
+        "ratio": 4.306817222131089,
+        "minimum": 3
+      },
+      {
+        "foreground": "control-border",
+        "surface": "surface-sunken",
+        "ratio": 3.325044579002668,
+        "minimum": 3
+      },
+      {
+        "foreground": "text-primary",
+        "surface": "surface-hover",
+        "ratio": 18.020649074041927,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "text-secondary",
+        "surface": "surface-hover",
+        "ratio": 7.060660404461981,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "text-tertiary",
+        "surface": "surface-hover",
+        "ratio": 5.439107603063394,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "text-link",
+        "surface": "surface-hover",
+        "ratio": 5.023948452473669,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "success",
+        "surface": "success-bg/surface-hover",
+        "ratio": 4.674643695539108,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "warning",
+        "surface": "warning-bg/surface-hover",
+        "ratio": 6.152559926025548,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "danger",
+        "surface": "danger-bg/surface-hover",
+        "ratio": 5.312433368273419,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "info",
+        "surface": "info-bg/surface-hover",
+        "ratio": 5.597392679172644,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "border-focus",
+        "surface": "surface-hover",
+        "ratio": 4.38294480306202,
+        "minimum": 3
+      },
+      {
+        "foreground": "control-border",
+        "surface": "surface-hover",
+        "ratio": 3.3838182829310015,
+        "minimum": 3
+      },
+      {
+        "foreground": "destructive-foreground",
+        "surface": "danger",
+        "ratio": 6.4700447145121895,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "text-on-brand",
+        "surface": "brand-primary",
+        "ratio": 9.313634087401805,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "text-on-brand",
+        "surface": "brand-primary-hover",
+        "ratio": 6.454648891038344,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "text-on-brand",
+        "surface": "brand-primary-active",
+        "ratio": 4.62752307038783,
+        "minimum": 4.5
+      }
+    ]
+  },
+  {
+    "theme": "dark",
+    "pairs": [
+      {
+        "foreground": "text-primary",
+        "surface": "surface-page",
+        "ratio": 18.294799191188805,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "text-secondary",
+        "surface": "surface-page",
+        "ratio": 13.499183147335335,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "text-tertiary",
+        "surface": "surface-page",
+        "ratio": 7.81667065818663,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "text-link",
+        "surface": "surface-page",
+        "ratio": 10.456013248011367,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "success",
+        "surface": "success-bg/surface-page",
+        "ratio": 8.49734781270988,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "warning",
+        "surface": "warning-bg/surface-page",
+        "ratio": 9.53005801981265,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "danger",
+        "surface": "danger-bg/surface-page",
+        "ratio": 6.333443846979076,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "info",
+        "surface": "info-bg/surface-page",
+        "ratio": 6.736506485334432,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "border-focus",
+        "surface": "surface-page",
+        "ratio": 10.456013248011367,
+        "minimum": 3
+      },
+      {
+        "foreground": "control-border",
+        "surface": "surface-page",
+        "ratio": 4.991681583361113,
+        "minimum": 3
+      },
+      {
+        "foreground": "text-primary",
+        "surface": "surface-card",
+        "ratio": 17.150837018755496,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "text-secondary",
+        "surface": "surface-card",
+        "ratio": 12.655087799913412,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "text-tertiary",
+        "surface": "surface-card",
+        "ratio": 7.327899207137222,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "text-link",
+        "surface": "surface-card",
+        "ratio": 9.802205381350149,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "success",
+        "surface": "success-bg/surface-card",
+        "ratio": 7.682645576269224,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "warning",
+        "surface": "warning-bg/surface-card",
+        "ratio": 8.63185067602705,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "danger",
+        "surface": "danger-bg/surface-card",
+        "ratio": 5.840402358395232,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "info",
+        "surface": "info-bg/surface-card",
+        "ratio": 6.127924233486897,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "border-focus",
+        "surface": "surface-card",
+        "ratio": 9.802205381350149,
+        "minimum": 3
+      },
+      {
+        "foreground": "control-border",
+        "surface": "surface-card",
+        "ratio": 4.679554904706595,
+        "minimum": 3
+      },
+      {
+        "foreground": "text-primary",
+        "surface": "surface-elevated",
+        "ratio": 16.094745793678996,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "text-secondary",
+        "surface": "surface-elevated",
+        "ratio": 11.87582978682368,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "text-tertiary",
+        "surface": "surface-elevated",
+        "ratio": 6.876671663989347,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "text-link",
+        "surface": "surface-elevated",
+        "ratio": 9.198618333189119,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "success",
+        "surface": "success-bg/surface-elevated",
+        "ratio": 7.095938684067748,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "warning",
+        "surface": "warning-bg/surface-elevated",
+        "ratio": 7.969401755991449,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "danger",
+        "surface": "danger-bg/surface-elevated",
+        "ratio": 5.444877879238916,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "info",
+        "surface": "info-bg/surface-elevated",
+        "ratio": 5.6727579193557185,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "border-focus",
+        "surface": "surface-elevated",
+        "ratio": 9.198618333189119,
+        "minimum": 3
+      },
+      {
+        "foreground": "control-border",
+        "surface": "surface-elevated",
+        "ratio": 4.3914035528676205,
+        "minimum": 3
+      },
+      {
+        "foreground": "text-primary",
+        "surface": "surface-sunken",
+        "ratio": 17.65392383845439,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "text-secondary",
+        "surface": "surface-sunken",
+        "ratio": 13.026300462438654,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "text-tertiary",
+        "surface": "surface-sunken",
+        "ratio": 7.542849037466857,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "text-link",
+        "surface": "surface-sunken",
+        "ratio": 10.089734224749806,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "success",
+        "surface": "success-bg/surface-sunken",
+        "ratio": 8.010787474204811,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "warning",
+        "surface": "warning-bg/surface-sunken",
+        "ratio": 8.99850516299514,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "danger",
+        "surface": "danger-bg/surface-sunken",
+        "ratio": 6.047577605753214,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "info",
+        "surface": "info-bg/surface-sunken",
+        "ratio": 6.375692756775619,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "border-focus",
+        "surface": "surface-sunken",
+        "ratio": 10.089734224749806,
+        "minimum": 3
+      },
+      {
+        "foreground": "control-border",
+        "surface": "surface-sunken",
+        "ratio": 4.816820648182596,
+        "minimum": 3
+      },
+      {
+        "foreground": "text-primary",
+        "surface": "surface-hover",
+        "ratio": 15.114358551989332,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "text-secondary",
+        "surface": "surface-hover",
+        "ratio": 11.152431470582325,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "text-tertiary",
+        "surface": "surface-hover",
+        "ratio": 6.457789548602863,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "text-link",
+        "surface": "surface-hover",
+        "ratio": 8.638298327478122,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "success",
+        "surface": "success-bg/surface-hover",
+        "ratio": 6.614662994435808,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "warning",
+        "surface": "warning-bg/surface-hover",
+        "ratio": 7.425663601116008,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "danger",
+        "surface": "danger-bg/surface-hover",
+        "ratio": 5.110074915354981,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "info",
+        "surface": "info-bg/surface-hover",
+        "ratio": 5.299263435313028,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "border-focus",
+        "surface": "surface-hover",
+        "ratio": 8.638298327478122,
+        "minimum": 3
+      },
+      {
+        "foreground": "control-border",
+        "surface": "surface-hover",
+        "ratio": 4.123907807887733,
+        "minimum": 3
+      },
+      {
+        "foreground": "destructive-foreground",
+        "surface": "danger",
+        "ratio": 6.991744351177331,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "text-on-brand",
+        "surface": "brand-primary",
+        "ratio": 9.313634087401805,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "text-on-brand",
+        "surface": "brand-primary-hover",
+        "ratio": 6.454648891038344,
+        "minimum": 4.5
+      },
+      {
+        "foreground": "text-on-brand",
+        "surface": "brand-primary-active",
+        "ratio": 4.62752307038783,
+        "minimum": 4.5
+      }
+    ]
+  }
+]

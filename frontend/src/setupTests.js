@@ -1,3 +1,4 @@
+import * as mockReact from 'react';
 // Shared Jest setup.
 import '@testing-library/jest-dom';
 import 'whatwg-fetch';
@@ -30,7 +31,8 @@ jest.mock('next/navigation', () => {
   };
 });
 jest.mock('next/link', () => {
-  const React = require('react');
-  return React.forwardRef(({ href, children, replace, prefetch, scroll, ...props }, ref) =>
-    React.createElement('a', { ...props, href, ref }, children));
+  return mockReact.forwardRef(function MockLink({ href, children, replace, prefetch, scroll, ...props }, ref) { return mockReact.createElement('a', { ...props, href, ref }, children); });
 });
+
+// Browser API tests use a non-secret CSRF fixture.
+document.cookie = "csrftoken=test-csrf; Path=/";

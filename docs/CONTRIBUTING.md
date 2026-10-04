@@ -37,6 +37,6 @@ npm run build
 ## فارسی و RTL
 
 `useLanguage()` و `tr()` مسیر ترجمه‌اند. تاریخ نمایشی از `formatDate()` و عدد از `formatNumber()`؛ identifier، URL و ورودی فنی را از جریان RTL جدا کنید.
-`npm run i18n:inventory` متن‌های مستقیم را فهرست می‌کند. guard فعلی `i18n:check` فقط ConnectedAccounts و PlatformConnectModal را پوشش می‌دهد؛ کل برنامه را تأیید نمی‌کند. منبع: [اسکریپت](../frontend/scripts/check-user-facing-strings.js).
+`npm run i18n:inventory` متن‌های مستقیم را فهرست می‌کند. guard مبتنی بر parser تمام JS/JSX/TS/TSX را بررسی می‌کند و افزایش baseline متن legacy را رد می‌کند؛ این شمارش به معنی ترجمهٔ کامل نیست. قراردادها: [Frontend contracts](FRONTEND_CONTRACTS.md). منبع: [اسکریپت](../frontend/scripts/check-user-facing-strings.js).
 
 مستندات فقط در `docs/` باشند؛ فایل کوتاه، دستور قابل‌اجرا و لینک به مرجع کد بنویسید. گزارش PR، screenshot مقایسه‌ای و backlog را به‌عنوان راهنمای دائمی اینجا نگه ندارید. جدول PLATFORM_SUPPORT باید عین خروجی registry باشد.

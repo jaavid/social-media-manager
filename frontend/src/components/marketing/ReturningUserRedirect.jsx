@@ -1,13 +1,11 @@
 'use client';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { persistentStorage } from '../../lib/runtime/storage';
 
 /** Anonymous visits render marketing without starting a session. */
 export default function ReturningUserRedirect() {
   const router = useRouter();
   useEffect(() => {
-    if (!persistentStorage.getItem('access_token')) return;
     let active = true;
     import('../../services/api').then(({ authAPI }) => authAPI.me()).then(({ data: user }) => {
       if (!active) return;

@@ -6,6 +6,8 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
+type WorkspaceId = number | null | undefined;
+type Filters = Readonly<Record<string, unknown>>;
 import { QueryClient } from '@tanstack/react-query';
 
 /**
@@ -49,26 +51,26 @@ export function createQueryClient() { return new QueryClient({
  * client id so cross-tenant queries don't collide in the cache.
  */
 export const QK = {
-  dashboardCounts: (clientId) => ['dashboard.counts', clientId],
-  dashboardToday:  (clientId) => ['dashboard.today', clientId],
-  search:          (clientId, q) => ['search', clientId, q],
+  dashboardCounts: (clientId: WorkspaceId) => ['dashboard.counts', clientId],
+  dashboardToday:  (clientId: WorkspaceId) => ['dashboard.today', clientId],
+  search:          (clientId: WorkspaceId, q: string) => ['search', clientId, q],
 
-  posts:           (clientId, filters = {}) => ['posts', clientId, filters],
-  post:            (postId) => ['post', postId],
-  calendar:        (clientId, range = {}) => ['calendar', clientId, range],
+  posts:           (clientId: WorkspaceId, filters: Filters = {}) => ['posts', clientId, filters],
+  post:            (postId: number) => ['post', postId],
+  calendar:        (clientId: WorkspaceId, range: Filters = {}) => ['calendar', clientId, range],
 
-  conversations:   (clientId, filters = {}) => ['conversations', clientId, filters],
-  conversation:    (conversationId) => ['conversation', conversationId],
+  conversations:   (clientId: WorkspaceId, filters: Filters = {}) => ['conversations', clientId, filters],
+  conversation:    (conversationId: number) => ['conversation', conversationId],
 
-  leads:           (clientId, filters = {}) => ['leads', clientId, filters],
-  lead:            (leadId) => ['lead', leadId],
+  leads:           (clientId: WorkspaceId, filters: Filters = {}) => ['leads', clientId, filters],
+  lead:            (leadId: number) => ['lead', leadId],
 
-  botFlows:        (clientId) => ['bot-flows', clientId],
-  botFlow:         (flowId) => ['bot-flow', flowId],
+  botFlows:        (clientId: WorkspaceId) => ['bot-flows', clientId],
+  botFlow:         (flowId: number) => ['bot-flow', flowId],
 
-  approvals:       (clientId) => ['approvals', clientId],
+  approvals:       (clientId: WorkspaceId) => ['approvals', clientId],
   notifications:   () => ['notifications'],
 
-  whatsappCampaigns: (clientId) => ['whatsapp.campaigns', clientId],
-  whatsappContacts:  (clientId) => ['whatsapp.contacts', clientId],
+  whatsappCampaigns: (clientId: WorkspaceId) => ['whatsapp.campaigns', clientId],
+  whatsappContacts:  (clientId: WorkspaceId) => ['whatsapp.contacts', clientId],
 };
