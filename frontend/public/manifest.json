@@ -1,12 +1,12 @@
 {
-  "short_name": "Social Stats",
-  "name": "Social Stats — Marketing OS",
-  "description": "AI-powered marketing platform for agencies and businesses.",
+  "short_name": "Ravinta",
+  "name": "Ravinta — From idea to impact",
+  "description": "Plan, create, approve, publish, and measure your digital presence.",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "theme_color": "#fafbfc",
-  "background_color": "#fafbfc",
+  "theme_color": "#123D3A",
+  "background_color": "#F7F9F8",
   "scope": "/",
   "icons": [
     {
