@@ -4,6 +4,9 @@ next
 build
 .env*
 !.env.example
+**/.env
+**/.env.*
+!**/.env.example
 *.tsbuildinfo
 test-results
 playwright-report
