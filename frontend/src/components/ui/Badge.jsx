@@ -1,3 +1,4 @@
+'use client';
 import { useLanguage } from '../../i18n';
 import { cn } from '../../lib/utils';
 
@@ -28,6 +29,7 @@ export default function Badge({
   size = 'md',
   dot = false,
   icon: Icon,
+  iconElement,
   children,
   className,
   style,
@@ -54,6 +56,7 @@ export default function Badge({
           className={cn('shrink-0 rounded-full bg-current', DOT_CLASSES[resolvedSize])}
         />
       )}
+      {iconElement}
       {Icon && <Icon size={ICON_SIZES[resolvedSize]} strokeWidth={2.4} aria-hidden />}
       {localizedChildren}
     </span>

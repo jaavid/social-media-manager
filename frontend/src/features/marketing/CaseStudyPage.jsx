@@ -23,8 +23,8 @@
  *   8. Used products
  *   9. Final CTA + back link
  */
-import { useAppParams as useParams, AppLink as Link } from '../../core/navigation';
-import { motion } from 'framer-motion';
+import Link from '../../components/marketing/MarketingLink';
+import { MotionDiv } from '../../components/marketing/Motion';
 import {
   ArrowLeft,
   ArrowRight,
@@ -40,17 +40,16 @@ import MeshGradient    from '../../components/marketing/MeshGradient';
 import ScrollReveal    from '../../components/marketing/ScrollReveal';
 import MetricCounter   from '../../components/marketing/MetricCounter';
 import SamplePreviewBanner from '../../components/marketing/SamplePreviewBanner';
-import Button          from '../../components/ui/Button';
+import Button          from '../../components/marketing/MarketingButton';
 import Meta            from '../../components/Meta';
 import JsonLd, { buildBreadcrumbs, SITE_URL } from '../../components/JsonLd';
 
 import STUDIES from './caseStudies';
-import ComingSoonPage from './ComingSoonPage';
+import { notFound } from 'next/navigation';
 
-export default function CaseStudyPage() {
-  const { slug } = useParams();
+export default function CaseStudyPage({ slug }) {
   const study = STUDIES[slug];
-  if (!study) return <ComingSoonPage />;
+  if (!study) notFound();
 
   const { company, industry, accent, tagline, hero, profile,
           challenge, solution, results, pulls } = study;
@@ -139,7 +138,7 @@ export default function CaseStudyPage() {
 
             {/* Right: portrait + headline metric */}
             <ScrollReveal delay={0.1}>
-              <motion.div
+              <MotionDiv
                 whileHover={{ y: -4 }}
                 style={{
                   position: 'relative',
@@ -202,7 +201,7 @@ export default function CaseStudyPage() {
                     </div>
                   </div>
                 </div>
-              </motion.div>
+              </MotionDiv>
             </ScrollReveal>
           </div>
         </div>

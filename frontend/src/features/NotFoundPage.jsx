@@ -1,3 +1,4 @@
+'use client';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -6,17 +7,17 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
-import { AppLink as Link, useAppNavigate as useNavigate } from '../core/navigation';
+import Link from '../components/marketing/MarketingLink';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Search, ArrowRight, Home, BookOpen } from 'lucide-react';
 
-import MarketingLayout from '../components/marketing/MarketingLayout';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import Meta from '../components/Meta';
 
 export default function NotFoundPage() {
-  const navigate = useNavigate();
+  const { push: navigate } = useRouter();
 
   function handleSearch(e) {
     e.preventDefault();
@@ -25,7 +26,7 @@ export default function NotFoundPage() {
   }
 
   return (
-    <MarketingLayout>
+    <>
       <Meta
         title="Page not found"
         description="The page you're looking for doesn't exist, has moved, or was never here."
@@ -108,6 +109,6 @@ export default function NotFoundPage() {
           </p>
         </div>
       </section>
-    </MarketingLayout>
+    </>
   );
 }

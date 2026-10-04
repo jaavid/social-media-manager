@@ -1,3 +1,4 @@
+'use client';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -7,10 +8,9 @@
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
 import { useMemo, useState } from 'react';
-import { AppLink as Link } from '../core/navigation';
+import Link from '../components/marketing/MarketingLink';
 import { ArrowRight, Search, Sparkles } from 'lucide-react';
 
-import MarketingLayout from '../components/marketing/MarketingLayout';
 import Badge from '../components/ui/Badge';
 import Avatar from '../components/ui/Avatar';
 import Meta from '../components/Meta';
@@ -52,7 +52,7 @@ export default function BlogIndexPage() {
   const grid       = isPristine ? POSTS.slice(1) : filtered;
 
   return (
-    <MarketingLayout>
+    <>
       <Meta
         title="Blog"
         description="Product updates, agency playbooks, AI experiments, and design decisions from the team building Social Stats."
@@ -392,7 +392,7 @@ export default function BlogIndexPage() {
           </form>
         </div>
       </section>
-    </MarketingLayout>
+    </>
   );
 }
 

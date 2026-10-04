@@ -12,16 +12,16 @@
  * Counterpart to /for-businesses. Hammers ROI + the marketplace exposure
  * benefit (the marketplace is the new hook agencies didn't have before).
  */
-import { AppLink as Link } from '../core/navigation';
-import { motion } from 'framer-motion';
+import Link from '../components/marketing/MarketingLink';
+import { MotionDiv, MotionH1, MotionP } from '../components/marketing/Motion';
 import {
   ArrowRight, Sparkles, Building2, TrendingUp, Star, Inbox, Wand2,
   ShieldCheck, Check, Users2,
 } from 'lucide-react';
 
 import MarketingLayout from '../components/marketing/MarketingLayout';
-import Button from '../components/ui/Button';
-import Badge from '../components/ui/Badge';
+import Button from '../components/marketing/MarketingButton';
+import Badge from '../components/marketing/MarketingBadge';
 import Meta from '../components/Meta';
 
 
@@ -47,10 +47,10 @@ function Hero() {
     <section style={{ position: 'relative', overflow: 'hidden', padding: '128px 32px 72px' }}>
       <div aria-hidden style={meshBg} />
       <div style={{ position: 'relative', maxWidth: 880, margin: '0 auto', textAlign: 'center' }}>
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+        <MotionDiv initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
           <Badge variant="brand" icon={Building2} size="md">For agencies · marketplace included</Badge>
-        </motion.div>
-        <motion.h1
+        </MotionDiv>
+        <MotionH1
           initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.05 }}
           style={{
@@ -64,16 +64,16 @@ function Hero() {
           <span style={{ backgroundImage: 'var(--brand-gradient)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>
             one place.
           </span>
-        </motion.h1>
-        <motion.p
+        </MotionH1>
+        <MotionP
           initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
           style={{ margin: '0 auto', maxWidth: 640, fontSize: 18, lineHeight: 1.6, color: 'var(--text-secondary)' }}
         >
           Analytics, content, inbox, WhatsApp campaigns, ads, AI — every client in one beautiful dashboard.
           List in our marketplace and get inbound leads. Built on trust: every action logged, every permission revocable.
-        </motion.p>
-        <motion.div
+        </MotionP>
+        <MotionDiv
           initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.15 }}
           style={{ marginTop: 28, display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}
@@ -84,7 +84,7 @@ function Hero() {
           <Button as={Link} to="/agencies" size="xl" variant="secondary" icon={Building2}>
             See the marketplace
           </Button>
-        </motion.div>
+        </MotionDiv>
         <p style={{ marginTop: 14, fontSize: 13, color: 'var(--text-tertiary)' }}>
           14-day free trial · No credit card · 5 connected platforms per client
         </p>

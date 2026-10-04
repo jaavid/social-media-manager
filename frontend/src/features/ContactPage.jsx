@@ -1,3 +1,4 @@
+'use client';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -7,13 +8,12 @@
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
 import { useState } from 'react';
-import { AppLink as Link } from '../core/navigation';
+import Link from '../components/marketing/MarketingLink';
 import {
   Mail, MessageSquare, Phone, MapPin, ArrowRight,
   BookOpen, Activity, ShieldCheck, CheckCircle, Send,
 } from 'lucide-react';
 
-import MarketingLayout from '../components/marketing/MarketingLayout';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import Input from '../components/ui/Input';
@@ -65,7 +65,7 @@ export default function ContactPage() {
   }
 
   return (
-    <MarketingLayout>
+    <>
       <Meta
         title="Contact"
         description="Sales, support, partnerships, press — get in touch with the Social Stats team. We typically reply within one business day."
@@ -296,7 +296,7 @@ export default function ContactPage() {
           `}</style>
         </div>
       </section>
-    </MarketingLayout>
+    </>
   );
 }
 

@@ -6,7 +6,7 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
-import { AppLink as Link } from '../core/navigation';
+import Link from '../components/marketing/MarketingLink';
 import {
   ArrowRight,
   Building2,
@@ -23,7 +23,7 @@ import {
 import MarketingLayout from '../components/marketing/MarketingLayout';
 import MeshGradient from '../components/marketing/MeshGradient';
 import ScrollReveal from '../components/marketing/ScrollReveal';
-import Button from '../components/ui/Button';
+import Button from '../components/marketing/MarketingButton';
 import Meta from '../components/Meta';
 
 /**

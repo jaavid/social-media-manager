@@ -1,3 +1,4 @@
+'use client';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -7,7 +8,7 @@
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
 import { useMemo, useState } from 'react';
-import { AppLink as Link } from '../core/navigation';
+import Link from '../components/marketing/MarketingLink';
 import { motion } from 'framer-motion';
 import {
   Search, Sparkles, ArrowRight, CheckCircle2,
@@ -15,7 +16,6 @@ import {
   Database, Zap, Mail, Calendar, Image, Brain,
 } from 'lucide-react';
 
-import MarketingLayout from '../components/marketing/MarketingLayout';
 import MeshGradient    from '../components/marketing/MeshGradient';
 import ScrollReveal    from '../components/marketing/ScrollReveal';
 import Button          from '../components/ui/Button';
@@ -123,7 +123,7 @@ export default function IntegrationsPage() {
   const featured = FEATURED_SLUGS.map((s) => INTEGRATIONS.find((i) => i.slug === s)).filter(Boolean);
 
   return (
-    <MarketingLayout>
+    <>
       <Meta
         noSuffix
         title="Integrations — Social Stats"
@@ -422,7 +422,7 @@ export default function IntegrationsPage() {
           </div>
         </div>
       </section>
-    </MarketingLayout>
+    </>
   );
 }
 

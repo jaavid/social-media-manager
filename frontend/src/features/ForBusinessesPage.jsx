@@ -13,16 +13,16 @@
  * data stays yours" trust story. Reuses the existing MarketingLayout so
  * nav + footer match the rest of the marketing site.
  */
-import { AppLink as Link } from '../core/navigation';
-import { motion } from 'framer-motion';
+import Link from '../components/marketing/MarketingLink';
+import { MotionDiv, MotionH1, MotionP } from '../components/marketing/Motion';
 import {
   ArrowRight, Sparkles, ShieldCheck, Plug, BarChart3, Users2,
   Check, Building2, Search, Bot,
 } from 'lucide-react';
 
 import MarketingLayout from '../components/marketing/MarketingLayout';
-import Button from '../components/ui/Button';
-import Badge from '../components/ui/Badge';
+import Button from '../components/marketing/MarketingButton';
+import Badge from '../components/marketing/MarketingBadge';
 import Meta from '../components/Meta';
 
 
@@ -48,14 +48,14 @@ function Hero() {
     <section style={{ position: 'relative', overflow: 'hidden', padding: '128px 32px 72px' }}>
       <div aria-hidden style={meshBg} />
       <div style={{ position: 'relative', maxWidth: 880, margin: '0 auto', textAlign: 'center' }}>
-        <motion.div
+        <MotionDiv
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
           <Badge variant="brand" icon={Sparkles} size="md">For business owners · free forever</Badge>
-        </motion.div>
-        <motion.h1
+        </MotionDiv>
+        <MotionH1
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.05 }}
@@ -70,8 +70,8 @@ function Hero() {
           <span style={{ backgroundImage: 'var(--brand-gradient)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>
             social media.
           </span>
-        </motion.h1>
-        <motion.p
+        </MotionH1>
+        <MotionP
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
@@ -79,8 +79,8 @@ function Hero() {
         >
           Real-estate agents, clinics, restaurants, creators — connect your accounts in 5 minutes
           and start posting, replying, and tracking what's working. Free forever for individuals.
-        </motion.p>
-        <motion.div
+        </MotionP>
+        <MotionDiv
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.15 }}
@@ -92,7 +92,7 @@ function Hero() {
           <Button as={Link} to="/agencies" size="xl" variant="secondary" icon={Search}>
             Browse agencies
           </Button>
-        </motion.div>
+        </MotionDiv>
         <p style={{ marginTop: 14, fontSize: 13, color: 'var(--text-tertiary)' }}>
           No credit card · 5 platforms · ✨ AI-assisted from day one
         </p>

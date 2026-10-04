@@ -6,17 +6,17 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
-import { useEffect, useMemo, useState } from 'react';
-import { AppLink as Link, useAppParams as useParams } from '../core/navigation';
+import Link from '../components/marketing/MarketingLink';
+import TableOfContents from '../components/marketing/TableOfContents';
+import BlogShare from '../components/marketing/BlogShare';
 import { ArrowLeft, ArrowRight, Linkedin, Facebook, Link as LinkIcon, Quote } from 'lucide-react';
 
 import MarketingLayout from '../components/marketing/MarketingLayout';
-import Button from '../components/ui/Button';
+import Button from '../components/marketing/MarketingButton';
 import Avatar from '../components/ui/Avatar';
 import Badge from '../components/ui/Badge';
 import Meta from '../components/Meta';
 import JsonLd, { buildArticle, buildBreadcrumbs, SITE_URL } from '../components/JsonLd';
-import toast from '../components/ui/toast';
 
 import POSTS, { getPost, getRelated } from './marketing/blogPosts';
 
@@ -33,49 +33,12 @@ import POSTS, { getPost, getRelated } from './marketing/blogPosts';
  *
  * Unknown slugs render a friendly 404-ish state with a back-to-blog CTA.
  */
-export default function BlogPostPage() {
-  const { slug } = useParams();
+export default function BlogPostPage({ slug }) {
   const post = getPost(slug);
 
-  // Slugify h2s for TOC anchors.
-  const sections = useMemo(
-    () => (post?.body || [])
-      .filter((n) => n.type === 'h2')
-      .map((n) => ({ id: slugify(n.text), title: n.text })),
-    [post]
-  );
-
-  const [active, setActive] = useState(sections[0]?.id);
-
-  useEffect(() => {
-    if (sections.length === 0) return;
-    const obs = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => { if (e.isIntersecting) setActive(e.target.id); });
-      },
-      { rootMargin: '-30% 0px -55% 0px', threshold: 0 }
-    );
-    sections.forEach((s) => {
-      const el = document.getElementById(s.id);
-      if (el) obs.observe(el);
-    });
-    return () => obs.disconnect();
-  }, [sections]);
-
   if (!post) return <NotFoundState slug={slug} />;
-
+  const sections = (post.body || []).filter(node => node.type === 'h2').map(node => ({ id: slugify(node.text), title: node.text }));
   const related = getRelated(slug, 3);
-
-  function copyLink() {
-    try {
-      navigator.clipboard.writeText(window.location.href);
-      toast.success('Link copied to clipboard');
-    } catch {
-      toast.error('Could not copy link');
-    }
-  }
-
-  const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
 
   return (
     <MarketingLayout>
@@ -205,9 +168,7 @@ export default function BlogPostPage() {
             >
               <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)' }}>Share this post</span>
               <div style={{ display: 'flex', gap: 6 }}>
-                <ShareBtn icon={Linkedin} href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`} label="Share on LinkedIn" />
-                <ShareBtn icon={Facebook} href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`} label="Share on Facebook" />
-                <ShareBtn icon={LinkIcon} onClick={copyLink} label="Copy link" />
+                <BlogShare />
               </div>
             </div>
 
@@ -256,28 +217,7 @@ export default function BlogPostPage() {
               }}>
                 On this page
               </div>
-              <nav style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                {sections.map((s) => (
-                  <a
-                    key={s.id}
-                    href={`#${s.id}`}
-                    style={{
-                      padding: '6px 10px',
-                      fontSize: 12,
-                      fontWeight: active === s.id ? 600 : 500,
-                      color: active === s.id ? 'var(--text-primary)' : 'var(--text-secondary)',
-                      background: active === s.id ? 'var(--brand-primary-soft)' : 'transparent',
-                      boxShadow: active === s.id ? 'inset 2px 0 0 var(--brand-primary)' : 'none',
-                      borderRadius: 'var(--radius-sm)',
-                      textDecoration: 'none',
-                      lineHeight: 1.4,
-                      transition: 'var(--transition-fast)',
-                    }}
-                  >
-                    {s.title}
-                  </a>
-                ))}
-              </nav>
+              <TableOfContents sections={sections} compact />
             </aside>
           )}
         </div>
@@ -434,39 +374,12 @@ function slugify(s = '') {
     .replace(/\s+/g, '-');
 }
 
-function ShareBtn({ icon: Icon, href, onClick, label }) {
-  const Wrap = href ? 'a' : 'button';
-  return (
-    <Wrap
-      href={href}
-      target={href ? '_blank' : undefined}
-      rel={href ? 'noopener noreferrer' : undefined}
-      onClick={onClick}
-      aria-label={label}
-      type={href ? undefined : 'button'}
-      style={{
-        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-        width: 32, height: 32, minHeight: 'auto', minWidth: 'auto',
-        background: 'var(--surface-page)',
-        border: '1px solid var(--border-subtle)',
-        borderRadius: 'var(--radius-sm)',
-        color: 'var(--text-secondary)',
-        cursor: 'pointer',
-        textDecoration: 'none',
-        transition: 'var(--transition-fast)',
-        padding: 0,
-      }}
-      onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--brand-primary-hover)'; e.currentTarget.style.borderColor = 'var(--brand-primary-glow)'; }}
-      onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-secondary)'; e.currentTarget.style.borderColor = 'var(--border-subtle)'; }}
-    >
-      <Icon size={14} strokeWidth={2} />
-    </Wrap>
-  );
-}
+
 
 function RelatedCard({ post }) {
   return (
     <Link
+      className="mkt-related-card"
       to={`/blog/${post.slug}`}
       style={{
         display: 'flex', flexDirection: 'column',
@@ -478,8 +391,6 @@ function RelatedCard({ post }) {
         textDecoration: 'none',
         transition: 'var(--transition-fast)',
       }}
-      onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = 'var(--shadow-md)'; }}
-      onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'var(--shadow-xs)'; }}
     >
       <div
         aria-hidden

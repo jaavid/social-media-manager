@@ -1,7 +1,7 @@
 /** Verify the reviewed legacy URL inventory is completely owned by native pages. */
 import fs from 'fs';
 import path from 'path';
-import inventory from './routeInventory.json';
+import inventory from './__fixtures__/legacyRoutes.json';
 const app = path.resolve(__dirname, '../../app');
 function pages(folder) {
   return fs.readdirSync(folder, { withFileTypes: true }).flatMap(entry => {

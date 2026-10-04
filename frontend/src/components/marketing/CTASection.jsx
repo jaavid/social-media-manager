@@ -6,10 +6,10 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
-import { AppLink as Link } from '../../core/navigation';
+import Link from './MarketingLink';
 import { ArrowRight } from 'lucide-react';
 
-import Button from '../ui/Button';
+import Button from './MarketingButton';
 import MeshGradient from './MeshGradient';
 
 /**
@@ -72,13 +72,7 @@ export default function CTASection({
 
         {showEmail && (
           <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              const fd = new FormData(e.currentTarget);
-              const email = (fd.get('email') || '').toString().trim();
-              if (!email) return;
-              window.location.href = `/signup?email=${encodeURIComponent(email)}`;
-            }}
+            action={primary.to} method="get"
             style={{
               marginTop: 28,
               display: 'flex', gap: 8,

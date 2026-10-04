@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import { AppLink, AppNavLink, NavigationProvider, useAppLocation, useAppNavigate } from './navigation';
@@ -50,4 +51,18 @@ test('fragment-only navigation retains state without remounting a route', () => 
   expect(screen.getByRole('status')).toHaveTextContent('#mfa');
   expect(window.history.state.usr).toEqual({ step: 2 });
   expect(useRouter().push).not.toHaveBeenCalled();
+});
+
+test('callback mount redirect retains state until the destination commits', () => {
+  function Callback() {
+    const navigate = useAppNavigate();
+    useEffect(() => { navigate('/login', { state: { mfaToken: 'mount-mfa' }, replace: true }); }, [navigate]);
+    return null;
+  }
+  const view = render(<NavigationProvider><Callback /><Probe /></NavigationProvider>);
+  expect(screen.getByRole('status')).toHaveTextContent('mount-mfa');
+  window.history.replaceState({}, '', '/login');
+  usePathname.mockReturnValue('/login');
+  view.rerender(<NavigationProvider><Probe /></NavigationProvider>);
+  expect(window.history.state.usr).toEqual({ mfaToken: 'mount-mfa' });
 });

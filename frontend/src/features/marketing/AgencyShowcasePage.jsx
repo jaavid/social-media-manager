@@ -6,8 +6,8 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
-import { AppLink as Link, useAppParams as useParams } from '../../core/navigation';
-import { motion } from 'framer-motion';
+import Link from '../../components/marketing/MarketingLink';
+import { MotionDiv } from '../../components/marketing/Motion';
 import {
   ArrowLeft, ArrowRight, Star, MapPin, Calendar, Users, Globe,
   Mail, Phone, Briefcase, BadgeCheck, CheckCircle2, Sparkles,
@@ -17,14 +17,14 @@ import MarketingLayout from '../../components/marketing/MarketingLayout';
 import MeshGradient    from '../../components/marketing/MeshGradient';
 import ScrollReveal    from '../../components/marketing/ScrollReveal';
 import SamplePreviewBanner from '../../components/marketing/SamplePreviewBanner';
-import Button          from '../../components/ui/Button';
+import Button          from '../../components/marketing/MarketingButton';
 import Meta            from '../../components/Meta';
 import JsonLd, {
   buildLocalBusiness, buildBreadcrumbs, SITE_URL,
 } from '../../components/JsonLd';
 
 import { getAgency, AGENCY_LIST } from './agencyProfiles';
-import ComingSoonPage from './ComingSoonPage';
+import { notFound } from 'next/navigation';
 
 /**
  * AgencyShowcasePage — /agencies/:slug
@@ -38,10 +38,9 @@ import ComingSoonPage from './ComingSoonPage';
  *
  * Falls back to ComingSoonPage for unknown slugs.
  */
-export default function AgencyShowcasePage() {
-  const { slug } = useParams();
+export default function AgencyShowcasePage({ slug }) {
   const agency = getAgency(slug);
-  if (!agency) return <ComingSoonPage />;
+  if (!agency) notFound();
 
   const {
     name, tagline, accent, location, founded, size,
@@ -197,7 +196,7 @@ export default function AgencyShowcasePage() {
 
             {/* Right: headline metric card */}
             <ScrollReveal delay={0.1}>
-              <motion.div
+              <MotionDiv
                 whileHover={{ y: -3 }}
                 style={{
                   position: 'relative',
@@ -233,7 +232,7 @@ export default function AgencyShowcasePage() {
                     {metric.label}
                   </div>
                 </div>
-              </motion.div>
+              </MotionDiv>
             </ScrollReveal>
           </div>
         </div>

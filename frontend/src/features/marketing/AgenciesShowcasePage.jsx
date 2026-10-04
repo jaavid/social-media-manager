@@ -1,3 +1,4 @@
+'use client';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -7,14 +8,13 @@
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
 import { useMemo, useState } from 'react';
-import { AppLink as Link } from '../../core/navigation';
+import Link from '../../components/marketing/MarketingLink';
 import { motion } from 'framer-motion';
 import {
   Search, Sparkles, Star, MapPin, Users, ArrowRight, ArrowUpRight,
   ShieldCheck, BadgeCheck,
 } from 'lucide-react';
 
-import MarketingLayout from '../../components/marketing/MarketingLayout';
 import MeshGradient    from '../../components/marketing/MeshGradient';
 import ScrollReveal    from '../../components/marketing/ScrollReveal';
 import Button          from '../../components/ui/Button';
@@ -65,7 +65,7 @@ export default function AgenciesShowcasePage() {
   const isPristine = !query && !industry && !service;
 
   return (
-    <MarketingLayout>
+    <>
       <Meta
         noSuffix
         title="Partner Agencies — Social Stats"
@@ -447,7 +447,7 @@ export default function AgenciesShowcasePage() {
           </div>
         </div>
       </section>
-    </MarketingLayout>
+    </>
   );
 }
 

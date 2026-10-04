@@ -1,13 +1,12 @@
 import { Suspense } from 'react';
-import AppProviders from '../core/providers/AppProviders';
+import SiteProviders from '../core/providers/SiteProviders';
+import PageviewTracker from '../components/PageviewTracker';
 import '../styles/tokens.css';
 import '../styles/common.css';
 import '../styles/legacy.css';
 import '../styles/accessibility.css';
 import '../styles/tailwind.css';
 
-// Navigation/search state is request-specific; public content still renders on the server.
-export const dynamic = 'force-dynamic';
 export const metadata = {
   title: { default: 'Social Stats — The marketing OS for modern teams', template: '%s · Social Stats' },
   description: 'Manage analytics, content, conversations, and ads across your workspaces.',
@@ -36,7 +35,8 @@ export default function RootLayout({ children }) {
   return <html lang="fa" dir="rtl" suppressHydrationWarning><head>
     <script dangerouslySetInnerHTML={{ __html: bootstrap }} />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@300;400;500;600;700;800;900&display=swap" />
-  </head><body><Suspense fallback={<div role="status" aria-busy="true" />}>
-    <AppProviders>{children}</AppProviders>
-  </Suspense></body></html>;
+  </head><body><SiteProviders>
+    {children}
+    <Suspense fallback={null}><PageviewTracker /></Suspense>
+  </SiteProviders></body></html>;
 }

@@ -6,11 +6,11 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
-import { AppLink as Link } from '../core/navigation';
+import Link from '../components/marketing/MarketingLink';
 import { ShieldCheck, Lock, Server, FileCheck, Eye, AlertTriangle, ArrowRight, Award } from 'lucide-react';
 import MarketingLayout from '../components/marketing/MarketingLayout';
-import Button from '../components/ui/Button';
-import Badge from '../components/ui/Badge';
+import Button from '../components/marketing/MarketingButton';
+import Badge from '../components/marketing/MarketingBadge';
 import Meta from '../components/Meta';
 
 const COMMITMENTS = [

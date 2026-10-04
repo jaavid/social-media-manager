@@ -20,25 +20,24 @@
  *   5. Customer quote
  *   6. Final CTA
  */
-import { useAppParams as useParams, AppLink as Link } from '../../core/navigation';
-import { motion } from 'framer-motion';
+import Link from '../../components/marketing/MarketingLink';
+import { MotionDiv, MotionH1, MotionP, MotionSpan } from '../../components/marketing/Motion';
 import { ArrowRight, Check, Sparkles, AlertTriangle } from 'lucide-react';
 
 import MarketingLayout    from '../../components/marketing/MarketingLayout';
 import MeshGradient       from '../../components/marketing/MeshGradient';
 import ScrollReveal       from '../../components/marketing/ScrollReveal';
 import CTASection         from '../../components/marketing/CTASection';
-import Button             from '../../components/ui/Button';
+import Button             from '../../components/marketing/MarketingButton';
 import Meta               from '../../components/Meta';
 
 import { solutionPages, getSolutionPage } from './solutionPages';
-import ComingSoonPage from './ComingSoonPage';
+import { notFound } from 'next/navigation';
 
 
-export default function SolutionPage() {
-  const { slug } = useParams();
+export default function SolutionPage({ slug }) {
   const data = getSolutionPage(slug);
-  if (!data) return <ComingSoonPage />;
+  if (!data) notFound();
 
   return (
     <MarketingLayout>
@@ -83,7 +82,7 @@ function Hero({ data }) {
         gap: 56, alignItems: 'center',
       }} className="mkt-solution-hero">
         <div>
-          <motion.span
+          <MotionSpan
             initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
             style={{
@@ -98,9 +97,9 @@ function Hero({ data }) {
           >
             <Sparkles size={11} />
             {data.eyebrow}
-          </motion.span>
+          </MotionSpan>
 
-          <motion.h1
+          <MotionH1
             initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
             style={{
@@ -112,9 +111,9 @@ function Hero({ data }) {
             }}
           >
             {data.heroTitle}
-          </motion.h1>
+          </MotionH1>
 
-          <motion.p
+          <MotionP
             initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
             style={{
@@ -125,10 +124,10 @@ function Hero({ data }) {
             }}
           >
             {data.heroSubtitle}
-          </motion.p>
+          </MotionP>
 
           {data.heroPriceLine && (
-            <motion.p
+            <MotionP
               initial={{ opacity: 0 }} animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.35 }}
               style={{
@@ -137,10 +136,10 @@ function Hero({ data }) {
               }}
             >
               {data.heroPriceLine}
-            </motion.p>
+            </MotionP>
           )}
 
-          <motion.div
+          <MotionDiv
             initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
             style={{ marginTop: 28, display: 'flex', gap: 12, flexWrap: 'wrap' }}
@@ -159,10 +158,10 @@ function Hero({ data }) {
                     }}>
               Explore features
             </Button>
-          </motion.div>
+          </MotionDiv>
         </div>
 
-        <motion.div
+        <MotionDiv
           initial={{ opacity: 0, y: 24, scale: 0.96 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.7, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
@@ -177,7 +176,7 @@ function Hero({ data }) {
           }}
         >
           {Demo ? <Demo /> : null}
-        </motion.div>
+        </MotionDiv>
       </div>
       <style>{`
         @media (max-width: 960px) {
