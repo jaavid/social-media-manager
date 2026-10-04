@@ -1,5 +1,5 @@
 'use client';
-import Feature from '../../../src/pages/ContactPage.jsx';
+import Feature from '../../src/screens/ContactPage.jsx';
 export default function View() {
   return <Feature />;
 }

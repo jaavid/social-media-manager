@@ -1,5 +1,5 @@
 'use client';
-import Feature from '../../../../../../src/pages/growth/AudienceInsightsPage.jsx';
+import Feature from '../../../../../src/screens/growth/AudienceInsightsPage.jsx';
 export default function View() {
   return <Feature />;
 }

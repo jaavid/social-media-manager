@@ -1,5 +1,5 @@
 'use client';
-import Feature from '../../../src/pages/TermsOfServicePage.jsx';
+import Feature from '../../src/screens/TermsOfServicePage.jsx';
 export default function View() {
   return <Feature />;
 }

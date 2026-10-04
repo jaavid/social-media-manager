@@ -20,3 +20,6 @@ backend/staticfiles/
 
 frontend/test-results/
 frontend/playwright-report/
+
+# Historical frontend is never part of deployment builds.
+archive/

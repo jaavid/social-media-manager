@@ -1,0 +1,561 @@
+import { persistentStorage } from '../lib/runtime/storage';
+import { useEffect, useSyncExternalStore } from 'react';
+import '../styles/i18n.css';
+import faExtra from './fa-extra';
+
+const STORAGE_KEY = 'socialstats.language';
+const LANGUAGE_EVENT = 'socialstats:language-change';
+const SUPPORTED = new Set(['en', 'fa']);
+
+export const enMessages = {
+  'accounts.title': 'Connected Accounts',
+  'accounts.subtitle': 'Connect social accounts and publishing destinations.',
+  'accounts.workspacePreparing': 'Your workspace is still being prepared. Please refresh the page and try again.',
+  'accounts.disconnectConfirm': 'Disconnect {platform}? Publishing and synchronization will stop.',
+  'accounts.connectedViaFacebook': 'Connected via Facebook',
+  'accounts.status.active': 'Active',
+  'accounts.status.expired': 'Expired',
+  'accounts.status.disconnected': 'Not connected',
+  'accounts.tokenExpires': 'Token expires: {date}',
+  'accounts.disconnecting': 'Disconnecting…',
+  'accounts.disconnect': 'Disconnect',
+  'accounts.connect': 'Connect {platform}',
+  'accounts.help.title': 'How it works:',
+  'accounts.help.oauth': 'OAuth platforms redirect you to the provider for authorization.',
+  'accounts.help.bot': 'Telegram and Bale use a bot token plus a channel/chat ID and are verified before storage.',
+  'accounts.help.shared': 'Facebook and Instagram share one login. YouTube and Google Business Profile share one login.',
+  'botConnect.title': 'Connect {platform}',
+  'botConnect.description': 'Add the bot token and the channel/chat destination. The server verifies both before saving the encrypted token.',
+  'botConnect.token': 'Bot token',
+  'botConnect.destination': 'Channel / chat ID',
+  'botConnect.destinationPlaceholder': '@channel or numeric chat_id',
+  'botConnect.verifying': 'Verifying…',
+  'botConnect.submit': 'Verify and connect {platform}',
+  'common.close': 'Close',
+  'errors.unknown': 'Something went wrong. Please try again.',
+  'errors.connectionFailed': 'Connection failed. Check the bot token and destination.',
+  'errors.invalidCredentials': 'The supplied credentials are invalid.',
+  'errors.permissionDenied': 'You do not have permission to perform this action.',
+  'errors.notFound': 'The requested item was not found.',
+  'errors.rateLimited': 'Too many requests. Please try again later.',
+  'errors.network': 'Could not reach the server. Check your connection and try again.',
+  'platform.facebook': 'Facebook',
+  'platform.instagram': 'Instagram',
+  'platform.linkedin': 'LinkedIn',
+  'platform.youtube': 'YouTube',
+  'platform.google_my_business': 'Google Business Profile',
+  'platform.telegram': 'Telegram',
+  'platform.bale': 'Bale',
+  'platform.eitaa': 'Eitaa',
+  'platform.aparat': 'Aparat',
+  'platform.tiktok': 'TikTok',
+  'platform.neshan': 'Neshan',
+  'category.social': 'Social networks',
+  'category.messaging': 'Messengers',
+  'category.video': 'Video platforms',
+  'category.business': 'Business listings',
+};
+
+export const faMessages = {
+  'accounts.title': 'حساب‌های متصل',
+  'accounts.subtitle': 'حساب‌های اجتماعی و مقصدهای انتشار را متصل کنید.',
+  'accounts.workspacePreparing': 'فضای کاری هنوز در حال آماده‌سازی است. صفحه را تازه‌سازی و دوباره تلاش کنید.',
+  'accounts.disconnectConfirm': 'اتصال {platform} قطع شود؟ انتشار و همگام‌سازی متوقف خواهد شد.',
+  'accounts.connectedViaFacebook': 'متصل از طریق فیسبوک',
+  'accounts.status.active': 'فعال',
+  'accounts.status.expired': 'منقضی‌شده',
+  'accounts.status.disconnected': 'متصل نیست',
+  'accounts.tokenExpires': 'انقضای توکن: {date}',
+  'accounts.disconnecting': 'در حال قطع اتصال…',
+  'accounts.disconnect': 'قطع اتصال',
+  'accounts.connect': 'اتصال {platform}',
+  'accounts.help.title': 'نحوه کار:',
+  'accounts.help.oauth': 'پلتفرم‌های OAuth برای صدور مجوز شما را به ارائه‌دهنده هدایت می‌کنند.',
+  'accounts.help.bot': 'تلگرام و بله از توکن بات و شناسه کانال یا گفتگو استفاده می‌کنند و پیش از ذخیره‌سازی بررسی می‌شوند.',
+  'accounts.help.shared': 'فیسبوک و اینستاگرام یک ورود مشترک دارند. یوتیوب و گوگل بیزینس نیز یک ورود مشترک دارند.',
+  'botConnect.title': 'اتصال {platform}',
+  'botConnect.description': 'توکن بات و مقصد کانال یا گفتگو را وارد کنید. سرور پیش از ذخیره رمزگذاری‌شده، هر دو را بررسی می‌کند.',
+  'botConnect.token': 'توکن بات',
+  'botConnect.destination': 'شناسه کانال / گفتگو',
+  'botConnect.destinationPlaceholder': '@channel یا شناسه عددی chat_id',
+  'botConnect.verifying': 'در حال بررسی…',
+  'botConnect.submit': 'بررسی و اتصال {platform}',
+  'common.close': 'بستن',
+  'errors.unknown': 'خطایی رخ داد. دوباره تلاش کنید.',
+  'errors.connectionFailed': 'اتصال ناموفق بود. توکن بات و مقصد را بررسی کنید.',
+  'errors.invalidCredentials': 'اطلاعات احراز هویت واردشده معتبر نیست.',
+  'errors.permissionDenied': 'اجازه انجام این عملیات را ندارید.',
+  'errors.notFound': 'مورد درخواستی پیدا نشد.',
+  'errors.rateLimited': 'تعداد درخواست‌ها بیش از حد است. کمی بعد دوباره تلاش کنید.',
+  'errors.network': 'ارتباط با سرور برقرار نشد. اتصال خود را بررسی و دوباره تلاش کنید.',
+  'platform.facebook': 'فیسبوک',
+  'platform.instagram': 'اینستاگرام',
+  'platform.linkedin': 'لینکدین',
+  'platform.youtube': 'یوتیوب',
+  'platform.google_my_business': 'گوگل بیزینس',
+  'platform.telegram': 'تلگرام',
+  'platform.bale': 'بله',
+  'platform.eitaa': 'ایتا',
+  'platform.aparat': 'آپارات',
+  'platform.tiktok': 'تیک‌تاک',
+  'platform.neshan': 'نشان',
+  'category.social': 'شبکه‌های اجتماعی',
+  'category.messaging': 'پیام‌رسان‌ها',
+  'category.video': 'پلتفرم‌های ویدئویی',
+  'category.business': 'فهرست‌های کسب‌وکار',
+};
+
+const fa = {
+  'common.search': 'جست‌وجو…',
+  'common.new': 'جدید',
+  'common.today': 'امروز',
+  'common.all': 'همه',
+  'common.loading': 'در حال بارگذاری…',
+  'common.view': 'مشاهده',
+  'common.edit': 'ویرایش',
+  'common.delete': 'حذف',
+  'common.posts': 'پست',
+  'common.language': 'زبان',
+  'common.home': 'خانه',
+  'common.navigation': 'ناوبری',
+  'common.soon': 'به‌زودی',
+  'common.settings': 'تنظیمات',
+  'common.notifications': 'اعلان‌ها',
+  'common.signOut': 'خروج',
+  'common.accountSettings': 'تنظیمات حساب',
+  'common.searchWorkspaces': 'جست‌وجوی فضاهای کاری…',
+  'common.allWorkspaces': 'همه فضاهای کاری',
+  'common.openMenu': 'باز کردن منو',
+  'common.closeMenu': 'بستن منو',
+  'common.accountMenu': 'منوی حساب',
+  'common.moduleSwitcher': 'تغییر بخش',
+  'calendar.title': 'تقویم محتوا',
+  'calendar.subtitle': 'محتوای زمان‌بندی‌شده را برنامه‌ریزی، بررسی و ارزیابی کنید.',
+  'calendar.month': 'ماه',
+  'calendar.list': 'فهرست',
+  'calendar.stats': 'آمار',
+  'calendar.schedulePost': 'زمان‌بندی پست',
+  'calendar.noPosts': 'در این ماه پستی وجود ندارد',
+  'calendar.noPostsHint': 'با دکمه + اولین پست را زمان‌بندی کنید.',
+  'calendar.comingUp': 'برنامه این هفته',
+  'calendar.allUsers': 'همه کاربران',
+  'calendar.selectUser': 'برای مشاهده تقویم محتوا، یک کاربر را انتخاب کنید.',
+  'calendar.loading': 'در حال بارگذاری تقویم…',
+  'calendar.more': 'بیشتر',
+  'calendar.weekday.sat': 'شنبه',
+  'calendar.weekday.sun': 'یکشنبه',
+  'calendar.weekday.mon': 'دوشنبه',
+  'calendar.weekday.tue': 'سه‌شنبه',
+  'calendar.weekday.wed': 'چهارشنبه',
+  'calendar.weekday.thu': 'پنجشنبه',
+  'calendar.weekday.fri': 'جمعه',
+};
+
+const faRaw = {
+  'Media preview unavailable': 'پیش‌نمایش رسانه در دسترس نیست',
+  'Loading media…': 'در حال دریافت رسانه…',
+  'Suggested photo': 'عکس پیشنهادی',
+  'Download attachment': 'دریافت پیوست',
+  'Optional item caption': 'متن اختیاری این عضو',
+  'attachment': 'پیوست',
+  'items': 'عضو',
+
+  "Telegram topics and assistant": "موضوع‌ها و دستیار تلگرام",
+  "Select account": "انتخاب حساب",
+  "Destination": "مقصد",
+  "Known topic ID": "شناسه موضوع موجود",
+  "Enable Threaded mode in BotFather before using private topics.": "پیش از استفاده از موضوع‌های خصوصی، حالت Threaded را در BotFather فعال کنید.",
+  "Enable Rich Messages": "فعال‌سازی پیام‌های غنی",
+  "Enable private editorial assistant": "فعال‌سازی دستیار خصوصی تحریریه",
+  "Use rich assistant drafts": "پیش‌نمایش غنی پاسخ دستیار",
+  "Save Telegram settings": "ذخیره تنظیمات تلگرام",
+  "Configure secure webhook": "تنظیم وب‌هوک امن",
+  "Webhook:": "وب‌هوک:",
+  "Last update:": "آخرین آپدیت:",
+  "Assistant access requires an explicit Telegram identity link to an authorized application user.": "دسترسی دستیار نیازمند اتصال صریح هویت تلگرام به کاربر مجاز برنامه است.",
+  "Telegram user ID": "شناسه کاربر تلگرام",
+  "Application user ID": "شناسه کاربر برنامه",
+  "Link assistant identity": "اتصال هویت دستیار",
+  "Telegram Suggested Posts": "پست‌های پیشنهادی تلگرام",
+  "Review original proposals or copy them into an editable draft.": "پیشنهاد اصلی را بررسی کنید یا آن را در پیش‌نویس قابل ویرایش کپی کنید.",
+  "Paid proposal:": "پیشنهاد پولی:",
+  "Financial approval must be handled in Telegram.": "تأیید مالی باید در خود تلگرام انجام شود.",
+  "Review": "بررسی",
+  "Copy to draft": "کپی در پیش‌نویس",
+  "Approve on Telegram": "تأیید در تلگرام",
+  "Decline": "رد کردن",
+  "Open editable draft": "باز کردن پیش‌نویس",
+  "Suggested post send date": "زمان انتشار پست پیشنهادی",
+  "Telegram Album / Gallery": "آلبوم / گالری تلگرام",
+  "2–10 photos/videos, in the order shown. Post caption appears on the first item.": "۲ تا ۱۰ عکس یا ویدئو به ترتیب نمایش. متن پست روی عضو اول قرار می‌گیرد.",
+  "Move up": "انتقال به بالا",
+  "Remove": "حذف",
+  "Add button": "افزودن دکمه",
+  "Button label": "متن دکمه",
+  "Open link": "باز کردن لینک",
+  "Acknowledge": "تأیید دریافت",
+  "Add block": "افزودن بلوک",
+  "New block type": "نوع بلوک جدید",
+  "Public HTTPS media URL or Telegram file ID": "نشانی عمومی HTTPS رسانه یا شناسه فایل تلگرام",
+  "Details summary": "خلاصه جزئیات",
+  "List items, one per line": "اعضای فهرست، هر عضو در یک سطر",
+  "Table, columns separated by a vertical bar": "جدول، ستون‌ها با خط عمودی جدا شوند",
+  "Telegram poll": "نظرسنجی تلگرام",
+  "Question": "پرسش",
+  "Poll question": "پرسش نظرسنجی",
+  "Answers, one per line": "پاسخ‌ها، هر پاسخ در یک سطر",
+  "Poll answers": "پاسخ‌های نظرسنجی",
+  "Anonymous": "ناشناس",
+  "Multiple answers": "چند پاسخ",
+  "Type": "نوع",
+  "Regular": "معمولی",
+  "Quiz": "آزمون",
+  "Correct answer number": "شماره پاسخ صحیح",
+  "Open period (seconds, optional)": "مدت باز بودن به ثانیه، اختیاری",
+  "Telegram Rich Article / Slideshow / Collage": "مقاله غنی / اسلایدشو / کلاژ تلگرام",
+  "Structured blocks are preserved through approval and scheduling.": "بلوک‌های ساختاریافته در تأیید و زمان‌بندی حفظ می‌شوند.",
+  "Right to left": "راست به چپ",
+  "Publish as plain text and media links": "انتشار به صورت متن ساده و لینک رسانه",
+  "Telegram interactive / CTA": "دکمه‌های تعاملی تلگرام",
+  "Account": "حساب",
+  "Telegram:": "تلگرام:",
+  'Home': 'خانه',
+  'Analytics': 'تحلیل و آمار',
+  'Social performance': 'عملکرد شبکه‌های اجتماعی',
+  'Social Performance': 'عملکرد شبکه‌های اجتماعی',
+  'Publish': 'انتشار',
+  'Composer': 'ساخت محتوا',
+  'Calendar': 'تقویم',
+  'Content Calendar': 'تقویم محتوا',
+  'Queues': 'صف‌های انتشار',
+  'Media Library': 'کتابخانه رسانه',
+  'Video Studio': 'استودیوی ویدئو',
+  'Engage': 'تعامل',
+  'Inbox': 'صندوق ورودی',
+  'Reviews': 'بازخوردها',
+  'Automations': 'اتوماسیون‌ها',
+  'Overview': 'نمای کلی',
+  'Dashboard': 'داشبورد',
+  'Reports': 'گزارش‌ها',
+  'Content': 'محتوا',
+  'Posts': 'پست‌ها',
+  'Post': 'پست',
+  'post': 'پست',
+  'posts': 'پست‌ها',
+  'Untitled post': 'پست بدون عنوان',
+  '(no title)': '(بدون عنوان)',
+  '(no caption)': '(بدون کپشن)',
+  'hashtags': 'هشتگ',
+  'hashtag': 'هشتگ',
+  'Caption Writer': 'کپشن‌نویس',
+  'Post Ideas': 'ایده‌های پست',
+  'Hashtags': 'هشتگ‌ها',
+  'AI Studio': 'استودیوی هوش مصنوعی',
+  'Brand Voice': 'لحن برند',
+  'AI Insights': 'بینش هوش مصنوعی',
+  'AI Audit': 'ممیزی هوش مصنوعی',
+  'Performance': 'عملکرد',
+  'ROI Calculator': 'محاسبه بازگشت سرمایه',
+  'Alerts': 'هشدارها',
+  'Sync Logs': 'گزارش همگام‌سازی',
+  'Grow': 'رشد',
+  'Audience': 'مخاطبان',
+  'Competitors': 'رقبا',
+  'Setup': 'تنظیمات',
+  'Approvals': 'تأییدها',
+  'Notifications': 'اعلان‌ها',
+  'Audit Log': 'گزارش ممیزی',
+  'Messaging': 'پیام‌رسانی',
+  'Messaging dashboard': 'داشبورد پیام‌رسانی',
+  'Messaging Dashboard': 'داشبورد پیام‌رسانی',
+  'WhatsApp & SMS': 'واتس‌اپ و پیامک',
+  'All conversations': 'همه گفتگوها',
+  'Outreach': 'ارسال و کمپین',
+  'Campaigns': 'کمپین‌ها',
+  'Templates': 'قالب‌ها',
+  'Contacts': 'مخاطبان',
+  'Contact': 'مخاطب',
+  'Lists': 'فهرست‌ها',
+  'Conversational AI': 'هوش مصنوعی مکالمه‌ای',
+  'Bot Flows': 'جریان‌های بات',
+  'Conversations': 'گفتگوها',
+  'Handoff Queue': 'صف ارجاع',
+  'Leads': 'سرنخ‌ها',
+  'Lead': 'سرنخ',
+  'CTWA Campaigns': 'کمپین‌های CTWA',
+  'Bot Safety': 'ایمنی بات',
+  'Account': 'حساب',
+  'Webhooks': 'وب‌هوک‌ها',
+  'Ads': 'تبلیغات',
+  'Coming soon': 'به‌زودی',
+  'Soon': 'به‌زودی',
+  'Settings': 'تنظیمات',
+  'All workspaces': 'همه فضاهای کاری',
+  'Search workspaces…': 'جست‌وجوی فضاهای کاری…',
+  'Navigation': 'ناوبری',
+  'Manage agency': 'مدیریت آژانس',
+  'Marketplace profile': 'پروفایل بازار',
+  'My agency': 'آژانس من',
+  'Account settings': 'تنظیمات حساب',
+  'Account Settings': 'تنظیمات حساب',
+  'Sign out': 'خروج',
+  'Ads management is coming soon. We\'re building it next.': 'مدیریت تبلیغات به‌زودی اضافه می‌شود.',
+
+  'Command palette': 'پالت فرمان',
+  'Command Menu': 'منوی فرمان',
+  'Search pages, posts, leads, conversations…': 'جست‌وجو در صفحات، پست‌ها، سرنخ‌ها و گفتگوها…',
+  'Searching': 'در حال جست‌وجو',
+  'Searching…': 'در حال جست‌وجو…',
+  'No results found.': 'نتیجه‌ای پیدا نشد.',
+  'Recent': 'اخیر',
+  'Pages': 'صفحات',
+  'Quick actions': 'اقدام‌های سریع',
+  'Workspaces': 'فضاهای کاری',
+  'Switch to workspace': 'رفتن به فضای کاری',
+  'Help & resources': 'راهنما و منابع',
+  '↑↓ to navigate · ↵ to select': '↑↓ برای حرکت · ↵ برای انتخاب',
+  'esc to close': 'Esc برای بستن',
+  '(unknown)': '(نامشخص)',
+
+  'Analytics overview': 'نمای کلی تحلیل‌ها',
+  'Deep metrics': 'شاخص‌های تفصیلی',
+  'PDF reports': 'گزارش‌های PDF',
+  'Plan & schedule': 'برنامه‌ریزی و زمان‌بندی',
+  'Revenue forecasting': 'پیش‌بینی درآمد',
+  'Anomaly notifications': 'هشدار ناهنجاری‌ها',
+  'AI-powered captions': 'کپشن‌نویسی با هوش مصنوعی',
+  'AI content brainstorm': 'ایده‌پردازی محتوا با هوش مصنوعی',
+  'WhatsApp overview': 'نمای کلی واتس‌اپ',
+  'Broadcast outreach': 'ارسال گروهی',
+  'Approved templates': 'قالب‌های تأییدشده',
+  'Pinbot account': 'حساب Pinbot',
+  'WhatsApp setup': 'تنظیمات واتس‌اپ',
+  'Send a message': 'ارسال پیام',
+  'Open inbox to compose': 'باز کردن صندوق ورودی برای نوشتن پیام',
+  'Create a campaign': 'ساخت کمپین',
+  'New broadcast': 'ارسال گروهی جدید',
+  'Upload contacts': 'بارگذاری مخاطبان',
+  'Import a CSV': 'درون‌ریزی فایل CSV',
+  'Create a template': 'ساخت قالب',
+  'WhatsApp template': 'قالب واتس‌اپ',
+  "What's new": 'تازه‌ها',
+  'Recent product updates': 'تغییرات اخیر محصول',
+  'Help center': 'مرکز راهنما',
+  'Guides + troubleshooting': 'راهنماها و رفع اشکال',
+  'System status': 'وضعیت سامانه',
+  'Live uptime + incidents': 'وضعیت لحظه‌ای و رخدادها',
+  'Security & compliance': 'امنیت و انطباق',
+  'GDPR, DPDP, certifications': 'GDPR، DPDP و گواهی‌ها',
+  'Contact support': 'ارتباط با پشتیبانی',
+  'Send us a message': 'ارسال پیام به پشتیبانی',
+
+  'Today': 'امروز',
+  'Tomorrow': 'فردا',
+  'Previous month': 'ماه قبل',
+  'Next month': 'ماه بعد',
+  'No user selected.': 'هیچ کاربری انتخاب نشده است.',
+  'No posts scheduled in the next 7 days.': 'در ۷ روز آینده پستی زمان‌بندی نشده است.',
+  'Less': 'کمتر',
+  'More': 'بیشتر',
+  'more': 'بیشتر',
+  'No stats available for this period.': 'برای این بازه آماری موجود نیست.',
+  'Posting Frequency': 'تعداد انتشار',
+  'posts published in': 'پست منتشرشده در',
+  'week': 'هفته',
+  'Posts by Platform': 'پست‌ها بر اساس پلتفرم',
+  'No data': 'داده‌ای موجود نیست',
+  'Posts by Day of Week': 'پست‌ها بر اساس روز هفته',
+  'Best day': 'بهترین روز',
+  'Posts by Type': 'پست‌ها بر اساس نوع',
+  'Best Performing Post': 'بهترین پست از نظر عملکرد',
+  'No published posts yet.': 'هنوز پست منتشرشده‌ای وجود ندارد.',
+  'View Post': 'مشاهده پست',
+  'Posting Gaps': 'فاصله‌های بدون انتشار',
+  'No gaps — great consistency!': 'فاصله‌ای بدون انتشار نیست؛ تداوم عالی است.',
+  'day': 'روز',
+  'days': 'روز',
+  'with no posts in': 'بدون پست در',
+  'consecutive days': 'روز پیاپی',
+  'Monday': 'دوشنبه',
+  'Tuesday': 'سه‌شنبه',
+  'Wednesday': 'چهارشنبه',
+  'Thursday': 'پنجشنبه',
+  'Friday': 'جمعه',
+  'Saturday': 'شنبه',
+  'Sunday': 'یکشنبه',
+  'Mon': 'دوشنبه',
+  'Tue': 'سه‌شنبه',
+  'Wed': 'چهارشنبه',
+  'Thu': 'پنجشنبه',
+  'Fri': 'جمعه',
+  'Sat': 'شنبه',
+  'Sun': 'یکشنبه',
+  'image': 'تصویر',
+  'video': 'ویدئو',
+  'reel': 'ریل',
+  'story': 'استوری',
+  'carousel': 'کاروسل',
+  'text': 'متن',
+  'article': 'مقاله',
+  'short': 'ویدئوی کوتاه',
+
+  'Published': 'منتشرشده',
+  'Scheduled': 'زمان‌بندی‌شده',
+  'Draft': 'پیش‌نویس',
+  'Failed': 'ناموفق',
+  'published': 'منتشرشده',
+  'scheduled': 'زمان‌بندی‌شده',
+  'draft': 'پیش‌نویس',
+  'failed': 'ناموفق',
+  'Close': 'بستن',
+  'Post media': 'رسانه پست',
+  'Impressions': 'نمایش‌ها',
+  'Reach': 'دسترسی',
+  'Likes': 'پسندها',
+  'Comments': 'نظرها',
+  'Shares': 'اشتراک‌گذاری‌ها',
+  'Saves': 'ذخیره‌ها',
+  'Views': 'بازدیدها',
+  'Performance Score': 'امتیاز عملکرد',
+  'pts': 'امتیاز',
+  'View on': 'مشاهده در',
+  'Agency note': 'یادداشت آژانس',
+  'Reschedule': 'زمان‌بندی مجدد',
+  'New scheduled time': 'زمان جدید انتشار',
+  'Saving…': 'در حال ذخیره…',
+  'Confirm': 'تأیید',
+  'Cancel': 'انصراف',
+  'Edit': 'ویرایش',
+  'Delete': 'حذف',
+  'Confirm Delete': 'تأیید حذف',
+
+  'Edit Post': 'ویرایش پست',
+  'Schedule Post': 'زمان‌بندی پست',
+  'Platform': 'پلتفرم',
+  'Post Type': 'نوع پست',
+  'Internal Title': 'عنوان داخلی',
+  'Agency reference label': 'عنوان مرجع داخلی',
+  'Caption': 'کپشن',
+  'Write your': 'کپشن مناسب',
+  'caption': 'را بنویسید',
+  'Media URL (optional)': 'نشانی رسانه (اختیاری)',
+  'Post URL (optional)': 'نشانی پست (اختیاری)',
+  'Status': 'وضعیت',
+  'Scheduled Date & Time': 'تاریخ و زمان انتشار',
+  'Scheduled Date & Time (must be in the future)': 'تاریخ و زمان انتشار (باید در آینده باشد)',
+  'Display date': 'تاریخ نمایشی',
+  'Internal Notes (not shown to user)': 'یادداشت داخلی (به کاربر نمایش داده نمی‌شود)',
+  'e.g. Waiting on final image from designer': 'مثلاً در انتظار تصویر نهایی طراح',
+  'Save as Draft': 'ذخیره به‌عنوان پیش‌نویس',
+  'Best times for': 'بهترین زمان‌ها برای',
+  'industry': 'بر اساس داده عمومی صنعت',
+  'Please select a platform.': 'یک پلتفرم انتخاب کنید.',
+  'Caption is required. Add a caption or at least an internal title.': 'کپشن لازم است؛ یا کپشن وارد کنید یا دست‌کم یک عنوان داخلی بنویسید.',
+  'Please pick a date and time to schedule this post.': 'تاریخ و زمان انتشار را انتخاب کنید.',
+  'The scheduled time must be in the future.': 'زمان انتشار باید در آینده باشد.',
+  'Required fields missing': 'فیلدهای الزامی تکمیل نشده‌اند',
+  'Please fix the highlighted fields before saving.': 'پیش از ذخیره، فیلدهای مشخص‌شده را اصلاح کنید.',
+  'Save failed.': 'ذخیره ناموفق بود.',
+};
+
+const workspaceCopyAliases = {
+  "All clients": "All workspaces",
+  "Client": "Workspace",
+  "All clients overview": "All workspaces overview",
+  "Track client momentum, sync health, campaign traction, and cross-platform performance from one polished control room.": "Track workspace momentum, sync health, campaign traction, and cross-platform performance from one polished control room.",
+  "Open a client and click \"Share Report\" to generate a public link.": "Open a workspace and click \"Share Report\" to generate a public link.",
+  "Manage shared client report links and monthly ROI summaries": "Manage shared workspace report links and monthly ROI summaries",
+  "Your client workspace is still being prepared. Please refresh the page and try again.": "Your workspace is still being prepared. Please refresh the page and try again.",
+  "Search clients…": "Search workspaces…",
+  "Clients": "Workspaces",
+  "Switch to client": "Switch to workspace"
+};
+
+const dictionaries = { en: enMessages, fa: { ...enMessages, ...faMessages, ...fa } };
+dictionaries.fa['common.allClients'] = dictionaries.fa['common.allWorkspaces'];
+dictionaries.fa['common.searchClients'] = dictionaries.fa['common.searchWorkspaces'];
+
+const rawDictionaries = { en: {}, fa: { ...faRaw, ...faExtra } };
+
+function detectInitialLanguage() {
+  if (typeof window === 'undefined') return 'fa';
+  const stored = persistentStorage.getItem(STORAGE_KEY);
+  if (SUPPORTED.has(stored)) return stored;
+  return (window.navigator.language || '').toLowerCase().startsWith('fa') ? 'fa' : 'en';
+}
+
+let currentLanguage = detectInitialLanguage();
+
+function applyDocumentLanguage(language) {
+  if (typeof document === 'undefined') return;
+  document.documentElement.lang = language;
+  document.documentElement.dir = language === 'fa' ? 'rtl' : 'ltr';
+  document.body?.setAttribute('dir', language === 'fa' ? 'rtl' : 'ltr');
+}
+
+applyDocumentLanguage(currentLanguage);
+
+export function getLanguage() {
+  return currentLanguage;
+}
+
+export function setLanguage(language) {
+  if (!SUPPORTED.has(language)) return;
+  currentLanguage = language;
+  if (typeof window !== 'undefined') {
+    persistentStorage.setItem(STORAGE_KEY, language);
+    window.dispatchEvent(new CustomEvent(LANGUAGE_EVENT, { detail: language }));
+  }
+  applyDocumentLanguage(language);
+}
+
+export function translate(key, language = currentLanguage, fallback = key) {
+  const canonical = workspaceCopyAliases[key] || key;
+  return dictionaries[language]?.[canonical] || workspaceCopyAliases[fallback] || fallback;
+}
+
+export function interpolate(message, values = {}) {
+  return String(message).replace(/\{(\w+)\}/g, (match, key) =>
+    Object.prototype.hasOwnProperty.call(values, key) ? String(values[key]) : match
+  );
+}
+
+export function translateRaw(value, language = currentLanguage) {
+  const canonical = workspaceCopyAliases[value] || value;
+  return rawDictionaries[language]?.[canonical] || canonical;
+}
+
+export function localeFor(language = currentLanguage) {
+  return language === 'fa' ? 'fa-IR-u-ca-persian' : 'en-US';
+}
+
+export function formatUiDate(value, options = {}, language = currentLanguage) {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return new Intl.DateTimeFormat(localeFor(language), options).format(date);
+}
+
+export function formatUiNumber(value, language = currentLanguage) {
+  return new Intl.NumberFormat(language === 'fa' ? 'fa-IR' : 'en-US').format(value);
+}
+
+function subscribeLanguage(listener) {
+  window.addEventListener(LANGUAGE_EVENT, listener);
+  return () => window.removeEventListener(LANGUAGE_EVENT, listener);
+}
+
+export function useLanguage() {
+  const language = useSyncExternalStore(subscribeLanguage, getLanguage, () => 'fa');
+  useEffect(() => { applyDocumentLanguage(language); }, [language]);
+
+  return {
+    language,
+    isPersian: language === 'fa',
+    direction: language === 'fa' ? 'rtl' : 'ltr',
+    setLanguage,
+    t: (key, fallback, values) => interpolate(translate(key, language, fallback), values),
+    tr: (value) => translateRaw(value, language),
+    formatDate: (value, options) => formatUiDate(value, options, language),
+    formatNumber: (value) => formatUiNumber(value, language),
+  };
+}

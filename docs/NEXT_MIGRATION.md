@@ -1,10 +1,10 @@
 # فرانت‌اند Next.js
 
-Next.js 16.3.8 تنها build و runtime فرانت‌اند است؛ Vite، React Router و میزبان دوگانه حذف شده‌اند. همهٔ UI روی Next App Router است. Node 20.19+ مطابق package.json؛ CI و Docker از Node 20 استفاده می‌کنند.
+Next.js 16.3.8 تنها build و runtime فرانت‌اند است؛ Vite، React Router و میزبان دوگانه حذف شده‌اند. همهٔ UI روی Next App Router است و سورس و منابع فعال در `frontend/next/` قرار دارند. Node 20.19+ مطابق package.json؛ CI و Docker از Node 20 استفاده می‌کنند.
 
 ## مسیرها و رندر
 
-[routeInventory.json](../frontend/src/app/routes/routeInventory.json) مرجع URLها و aliasهای workspace/client است. `npm run routes:generate` از آن `page.jsx` و `View.jsx` می‌سازد؛ برای مسیر جدید ابتدا inventory را تغییر دهید.
+[routeInventory.json](../frontend/next/src/app/routes/routeInventory.json) مرجع URLها و aliasهای workspace/client است. `npm run routes:generate` از آن `page.jsx` و `View.jsx` می‌سازد؛ برای مسیر جدید ابتدا inventory را تغییر دهید.
 محتوای عمومی و JSON-LD در پاسخ سرور رندر می‌شوند؛ URL/slug نامعتبر HTTP 404 می‌دهد. صفحات خصوصی تا پاسخ `/api/auth/me/` حالت loading دارند؛ session همان JWT مرورگر است و دادهٔ خصوصی روی سرور fetch نمی‌شود. metadata متعلق به Next است.
 
 ## توسعه؛ از frontend
@@ -13,7 +13,8 @@ Next.js 16.3.8 تنها build و runtime فرانت‌اند است؛ Vite، Rea
 npm ci
 cp .env.example next/.env.local
 npm run dev                      # پورت 3000، Webpack
-npm run build                    # تولید مسیرها و build Next
+npm run check:next               # بررسی استقلال از فرانت آرشیوشده
+npm run build                    # تولید مسیرها، بررسی استقلال و build Next
 npm start                        # standalone روی 3000
 npx playwright install chromium
 npm run test:next
@@ -37,3 +38,16 @@ docker compose exec app supervisorctl status
 برای بازگشت، `SOCIAL_STATS_APP_IMAGE` را روی نسخهٔ قبلیِ کامل تنظیم کنید؛ سپس `docker compose pull app` و `docker compose up -d --no-build app`. schema و migrationها باید با نسخهٔ مقصد سازگار باشند؛ volumeها را حفظ کنید. سورس فعلی حالت Vite یا overlay دوگانه ندارد.
 worker قدیمی `/sw.js` بازنشسته می‌شود و فقط cacheهای `socialstats-*` پاک می‌شوند؛ tab قدیمی را reload کنید. offline SPA cache دیگر فعال نیست.
 تست‌های browser از APIهای بیرونی mock استفاده می‌کنند؛ اتصال واقعی provider به credential و بررسی جداگانه نیاز دارد.
+
+## مالکیت سورس و آرشیو قابل حذف
+
+- `frontend/next/app/`: صفحات و layoutهای App Router؛ ۱۹۱ URL در inventory و دو fallback تبلیغات.
+- `frontend/next/src/screens/`: پیاده‌سازی صفحات؛ نام `screens` مانع تشخیص اشتباه آن به‌عنوان Pages Router می‌شود.
+- `frontend/next/src/`: featureها، UI، سرویس‌ها، ترجمه‌ها و تست‌های فعال. Jest و TypeScript فقط سورس فعال را بررسی می‌کنند.
+- `frontend/next/public/`: فایل‌های عمومی واقعی؛ symlink به فرانت قدیمی وجود ندارد.
+- `archive/legacy-frontend/`: نسخهٔ پیش از جداسازی `src`، `public`، تنظیمات، اسکریپت‌ها، تست‌ها و Docker/nginx قدیمی. این پوشه مرجع تاریخی است؛ snapshot یک میزبان مستقل و قابل اجرای SPA نیست. برای rollback عملیاتی از image نسخهٔ قبلی استفاده کنید.
+
+آرشیو در importها، تولید مسیرها، اسکن Tailwind، تست‌ها و context ساخت Docker استفاده نمی‌شود. secrets، `.env` واقعی و `node_modules` به آرشیو کپی نشده‌اند. خروجی محلی قدیمی `build/` فقط برای مراجعه در آرشیو نگهداری شده و در Git ثبت نمی‌شود.
+پس از بررسی PR می‌توان کل `archive/legacy-frontend/` را حذف کرد؛ تنها نسخهٔ تاریخی سورس حذف می‌شود. `npm run build` قبل از build با `check-next-independence.cjs` وجود تمام منابع مسیرها، صحت importهای نسبی و نبود symlink/پوشهٔ قدیمی را کنترل می‌کند. تست browser همهٔ ۱۹۱ URL و فایل‌های عمومی را روی سرور standalone بررسی می‌کند.
+
+Dockerfile ریشه همچنان image یکپارچه را می‌سازد. `frontend/Dockerfile` نیز اکنون Next standalone را روی پورت ۳۰۰۰ اجرا می‌کند؛ `NEXT_BACKEND_URL` را در runtime روی آدرس Django تنظیم کنید. nginx مربوط به SPA فقط در آرشیو نگهداری می‌شود.

@@ -1,5 +1,5 @@
 'use client';
-import Feature from '../../../../../../src/pages/WhatsAppCampaignsPage.jsx';
+import Feature from '../../../../../src/screens/WhatsAppCampaignsPage.jsx';
 export default function View() {
   return <Feature />;
 }

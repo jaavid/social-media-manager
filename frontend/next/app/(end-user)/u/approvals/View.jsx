@@ -1,5 +1,5 @@
 'use client';
-import Feature from '../../../../../src/pages/end-user/ApprovalsPage.jsx';
+import Feature from '../../../../src/screens/end-user/ApprovalsPage.jsx';
 export default function View() {
   return <Feature />;
 }

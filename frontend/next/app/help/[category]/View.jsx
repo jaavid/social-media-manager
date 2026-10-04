@@ -1,5 +1,5 @@
 'use client';
-import Feature from '../../../../src/pages/HelpCenterPage.jsx';
+import Feature from '../../../src/screens/HelpCenterPage.jsx';
 export default function View() {
   return <Feature />;
 }

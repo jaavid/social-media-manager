@@ -1,5 +1,5 @@
 'use client';
-import Feature from '../../../src/pages/marketing/AgenciesShowcasePage.jsx';
+import Feature from '../../src/screens/marketing/AgenciesShowcasePage.jsx';
 export default function View() {
   return <Feature />;
 }

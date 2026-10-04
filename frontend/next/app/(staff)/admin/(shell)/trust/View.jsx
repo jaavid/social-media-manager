@@ -1,5 +1,5 @@
 'use client';
-import Feature from '../../../../../../src/pages/admin/AdminTrustQueuePage.jsx';
+import Feature from '../../../../../src/screens/admin/AdminTrustQueuePage.jsx';
 export default function View() {
   return <Feature />;
 }

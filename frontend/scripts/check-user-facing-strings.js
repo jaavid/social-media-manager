@@ -8,11 +8,11 @@ const fs = require('fs');
 const path = require('path');
 
 const projectRoot = path.resolve(__dirname, '..');
-const root = path.join(projectRoot, 'src');
+const root = path.join(projectRoot, 'next/src');
 const extensions = new Set(['.js', '.jsx']);
 const strictFiles = new Set([
-  'src/components/ui/ConnectedAccounts.jsx',
-  'src/components/PlatformConnectModal.jsx',
+  'next/src/components/ui/ConnectedAccounts.jsx',
+  'next/src/components/PlatformConnectModal.jsx',
 ]);
 const technicalAllowlist = [
   { pattern: /^\d+:[A-Z]+…?$/, reason: 'example bot-token identifier' },
