@@ -1,27 +1,33 @@
 # فرانت‌اند Next.js
 
-Next.js 16.3.8 تنها build و runtime فرانت‌اند است؛ Vite، React Router و میزبان دوگانه حذف شده‌اند. همهٔ UI روی Next App Router است و سورس و منابع فعال در `frontend/next/` قرار دارند. Node 20.19+ مطابق package.json؛ CI و Docker از Node 20 استفاده می‌کنند.
+Next.js 16.3.8 تنها build و runtime فرانت‌اند است؛ Vite، React Router و میزبان دوگانه حذف شده‌اند. همهٔ UI روی Next App Router است. Node 20.19+ مطابق package.json؛ CI و Docker از Node 20 استفاده می‌کنند.
 
 ## مسیرها و رندر
 
-[routeInventory.json](../frontend/next/src/app/routes/routeInventory.json) مرجع URLها و aliasهای workspace/client است. `npm run routes:generate` از آن `page.jsx` و `View.jsx` می‌سازد؛ برای مسیر جدید ابتدا inventory را تغییر دهید.
+[src/app](../frontend/src/app) تنها ریشهٔ App Router است؛ `src/features` رابط‌های محصول و `src/core` providerها، session و سازگاری navigation را نگه می‌دارند. تنظیمات Next، PostCSS، TypeScript و فایل‌های محیطی در ریشهٔ `frontend` هستند. پوشهٔ `src/pages` وجود ندارد تا Next آن را Pages Router تشخیص ندهد.
+
+[routeInventory.json](../frontend/src/core/routes/routeInventory.json) مرجع URLها و aliasهای workspace/client است. ابزار سازگاری `npm run routes:generate` از آن `page.jsx` و `View.jsx` می‌سازد؛ پس از تغییر inventory یا محتوای marketing، آن را اجرا و خروجی را commit کنید. build فقط فایل‌های موجود را می‌سازد و سورس را بازنویسی نمی‌کند.
 محتوای عمومی و JSON-LD در پاسخ سرور رندر می‌شوند؛ URL/slug نامعتبر HTTP 404 می‌دهد. صفحات خصوصی تا پاسخ `/api/auth/me/` حالت loading دارند؛ session همان JWT مرورگر است و دادهٔ خصوصی روی سرور fetch نمی‌شود. metadata متعلق به Next است.
 
 ## توسعه؛ از frontend
 
 ```sh
 npm ci
-cp .env.example next/.env.local
+cp .env.example .env.local
 npm run dev                      # پورت 3000، Webpack
-npm run check:next               # بررسی استقلال از فرانت آرشیوشده
-npm run build                    # تولید مسیرها، بررسی استقلال و build Next
-npm start                        # standalone روی 3000
+npm run typecheck
+npm run build                    # build مستقیم Next
+npm start                        # next start روی 3000
+# جایگزین برای بررسی همان خروجی Docker:
+npm run build:standalone
+npm run start:standalone
 npx playwright install chromium
 npm run test:next
 ```
 
 Next در توسعه API/media/backend را به Django روی `8000` proxy می‌کند؛ `NEXT_BACKEND_URL` مقصد را تغییر می‌دهد. `NEXT_PUBLIC_API_URL` پیش‌فرض `/api` است. WebSocket محلی: `NEXT_PUBLIC_WS_URL=ws://localhost:8000`.
 `NEXT_PUBLIC_SITE_URL` origin آدرس‌های canonical است. مقادیر `NEXT_PUBLIC_*` عمومی و زمان build هستند؛ اسرار در آن‌ها نگذارید. `VITE_*` دیگر اثری ندارد.
+کد مرورگر فقط `NEXT_PUBLIC_*` را می‌خواند؛ تنظیمات Next نام‌های قدیمی `REACT_APP_*` را در زمان build به‌عنوان fallback تبدیل می‌کند. مقادیر جدید اولویت دارند. فایل محیطی قبلی در `frontend/next/.env.local` را به `frontend/.env.local` منتقل کنید.
 
 ## استقرار؛ از ریشه
 
@@ -33,21 +39,14 @@ docker compose exec app supervisorctl status
 
 یک image شامل Next، Django، Celery، beat و nginx است. nginx همهٔ UI و `/_next/` را به Next داخلی روی `3000` می‌دهد؛ `/api/`، `/ws/` و `/backend/` به Django می‌روند. `/static/` و `/media/` از مسیر backend سرو می‌شوند. `/healthz` هر دو runtime را بررسی می‌کند.
 
+برای image مستقل فرانت، `docker build --build-arg NEXT_BACKEND_URL=http://backend:8000 -t socialstats-frontend frontend` خروجی standalone را می‌سازد؛ پورت آن `3000` است. نام backend باید از شبکهٔ کانتینر قابل دسترس باشد. rewriteهای Next در زمان build ساخته می‌شوند؛ تغییر مقصد `NEXT_BACKEND_URL` در تولید نیاز به build مجدد دارد. WebSocket تولید را با ingress به Channels هدایت کنید. این image به backend مجزا نیاز دارد؛ Compose مسیر استقرار کامل است.
+
 ## بازگشت و cache
 
 برای بازگشت، `SOCIAL_STATS_APP_IMAGE` را روی نسخهٔ قبلیِ کامل تنظیم کنید؛ سپس `docker compose pull app` و `docker compose up -d --no-build app`. schema و migrationها باید با نسخهٔ مقصد سازگار باشند؛ volumeها را حفظ کنید. سورس فعلی حالت Vite یا overlay دوگانه ندارد.
 worker قدیمی `/sw.js` بازنشسته می‌شود و فقط cacheهای `socialstats-*` پاک می‌شوند؛ tab قدیمی را reload کنید. offline SPA cache دیگر فعال نیست.
 تست‌های browser از APIهای بیرونی mock استفاده می‌کنند؛ اتصال واقعی provider به credential و بررسی جداگانه نیاز دارد.
 
-## مالکیت سورس و آرشیو قابل حذف
+## آرشیو مستقل
 
-- `frontend/next/app/`: صفحات و layoutهای App Router؛ ۱۹۱ URL در inventory و دو fallback تبلیغات.
-- `frontend/next/src/screens/`: پیاده‌سازی صفحات؛ نام `screens` مانع تشخیص اشتباه آن به‌عنوان Pages Router می‌شود.
-- `frontend/next/src/`: featureها، UI، سرویس‌ها، ترجمه‌ها و تست‌های فعال. Jest و TypeScript فقط سورس فعال را بررسی می‌کنند.
-- `frontend/next/public/`: فایل‌های عمومی واقعی؛ symlink به فرانت قدیمی وجود ندارد.
-- `archive/legacy-frontend/`: نسخهٔ پیش از جداسازی `src`، `public`، تنظیمات، اسکریپت‌ها، تست‌ها و Docker/nginx قدیمی. این پوشه مرجع تاریخی است؛ snapshot یک میزبان مستقل و قابل اجرای SPA نیست. برای rollback عملیاتی از image نسخهٔ قبلی استفاده کنید.
-
-آرشیو در importها، تولید مسیرها، اسکن Tailwind، تست‌ها و context ساخت Docker استفاده نمی‌شود. secrets، `.env` واقعی و `node_modules` به آرشیو کپی نشده‌اند. خروجی محلی قدیمی `build/` فقط برای مراجعه در آرشیو نگهداری شده و در Git ثبت نمی‌شود.
-پس از بررسی PR می‌توان کل `archive/legacy-frontend/` را حذف کرد؛ تنها نسخهٔ تاریخی سورس حذف می‌شود. `npm run build` قبل از build با `check-next-independence.cjs` وجود تمام منابع مسیرها، صحت importهای نسبی و نبود symlink/پوشهٔ قدیمی را کنترل می‌کند. تست browser همهٔ ۱۹۱ URL و فایل‌های عمومی را روی سرور standalone بررسی می‌کند.
-
-Dockerfile ریشه همچنان image یکپارچه را می‌سازد. `frontend/Dockerfile` نیز اکنون Next standalone را روی پورت ۳۰۰۰ اجرا می‌کند؛ `NEXT_BACKEND_URL` را در runtime روی آدرس Django تنظیم کنید. nginx مربوط به SPA فقط در آرشیو نگهداری می‌شود.
+`archive/legacy-frontend/` snapshot تاریخی ادغام‌شده در PR #97 است و در build، importها و تست‌ها استفاده نمی‌شود. می‌توان آن را جداگانه حذف کرد؛ rollback عملیاتی با image قبلی انجام می‌شود. `npm run check:next` صحت importهای نسبی، منابع inventory و نبود symlink یا پوشهٔ routing قدیمی را بررسی می‌کند. CI این بررسی را مستقل از build اجرا می‌کند؛ تست browser هر ۱۹۱ URL و فایل‌های عمومی را پوشش می‌دهد.

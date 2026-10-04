@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
-import inventory from '../next/src/app/routes/routeInventory.json' with { type: 'json' };
-import content from '../next/route-content.json' with { type: 'json' };
+import inventory from '../src/core/routes/routeInventory.json' with { type: 'json' };
+import content from '../src/core/routes/route-content.json' with { type: 'json' };
 
 test('every inventoried route is served by the standalone Next application', async ({ request }) => {
   test.setTimeout(120000);

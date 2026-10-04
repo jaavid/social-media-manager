@@ -44,7 +44,7 @@ python manage.py runserver
 ```sh
 cd frontend
 npm ci
-cp .env.example next/.env.local
+cp .env.example .env.local
 npm run dev
 ```
 

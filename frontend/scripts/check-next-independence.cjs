@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { parse } = require('@babel/parser');
 const root = path.resolve(__dirname, '..');
-const next = path.join(root, 'next');
+const next = root;
 const extensions = ['.js', '.jsx', '.ts', '.tsx', '.mjs', '.json', '.css'];
 function files(folder) {
   if (fs.lstatSync(folder).isSymbolicLink()) throw new Error(`Active Next directory cannot be a symlink: ${folder}`);
@@ -22,9 +22,9 @@ function visit(node, callback) {
   });
 }
 const errors = [];
-const active = [...files(path.join(next, 'app')), ...files(path.join(next, 'src'))];
+const active = files(path.join(next, 'src'));
 files(path.join(next, 'public'));
-for (const file of [...active, path.join(next, 'proxy.js'), path.join(next, 'metadata.mjs')]) {
+for (const file of active) {
   if (!/\.(?:[jt]sx?|mjs)$/.test(file)) continue;
   const ast = parse(fs.readFileSync(file, 'utf8'), { sourceType: 'module', plugins: ['jsx', 'typescript'] });
   visit(ast, node => {
@@ -41,11 +41,11 @@ for (const file of [...active, path.join(next, 'proxy.js'), path.join(next, 'met
     else if (!fs.realpathSync(resolved).startsWith(next + path.sep)) errors.push(`Import outside Next: ${label}`);
   });
 }
-const inventory = JSON.parse(fs.readFileSync(path.join(next, 'src/app/routes/routeInventory.json'), 'utf8'));
+const inventory = JSON.parse(fs.readFileSync(path.join(next, 'src/core/routes/routeInventory.json'), 'utf8'));
 for (const route of inventory.routes) {
   if (route.source && !fs.existsSync(path.join(next, 'src', route.source))) errors.push(`Missing route source: ${route.path}`);
 }
-for (const old of ['src', 'public', 'docker']) {
+for (const old of ['next', 'pages', 'src/pages', 'docker']) {
   if (fs.existsSync(path.join(root, old))) errors.push(`Old frontend directory remains active: ${old}`);
 }
 if (errors.length) {
