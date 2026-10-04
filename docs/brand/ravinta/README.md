@@ -15,4 +15,4 @@
 
 ## مالکیت اجرا
 
-#103 مالک primitives، shell و page patterns؛ #106 مالک رفتار data states؛ #111/#112 مالک metadata و capability شبکه‌ها. کارهای typography و rollout برند باید به #103 وصل شوند و دامنهٔ مستقل داشته باشند. فایل فونت تکراری یا API شبکهٔ جدید به این بسته اضافه نشود.
+#103 مالک primitives، shell و page patterns؛ #106 مالک رفتار data states؛ #111/#112 مالک metadata و capability شبکه‌ها. [Typography #115](https://github.com/jaavid/social-media-manager/issues/115) و [brand rollout #116](https://github.com/jaavid/social-media-manager/issues/116) کارهای وابستهٔ #103 با دامنهٔ مستقل‌اند. فایل فونت تکراری یا API شبکهٔ جدید به این بسته اضافه نشود.
