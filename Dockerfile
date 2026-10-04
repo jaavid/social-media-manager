@@ -16,15 +16,15 @@ ARG NEXT_PUBLIC_PLAUSIBLE_HOST=
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL} REACT_APP_API_URL=${REACT_APP_API_URL} \
     NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL} NEXT_PUBLIC_WS_URL=${NEXT_PUBLIC_WS_URL} \
     NEXT_PUBLIC_PLAUSIBLE_DOMAIN=${NEXT_PUBLIC_PLAUSIBLE_DOMAIN} \
-    NEXT_PUBLIC_PLAUSIBLE_HOST=${NEXT_PUBLIC_PLAUSIBLE_HOST} NEXT_TELEMETRY_DISABLED=1
+    NEXT_PUBLIC_PLAUSIBLE_HOST=${NEXT_PUBLIC_PLAUSIBLE_HOST} NEXT_TELEMETRY_DISABLED=1 NEXT_OUTPUT=standalone
 RUN CI=true npm run build \
-    && mkdir -p /runtime/frontend/next/.next /runtime/frontend/next/src/services /runtime/bin \
+    && mkdir -p /runtime/frontend/.next /runtime/frontend/src/services /runtime/bin \
     && cp /usr/local/bin/node /runtime/bin/node \
-    && cp -a next/.next/standalone/. /runtime/frontend/ \
-    && cp -a next/.next/static /runtime/frontend/next/.next/static \
-    && cp -a next/public /runtime/frontend/next/public \
-    && cp next/src/services/platformCapabilities.json /runtime/frontend/next/src/services/ \
-    && rm -rf next/.next/cache
+    && cp -a .next/standalone/. /runtime/frontend/ \
+    && cp -a .next/static /runtime/frontend/.next/static \
+    && cp -a public /runtime/frontend/public \
+    && cp src/services/platformCapabilities.json /runtime/frontend/src/services/ \
+    && rm -rf .next/cache
 
 FROM python:3.12-slim-bookworm AS runtime
 ENV PYTHONDONTWRITEBYTECODE=1 \

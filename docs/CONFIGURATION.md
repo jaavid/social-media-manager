@@ -4,7 +4,7 @@
 | --- | --- |
 | Compose | کپی [`.env.example`](../.env.example) به `.env` در ریشه |
 | Django محلی | کپی [`backend/.env.example`](../backend/.env.example) به `backend/.env` |
-| Next محلی | مقادیر [`frontend/.env.example`](../frontend/.env.example) در `frontend/next/.env.local` یا محیط زمان build |
+| Next محلی | مقادیر [`frontend/.env.example`](../frontend/.env.example) در `frontend/.env.local` یا محیط زمان build |
 
 مقادیر نمونهٔ credential را خالی یا واقعی کنید؛ placeholder به معنی اتصال آماده نیست. اسرار فقط در سرور باشند. نام متغیرها و پیش‌فرض‌های دقیق در [settings.py](../backend/dashboard/settings.py) است.
 

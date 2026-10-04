@@ -84,7 +84,7 @@ UI_FIXES_AUDIT.md
 
 # Draft legal templates that contain {{ placeholder }} markers awaiting
 # counsel review. The actual user-facing legal copy lives in the React
-# pages under frontend/next/src/pages/ (PrivacyPolicyPage, TermsOfServicePage,
+# pages under frontend/src/features/ (PrivacyPolicyPage, TermsOfServicePage,
 # DPDPPage, GDPRPage, etc.).
 PRIVACY_POLICY.md
 TERMS_OF_SERVICE.md
@@ -125,10 +125,10 @@ output/playwright/
 
 # Next generated compiler files
 *.tsbuildinfo
-frontend/next/next-env.d.ts
+frontend/next-env.d.ts
 
 frontend/test-results/
 frontend/playwright-report/
 
-# Retained local legacy build artifacts (source archive remains tracked).
+# Historical local build artifacts remain outside the active frontend.
 archive/legacy-frontend/build/

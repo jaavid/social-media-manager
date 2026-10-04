@@ -111,6 +111,10 @@ jobs:
         working-directory: frontend
         run: npm ci --prefer-offline --no-audit --no-fund
 
+      - name: Next source independence
+        working-directory: frontend
+        run: npm run check:next
+
       - name: TypeScript boundaries
         working-directory: frontend
         run: npm run typecheck

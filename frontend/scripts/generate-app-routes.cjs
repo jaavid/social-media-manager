@@ -3,9 +3,9 @@ const fs = require('fs');
 const path = require('path');
 const { parse } = require('@babel/parser');
 const root = path.resolve(__dirname, '..');
-const source = path.join(root, 'next/src');
-const app = path.join(root, 'next/app');
-const inventory = JSON.parse(fs.readFileSync(path.join(source, 'app/routes/routeInventory.json'), 'utf8'));
+const source = path.join(root, 'src');
+const app = path.join(root, 'src/app');
+const inventory = JSON.parse(fs.readFileSync(path.join(source, 'core/routes/routeInventory.json'), 'utf8'));
 const walk = (node, visit) => {
   if (!node || typeof node !== 'object') return;
   visit(node);
@@ -15,7 +15,7 @@ const walk = (node, visit) => {
   }
 };
 const generated = [];
-const manifest = path.join(root, 'next/generated-routes.json');
+const manifest = path.join(root, 'scripts/generated-routes.json');
 const previous = fs.existsSync(manifest) ? JSON.parse(fs.readFileSync(manifest, 'utf8')) : [];
 function write(file, text) {
   fs.mkdirSync(path.dirname(file), { recursive: true }); fs.writeFileSync(file, text);
@@ -56,13 +56,13 @@ function contentTable(file, variable) {
   return result;
 }
 const content = {
-  product: contentTable('screens/marketing/productPages.js', 'productPages'),
-  solutions: contentTable('screens/marketing/solutionPages.js', 'solutionPages'),
-  customers: contentTable('screens/marketing/caseStudies.js', 'STUDIES'),
-  blog: contentTable('screens/marketing/blogPosts.js', 'POSTS'),
-  agencies: contentTable('screens/marketing/agencyProfiles.js', 'AGENCIES'),
+  product: contentTable('features/marketing/productPages.js', 'productPages'),
+  solutions: contentTable('features/marketing/solutionPages.js', 'solutionPages'),
+  customers: contentTable('features/marketing/caseStudies.js', 'STUDIES'),
+  blog: contentTable('features/marketing/blogPosts.js', 'POSTS'),
+  agencies: contentTable('features/marketing/agencyProfiles.js', 'AGENCIES'),
 };
-write(path.join(root, 'next/route-content.json'), JSON.stringify(content, null, 2) + '\n');
+write(path.join(root, 'src/core/routes/route-content.json'), JSON.stringify(content, null, 2) + '\n');
 for (const route of inventory.routes) {
   const segments = route.path.split('/').filter(Boolean).map(s => s.startsWith(':') ? `[${s.slice(1)}]` : s);
   let groups = [];
@@ -75,16 +75,16 @@ for (const route of inventory.routes) {
   else if (route.path === '/pending') groups = ['(pending)'];
   const folder = path.join(app, ...groups, ...segments);
   const page = path.join(folder, 'page.jsx');
-  const metaImport = importPath(page, path.join(root, 'next/metadata.mjs'));
+  const metaImport = importPath(page, path.join(root, 'src/lib/metadata.mjs'));
   if (route.redirect) {
     const href = JSON.stringify(route.redirect);
-    write(page, `// Generated from next/src/app/routes/routeInventory.json.\nimport { redirect } from 'next/navigation';\nexport default function Page() { redirect(${href}); }\n`);
+    write(page, `// Generated from src/core/routes/routeInventory.json.\nimport { redirect } from 'next/navigation';\nexport default function Page() { redirect(${href}); }\n`);
     continue;
   }
   const view = path.join(folder, 'View.jsx');
   const sourceImport = importPath(view, path.join(source, route.source));
-  const clientImport = importPath(view, path.join(source, 'app/session'));
-  const paramsImport = importPath(view, path.join(source, 'app/navigation'));
+  const clientImport = importPath(view, path.join(source, 'core/session'));
+  const paramsImport = importPath(view, path.join(source, 'core/navigation'));
   let viewText = `'use client';\nimport Feature from '${sourceImport}';\n`;
   let clientId = '';
   if (route.clientProp && route.clientScope === 'session') {
@@ -104,9 +104,9 @@ for (const route of inventory.routes) {
   const meta = staticMeta(route);
   const family = route.path.split('/')[1];
   const dynamicContent = route.path === `/${family}/:slug` && content[family];
-  let pageText = `// Generated from next/src/app/routes/routeInventory.json.\nimport View from './View';\nimport { publicMetadata } from '${metaImport}';\n`;
+  let pageText = `// Generated from src/core/routes/routeInventory.json.\nimport View from './View';\nimport { publicMetadata } from '${metaImport}';\n`;
   if (dynamicContent) {
-    const tableImport = importPath(page, path.join(root, 'next/route-content.json'));
+    const tableImport = importPath(page, path.join(root, 'src/core/routes/route-content.json'));
     pageText += `import content from '${tableImport}';\nimport { notFound } from 'next/navigation';\nconst entries = content[${JSON.stringify(family)}];\nexport const dynamicParams = false;\nexport function generateStaticParams() { return Object.keys(entries).map(slug => ({ slug })); }\nexport async function generateMetadata({ params }) {\n  const { slug } = await params;\n  const data = entries[slug];\n  if (!data) notFound();\n  return publicMetadata(data.title, data.description, '/${family}/' + slug);\n}\nexport default async function Page({ params }) {\n  const { slug } = await params;\n  if (!entries[slug]) notFound();\n  return <View />;\n}\n`;
   } else {
     pageText += `export const metadata = publicMetadata(${JSON.stringify(meta.title)}, ${JSON.stringify(meta.description)}, ${JSON.stringify(route.path)}, ${Boolean(route.roles || /^\/(auth|oauth|login|signup|verify-email|forgot-password|reset-password|report|invitation|invite|agency-invite)(\/|$)/.test(route.path))});\nexport default function Page() { return <View />; }\n`;
@@ -115,7 +115,7 @@ for (const route of inventory.routes) {
 }
 // Remove only previously generated files when inventory routes are retired.
 for (const stale of previous.filter(file => !generated.includes(file))) {
-  if (!stale.startsWith('next/app/') || stale.includes('..')) throw new Error('Invalid generated route path');
+  if (!stale.startsWith('src/app/') || stale.includes('..')) throw new Error('Invalid generated route path');
   fs.rmSync(path.join(root, stale), { force: true });
 }
 fs.writeFileSync(manifest, JSON.stringify(generated.sort(), null, 2) + '\n');

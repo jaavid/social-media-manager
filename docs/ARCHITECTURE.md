@@ -4,11 +4,11 @@
 | --- | --- |
 | `backend/dashboard/` | تنظیمات Django، مسیریابی اصلی، ASGI و Celery |
 | `backend/social_stats/` | مدل‌ها، API، اتصال‌ها، انتشار، AI، مجوزها و تست‌ها |
-| `frontend/next/app/` | صفحات و layoutهای Next App Router |
-| `frontend/next/public/` | منابع عمومی مستقل Next |
-| `archive/legacy-frontend/` | snapshot تاریخی فرانت قبلی؛ مستقل از build و قابل حذف |
-| `frontend/next/src/` | صفحات React، مسیریابی، UI، ترجمه، hooks و سرویس API |
-| `frontend/next/` | App Router، layoutها و صفحات native Next.js |
+| `frontend/src/features/` | رابط‌های محصول؛ خارج از پوشه‌های رزروشدهٔ routing |
+| `frontend/src/core/` | session، providerها، shell، سازگاری navigation و inventory مسیرها |
+| `frontend/src/app/` | App Router، layoutها و صفحات native Next.js |
+| `frontend/src/components/`، `hooks/`، `lib/`، `services/` | UI مشترک، hooks، ابزارها و سرویس API |
+| `archive/legacy-frontend/` | snapshot تاریخی مستقل از build و قابل حذف |
 | `docker/` | nginx، راه‌اندازی و Supervisor |
 | `infra/` | نمونه‌های زیرساخت؛ قبل از استفاده با محیط خود تطبیق دهید |
 | `scripts/` | ابزارهای عملیاتی؛ جایگزین مسیر اصلی Compose نیستند |

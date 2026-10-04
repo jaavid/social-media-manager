@@ -65,7 +65,7 @@ def configuration_errors(base_dir=None):
             if not definition.egress_service or definition.egress_service not in SERVICES:
                 errors.append(f'{key}: connection enabled without registered egress service')
 
-    metadata_path = root / 'frontend/next/src/services/platformCapabilities.json'
+    metadata_path = root / 'frontend/src/services/platformCapabilities.json'
     try:
         actual = json.loads(metadata_path.read_text(encoding='utf-8'))
         if actual != frontend_metadata():
