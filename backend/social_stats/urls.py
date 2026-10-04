@@ -1,3 +1,4 @@
+from .browser_session import browser_session
 from . import rbac_views
 # ============================================================================
 #  Social Stats — Social Media Management & Marketing Platform
@@ -273,6 +274,7 @@ urlpatterns = [
     path('management/workspaces/<int:workspace_id>/team-policy/<int:user_id>/', rbac_views.member_policy),
     path('management/workspaces/<int:workspace_id>/accounts/<int:account_id>/policy/<int:user_id>/', rbac_views.account_policy),
     # Auth
+    path('auth/session/', browser_session, name='browser_session'),
     path('auth/login/',                   LoginView.as_view(),           name='login'),
     path('auth/refresh/',                 TokenRefreshView.as_view(),    name='token_refresh'),
     path('auth/me/',                      me,                            name='me'),

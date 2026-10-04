@@ -6,7 +6,7 @@ const app = path.resolve(__dirname, '../../app');
 function pages(folder) {
   return fs.readdirSync(folder, { withFileTypes: true }).flatMap(entry => {
     const file = path.join(folder, entry.name);
-    return entry.isDirectory() ? pages(file) : entry.name === 'page.jsx' ? [file] : [];
+    return entry.isDirectory() ? pages(file) : /^page\.[jt]sx$/.test(entry.name) ? [file] : [];
   });
 }
 const native = pages(app).map(file => '/' + path.relative(app, path.dirname(file)).split(path.sep)

@@ -9,6 +9,8 @@
  * Existing product tokens remain authoritative while shell primitives migrate
  * to utility classes. Next.js and shared feature components use the same tokens.
  */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 @theme inline {
   --color-background: var(--surface-page);
   --color-foreground: var(--text-primary);
@@ -26,9 +28,53 @@
   --color-accent-foreground: var(--text-primary);
   --color-destructive: var(--danger);
   --color-border: var(--border-default);
-  --color-input: var(--border-default);
-  --color-ring: var(--brand-primary);
-  --font-sans: var(--font-sans);
+  --color-input: var(--control-border);
+  --color-ring: var(--border-focus);
+  --font-sans: var(--font-product-arabic, "Noto Sans Arabic"), var(--font-product-latin, Arial), sans-serif;
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-sidebar: var(--surface-card);
+  --color-sidebar-foreground: var(--text-secondary);
+  --color-chart-1: var(--chart-1); --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3); --color-chart-4: var(--chart-4);
+  --text-xs: var(--product-text-xs);
+  --text-sm: var(--product-text-sm);
+  --text-base: var(--product-text-base);
+  --text-md: var(--product-text-md);
+  --text-lg: var(--product-text-lg);
+  --text-xl: var(--product-text-xl);
+  --text-2xl: var(--product-text-2xl);
+  --text-3xl: var(--product-text-3xl);
+  --text-4xl: var(--product-text-4xl);
+  --text-5xl: var(--product-text-5xl);
+  --text-6xl: var(--product-text-6xl);
+  --text-7xl: var(--product-text-7xl);
+  --radius-xs: var(--product-radius-xs);
+  --radius-sm: var(--product-radius-sm);
+  --radius-md: var(--product-radius-md);
+  --radius-lg: var(--product-radius-lg);
+  --radius-xl: var(--product-radius-xl);
+  --radius-2xl: var(--product-radius-2xl);
+  --radius-pill: var(--product-radius-pill);
+  --shadow-xs: var(--product-shadow-xs);
+  --shadow-sm: var(--product-shadow-sm);
+  --shadow-md: var(--product-shadow-md);
+  --shadow-lg: var(--product-shadow-lg);
+  --shadow-xl: var(--product-shadow-xl);
+  --shadow-glow: var(--product-shadow-glow);
+  --shadow-brand: var(--product-shadow-brand);
+  --container-sm: var(--product-container-sm);
+  --container-md: var(--product-container-md);
+  --container-lg: var(--product-container-lg);
+  --container-xl: var(--product-container-xl);
+  --container-2xl: var(--product-container-2xl);
+  --text-sm--line-height: var(--line-height-body);
+  --text-base--line-height: var(--line-height-body);
+  --text-lg--line-height: var(--line-height-body);
+  --spacing: 4px;
+  --breakpoint-sm: 40rem; --breakpoint-md: 48rem;
+  --breakpoint-lg: 64rem; --breakpoint-xl: 80rem;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
 }
 
 @layer base {

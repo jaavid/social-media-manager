@@ -66,6 +66,9 @@ class ClientWSConsumer(AsyncJsonWebsocketConsumer):
             await self.channel_layer.group_discard(g, self.channel_name)
 
     async def receive_json(self, content, **kwargs):
+        if not await self._session_active():
+            await self.close(code=4401)
+            return
         # Frontend keeps the socket warm with a ping every 30s.
         if isinstance(content, dict) and content.get('type') == 'ping':
             await self.send_json({'type': 'pong'})
@@ -77,9 +80,22 @@ class ClientWSConsumer(AsyncJsonWebsocketConsumer):
         `message` shape: {'type': 'broadcast.event', 'payload': {...}}
         We forward only the payload to the client.
         """
+        if not await self._session_active():
+            await self.close(code=4401)
+            return
         await self.send_json(message.get('payload') or {})
 
     # ── Helpers ─────────────────────────────────────────────────────────
+    @database_sync_to_async
+    def _session_active(self):
+        from .security.sessions import UserSession
+        session = self.scope.get('session')
+        jti = session.get('browser_session_jti') if session is not None else None
+        if not jti:
+            return True  # Native JWT compatibility.
+        record = UserSession.objects.filter(refresh_jti=jti, user_id=self.user.id, user__is_active=True).first()
+        return bool(record and record.is_active)
+
     @database_sync_to_async
     def _tenant_client_ids(self, user):
         try:

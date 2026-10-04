@@ -2,9 +2,10 @@
 import { motion, useReducedMotion } from 'framer-motion';
 
 function reducedMotionElement(Component) {
+  // Server content stays visible before hydration and with JavaScript disabled.
   return function MotionElement(props) {
     const reduced = useReducedMotion();
-    return <Component {...props} initial={reduced ? false : props.initial} whileHover={reduced ? undefined : props.whileHover} transition={reduced ? { ...props.transition, duration: 0 } : props.transition} />;
+    return <Component {...props} initial={false} whileHover={reduced ? undefined : props.whileHover} transition={reduced ? { ...props.transition, duration: 0 } : props.transition} />;
   };
 }
 

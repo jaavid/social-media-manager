@@ -50,10 +50,17 @@ RUN --mount=type=secret,id=proxy_ca \
     && chown -R socialstats:socialstats /app/backend/media /app/backend/staticfiles /home/socialstats \
     && chmod -R a+rX /app/backend \
     && SECRET_KEY=build-only DEBUG=True python manage.py collectstatic --noinput
-COPY --from=frontend-build --chown=999:999 /runtime/ /app/
-COPY --chown=999:999 docs/PLATFORM_SUPPORT.md /app/docs/PLATFORM_SUPPORT.md
-COPY docker/ /opt/socialstats-docker/
-RUN cp /opt/socialstats-docker/nginx.conf /etc/nginx/conf.d/default.conf \
+# One assembly layer also keeps builds practical on VFS Docker runners, where
+# each COPY otherwise duplicates the complete Python/media dependency image.
+RUN --mount=from=frontend-build,source=/runtime,target=/runtime,ro \
+    --mount=type=bind,source=docs/PLATFORM_SUPPORT.md,target=/tmp/PLATFORM_SUPPORT.md,ro \
+    --mount=type=bind,source=docker,target=/tmp/socialstats-docker,ro \
+    cp -a /runtime/. /app/ \
+    && mkdir -p /app/docs /opt/socialstats-docker \
+    && cp /tmp/PLATFORM_SUPPORT.md /app/docs/PLATFORM_SUPPORT.md \
+    && cp -a /tmp/socialstats-docker/. /opt/socialstats-docker/ \
+    && chown -R 999:999 /app/frontend /app/bin /app/docs \
+    && cp /opt/socialstats-docker/nginx.conf /etc/nginx/conf.d/default.conf \
     && cp /opt/socialstats-docker/supervisord.conf /etc/supervisor/conf.d/socialstats.conf \
     && cp /opt/socialstats-docker/entrypoint.sh /usr/local/bin/socialstats-entrypoint \
     && rm -f /etc/nginx/sites-enabled/default \

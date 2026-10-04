@@ -9,6 +9,7 @@
 import { useAppSearchParams } from '../core/navigation';
 import { apiBaseUrl } from '../lib/runtime/config';
 
+import { internalReturnTo } from '../lib/auth/contracts';
 import { useEffect, useState } from 'react';
 import { AppLink as Link, useAppNavigate as useNavigate, useAppLocation as useLocation } from '../core/navigation';
 import { ArrowRight, AlertCircle, Shield } from 'lucide-react';
@@ -74,7 +75,7 @@ export default function LoginPage() {
 
   function navigateFor(user) {
     if (nextPath) {
-      navigate(nextPath, { replace: true });
+      navigate(internalReturnTo(nextPath), { replace: true });
     } else if (user.role === 'superadmin' || user.role === 'staff') {
       navigate('/admin');
     } else if (user.account_type === 'end_user') {

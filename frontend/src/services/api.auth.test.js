@@ -1,41 +1,46 @@
-import axios from 'axios';
 import { api, onSessionInvalidated } from './api';
-
-function unauthorized(config) {
-  return Promise.reject({ config, response: { status: 401 } });
-}
-
-beforeEach(() => {
-  localStorage.clear();
-  jest.restoreAllMocks();
+import axios from 'axios';
+beforeEach(() => { localStorage.clear(); jest.restoreAllMocks(); });
+test('temporary network/5xx errors preserve the session and do not replay a mutation', async () => {
+  const invalidated = jest.fn(), unsubscribe = onSessionInvalidated(invalidated);
+  const adapter = jest.fn(config => Promise.reject({ config, response: { status: 503 } }));
+  api.defaults.adapter = adapter;
+  await expect(api.post('/composer/', { caption: 'test' })).rejects.toBeDefined();
+  expect(adapter).toHaveBeenCalledTimes(1);
+  expect(invalidated).not.toHaveBeenCalled();
+  unsubscribe();
 });
-
-test('concurrent 401 responses share one successful refresh', async () => {
-  localStorage.setItem('refresh_token', 'refresh');
-  jest.spyOn(axios, 'post').mockResolvedValue({ data: { access: 'new-access' } });
-  const attempts = new Map();
-  api.defaults.adapter = (config) => {
-    const count = attempts.get(config.url) || 0;
-    attempts.set(config.url, count + 1);
-    return count === 0 ? unauthorized(config) : Promise.resolve({ data: {}, status: 200, config });
-  };
-
-  await Promise.all([api.get('/alerts/'), api.get('/notifications/')]);
-  expect(axios.post).toHaveBeenCalledTimes(1);
-  expect(localStorage.getItem('access_token')).toBe('new-access');
+test('cookie requests never send localStorage JWT and use CSRF on mutations', async () => {
+  localStorage.setItem('access_token', 'retired-token');
+  const adapter = jest.fn(config => Promise.resolve({ data: {}, status: 200, config }));
+  api.defaults.adapter = adapter;
+  await api.post('/profile/', {});
+  const config = adapter.mock.calls[0][0];
+  expect(config.headers.Authorization).toBeUndefined();
+  expect(config.headers['X-CSRFToken']).toBe('test-csrf');
+  expect(config.withCredentials).toBe(true);
+  expect(config.timeout).toBe(15000);
 });
-
-test('definitive refresh failure invalidates session and rejects queued requests', async () => {
-  localStorage.setItem('refresh_token', 'expired');
-  jest.spyOn(axios, 'post').mockRejectedValue(new Error('expired'));
-  api.defaults.adapter = unauthorized;
-  const invalidated = jest.fn();
-  const unsubscribe = onSessionInvalidated(invalidated);
-
-  const results = await Promise.allSettled([api.get('/alerts/'), api.get('/notifications/')]);
-  expect(results.every(({ status }) => status === 'rejected')).toBe(true);
-  expect(axios.post).toHaveBeenCalledTimes(1);
+test('a definitive 401 clears private session without refreshing or navigating in an interceptor', async () => {
+  const refresh = jest.spyOn(axios, 'post');
+  const invalidated = jest.fn(), unsubscribe = onSessionInvalidated(invalidated);
+  api.defaults.adapter = config => Promise.reject({ config, response: { status: 401 } });
+  await expect(api.get('/auth/me/')).rejects.toBeDefined();
   expect(invalidated).toHaveBeenCalled();
-  expect(localStorage.getItem('refresh_token')).toBeNull();
+  expect(refresh).not.toHaveBeenCalled();
+  unsubscribe();
+});
+test('an old request 401 cannot invalidate the next account identity', async () => {
+  const { notifySessionChanged } = await import('../lib/auth/session');
+  const invalidated = jest.fn(), unsubscribe = onSessionInvalidated(invalidated);
+  let rejectRequest, started;
+  const ready = new Promise(resolve => { started = resolve; });
+  api.defaults.adapter = config => new Promise((_, reject) => { rejectRequest = () => reject({ config, response: { status: 401 } }); started(); });
+  const request = api.get('/profile/');
+  await ready;
+  notifySessionChanged();
+  rejectRequest();
+  await expect(request).rejects.toBeDefined();
+  expect(invalidated).not.toHaveBeenCalled();
   unsubscribe();
 });

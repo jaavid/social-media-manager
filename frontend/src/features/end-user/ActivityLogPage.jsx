@@ -6,7 +6,6 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
-import { persistentStorage } from '../../lib/runtime/storage';
 
 /**
  * ActivityLogPage — end-user trust feed.
@@ -15,7 +14,7 @@ import { persistentStorage } from '../../lib/runtime/storage';
  * (me / agency / AI / system), severity, and flagged-only. Each row exposes
  * a "flag this" button so the user can mark suspicious actions for review.
  */
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ShieldCheck, Filter, RefreshCw, Flag, AlertTriangle, Sparkles,
   Activity as ActivityIcon, Clock, Undo2, Download,
@@ -47,7 +46,7 @@ export default function ActivityLogPage() {
     flagged:    false,
   });
 
-  function reload() {
+  const reload = useCallback(() => {
     setLoading(true);
     const params = { limit: 200 };
     if (filters.actor_type) params.actor_type = filters.actor_type;
@@ -57,9 +56,9 @@ export default function ActivityLogPage() {
       .then((r) => setRows(r.data?.rows || []))
       .catch(() => toast.error('Could not load activity'))
       .finally(() => setLoading(false));
-  }
+  }, [filters]);
 
-  useEffect(() => { reload(); /* eslint-disable-next-line */ }, [filters]);
+  useEffect(() => { void Promise.resolve().then(reload); }, [reload]);
 
   async function flag(id) {
     const reason = window.prompt('What\'s wrong with this action? (optional)');
@@ -93,9 +92,8 @@ export default function ActivityLogPage() {
     activityAPI.list({ ...params, limit: 1 })  // touch the API to ensure token is fresh
       .then(() => {
         const url = activityAPI.exportCsvUrl(params);
-        const tok = persistentStorage.getItem('access_token');
-        // Use fetch so the Authorization header travels with the download
-        fetch(url, { headers: tok ? { Authorization: `Bearer ${tok}` } : {} })
+            // Use fetch so the Authorization header travels with the download
+        fetch(url, { credentials: 'same-origin' })
           .then((res) => res.blob())
           .then((blob) => {
             const a = document.createElement('a');

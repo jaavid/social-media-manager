@@ -7,17 +7,11 @@
 #  Released under the MIT License — see LICENSE. Keep this notice.
 # ============================================================================
 """
-Custom Channels middleware that authenticates WebSocket connections via JWT.
+Channels authentication for opaque browser sessions and native JWT clients.
 
-Token passed in the connection URL's query string:
-    ws://host/ws/realtime/?token=<JWT>
-
-On success, scope['user'] is set to the resolved Django User. On failure,
-scope['user'] is AnonymousUser — the consumer rejects the connection.
-
-We avoid using Channels' AuthMiddlewareStack because that reads session
-cookies; the SPA carries its JWT in localStorage and connects without
-cookies.
+AuthMiddlewareStack resolves Django cookies first. Browser sessions are checked
+against revocation records and trusted Origin. Native clients may supply their
+existing JWT query parameter; browser code never puts credentials in a URL.
 """
 import logging
 from urllib.parse import parse_qs
@@ -54,5 +48,32 @@ class JWTAuthMiddleware(BaseMiddleware):
     async def __call__(self, scope, receive, send):
         qs = parse_qs((scope.get('query_string') or b'').decode())
         token = (qs.get('token') or [None])[0]
-        scope['user'] = await _resolve_user(token)
+        if getattr(scope.get('user'), 'is_authenticated', False):
+            scope['user'] = await _validate_browser_session(scope)
+        else:
+            scope['user'] = await _resolve_user(token)
         return await super().__call__(scope, receive, send)
+
+
+@database_sync_to_async
+def _validate_browser_session(scope):
+    from .security.sessions import UserSession
+    user = scope['user']
+    jti = scope['session'].get('browser_session_jti')
+    if not jti:
+        return user
+    record = UserSession.objects.filter(user_id=user.pk, refresh_jti=jti).first()
+    return user if record and record.is_active else AnonymousUser()
+
+
+class BrowserOriginValidator:
+    """Cookie sockets require a trusted browser origin; native JWT clients retain compatibility."""
+    def __init__(self, application):
+        from channels.security.websocket import AllowedHostsOriginValidator
+        self.application = application
+        self.browser = AllowedHostsOriginValidator(application)
+
+    async def __call__(self, scope, receive, send):
+        cookie = dict(scope.get('headers', [])).get(b'cookie', b'')
+        application = self.browser if b'sessionid=' in cookie else self.application
+        return await application(scope, receive, send)

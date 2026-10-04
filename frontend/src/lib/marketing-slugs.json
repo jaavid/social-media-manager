@@ -1,0 +1,44 @@
+{
+  "product": [
+    "ai",
+    "ai-assistant",
+    "analytics",
+    "automations",
+    "bot-builder",
+    "composer",
+    "inbox",
+    "marketplace-product",
+    "reports",
+    "whatsapp"
+  ],
+  "solutions": [
+    "agencies",
+    "businesses",
+    "clinics",
+    "creators",
+    "ecommerce",
+    "real-estate",
+    "restaurants"
+  ],
+  "customers": [
+    "acme-realty",
+    "bluewave-agency",
+    "sunrise-clinics"
+  ],
+  "blog": [
+    "agency-roi-blueprint",
+    "composer-design-decisions",
+    "designing-a-design-system",
+    "how-we-train-brand-voice",
+    "unified-marketing-os-is-here",
+    "whatsapp-engagement-2026"
+  ],
+  "agencies": [
+    "apex-marketing",
+    "bluewave-agency",
+    "ember",
+    "halcyon",
+    "lumen",
+    "verve"
+  ]
+}

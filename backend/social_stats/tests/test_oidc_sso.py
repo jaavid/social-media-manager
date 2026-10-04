@@ -114,8 +114,9 @@ class OIDCSSOTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertIn('https://social.example.test/auth/callback?', response['Location'])
         callback_params = urllib.parse.parse_qs(urllib.parse.urlparse(response['Location']).query)
-        self.assertTrue(callback_params['access'][0])
-        self.assertTrue(callback_params['refresh'][0])
+        self.assertNotIn('access', callback_params)
+        self.assertIn('_auth_user_id', self.client.session)
+        self.assertNotIn('refresh', callback_params)
 
         token_payload = token_post.call_args.kwargs['data']
         self.assertEqual(token_payload['code'], 'authorization-code')

@@ -25,7 +25,8 @@ import { persistentStorage } from '../../lib/runtime/storage';
  * made to the consent text — older choices are then ignored.
  */
 
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
+import { SessionHint } from '../../core/providers/SessionHint';
 import { Cookie, ChevronDown, ChevronUp } from 'lucide-react';
 
 
@@ -45,6 +46,7 @@ export function readCookieChoice() {
 
 /** @param {{ user?: { role?: string, id?: unknown } | null }} props */
 export default function CookieBanner({ user = null }) {
+  const hasSession = useContext(SessionHint);
   const [choices, setChoices] = useState(() => readCookieChoice());
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [pending, setPending] = useState({
@@ -72,7 +74,7 @@ export default function CookieBanner({ user = null }) {
     setChoices(c);
 
     // A consent choice may be made on a public page without mounting auth.
-    if (user || persistentStorage.getItem('access_token')) {
+    if (user || hasSession) {
       import('../../services/api').then(({ privacyAPI }) => Promise.all([
         privacyAPI.setConsent('cookies_analytics', !!c.analytics, 'cookie_banner'),
         privacyAPI.setConsent('cookies_marketing', !!c.marketing, 'cookie_banner'),

@@ -10,7 +10,7 @@ import type { AppDestination } from '../lib/runtime/navigation';
 type Destination = string | AppDestination;
 type NavigationOptions = { replace?: boolean; state?: unknown; preventScrollReset?: boolean; relative?: string };
 type Navigate = (to: Destination | number, options?: NavigationOptions) => void;
-interface AppLocation { pathname: string; search: string; hash: string; state: any; key: string }
+interface AppLocation { pathname: string; search: string; hash: string; state: unknown; key: string }
 const NavigationContext = createContext<{ navigate: Navigate; location: AppLocation } | null>(null);
 
 export function NavigationProvider({ children }: PropsWithChildren) {

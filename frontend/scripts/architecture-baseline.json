@@ -1,0 +1,13 @@
+{
+  "owner": "frontend maintainers",
+  "policy": "Retire feature/shared coupling in #103; no new edges/cycles. Archive and client/server violations are always fatal.",
+  "findings": [
+    "feature:features/BlogIndexPage->features/marketing/blogPosts",
+    "feature:features/BlogPostPage->features/marketing/blogPosts",
+    "feature:features/ClientDashboard->features/CalendarPage",
+    "feature:features/ClientDashboard->features/ROICalculatorPage",
+    "feature:features/CookiePolicyPage->features/CookiePreferences",
+    "feature:features/DPDPPage->features/DPDPRequestForm",
+    "feature:features/GDPRPage->features/GDPRRequestForm"
+  ]
+}

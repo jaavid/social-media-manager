@@ -120,6 +120,8 @@ class MFAVerifyThrottle(SimpleRateThrottle):
     def get_cache_key(self, request, view):
         data = getattr(request, 'data', None) or getattr(request, 'POST', None) or {}
         token = (data.get('mfa_token') or '').strip()
+        if token == 'session':
+            token = request.session.get('browser_pending_mfa', '')
         ip    = _client_ip(request) or ''
         if token:
             return self.cache_format % {'scope': self.scope, 'ident': token[:64]}

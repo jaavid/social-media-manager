@@ -23,8 +23,11 @@ test('public assets are owned and served by Next', async ({ request }) => {
   }
 });
 test.beforeEach(async ({ page }) => {
+  await page.context().addCookies([{ name: 'csrftoken', value: 'e2e-csrf', url: process.env.E2E_BASE_URL || 'http://127.0.0.1:3000' }]);
   await page.route('**/api/**', route => {
     const path = new URL(route.request().url()).pathname;
+    if (path === '/api/auth/me/') return route.fulfill({ status: 401, json: { detail: 'Anonymous' } });
+    if (path === '/api/auth/session/') return route.fulfill({ json: { csrfToken: 'e2e-csrf', authenticated: false } });
     const isList = /\/(workspaces|alerts|notifications|invitations)\/$/.test(path);
     return route.fulfill({ json: isList ? [] : {} });
   });
@@ -55,19 +58,20 @@ test('anonymous protected route waits for session then redirects to login', asyn
 });
 test('client cannot render staff account settings', async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem('access_token', 'test-token'));
-  await page.route('**/api/auth/me/', route => route.fulfill({ json: { role: 'client', account_type: 'legacy', client_id: 1 } }));
+  await page.route('**/api/auth/me/', route => route.fulfill({ json: { id: 1, role: 'client', account_type: 'legacy', client_id: 1 } }));
   await page.goto('/admin/account-settings');
   await expect(page).toHaveURL(/\/dashboard/);
 });
 test('OAuth MFA callback preserves state across native App Router navigation', async ({ page }) => {
-  await page.goto('/auth/callback?mfa_required=true&mfa_token=test-mfa');
+  await page.goto('/auth/callback?mfa_required=true');
   await expect(page).toHaveURL(/\/login$/);
   await expect(page.locator('input[autocomplete="one-time-code"]')).toBeVisible();
   expect(await page.evaluate(() => sessionStorage.getItem('social-stats.navigation-handoff'))).toBeNull();
   await page.reload();
   await expect(page.locator('input[autocomplete="one-time-code"]')).toBeVisible();
 });
-test('persisted English and dark theme apply after hydration', async ({ page }) => {
+test('persisted English and dark theme apply from SSR through hydration', async ({ page }) => {
+  await page.context().addCookies(['socialstats.language', 'theme'].map((name, i) => ({ name, value: i ? 'dark' : 'en', url: process.env.E2E_BASE_URL || 'http://127.0.0.1:3000' })));
   await page.addInitScript(() => {
     localStorage.setItem('socialstats.language', 'en');
     localStorage.setItem('theme', 'dark');
@@ -90,6 +94,7 @@ test('public native links preserve browser Back', async ({ page }) => {
 });
 
 test('staff session resolves before the native settings page is shown', async ({ page }) => {
+  await page.context().addCookies([{ name: 'socialstats.language', value: 'en', url: process.env.E2E_BASE_URL || 'http://127.0.0.1:3000' }]);
   await page.addInitScript(() => {
     localStorage.setItem('access_token', 'test-token');
     localStorage.setItem('socialstats.language', 'en');
@@ -98,7 +103,7 @@ test('staff session resolves before the native settings page is shown', async ({
   const gate = new Promise(resolve => { release = resolve; });
   await page.route('**/api/auth/me/', async route => {
     await gate;
-    await route.fulfill({ json: { role: 'staff', name: 'Test Staff', email: 'staff@example.test', account_type: 'legacy', permissions: {} } });
+    await route.fulfill({ json: { id: 1, role: 'staff', name: 'Test Staff', email: 'staff@example.test', account_type: 'legacy', permissions: {} } });
   });
   await page.goto('/admin/account-settings');
   await expect(page.getByRole('heading', { name: 'Settings', exact: true })).not.toBeVisible();
@@ -198,6 +203,7 @@ test('returning signed-in user still reaches the appropriate dashboard from home
 });
 
 test('public cookie choice persists locally and syncs consent without initializing auth', async ({ page }) => {
+  await page.context().addCookies([{ name: 'sessionid', value: 'opaque-session-fixture', url: process.env.E2E_BASE_URL || 'http://127.0.0.1:3000' }]);
   await page.addInitScript(() => localStorage.setItem('access_token', 'test-token'));
   const consents = [];
   const authRequests = [];
@@ -216,11 +222,50 @@ test('public cookie choice persists locally and syncs consent without initializi
   await expect(page.getByRole('dialog', { name: 'Cookie preferences' })).toHaveCount(0);
 });
 
-test('public pages are served from the prerender cache with server content', async ({ request }) => {
+test('cookie-personalized public pages render server content without a shared HTML cache', async ({ request }) => {
   for (const path of ['/', '/privacy', '/features', '/product/analytics', '/blog/unified-marketing-os-is-here']) {
     const response = await request.get(path);
     expect(response.status(), path).toBe(200);
-    expect(response.headers()['x-nextjs-cache'], path).toBe('HIT');
+    expect(response.headers()['cache-control'], path).toContain('no-store');
     expect(await response.text(), path).toContain('<h1');
   }
+});
+
+test('temporary session outage offers retry; confirmed expiry redirects and clears private UI', async ({ page }) => {
+  await page.context().addCookies([{ name: 'socialstats.language', value: 'en', url: process.env.E2E_BASE_URL || 'http://127.0.0.1:3000' }]);
+  await page.addInitScript(() => localStorage.setItem('socialstats_cookie_choice', JSON.stringify({ version: '2024-11-01', choices: { essential: true } })));
+  let status = 503;
+  await page.route('**/api/auth/me/', route => route.fulfill({ status, json: status === 200 ? { id: 1, role: 'staff', account_type: 'legacy', email: 'recovery@example.test', permissions: {} } : { detail: 'Unavailable' } }));
+  await page.goto('/admin/account-settings');
+  await expect(page.locator('.app-page[role="alert"]')).toContainText('We cannot reach your account');
+  await expect(page).toHaveURL(/admin\/account-settings$/);
+  status = 200; await page.getByRole('button', { name: 'Try again' }).click();
+  await expect(page.getByRole('heading', { name: 'Settings', exact: true })).toBeVisible();
+  status = 401; await page.reload();
+  await expect(page).toHaveURL(/\/login$/);
+  await expect(page.getByRole('heading', { name: 'Settings', exact: true })).toHaveCount(0);
+});
+
+test('account change and logout propagate across tabs without broadcasting credentials', async ({ context }) => {
+  await context.addCookies([{ name: 'socialstats.language', value: 'en', url: process.env.E2E_BASE_URL || 'http://127.0.0.1:3000' }]);
+  await context.addInitScript(() => localStorage.setItem('socialstats_cookie_choice', JSON.stringify({ version: '2024-11-01', choices: { essential: true } })));
+  let identity = { id: 1, role: 'staff', account_type: 'legacy', email: 'first@example.test', permissions: {} };
+  await context.route('**/api/**', route => {
+    const path = new URL(route.request().url()).pathname;
+    return route.fulfill({ status: path === '/api/auth/me/' && !identity ? 401 : 200,
+      json: path === '/api/auth/me/' ? identity || { detail: 'Expired' } : path === '/api/auth/session/' ? { csrfToken: 'e2e-csrf' } : /\/(workspaces|alerts|notifications|invitations)\/$/.test(path) ? [] : {} });
+  });
+  await context.routeWebSocket('**/ws/**', socket => socket.close());
+  const first = await context.newPage(), second = await context.newPage();
+  await first.goto('/admin/account-settings'); await second.goto('/admin/account-settings');
+  await expect(second.getByText('first@example.test', { exact: true }).last()).toBeVisible();
+  identity = { ...identity, id: 2, email: 'second@example.test' };
+  await first.evaluate(() => localStorage.setItem('social-stats.session-changed', String(Date.now())));
+  await expect(second.getByText('second@example.test', { exact: true }).last()).toBeVisible();
+  await expect(second.getByText('first@example.test', { exact: true }).last()).toHaveCount(0);
+  identity = null;
+  await first.evaluate(() => localStorage.setItem('social-stats.session-invalidated', String(Date.now())));
+  await expect(second).toHaveURL(/\/login$/);
+  expect(await second.evaluate(() => [localStorage.getItem('access_token'), localStorage.getItem('refresh_token')])).toEqual([null, null]);
+  await first.close(); await second.close();
 });

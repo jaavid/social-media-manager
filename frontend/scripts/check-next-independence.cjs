@@ -50,3 +50,5 @@ if (errors.length) {
 } else {
   console.log(`Next independence verified: ${active.length} active files, public assets without symlinks.`);
 }
+
+require('./check-marketing-slugs.cjs');

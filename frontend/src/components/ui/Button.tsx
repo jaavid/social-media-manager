@@ -1,4 +1,6 @@
 'use client';
+import type { ButtonHTMLAttributes, ElementType } from 'react';
+import type { LucideIcon } from 'lucide-react';
 import { forwardRef } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useLanguage } from '../../i18n';
@@ -24,20 +26,34 @@ const ICON_SIZES = { xs: 12, sm: 14, md: 16, lg: 18, xl: 20 };
 
 const VARIANT_CLASSES = {
   primary:
-    'border-transparent bg-[var(--brand-gradient)] text-[var(--text-on-brand)] shadow-sm hover:-translate-y-px hover:shadow-[var(--shadow-md),var(--shadow-glow)]',
+    'border-transparent bg-[var(--brand-primary)] bg-[image:var(--brand-gradient)] text-[var(--text-on-brand)] shadow-sm hover:-translate-y-px hover:shadow-[var(--shadow-md),var(--shadow-glow)]',
   secondary:
     'border-border bg-card text-foreground shadow-sm hover:border-[var(--border-strong)] hover:bg-accent',
   ghost:
     'border-transparent bg-transparent text-[var(--text-secondary)] shadow-none hover:bg-accent hover:text-foreground',
   outline:
-    'border-[var(--brand-primary)] bg-transparent text-[var(--brand-primary-hover)] shadow-none hover:border-[var(--brand-primary-hover)] hover:bg-[var(--brand-primary-soft)]',
+    'border-[var(--border-focus)] bg-transparent text-[var(--text-link)] shadow-none hover:border-[var(--brand-primary-hover)] hover:bg-[var(--brand-primary-soft)]',
   danger:
-    'border-transparent bg-destructive text-white shadow-sm hover:bg-[#dc2626] hover:shadow-md',
+    'border-transparent bg-destructive text-destructive-foreground shadow-sm hover:brightness-90 hover:shadow-md',
   success:
-    'border-transparent bg-[var(--success)] text-white shadow-sm hover:bg-[#059669] hover:shadow-md',
+    'border-transparent bg-[var(--success)] text-[var(--destructive-foreground)] shadow-sm hover:brightness-90 hover:shadow-md',
 };
 
-const Button = forwardRef(function Button(
+export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: keyof typeof VARIANT_CLASSES;
+  size?: keyof typeof SIZE_CLASSES;
+  icon?: LucideIcon;
+  iconRight?: LucideIcon;
+  iconOnly?: boolean;
+  loading?: boolean;
+  fullWidth?: boolean;
+  as?: ElementType;
+  href?: string;
+  to?: string;
+  target?: string;
+  rel?: string;
+}
+const Button = forwardRef<HTMLElement, ButtonProps>(function Button(
   {
     variant = 'primary',
     size = 'md',

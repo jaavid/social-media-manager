@@ -25,9 +25,9 @@
 }
 
 .app-surface {
-  background: #fff;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 6px rgba(15,23,42,.05);
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  box-shadow: var(--shadow-sm);
 }
 
 .app-surface--panel {
@@ -46,7 +46,7 @@
 
 .app-empty-state {
   text-align: center;
-  color: #94a3b8;
+  color: var(--text-tertiary);
 }
 
 .app-toolbar {
