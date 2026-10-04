@@ -11,16 +11,16 @@ import '../styles/accessibility.css';
 import '../styles/tailwind.css';
 
 export const metadata = {
-  title: { default: 'Social Stats — The marketing OS for modern teams', template: '%s · Social Stats' },
-  description: 'Manage analytics, content, conversations, and ads across your workspaces.',
+  title: { default: 'Ravinta — From idea to impact', template: '%s · Ravinta' },
+  description: 'Plan, create, approve, publish, and measure your digital presence in one shared workspace.',
   metadataBase: process.env.NEXT_PUBLIC_SITE_URL ? new URL(process.env.NEXT_PUBLIC_SITE_URL) : undefined,
   manifest: '/manifest.json',
   icons: { icon: '/icons/icon-192.png', apple: '/apple-touch-icon.png' },
 };
 export const viewport = {
   width: 'device-width', initialScale: 1, viewportFit: 'cover',
-  themeColor: [{ media: '(prefers-color-scheme: light)', color: '#fafbfc' },
-    { media: '(prefers-color-scheme: dark)', color: '#06080c' }],
+  themeColor: [{ media: '(prefers-color-scheme: light)', color: '#F7F9F8' },
+    { media: '(prefers-color-scheme: dark)', color: '#102B29' }],
 };
 const arabicFont = localFont({ src: '../assets/fonts/NotoSansArabic.woff2', weight: '100 900',
   variable: '--font-product-arabic', display: 'swap', fallback: ['Arial', 'sans-serif'] });

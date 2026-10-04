@@ -15,7 +15,7 @@ import {
 } from './BrandLogo';
 
 /**
- * Logo — single entry point that picks the right Social Stats asset for the variant.
+ * Logo — single entry point that picks the right Ravinta asset for the variant.
  *
  * Props:
  *   variant: 'mark' | 'wordmark' | 'horizontal' | 'stacked' | 'mark-inverted'
