@@ -6,10 +6,10 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
-import { AppLink as Link } from '../core/navigation';
+import Link from '../components/marketing/MarketingLink';
 import { Sparkles, Wrench, Bug, ArrowRight } from 'lucide-react';
 import MarketingLayout from '../components/marketing/MarketingLayout';
-import Button from '../components/ui/Button';
+import Button from '../components/marketing/MarketingButton';
 import Badge from '../components/ui/Badge';
 import Meta from '../components/Meta';
 

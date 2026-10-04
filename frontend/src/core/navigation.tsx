@@ -31,6 +31,10 @@ export function NavigationProvider({ children }: PropsWithChildren) {
   }, []);
   useEffect(() => {
     const href = window.location.pathname + window.location.search + window.location.hash;
+    // A child may redirect in its mount effect before this provider's effect.
+    // Keep its handoff until the destination commits instead of clearing it
+    // while the source route is still current.
+    if (pending.current && pending.current.href !== href) return;
     const nextState = pending.current?.href === href ? pending.current.state
       : (pop.current || initial.current) ? window.history.state?.usr ?? null : null;
     window.history.replaceState({ ...window.history.state, usr: nextState }, '');
@@ -118,7 +122,7 @@ export const AppLink = forwardRef<HTMLAnchorElement, AppLinkProps>(function AppL
   }} />;
 });
 AppLink.displayName = 'AppLink';
-type ActiveState = { isActive: boolean; isPending: boolean; isTransitioning: boolean };
+type ActiveState = { isActive: boolean };
 export interface AppNavLinkProps extends Omit<AppLinkProps, 'className' | 'style' | 'children'> {
   end?: boolean;
   className?: string | ((state: ActiveState) => string | undefined);
@@ -127,7 +131,7 @@ export interface AppNavLinkProps extends Omit<AppLinkProps, 'className' | 'style
 }
 export const AppNavLink = forwardRef<HTMLAnchorElement, AppNavLinkProps>(function AppNavLink({ end, className, style, children, to, ...props }, ref) {
   const location = useAppLocation();
-  const active = { isActive: routeIsActive(destinationHref(to, location.pathname, location.search), location.pathname, end), isPending: false, isTransitioning: false };
+  const active = { isActive: routeIsActive(destinationHref(to, location.pathname, location.search), location.pathname, end) };
   return <AppLink {...props} ref={ref} to={to} aria-current={active.isActive ? 'page' : undefined}
     className={typeof className === 'function' ? className(active) : className}
     style={typeof style === 'function' ? style(active) : style}>

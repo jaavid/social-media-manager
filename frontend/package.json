@@ -70,7 +70,6 @@
     "i18n:check": "node scripts/check-user-facing-strings.js --check",
     "typecheck": "tsc --noEmit",
     "test:next": "playwright test",
-    "routes:generate": "node scripts/generate-app-routes.cjs",
     "start:standalone": "node scripts/start-next.mjs",
     "check:next": "node scripts/check-next-independence.cjs"
   },
@@ -88,7 +87,8 @@
   "jest": {
     "moduleNameMapper": {
       "^@radix-ui/primitive/is-development$": "<rootDir>/node_modules/@radix-ui/primitive/dist/internal/is-development.true.js",
-      "\\.(css|less|scss)$": "<rootDir>/src/testStyleMock.js"
+      "\\.(css|less|scss)$": "<rootDir>/src/testStyleMock.js",
+      "^@/(.*)$": "<rootDir>/src/$1"
     },
     "testEnvironment": "jsdom",
     "setupFilesAfterEnv": [

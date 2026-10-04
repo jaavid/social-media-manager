@@ -27,9 +27,10 @@
  * are intentionally absent until we have real customers to feature.
  */
 
-import { useState } from 'react';
-import { AppLink as Link } from '../core/navigation';
-import { motion, useReducedMotion } from 'framer-motion';
+import Link from '../components/marketing/MarketingLink';
+import { MotionDiv, MotionH1, MotionP } from '../components/marketing/Motion';
+import UseCaseTabs from '../components/marketing/HomeUseCaseTabs';
+import TrackedButton from '../components/marketing/TrackedButton';
 import {
   ArrowRight, PlayCircle, Sparkles, Check,
   BarChart3, MessageCircle, Zap, Bot, Inbox, PenSquare,
@@ -53,10 +54,9 @@ import {
   AIInsightPreview, AutomationsPreview, AnalyticsPreview, ReportsPreview,
 } from '../components/marketing/BentoPreviews';
 
-import Button from '../components/ui/Button';
+import Button from '../components/marketing/MarketingButton';
 import Meta   from '../components/Meta';
 import JsonLd, { buildOrganization, buildWebSite } from '../components/JsonLd';
-import { track } from '../services/analytics';
 
 // ─────────────────────────────────────────────────────────────────────────────
 export default function HomePage() {
@@ -88,7 +88,6 @@ export default function HomePage() {
 // Section 1 — HERO
 // ─────────────────────────────────────────────────────────────────────────────
 function Hero() {
-  const reduced = useReducedMotion();
   return (
     <section style={{
       position: 'relative',
@@ -107,7 +106,7 @@ function Hero() {
         color: '#fff',
       }}>
         {/* Eyebrow */}
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+        <MotionDiv initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
           <Link to="/changelog" style={{
             display: 'inline-flex', alignItems: 'center', gap: 8,
             padding: '6px 14px',
@@ -124,10 +123,10 @@ function Hero() {
             CTWA Bot Builder is live
             <ArrowRight size={11} style={{ opacity: 0.6 }} />
           </Link>
-        </motion.div>
+        </MotionDiv>
 
         {/* Headline */}
-        <motion.h1
+        <MotionH1
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.1 }}
           style={{
@@ -146,10 +145,10 @@ function Hero() {
             AI marketing OS
           </span>
           <br />for modern agencies
-        </motion.h1>
+        </MotionH1>
 
         {/* Subheading */}
-        <motion.p
+        <MotionP
           initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.25 }}
           style={{
@@ -161,10 +160,10 @@ function Hero() {
         >
           Manage analytics, content, conversations, and ads for every client —
           across 5 platforms — in one place.
-        </motion.p>
+        </MotionP>
 
         {/* CTAs */}
-        <motion.div
+        <MotionDiv
           initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
           style={{
@@ -172,14 +171,14 @@ function Hero() {
             justifyContent: 'center', flexWrap: 'wrap',
           }}
         >
-          <Button as={Link} to="/signup" size="lg"
-                  onClick={() => track('signup_click', { source: 'home_hero' })}
+          <TrackedButton to="/signup" size="lg"
+                  source="home_hero"
                   style={{
                     background: 'linear-gradient(135deg, #00CCF5, #00A8D8)',
                     color: '#0a0e14', border: 'none', fontWeight: 600,
                   }}>
             Start free <ArrowRight size={15} />
-          </Button>
+          </TrackedButton>
           <Button as={Link} to="/customers" size="lg" variant="ghost"
                   style={{
                     color: '#fff',
@@ -188,24 +187,24 @@ function Hero() {
                   }}>
             <PlayCircle size={15} /> Watch 90s demo
           </Button>
-        </motion.div>
+        </MotionDiv>
 
-        <motion.p
+        <MotionP
           initial={{ opacity: 0 }} animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.6 }}
           style={{ marginTop: 14, fontSize: 13, color: 'rgba(255,255,255,0.5)' }}
         >
           No credit card · Free forever · Setup in 2 minutes
-        </motion.p>
+        </MotionP>
 
         {/* Hero mockup with floating cards */}
-        <motion.div
+        <MotionDiv
           initial={{ opacity: 0, y: 40, scale: 0.96 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.8, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
           style={{ marginTop: 64, position: 'relative', maxWidth: 1080, marginInline: 'auto' }}
         >
-          <ParallaxTilt max={reduced ? 0 : 4}>
+          <ParallaxTilt max={4}>
             <AnimatedDashboardMockup />
           </ParallaxTilt>
 
@@ -223,7 +222,7 @@ function Hero() {
               <AIPopupCard />
             </FloatingUICard>
           </div>
-        </motion.div>
+        </MotionDiv>
 
         <style>{`
           @media (max-width: 1100px) {
@@ -504,151 +503,7 @@ function BentoSection() {
 // ─────────────────────────────────────────────────────────────────────────────
 // Section 5 — USE CASE TABS
 // ─────────────────────────────────────────────────────────────────────────────
-function UseCaseTabs() {
-  const tabs = [
-    { id: 'agencies', label: 'Agencies', icon: Briefcase,
-      headline: 'Manage 100+ clients without losing your mind.',
-      bullets: [
-        'Multi-client workspaces with one-click switcher',
-        'Team collaboration with role permissions',
-        'White-label client portals + branded reports',
-        'Approval workflows for every action',
-        'AI assistant tuned to each client\'s brand voice',
-      ],
-      cta: { label: 'Read agency case study', to: '/customers' } },
-    { id: 'real-estate', label: 'Real Estate', icon: Building2,
-      headline: 'Sell more properties on social media.',
-      bullets: [
-        'Property listing carousels for Instagram + Facebook',
-        'Site-visit reminders via WhatsApp',
-        'Lead capture from CTWA ads — directly to CRM',
-        'AI-written property descriptions',
-        'Open-house promo automation',
-      ],
-      cta: { label: 'Real estate playbook', to: '/solutions/real-estate' } },
-    { id: 'clinics', label: 'Healthcare', icon: Stethoscope,
-      headline: 'Engage patients across every platform.',
-      bullets: [
-        'Appointment reminders via WhatsApp Business',
-        'Lab-report delivery with end-to-end audit trail',
-        'Pre-built health-awareness content calendar',
-        'HIPAA-aligned content checker',
-        'Review management with AI-suggested replies',
-      ],
-      cta: { label: 'Healthcare playbook', to: '/solutions/clinics' } },
-    { id: 'restaurants', label: 'Restaurants', icon: UtensilsCrossed,
-      headline: 'Fill more tables with social.',
-      bullets: [
-        'Reservation bots that integrate with your POS',
-        'Daily-specials posting on auto-pilot',
-        'Review management for Zomato + Google',
-        'Influencer outreach + tracking',
-        'Festival campaigns (Diwali, Eid, Christmas) ready to go',
-      ],
-      cta: { label: 'Restaurant playbook', to: '/solutions/restaurants' } },
-    { id: 'creators', label: 'Creators', icon: Palette,
-      headline: 'Track your creator economy.',
-      bullets: [
-        'YouTube + Instagram + LinkedIn analytics in one view',
-        'Brand-deal tracking + invoicing',
-        'Audience insights — what your fans actually want',
-        'Posting optimization with AI predictions',
-        'Content calendar tuned to your schedule',
-      ],
-      cta: { label: 'Creator playbook', to: '/solutions/creators' } },
-  ];
-  const [active, setActive] = useState(tabs[0].id);
-  const current = tabs.find((t) => t.id === active) || tabs[0];
 
-  return (
-    <section style={{ padding: 'clamp(64px, 10vh, 120px) 24px', background: 'var(--surface-page)' }}>
-      <div style={{ maxWidth: 1080, margin: '0 auto' }}>
-        <ScrollReveal>
-          <SectionHeading eyebrow="Made for every kind of marketer" title="Whoever you are, Social Stats fits" />
-        </ScrollReveal>
-
-        <ScrollReveal delay={0.1}>
-          <div role="tablist" style={{
-            marginTop: 36, display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'center',
-          }}>
-            {tabs.map((t) => (
-              <button
-                key={t.id} role="tab" aria-selected={active === t.id}
-                onClick={() => setActive(t.id)}
-                style={{
-                  padding: '10px 16px',
-                  fontSize: 13, fontWeight: 600,
-                  color: active === t.id ? '#0a0e14' : 'var(--text-secondary)',
-                  background: active === t.id
-                    ? 'linear-gradient(135deg, #00CCF5, #00A8D8)' : 'var(--surface-card)',
-                  border: '1px solid',
-                  borderColor: active === t.id ? 'transparent' : 'var(--border-default)',
-                  borderRadius: 'var(--radius-pill)',
-                  cursor: 'pointer',
-                  display: 'inline-flex', alignItems: 'center', gap: 6,
-                  fontFamily: 'inherit', transition: 'var(--transition-fast)',
-                }}
-              >
-                <t.icon size={13} />
-                {t.label}
-              </button>
-            ))}
-          </div>
-
-          <motion.div
-            key={current.id}
-            initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            style={{
-              marginTop: 32, padding: 32,
-              background: 'var(--surface-card)',
-              border: '1px solid var(--border-subtle)',
-              borderRadius: 'var(--radius-xl)',
-              display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 36,
-              alignItems: 'center',
-            }}
-            className="mkt-usecase-grid"
-          >
-            <div>
-              <h3 style={{
-                margin: 0, fontSize: 24, fontWeight: 700,
-                color: 'var(--text-primary)', letterSpacing: '-0.01em', lineHeight: 1.25,
-              }}>{current.headline}</h3>
-              <ul style={{ margin: '20px 0 0', padding: 0, listStyle: 'none' }}>
-                {current.bullets.map((b) => (
-                  <li key={b} style={{
-                    display: 'flex', alignItems: 'flex-start', gap: 10,
-                    padding: '8px 0',
-                    fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.55,
-                  }}>
-                    <Check size={14} style={{ color: '#00CCF5', flexShrink: 0, marginTop: 4 }} strokeWidth={2.5} />
-                    <span>{b}</span>
-                  </li>
-                ))}
-              </ul>
-              <div style={{ marginTop: 20 }}>
-                <Button as={Link} to={current.cta.to} size="md" variant="ghost"
-                        style={{ color: 'var(--brand-primary-hover)', padding: 0 }}>
-                  {current.cta.label} <ArrowRight size={14} />
-                </Button>
-              </div>
-            </div>
-
-            <div style={{
-              minHeight: 280, borderRadius: 'var(--radius-lg)', overflow: 'hidden',
-              border: '1px solid var(--border-subtle)',
-            }}>
-              <AnimatedDashboardMockup />
-            </div>
-          </motion.div>
-          <style>{`
-            @media (max-width: 880px) { .mkt-usecase-grid { grid-template-columns: 1fr !important; } }
-          `}</style>
-        </ScrollReveal>
-      </div>
-    </section>
-  );
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Section 6 — HOW IT WORKS

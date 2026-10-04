@@ -6,16 +6,15 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
-import { useEffect, useState } from 'react';
-import { AppLink as Link } from '../core/navigation';
-import { motion } from 'framer-motion';
+import FeaturesNav from '../components/marketing/FeaturesNav';
+import Link from '../components/marketing/MarketingLink';
+import { MotionSection } from '../components/marketing/Motion';
 import {
   BarChart3, PenSquare, Inbox, Sparkles, Zap, FileText, Users, ShieldCheck,
   ArrowRight, Check,
 } from 'lucide-react';
 
-import MarketingLayout from '../components/marketing/MarketingLayout';
-import Button from '../components/ui/Button';
+import Button from '../components/marketing/MarketingButton';
 import Badge from '../components/ui/Badge';
 import Meta from '../components/Meta';
 
@@ -143,25 +142,8 @@ const FEATURES = [
 ];
 
 export default function FeaturesPage() {
-  const [active, setActive] = useState(FEATURES[0].id);
-
-  // IntersectionObserver to highlight TOC entry while scrolling
-  useEffect(() => {
-    const obs = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => { if (e.isIntersecting) setActive(e.target.id); });
-      },
-      { rootMargin: '-40% 0px -50% 0px', threshold: 0 }
-    );
-    FEATURES.forEach((f) => {
-      const el = document.getElementById(f.id);
-      if (el) obs.observe(el);
-    });
-    return () => obs.disconnect();
-  }, []);
-
   return (
-    <MarketingLayout>
+    <>
       <Meta
         title="Features"
         description="Cross-platform analytics, AI-powered composer, unified inbox, automations, white-label reports, granular team permissions — every workflow your agency needs in one platform."
@@ -235,29 +217,7 @@ export default function FeaturesPage() {
             }}>
               On this page
             </div>
-            <nav style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-              {FEATURES.map((f) => (
-                <a
-                  key={f.id}
-                  href={`#${f.id}`}
-                  style={{
-                    padding: '8px 10px',
-                    fontSize: 13,
-                    fontWeight: active === f.id ? 600 : 500,
-                    color: active === f.id ? 'var(--text-primary)' : 'var(--text-secondary)',
-                    background: active === f.id ? 'var(--brand-primary-soft)' : 'transparent',
-                    boxShadow: active === f.id ? 'inset 2px 0 0 var(--brand-primary)' : 'none',
-                    borderRadius: 'var(--radius-sm)',
-                    textDecoration: 'none',
-                    transition: 'var(--transition-fast)',
-                    display: 'flex', alignItems: 'center', gap: 8,
-                  }}
-                >
-                  <f.icon size={13} strokeWidth={2.2} style={{ color: f.color, flexShrink: 0 }} />
-                  {f.eyebrow}
-                </a>
-              ))}
-            </nav>
+            <FeaturesNav features={FEATURES.map(f => ({ id: f.id, eyebrow: f.eyebrow, icon: <f.icon size={13} strokeWidth={2.2} style={{ color: f.color, flexShrink: 0 }} /> }))} />
           </aside>
         </div>
 
@@ -281,13 +241,13 @@ export default function FeaturesPage() {
           <Button as={Link} to="/signup" size="lg" iconRight={ArrowRight}>Get started free</Button>
         </div>
       </section>
-    </MarketingLayout>
+    </>
   );
 }
 
 function FeatureBlock({ feature, flip }) {
   return (
-    <motion.section
+    <MotionSection
       id={feature.id}
       initial={{ opacity: 0, y: 16 }}
       whileInView={{ opacity: 1, y: 0 }}
@@ -360,7 +320,7 @@ function FeatureBlock({ feature, flip }) {
           .feature-block > div:last-child  { order: 2 !important; }
         }
       `}</style>
-    </motion.section>
+    </MotionSection>
   );
 }
 

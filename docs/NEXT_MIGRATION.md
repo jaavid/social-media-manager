@@ -6,8 +6,11 @@ Next.js 16.3.8 تنها build و runtime فرانت‌اند است؛ Vite، Rea
 
 [src/app](../frontend/src/app) تنها ریشهٔ App Router است؛ `src/features` رابط‌های محصول و `src/core` providerها، session و سازگاری navigation را نگه می‌دارند. تنظیمات Next، PostCSS، TypeScript و فایل‌های محیطی در ریشهٔ `frontend` هستند. پوشهٔ `src/pages` وجود ندارد تا Next آن را Pages Router تشخیص ندهد.
 
-[routeInventory.json](../frontend/src/core/routes/routeInventory.json) مرجع URLها و aliasهای workspace/client است. ابزار سازگاری `npm run routes:generate` از آن `page.jsx` و `View.jsx` می‌سازد؛ پس از تغییر inventory یا محتوای marketing، آن را اجرا و خروجی را commit کنید. build فقط فایل‌های موجود را می‌سازد و سورس را بازنویسی نمی‌کند.
-محتوای عمومی و JSON-LD در پاسخ سرور رندر می‌شوند؛ URL/slug نامعتبر HTTP 404 می‌دهد. صفحات خصوصی تا پاسخ `/api/auth/me/` حالت loading دارند؛ session همان JWT مرورگر است و دادهٔ خصوصی روی سرور fetch نمی‌شود. metadata متعلق به Next است.
+مسیرها مستقیماً در `src/app` نوشته می‌شوند و build سورس را بازنویسی نمی‌کند. گروه `(marketing)` صفحات عمومی را prerender می‌کند؛ گروه `(account)` providerهای session و query را دارد و گروه‌های نقش محافظت‌شده realtime را بارگذاری می‌کنند. root فقط theme، زبان، toast و tracking را فراهم می‌کند. محتوای عمومی Server Component است؛ منو، فرم‌ها، فیلترها و انیمیشن‌ها Client Componentهای کوچک هستند.
+
+پنج خانوادهٔ product، solutions، customers، blog و agencies از محتوای ساختاریافتهٔ `src/features/marketing` برای صفحه، metadata و `generateStaticParams` استفاده می‌کنند. `content.js` این داده‌ها را به مسیرهای بومی وصل می‌کند؛ manifest استخراج‌شده یا تولیدکنندهٔ route وجود ندارد. `src/core/routes/__fixtures__/legacyRoutes.json` فقط fixture تست حفظ URLها و aliasهای قبلی است.
+
+محتوای عمومی و JSON-LD در پاسخ سرور هستند؛ slug نامعتبر HTTP 404 می‌دهد. صفحات خصوصی تا پاسخ `/api/auth/me/` حالت loading دارند؛ JWT در مرورگر می‌ماند و دادهٔ خصوصی روی سرور fetch نمی‌شود. صفحات عمومی session و WebSocket را راه‌اندازی نمی‌کنند؛ صفحهٔ اصلی برای کاربر دارای توکن، redirect ورود مجدد را به‌صورت client انجام می‌دهد. صفحات ورود و marketplace که session را نیاز دارند در گروه account هستند.
 
 ## توسعه؛ از frontend
 
@@ -23,7 +26,11 @@ npm run build:standalone
 npm run start:standalone
 npx playwright install chromium
 npm run test:next
+# اندازه‌گیری روی سرور production در حال اجرا:
+node scripts/measure-public-pages.mjs
 ```
+
+ابزار اندازه‌گیری با Chromium و context تازه برای هر صفحه، حجم JavaScript دانلودشده (شامل prefetch)، تعداد درخواست auth و زمان اولین React commit را ثبت می‌کند. زمان commit فقط شاخص آغاز hydration است؛ مدت کامل hydration نیست و برای مقایسه باید بار محیط یکسان باشد.
 
 Next در توسعه API/media/backend را به Django روی `8000` proxy می‌کند؛ `NEXT_BACKEND_URL` مقصد را تغییر می‌دهد. `NEXT_PUBLIC_API_URL` پیش‌فرض `/api` است. WebSocket محلی: `NEXT_PUBLIC_WS_URL=ws://localhost:8000`.
 `NEXT_PUBLIC_SITE_URL` origin آدرس‌های canonical است. مقادیر `NEXT_PUBLIC_*` عمومی و زمان build هستند؛ اسرار در آن‌ها نگذارید. `VITE_*` دیگر اثری ندارد.
@@ -49,4 +56,4 @@ worker قدیمی `/sw.js` بازنشسته می‌شود و فقط cacheهای 
 
 ## آرشیو مستقل
 
-`archive/legacy-frontend/` snapshot تاریخی ادغام‌شده در PR #97 است و در build، importها و تست‌ها استفاده نمی‌شود. می‌توان آن را جداگانه حذف کرد؛ rollback عملیاتی با image قبلی انجام می‌شود. `npm run check:next` صحت importهای نسبی، منابع inventory و نبود symlink یا پوشهٔ routing قدیمی را بررسی می‌کند. CI این بررسی را مستقل از build اجرا می‌کند؛ تست browser هر ۱۹۱ URL و فایل‌های عمومی را پوشش می‌دهد.
+`archive/legacy-frontend/` snapshot تاریخی ادغام‌شده در PR #97 است و در build، importها و تست‌ها استفاده نمی‌شود. می‌توان آن را جداگانه حذف کرد؛ rollback عملیاتی با image قبلی انجام می‌شود. `npm run check:next` صحت importهای نسبی و نبود symlink یا پوشهٔ routing قدیمی را بررسی می‌کند. CI این بررسی را مستقل از build اجرا می‌کند؛ تست browser هر ۱۹۱ URL و فایل‌های عمومی را پوشش می‌دهد.

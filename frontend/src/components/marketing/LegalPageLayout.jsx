@@ -6,7 +6,7 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
-import { useEffect, useState } from 'react';
+import TableOfContents from './TableOfContents';
 import MarketingLayout from './MarketingLayout';
 import Badge from '../ui/Badge';
 import Meta from '../Meta';
@@ -36,23 +36,6 @@ export default function LegalPageLayout({
   sections = [],
   children,
 }) {
-  const [active, setActive] = useState(sections[0]?.id);
-
-  useEffect(() => {
-    if (sections.length === 0) return;
-    const obs = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => { if (e.isIntersecting) setActive(e.target.id); });
-      },
-      { rootMargin: '-30% 0px -55% 0px', threshold: 0 }
-    );
-    sections.forEach((s) => {
-      const el = document.getElementById(s.id);
-      if (el) obs.observe(el);
-    });
-    return () => obs.disconnect();
-  }, [sections]);
-
   return (
     <MarketingLayout>
       <Meta
@@ -131,28 +114,7 @@ export default function LegalPageLayout({
             }}>
               Contents
             </div>
-            <nav style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-              {sections.map((s) => (
-                <a
-                  key={s.id}
-                  href={`#${s.id}`}
-                  style={{
-                    padding: '8px 10px',
-                    fontSize: 12,
-                    fontWeight: active === s.id ? 600 : 500,
-                    color: active === s.id ? 'var(--text-primary)' : 'var(--text-secondary)',
-                    background: active === s.id ? 'var(--brand-primary-soft)' : 'transparent',
-                    boxShadow: active === s.id ? 'inset 2px 0 0 var(--brand-primary)' : 'none',
-                    borderRadius: 'var(--radius-sm)',
-                    textDecoration: 'none',
-                    lineHeight: 1.4,
-                    transition: 'var(--transition-fast)',
-                  }}
-                >
-                  {s.title}
-                </a>
-              ))}
-            </nav>
+            <TableOfContents sections={sections.map(({ id, title }) => ({ id, title }))} />
           </aside>
 
           {/* Content card */}

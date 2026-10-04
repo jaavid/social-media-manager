@@ -6,12 +6,12 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
-import { AppLink as Link } from '../core/navigation';
-import { motion } from 'framer-motion';
+import Link from '../components/marketing/MarketingLink';
+import { MotionDiv } from '../components/marketing/Motion';
 import { ArrowRight, Heart, Compass, Layers, Globe, Linkedin, Twitter } from 'lucide-react';
 
 import MarketingLayout from '../components/marketing/MarketingLayout';
-import Button from '../components/ui/Button';
+import Button from '../components/marketing/MarketingButton';
 import Badge from '../components/ui/Badge';
 import Avatar from '../components/ui/Avatar';
 import Meta from '../components/Meta';
@@ -141,7 +141,7 @@ export default function AboutPage() {
             className="about-values-grid"
           >
             {VALUES.map((v, i) => (
-              <motion.div
+              <MotionDiv
                 key={v.title}
                 initial={{ opacity: 0, y: 14 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -171,7 +171,7 @@ export default function AboutPage() {
                 <p style={{ margin: '6px 0 0', fontSize: 13, lineHeight: 1.6, color: 'var(--text-secondary)' }}>
                   {v.body}
                 </p>
-              </motion.div>
+              </MotionDiv>
             ))}
           </div>
           <style>{`
@@ -204,7 +204,7 @@ export default function AboutPage() {
               className="about-team-grid"
             >
               {TEAM.map((m, i) => (
-                <motion.div
+                <MotionDiv
                   key={m.name}
                   initial={{ opacity: 0, y: 14 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -228,7 +228,7 @@ export default function AboutPage() {
                     <SocialChip icon={Linkedin} label={`${m.name} on LinkedIn`} />
                     <SocialChip icon={Twitter}  label={`${m.name} on Twitter`} />
                   </div>
-                </motion.div>
+                </MotionDiv>
               ))}
             </div>
           ) : (

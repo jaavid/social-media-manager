@@ -6,8 +6,8 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
-import { AppLink as Link } from '../../core/navigation';
-import { motion, useReducedMotion } from 'framer-motion';
+import Link from './MarketingLink';
+import { MotionDiv } from './Motion';
 
 /**
  * FeatureBento — bento-grid feature showcase.
@@ -38,6 +38,7 @@ export default function FeatureBento({ items = [], columns = 4 }) {
     >
       {items.map((it) => <BentoTile key={it.id} {...it} />)}
       <style>{`
+        .mkt-bento-tile:hover { border-color: var(--tile-accent) !important; box-shadow: 0 12px 40px var(--tile-glow); }
         @media (max-width: 1024px) {
           .mkt-bento { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
           .mkt-bento > * { grid-column: span 1 !important; grid-row: span 1 !important; }
@@ -58,7 +59,6 @@ function BentoTile({
   preview,
   accentBg = false,
 }) {
-  const reduced = useReducedMotion();
 
   const toneStyles = {
     cyan:   { accent: '#00CCF5', soft: 'rgba(0,204,245,0.08)',  glow: 'rgba(0,204,245,0.20)' },
@@ -76,22 +76,22 @@ function BentoTile({
   const wrapperProps = to ? { to } : {};
 
   return (
-    <motion.div
-      whileHover={reduced ? {} : { y: -4 }}
+    <MotionDiv
+      whileHover={{ y: -4 }}
       transition={{ duration: 0.25, ease: 'easeOut' }}
       style={{
         gridColumn: `span ${span.col}`,
         gridRow:    `span ${span.row}`,
       }}
     >
-      <Wrapper
+      <Wrapper className="mkt-bento-tile"
         {...wrapperProps}
         style={{
           display: 'flex',
           flexDirection: 'column',
           height: '100%',
           padding: 24,
-          background: bg,
+          background: bg, '--tile-accent': toneStyles.accent, '--tile-glow': toneStyles.glow,
           border: '1px solid var(--border-subtle)',
           borderRadius: 'var(--radius-lg)',
           textDecoration: 'none',
@@ -99,14 +99,6 @@ function BentoTile({
           transition: 'border-color 200ms, box-shadow 200ms',
           position: 'relative',
           overflow: 'hidden',
-        }}
-        onMouseOver={(e) => {
-          e.currentTarget.style.borderColor = toneStyles.accent;
-          e.currentTarget.style.boxShadow = `0 12px 40px ${toneStyles.glow}`;
-        }}
-        onMouseOut={(e) => {
-          e.currentTarget.style.borderColor = 'var(--border-subtle)';
-          e.currentTarget.style.boxShadow = 'none';
         }}
       >
         {/* Header */}
@@ -144,6 +136,6 @@ function BentoTile({
           </div>
         )}
       </Wrapper>
-    </motion.div>
+    </MotionDiv>
   );
 }

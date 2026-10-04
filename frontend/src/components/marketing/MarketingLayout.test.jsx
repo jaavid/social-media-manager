@@ -1,10 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import MarketingLayout from './MarketingLayout';
 
-jest.mock('../../core/navigation', () => ({
-  AppLink: ({ to, children, ...props }) => <a href={to} {...props}>{children}</a>,
-  useAppLocation: () => ({ pathname: '/' }),
-}));
 jest.mock('../ui/ThemeToggle', () => () => <button>Theme</button>);
 
 function mount(width = 1440) {

@@ -1,3 +1,4 @@
+'use client';
 import { forwardRef } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useLanguage } from '../../i18n';

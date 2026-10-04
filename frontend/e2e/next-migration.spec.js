@@ -1,13 +1,13 @@
 import { test, expect } from '@playwright/test';
-import inventory from '../src/core/routes/routeInventory.json' with { type: 'json' };
-import content from '../src/core/routes/route-content.json' with { type: 'json' };
+import inventory from '../src/core/routes/__fixtures__/legacyRoutes.json' with { type: 'json' };
+const sampleSlugs = { product: 'analytics', solutions: 'agencies', customers: 'acme-realty', blog: 'unified-marketing-os-is-here', agencies: 'bluewave-agency' };
 
 test('every inventoried route is served by the standalone Next application', async ({ request }) => {
   test.setTimeout(120000);
   for (const route of inventory.routes) {
     const family = route.path.split('/')[1];
     const url = route.path.replace(/:([A-Za-z]+)/g, (_, param) =>
-      param === 'slug' && content[family] ? Object.keys(content[family])[0] : '42');
+      param === 'slug' && sampleSlugs[family] ? sampleSlugs[family] : '42');
     const response = await request.get(url, { maxRedirects: 0 });
     // Next assigns HTTP 500 to the intentional /500 error page.
     expect(url === '/500' ? [500] : [200, 307, 308], url).toContain(response.status());
@@ -108,7 +108,7 @@ test('staff session resolves before the native settings page is shown', async ({
 });
 
 test('unknown routes and content slugs return HTTP 404', async ({ request }) => {
-  for (const path of ['/not-a-real-route', '/blog/not-a-real-slug', '/product/not-a-real-slug', '/solutions/not-a-real-slug']) {
+  for (const path of ['/not-a-real-route', '/blog/not-a-real-slug', '/product/not-a-real-slug', '/solutions/not-a-real-slug', '/customers/not-a-real-slug', '/agencies/not-a-real-slug', '/product/__proto__', '/blog/constructor']) {
     expect((await request.get(path)).status(), path).toBe(404);
   }
 });
@@ -170,4 +170,57 @@ test('bot flow editor receives its dynamic ID and preserves fullscreen layout', 
   await expect(page.getByRole('button', { name: 'Back', exact: true })).toBeVisible();
   await expect(page.locator('.react-flow')).toBeVisible();
   await expect(page.locator('nav[aria-label="Primary navigation"]')).toHaveCount(0);
+});
+
+test('public pages do not initialize auth or realtime even with a stored token', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('access_token', 'browser-only-secret'));
+  const authRequests = [];
+  const sockets = [];
+  const errors = [];
+  page.on('request', request => { if (new URL(request.url()).pathname === '/api/auth/me/') authRequests.push(request.url()); });
+  page.on('websocket', socket => sockets.push(socket.url()));
+  page.on('pageerror', error => errors.push(error.message));
+  for (const path of ['/privacy', '/features', '/product/analytics', '/blog/unified-marketing-os-is-here']) {
+    await page.goto(path, { waitUntil: 'networkidle' });
+    await expect(page.locator('main h1')).toBeVisible();
+    expect(await page.content()).not.toContain('browser-only-secret');
+  }
+  expect(authRequests).toEqual([]);
+  expect(sockets).toEqual([]);
+  expect(errors).toEqual([]);
+});
+
+test('returning signed-in user still reaches the appropriate dashboard from home', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('access_token', 'test-token'));
+  await page.route('**/api/auth/me/', route => route.fulfill({ json: { id: 7, role: 'client', account_type: 'legacy', client_id: 1 } }));
+  await page.goto('/');
+  await expect(page).toHaveURL(/\/dashboard$/);
+});
+
+test('public cookie choice persists locally and syncs consent without initializing auth', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('access_token', 'test-token'));
+  const consents = [];
+  const authRequests = [];
+  page.on('request', request => { if (new URL(request.url()).pathname === '/api/auth/me/') authRequests.push(request.url()); });
+  await page.route('**/api/privacy/consents/', route => {
+    consents.push(route.request().postDataJSON());
+    return route.fulfill({ json: {} });
+  });
+  await page.goto('/privacy');
+  await page.getByRole('button', { name: 'Accept all', exact: true }).click();
+  await expect(page.getByRole('dialog', { name: 'Cookie preferences' })).toHaveCount(0);
+  await expect.poll(() => consents.length).toBe(2);
+  expect(JSON.parse(await page.evaluate(() => localStorage.getItem('socialstats_cookie_choice'))).choices.analytics).toBe(true);
+  expect(authRequests).toEqual([]);
+  await page.reload();
+  await expect(page.getByRole('dialog', { name: 'Cookie preferences' })).toHaveCount(0);
+});
+
+test('public pages are served from the prerender cache with server content', async ({ request }) => {
+  for (const path of ['/', '/privacy', '/features', '/product/analytics', '/blog/unified-marketing-os-is-here']) {
+    const response = await request.get(path);
+    expect(response.status(), path).toBe(200);
+    expect(response.headers()['x-nextjs-cache'], path).toBe('HIT');
+    expect(await response.text(), path).toContain('<h1');
+  }
 });

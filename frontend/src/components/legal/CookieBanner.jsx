@@ -28,8 +28,6 @@ import { persistentStorage } from '../../lib/runtime/storage';
 import { useEffect, useState } from 'react';
 import { Cookie, ChevronDown, ChevronUp } from 'lucide-react';
 
-import { privacyAPI } from '../../services/api';
-import { useSession as useAuth } from '../../core/session';
 
 
 export const COOKIE_POLICY_VERSION = '2024-11-01';
@@ -45,7 +43,8 @@ export function readCookieChoice() {
 }
 
 
-export default function CookieBanner() {
+/** @param {{ user?: { role?: string, id?: unknown } | null }} props */
+export default function CookieBanner({ user = null }) {
   const [choices, setChoices] = useState(() => readCookieChoice());
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [pending, setPending] = useState({
@@ -54,8 +53,6 @@ export default function CookieBanner() {
     analytics: false,
     marketing: false,
   });
-  const auth = useAuth();
-  const user = auth?.user;
 
   useEffect(() => {
     // Re-check storage on auth change (user may have made the choice while logged-out)
@@ -74,12 +71,12 @@ export default function CookieBanner() {
     } catch { /* ignore */ }
     setChoices(c);
 
-    // If logged in, also persist server-side as UserConsent rows
-    if (user) {
-      try {
-        privacyAPI.setConsent('cookies_analytics', !!c.analytics, 'cookie_banner').catch(() => {});
-        privacyAPI.setConsent('cookies_marketing', !!c.marketing, 'cookie_banner').catch(() => {});
-      } catch { /* ignore */ }
+    // A consent choice may be made on a public page without mounting auth.
+    if (user || persistentStorage.getItem('access_token')) {
+      import('../../services/api').then(({ privacyAPI }) => Promise.all([
+        privacyAPI.setConsent('cookies_analytics', !!c.analytics, 'cookie_banner'),
+        privacyAPI.setConsent('cookies_marketing', !!c.marketing, 'cookie_banner'),
+      ])).catch(() => {});
     }
   }
 

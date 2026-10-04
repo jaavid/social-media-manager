@@ -3,7 +3,7 @@
 ## Project Structure & Module Organization
 
 - `backend/dashboard/` contains Django settings, routing, and Celery configuration. `backend/social_stats/` implements APIs, models, publishing adapters, AI helpers, and security features; migrations and backend tests live inside this app.
-- `frontend/src/app/` owns Next App Router routes and layouts; `src/features/` contains product views and `src/core/` contains providers, session, navigation compatibility, and route inventory. Shared components, hooks, services, stores, and translations live under `src/`. Reuse `components/ui/` primitives and `styles/` design tokens. Static assets live in `frontend/public/`; Jest tests sit beside their source files.
+- `frontend/src/app/` owns Next App Router routes and layouts; `src/features/` contains product views and `src/core/` contains providers, session, navigation compatibility, and legacy route parity fixtures. Shared components, hooks, services, stores, and translations live under `src/`. Reuse `components/ui/` primitives and `styles/` design tokens. Static assets live in `frontend/public/`; Jest tests sit beside their source files.
 - `docs/` holds product and deployment documentation. `docker/`, `infra/`, and `scripts/` contain container configuration, infrastructure examples, and operational utilities.
 
 ## Build, Test, and Development Commands

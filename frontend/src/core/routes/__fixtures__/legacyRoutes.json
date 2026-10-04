@@ -1,0 +1,610 @@
+{
+  "routes": [
+    {
+      "path": "/"
+    },
+    {
+      "path": "/500"
+    },
+    {
+      "path": "/about"
+    },
+    {
+      "path": "/admin",
+      "redirect": "/admin/analytics"
+    },
+    {
+      "path": "/admin/account-settings"
+    },
+    {
+      "path": "/admin/ads"
+    },
+    {
+      "path": "/admin/alerts",
+      "redirect": "/admin/analytics/alerts"
+    },
+    {
+      "path": "/admin/analytics",
+      "redirect": "/admin/analytics/analytics"
+    },
+    {
+      "path": "/admin/analytics/ai-audit"
+    },
+    {
+      "path": "/admin/analytics/ai-studio"
+    },
+    {
+      "path": "/admin/analytics/ai-usage"
+    },
+    {
+      "path": "/admin/analytics/alerts"
+    },
+    {
+      "path": "/admin/analytics/analytics"
+    },
+    {
+      "path": "/admin/analytics/approvals"
+    },
+    {
+      "path": "/admin/analytics/audience"
+    },
+    {
+      "path": "/admin/analytics/audit-log"
+    },
+    {
+      "path": "/admin/analytics/automations"
+    },
+    {
+      "path": "/admin/analytics/brand-voice"
+    },
+    {
+      "path": "/admin/analytics/calendar"
+    },
+    {
+      "path": "/admin/analytics/caption-writer"
+    },
+    {
+      "path": "/admin/analytics/chat-history"
+    },
+    {
+      "path": "/admin/analytics/competitors"
+    },
+    {
+      "path": "/admin/analytics/composer"
+    },
+    {
+      "path": "/admin/analytics/composer/:id"
+    },
+    {
+      "path": "/admin/analytics/dashboard"
+    },
+    {
+      "path": "/admin/analytics/hashtags"
+    },
+    {
+      "path": "/admin/analytics/inbox"
+    },
+    {
+      "path": "/admin/analytics/insights"
+    },
+    {
+      "path": "/admin/analytics/media"
+    },
+    {
+      "path": "/admin/analytics/notifications"
+    },
+    {
+      "path": "/admin/analytics/post-ideas"
+    },
+    {
+      "path": "/admin/analytics/posts"
+    },
+    {
+      "path": "/admin/analytics/queues"
+    },
+    {
+      "path": "/admin/analytics/reports"
+    },
+    {
+      "path": "/admin/analytics/reviews"
+    },
+    {
+      "path": "/admin/analytics/roi"
+    },
+    {
+      "path": "/admin/analytics/synclogs"
+    },
+    {
+      "path": "/admin/analytics/video"
+    },
+    {
+      "path": "/admin/bot-flows"
+    },
+    {
+      "path": "/admin/bot-flows/:id/analytics"
+    },
+    {
+      "path": "/admin/bot-flows/:id/edit"
+    },
+    {
+      "path": "/admin/bot-settings"
+    },
+    {
+      "path": "/admin/bot-templates"
+    },
+    {
+      "path": "/admin/calendar",
+      "redirect": "/admin/analytics/calendar"
+    },
+    {
+      "path": "/admin/caption-writer",
+      "redirect": "/admin/analytics/caption-writer"
+    },
+    {
+      "path": "/admin/client/:clientId"
+    },
+    {
+      "path": "/admin/client/:clientId/edit"
+    },
+    {
+      "path": "/admin/client/:clientId/roi"
+    },
+    {
+      "path": "/admin/client/:clientId/settings"
+    },
+    {
+      "path": "/admin/clients"
+    },
+    {
+      "path": "/admin/conversations"
+    },
+    {
+      "path": "/admin/conversations/:id"
+    },
+    {
+      "path": "/admin/ctwa"
+    },
+    {
+      "path": "/admin/ctwa/:id"
+    },
+    {
+      "path": "/admin/dashboard",
+      "redirect": "/admin/analytics/dashboard"
+    },
+    {
+      "path": "/admin/handoff"
+    },
+    {
+      "path": "/admin/hashtags",
+      "redirect": "/admin/analytics/hashtags"
+    },
+    {
+      "path": "/admin/leads"
+    },
+    {
+      "path": "/admin/leads/:id"
+    },
+    {
+      "path": "/admin/management"
+    },
+    {
+      "path": "/admin/marketplace-profile",
+      "redirect": "/agency/marketplace-profile"
+    },
+    {
+      "path": "/admin/messaging"
+    },
+    {
+      "path": "/admin/messaging/account"
+    },
+    {
+      "path": "/admin/messaging/campaigns"
+    },
+    {
+      "path": "/admin/messaging/campaigns/:id"
+    },
+    {
+      "path": "/admin/messaging/contacts"
+    },
+    {
+      "path": "/admin/messaging/inbox"
+    },
+    {
+      "path": "/admin/messaging/lists"
+    },
+    {
+      "path": "/admin/messaging/templates"
+    },
+    {
+      "path": "/admin/onboarding",
+      "redirect": "/admin"
+    },
+    {
+      "path": "/admin/post-ideas",
+      "redirect": "/admin/analytics/post-ideas"
+    },
+    {
+      "path": "/admin/reports",
+      "redirect": "/admin/analytics/reports"
+    },
+    {
+      "path": "/admin/roi",
+      "redirect": "/admin/analytics/roi"
+    },
+    {
+      "path": "/admin/synclogs",
+      "redirect": "/admin/analytics/synclogs"
+    },
+    {
+      "path": "/admin/trust"
+    },
+    {
+      "path": "/admin/whatsapp",
+      "redirect": "/admin/messaging"
+    },
+    {
+      "path": "/admin/whatsapp/campaigns",
+      "redirect": "/admin/messaging/campaigns"
+    },
+    {
+      "path": "/admin/whatsapp/contacts",
+      "redirect": "/admin/messaging/contacts"
+    },
+    {
+      "path": "/admin/whatsapp/inbox",
+      "redirect": "/admin/messaging/inbox"
+    },
+    {
+      "path": "/admin/whatsapp/settings",
+      "redirect": "/admin/messaging/account"
+    },
+    {
+      "path": "/admin/whatsapp/templates",
+      "redirect": "/admin/messaging/templates"
+    },
+    {
+      "path": "/admin/workspace/:workspaceId"
+    },
+    {
+      "path": "/admin/workspace/:workspaceId/edit"
+    },
+    {
+      "path": "/admin/workspace/:workspaceId/roi"
+    },
+    {
+      "path": "/admin/workspace/:workspaceId/settings"
+    },
+    {
+      "path": "/admin/workspaces"
+    },
+    {
+      "path": "/agencies"
+    },
+    {
+      "path": "/agencies/:slug"
+    },
+    {
+      "path": "/agency",
+      "redirect": "/agency/marketplace-profile"
+    },
+    {
+      "path": "/agency-invite/:token"
+    },
+    {
+      "path": "/agency/marketplace-profile"
+    },
+    {
+      "path": "/auth/callback"
+    },
+    {
+      "path": "/auth/end-user/signup"
+    },
+    {
+      "path": "/blog"
+    },
+    {
+      "path": "/blog/:slug"
+    },
+    {
+      "path": "/changelog"
+    },
+    {
+      "path": "/contact"
+    },
+    {
+      "path": "/cookies"
+    },
+    {
+      "path": "/customers"
+    },
+    {
+      "path": "/customers/:slug"
+    },
+    {
+      "path": "/dashboard",
+      "redirect": "/dashboard/analytics"
+    },
+    {
+      "path": "/dashboard/account-settings"
+    },
+    {
+      "path": "/dashboard/ads"
+    },
+    {
+      "path": "/dashboard/analytics"
+    },
+    {
+      "path": "/dashboard/analytics/ai-audit"
+    },
+    {
+      "path": "/dashboard/analytics/ai-studio"
+    },
+    {
+      "path": "/dashboard/analytics/ai-usage"
+    },
+    {
+      "path": "/dashboard/analytics/alerts"
+    },
+    {
+      "path": "/dashboard/analytics/analytics"
+    },
+    {
+      "path": "/dashboard/analytics/approvals"
+    },
+    {
+      "path": "/dashboard/analytics/audience"
+    },
+    {
+      "path": "/dashboard/analytics/audit-log"
+    },
+    {
+      "path": "/dashboard/analytics/automations"
+    },
+    {
+      "path": "/dashboard/analytics/brand-voice"
+    },
+    {
+      "path": "/dashboard/analytics/calendar"
+    },
+    {
+      "path": "/dashboard/analytics/caption-writer"
+    },
+    {
+      "path": "/dashboard/analytics/chat-history"
+    },
+    {
+      "path": "/dashboard/analytics/competitors"
+    },
+    {
+      "path": "/dashboard/analytics/composer"
+    },
+    {
+      "path": "/dashboard/analytics/composer/:id"
+    },
+    {
+      "path": "/dashboard/analytics/dashboard"
+    },
+    {
+      "path": "/dashboard/analytics/hashtags"
+    },
+    {
+      "path": "/dashboard/analytics/inbox"
+    },
+    {
+      "path": "/dashboard/analytics/insights"
+    },
+    {
+      "path": "/dashboard/analytics/media"
+    },
+    {
+      "path": "/dashboard/analytics/notifications"
+    },
+    {
+      "path": "/dashboard/analytics/post-ideas"
+    },
+    {
+      "path": "/dashboard/analytics/posts"
+    },
+    {
+      "path": "/dashboard/analytics/queues"
+    },
+    {
+      "path": "/dashboard/analytics/reports"
+    },
+    {
+      "path": "/dashboard/analytics/reviews"
+    },
+    {
+      "path": "/dashboard/analytics/roi"
+    },
+    {
+      "path": "/dashboard/analytics/synclogs"
+    },
+    {
+      "path": "/dashboard/analytics/video"
+    },
+    {
+      "path": "/dashboard/calendar",
+      "redirect": "/dashboard/analytics/calendar"
+    },
+    {
+      "path": "/dashboard/caption-writer",
+      "redirect": "/dashboard/analytics/caption-writer"
+    },
+    {
+      "path": "/dashboard/hashtags",
+      "redirect": "/dashboard/analytics/hashtags"
+    },
+    {
+      "path": "/dashboard/messaging"
+    },
+    {
+      "path": "/dashboard/messaging/account"
+    },
+    {
+      "path": "/dashboard/messaging/campaigns"
+    },
+    {
+      "path": "/dashboard/messaging/campaigns/:id"
+    },
+    {
+      "path": "/dashboard/messaging/contacts"
+    },
+    {
+      "path": "/dashboard/messaging/inbox"
+    },
+    {
+      "path": "/dashboard/messaging/lists"
+    },
+    {
+      "path": "/dashboard/messaging/templates"
+    },
+    {
+      "path": "/dashboard/onboarding"
+    },
+    {
+      "path": "/dashboard/post-ideas",
+      "redirect": "/dashboard/analytics/post-ideas"
+    },
+    {
+      "path": "/dashboard/posts",
+      "redirect": "/dashboard/analytics/posts"
+    },
+    {
+      "path": "/dashboard/roi",
+      "redirect": "/dashboard/analytics/roi"
+    },
+    {
+      "path": "/dashboard/settings"
+    },
+    {
+      "path": "/dashboard/whatsapp",
+      "redirect": "/dashboard/messaging"
+    },
+    {
+      "path": "/dashboard/whatsapp/campaigns",
+      "redirect": "/dashboard/messaging/campaigns"
+    },
+    {
+      "path": "/dashboard/whatsapp/contacts",
+      "redirect": "/dashboard/messaging/contacts"
+    },
+    {
+      "path": "/dashboard/whatsapp/inbox",
+      "redirect": "/dashboard/messaging/inbox"
+    },
+    {
+      "path": "/dashboard/whatsapp/settings",
+      "redirect": "/dashboard/messaging/account"
+    },
+    {
+      "path": "/dashboard/whatsapp/templates",
+      "redirect": "/dashboard/messaging/templates"
+    },
+    {
+      "path": "/data-deletion"
+    },
+    {
+      "path": "/dpdp"
+    },
+    {
+      "path": "/features"
+    },
+    {
+      "path": "/for-agencies"
+    },
+    {
+      "path": "/for-businesses"
+    },
+    {
+      "path": "/forgot-password"
+    },
+    {
+      "path": "/gdpr"
+    },
+    {
+      "path": "/help"
+    },
+    {
+      "path": "/help/:category"
+    },
+    {
+      "path": "/integrations"
+    },
+    {
+      "path": "/invitation/:token"
+    },
+    {
+      "path": "/invite/:token"
+    },
+    {
+      "path": "/login"
+    },
+    {
+      "path": "/maintenance"
+    },
+    {
+      "path": "/marketplace"
+    },
+    {
+      "path": "/marketplace/:slug"
+    },
+    {
+      "path": "/oauth/callback"
+    },
+    {
+      "path": "/pending"
+    },
+    {
+      "path": "/privacy"
+    },
+    {
+      "path": "/product/:slug"
+    },
+    {
+      "path": "/report/:token"
+    },
+    {
+      "path": "/reset-password"
+    },
+    {
+      "path": "/security"
+    },
+    {
+      "path": "/signup"
+    },
+    {
+      "path": "/solutions/:slug"
+    },
+    {
+      "path": "/status"
+    },
+    {
+      "path": "/terms"
+    },
+    {
+      "path": "/u"
+    },
+    {
+      "path": "/u/activity"
+    },
+    {
+      "path": "/u/agency"
+    },
+    {
+      "path": "/u/agency/find"
+    },
+    {
+      "path": "/u/approvals"
+    },
+    {
+      "path": "/u/connections"
+    },
+    {
+      "path": "/u/notifications"
+    },
+    {
+      "path": "/verify-email"
+    }
+  ]
+}

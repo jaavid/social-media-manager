@@ -1,3 +1,4 @@
+'use client';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -7,9 +8,8 @@
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
 import { useEffect, useState } from 'react';
-import { AppLink as Link } from '../core/navigation';
+import Link from '../components/marketing/MarketingLink';
 import { AlertTriangle, RefreshCw, Activity, MessageCircle } from 'lucide-react';
-import MarketingLayout from '../components/marketing/MarketingLayout';
 import Button from '../components/ui/Button';
 import Meta from '../components/Meta';
 
@@ -17,7 +17,7 @@ export default function ServerErrorPage() {
   const [reference, setReference] = useState('');
   useEffect(() => setReference(Date.now().toString(36).toUpperCase()), []);
   return (
-    <MarketingLayout>
+    <>
       <Meta
         title="Server error"
         description="Something went wrong on our end. We've been notified and are looking into it."
@@ -92,6 +92,6 @@ export default function ServerErrorPage() {
           </p>
         </div>
       </section>
-    </MarketingLayout>
+    </>
   );
 }

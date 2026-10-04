@@ -1,3 +1,4 @@
+'use client';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -10,7 +11,6 @@ import { apiBaseUrl } from '../lib/runtime/config';
 
 import { useEffect, useMemo, useState } from 'react';
 import { CheckCircle2, AlertTriangle, XCircle, RefreshCw } from 'lucide-react';
-import MarketingLayout from '../components/marketing/MarketingLayout';
 import Badge from '../components/ui/Badge';
 import Meta from '../components/Meta';
 
@@ -150,7 +150,7 @@ export default function StatusPage() {
   const Icon = ov.icon;
 
   return (
-    <MarketingLayout>
+    <>
       <Meta
         title="System Status"
         description="Live uptime, scheduled maintenance, and recent incidents for the Social Stats platform."
@@ -381,6 +381,6 @@ export default function StatusPage() {
           </p>
         </div>
       </section>
-    </MarketingLayout>
+    </>
   );
 }

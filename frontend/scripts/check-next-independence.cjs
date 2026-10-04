@@ -41,10 +41,6 @@ for (const file of active) {
     else if (!fs.realpathSync(resolved).startsWith(next + path.sep)) errors.push(`Import outside Next: ${label}`);
   });
 }
-const inventory = JSON.parse(fs.readFileSync(path.join(next, 'src/core/routes/routeInventory.json'), 'utf8'));
-for (const route of inventory.routes) {
-  if (route.source && !fs.existsSync(path.join(next, 'src', route.source))) errors.push(`Missing route source: ${route.path}`);
-}
 for (const old of ['next', 'pages', 'src/pages', 'docker']) {
   if (fs.existsSync(path.join(root, old))) errors.push(`Old frontend directory remains active: ${old}`);
 }
@@ -52,5 +48,5 @@ if (errors.length) {
   console.error(errors.join('\n'));
   process.exitCode = 1;
 } else {
-  console.log(`Next independence verified: ${inventory.routes.length} routes, ${active.length} active files, public assets without symlinks.`);
+  console.log(`Next independence verified: ${active.length} active files, public assets without symlinks.`);
 }
