@@ -200,14 +200,6 @@ def get_publisher(platform: str) -> BasePublisher:
 
 
 def _autoload() -> None:
-    """Best-effort import of concrete publisher modules so they self-register."""
-    for mod_name in (
-        'facebook', 'instagram', 'youtube', 'linkedin', 'gmb',
-        'telegram', 'bale',
-    ):
-        try:
-            __import__(f'social_stats.publishers.{mod_name}')
-        except ImportError as e:
-            logger.debug('Publisher module not yet present: %s (%s)', mod_name, e)
-        except Exception:
-            logger.exception('Failed to import publisher module: %s', mod_name)
+    """Discover publishers through the shared provider loader."""
+    from social_stats.platforms.provider_registry import _autoload as load_providers
+    load_providers()

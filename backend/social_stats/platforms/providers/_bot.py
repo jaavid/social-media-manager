@@ -41,3 +41,9 @@ class BotPlatformProvider(BasePlatformProvider):
         # Bot APIs have no token-revoke operation; removing our stored token is
         # nevertheless a complete local disconnect.
         return ProviderResult(data={'remote_revocation': False})
+
+    def prepare_publish(self, post, resolve_media):
+        overrides = (getattr(post, 'platform_overrides', None) or {}).get(self.key, {}) or {}
+        return {key: overrides[key] for key in (
+            'destination_context', 'media_items', 'rich_message', 'rich_fallback', 'poll', 'buttons',
+        ) if key in overrides}

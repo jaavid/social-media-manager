@@ -201,8 +201,12 @@ def publish_to_platform(self, unified_post_id: int, platform: str):
         return
 
     except RateLimitError as e:
-        wait = max(int(getattr(e, 'retry_after', None) or 60), 30)
-        if self.request.retries >= self.max_retries:
+        policy = provider.manifest.resilience
+        retry_budget = self.max_retries if provider.manifest.legacy_adapter else min(self.max_retries, policy.max_attempts - 1)
+        if not provider.manifest.legacy_adapter and policy.mutation_retry == 'never':
+            retry_budget = 0
+        wait = max(int((getattr(e, 'retry_after', None) if policy.retry_after else None) or 60), 30)
+        if self.request.retries >= retry_budget:
             _mark_failed(log, code='rate_limited', message='Rate limit retry budget exhausted')
             update_unified_post_status(post.id)
             return
@@ -262,37 +266,36 @@ def _dispatch_publish(
     """Publish through a capability-aware provider/publisher entry point."""
     media_type = (media_type or 'text').lower()
     publish_kwargs = {'destination_id': destination_id} if destination_id else {}
+    from .platforms.base import BasePlatformProvider
     platform = getattr(publisher, 'key', None) or getattr(publisher, 'platform', None)
-    if platform in ('telegram', 'bale'):
-        overrides = (getattr(post, 'platform_overrides', None) or {}).get(platform, {}) or {}
-        for key in ('destination_context', 'media_items', 'rich_message', 'rich_fallback', 'poll', 'buttons'):
-            if key in overrides:
-                publish_kwargs[key] = overrides[key]
-        if platform == 'telegram':
-            from copy import deepcopy
-            publish_kwargs = deepcopy(publish_kwargs)
-            def resolve(value):
-                if isinstance(value, dict):
-                    for key, item in value.items():
-                        if key == 'media' and isinstance(item, str) and item.startswith('asset:'):
-                            urls = _resolve_media_urls(post, [item])
-                            if urls == [item]:
-                                raise PublishError('Media asset is missing from this workspace', code='media_invalid')
-                            value[key] = urls[0]
-                        else:
-                            resolve(item)
-                elif isinstance(value, list):
-                    for item in value:
-                        resolve(item)
-            resolve(publish_kwargs)
+    try:
+        extension_provider = publisher if isinstance(publisher, BasePlatformProvider) else (
+            get_provider(platform) if isinstance(platform, str) else None)
+        if extension_provider:
+            publish_kwargs.update(extension_provider.prepare_publish(post, _resolve_media_urls))
+    except NotImplementedError:
+        pass
     # Accept a raw legacy publisher for callers/tests during the registry
     # transition; production passes a provider.
-    from .platforms.base import BasePlatformProvider
-    if not isinstance(publisher, BasePlatformProvider) and platform != 'telegram':
+    if not isinstance(publisher, BasePlatformProvider) and getattr(publisher, 'provider_entrypoint', False) is not True:
         from .publishers.base import BasePublisher
         return BasePublisher.publish(
             publisher, credential, media_type=media_type, content=content,
             media_urls=media_urls, **publish_kwargs,
+        )
+    if isinstance(publisher, BasePlatformProvider) and not publisher.manifest.legacy_adapter:
+        from .platforms.contracts import DestinationContext, PublishRequest
+        from .platforms.execution import ProviderExecution
+        account = credential.social_account
+        destination = DestinationContext(
+            account_id=account.pk if account else 0, workspace_id=post.client_id,
+            kind=(getattr(account, 'metadata', None) or {}).get('destination_type', 'profile'),
+            remote_id=destination_id or (account.external_id if account else ''),
+        )
+        return ProviderExecution(publisher, credential, destination).call(
+            'publish', PublishRequest(media_type=media_type, content=content,
+                                      media_urls=tuple(media_urls), idempotency_key=f'post:{post.pk}',
+                                      extensions={k: v for k, v in publish_kwargs.items() if k != 'destination_id'}),
         )
     return publisher.publish(
         credential, media_type=media_type, content=content,

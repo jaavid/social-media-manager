@@ -42,7 +42,7 @@ class PlatformMetadataTests(APISimpleTestCase):
         allowed_platform_fields = {
             'key', 'titles', 'category', 'order', 'auth_type',
             'rollout_status', 'capabilities',
-            'features',
+            'features', 'contract',
         }
         for platform in response.json()['platforms']:
             self.assertEqual(set(platform), allowed_platform_fields)

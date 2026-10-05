@@ -16,3 +16,42 @@ class TelegramProvider(BotPlatformProvider):
         media_types=TelegramPublisher.SUPPORTED_TYPES,
         features=frozenset({'media_group', 'mixed_media_group', 'rich_message', 'polls', 'forum_topics'}),
     )
+
+    def connection_identity(self, result):
+        destination = result.data['destination']
+        return (str(destination.get('chat_id') or result.destination_id),
+                destination['name'], {'bot_id': result.account_id})
+
+    def connected(self, account, result):
+        from social_stats.models import TelegramIntegration
+        TelegramIntegration.objects.get_or_create(
+            account=account, defaults={'destination_context': {
+                'destination_type': result.data['destination'].get('type') or 'channel'}},
+        )
+
+    def disconnected(self, account):
+        from social_stats.models import TelegramIntegration
+        TelegramIntegration.objects.filter(account=account).update(
+            webhook_enabled=False, assistant_enabled=False,
+        )
+
+    def prepare_publish(self, post, resolve_media):
+        from copy import deepcopy
+        from social_stats.publishers.base import PublishError
+        kwargs = deepcopy(super().prepare_publish(post, resolve_media))
+
+        def resolve(value):
+            if isinstance(value, dict):
+                for key, item in value.items():
+                    if key == 'media' and isinstance(item, str) and item.startswith('asset:'):
+                        urls = resolve_media(post, [item])
+                        if urls == [item]:
+                            raise PublishError('Media asset is missing from this workspace', code='media_invalid')
+                        value[key] = urls[0]
+                    else:
+                        resolve(item)
+            elif isinstance(value, list):
+                for item in value:
+                    resolve(item)
+        resolve(kwargs)
+        return kwargs

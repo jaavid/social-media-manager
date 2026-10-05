@@ -1,0 +1,99 @@
+{
+  "categories": [
+    {
+      "key": "messaging",
+      "order": 10,
+      "title_fa": "پیام‌رسان‌ها",
+      "title_en": "Messaging"
+    },
+    {
+      "key": "video",
+      "order": 20,
+      "title_fa": "ویدئومحور",
+      "title_en": "Video"
+    },
+    {
+      "key": "social_content",
+      "order": 30,
+      "title_fa": "شبکه‌های اجتماعی محتوایی",
+      "title_en": "Content social networks"
+    },
+    {
+      "key": "location",
+      "order": 40,
+      "title_fa": "مکان‌محور",
+      "title_en": "Location based"
+    },
+    {
+      "key": "general_social",
+      "order": 50,
+      "title_fa": "شبکه‌های اجتماعی عمومی",
+      "title_en": "General social networks"
+    },
+    {
+      "key": "professional",
+      "order": 60,
+      "title_fa": "شبکه‌های حرفه‌ای",
+      "title_en": "Professional networks"
+    }
+  ],
+  "platforms": [
+    {
+      "key": "contract_example",
+      "titles": {
+        "fa": "آزمایشی",
+        "en": "Contract example"
+      },
+      "category": "general_social",
+      "order": 20,
+      "auth_type": "custom",
+      "rollout_status": "experimental",
+      "capabilities": {
+        "connection": "supported",
+        "disconnect": "supported",
+        "publish_text": "supported",
+        "publish_image": "not_available",
+        "publish_video": "not_available",
+        "scheduling": "not_available",
+        "analytics": "supported",
+        "inbox": "supported",
+        "comments": "not_available",
+        "reviews": "not_available",
+        "webhooks": "supported"
+      },
+      "features": {},
+      "contract": {
+        "version": 1,
+        "destination_types": [
+          "profile"
+        ],
+        "constraints": {
+          "publish_text": {
+            "status": "supported",
+            "media_types": [],
+            "destination_types": [],
+            "scopes": [
+              "publish"
+            ],
+            "max_items": null,
+            "max_bytes": null,
+            "max_characters": 100
+          }
+        },
+        "brand": {
+          "icon": "",
+          "color": ""
+        },
+        "inbound": "both",
+        "extensions": [],
+        "resilience": {
+          "retry_after": true,
+          "max_attempts": 3,
+          "mutation_retry": "reconcile_first",
+          "idempotency": "local",
+          "reconciliation": "manual"
+        }
+      }
+    }
+  ]
+}
