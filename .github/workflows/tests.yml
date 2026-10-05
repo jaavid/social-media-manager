@@ -76,6 +76,13 @@ jobs:
           ALLOWED_HOSTS: "*"
         run: python manage.py makemigrations social_stats --check --dry-run --verbosity=3
 
+      - name: Provider conformance contracts
+        working-directory: backend
+        env:
+          SECRET_KEY: test-secret-not-for-prod
+          DEBUG: "False"
+        run: python manage.py check_provider_conformance
+
       - name: Run Django tests
         working-directory: backend
         env:

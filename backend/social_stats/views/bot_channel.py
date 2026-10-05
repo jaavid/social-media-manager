@@ -86,5 +86,5 @@ def bot_channel_connection(request, client_id, platform):
         'success': True,
         'credential_id': credential.id,
         'platform': platform,
-        **result.data,
+        **result.public_data(),
     })

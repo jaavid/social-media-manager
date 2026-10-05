@@ -1,6 +1,6 @@
 # قابلیت‌های پلتفرم‌ها
 
-مرجع واحد [platform_registry.py](../backend/social_stats/platform_registry.py) است؛ جدول زیر عین خروجی آن است و `python manage.py check_platform_config` هماهنگی آن با frontend را بررسی می‌کند.
+مرجع واحد [definitions.py](../backend/social_stats/platforms/definitions.py) است؛ [platform_registry.py](../backend/social_stats/platform_registry.py) نمای سازگار آن؛ جدول زیر عین خروجی آن است و `python manage.py check_platform_config` هماهنگی آن با frontend را بررسی می‌کند.
 
 `supported`: پیاده‌سازی‌شده؛ `beta`: قابل‌استفاده با محدودیت؛ `planned`: هنوز آماده نیست؛ `not_available`: موجود نیست. مجوز و سهمیهٔ provider همچنان لازم است. WhatsApp/Pinbot ماژول جدا دارد؛ [اتصال](CONNECT_ACCOUNTS.md).
 
@@ -9,13 +9,13 @@
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | Facebook | supported | supported | supported | supported | supported | supported | supported | supported | supported | not_available | supported |
 | Instagram | supported | supported | not_available | supported | supported | supported | supported | supported | supported | not_available | supported |
-| YouTube | supported | supported | not_available | not_available | supported | supported | supported | not_available | supported | not_available | beta |
 | LinkedIn | supported | supported | supported | supported | supported | supported | beta | not_available | beta | not_available | not_available |
-| Google Business Profile | supported | supported | supported | supported | not_available | supported | supported | not_available | not_available | supported | not_available |
 | Telegram | supported | supported | supported | supported | supported | supported | not_available | supported | not_available | not_available | supported |
 | Bale | supported | supported | supported | supported | supported | supported | not_available | planned | not_available | not_available | planned |
 | Eitaa | planned | planned | planned | planned | planned | planned | not_available | planned | not_available | not_available | planned |
+| YouTube | supported | supported | not_available | not_available | supported | supported | supported | not_available | supported | not_available | beta |
 | Aparat | planned | planned | not_available | not_available | planned | planned | planned | not_available | planned | not_available | planned |
+| Google Business Profile | supported | supported | supported | supported | not_available | supported | supported | not_available | not_available | supported | not_available |
 <!-- platform-matrix:end -->
 
 فقط `supported` و `beta` تعاملی باشند؛ `planned` غیرفعال و `not_available` پنهان. وصل‌بودن حساب به معنی آماده‌بودن همهٔ قابلیت‌ها نیست.
@@ -78,3 +78,5 @@ callbackهای acknowledgement توکن تصادفی، محدود به account/c
 پاسخ نهایی با پیام عادی ذخیره می‌شود؛ توقف تولید draftهای بعدی را قطع می‌کند.
 پیکربندی AI موجود پروژه طبق [راهنمای شروع](GETTING_STARTED.md) لازم است. تست قراردادها provider را mock می‌کند؛
 پیش از rollout، webhook و ارسال واقعی را با bot آزمایشی بررسی کنید.
+
+قرارداد افزودن provider: [PLATFORM_INTEGRATION_CONTRACT.md](PLATFORM_INTEGRATION_CONTRACT.md) و [چک‌لیست onboarding](PLATFORM_PROVIDER_CHECKLIST.md).

@@ -8,6 +8,7 @@ from . import telegram_content as dto
 
 
 class TelegramPublisher(BotPublisher):
+    provider_entrypoint = True
     platform = "telegram"
     API_BASE_URL = "https://api.telegram.org"
     SUPPORTED_TYPES = BotPublisher.SUPPORTED_TYPES | {"album", "rich", "poll"}

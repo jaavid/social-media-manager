@@ -8,11 +8,51 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Mapping
 
-from social_stats.publishers.base import PublishError, PublishResult
+from social_stats.publishers.base import PublishError, PublishResult, RateLimitError, TokenExpiredError
 
 
 class ProviderError(PublishError):
     """A normalized provider failure (``code`` is safe for API responses)."""
+
+
+class ProviderRateLimitError(ProviderError, RateLimitError):
+    """Preserve worker backoff handling while remaining a provider error."""
+
+
+class ProviderTokenExpiredError(ProviderError, TokenExpiredError):
+    """Preserve worker credential deactivation handling."""
+
+
+def public_provider_data(value, secrets=()):
+    from social_stats.observability import redact
+    value = redact(value)
+
+    def scrub(item):
+        if isinstance(item, dict):
+            return {key: scrub(v) for key, v in item.items()}
+        if isinstance(item, list):
+            return [scrub(v) for v in item]
+        if isinstance(item, str):
+            for secret in secrets:
+                if secret:
+                    item = item.replace(secret, '[REDACTED]')
+        return item
+    return scrub(value)
+
+
+def safe_provider_error(exc):
+    if exc.code == 'rate_limited':
+        return ProviderRateLimitError('Provider operation failed', retry_after=getattr(exc, 'retry_after', None))
+    if exc.code == 'token_expired':
+        return ProviderTokenExpiredError('Provider operation failed')
+    safe_codes = {'unsupported', 'token_expired', 'rate_limited', 'permission_denied',
+                  'media_invalid', 'media_too_large', 'timeout', 'network_error',
+                  'invalid_response', 'invalid_credentials'}
+    safe = ProviderError('Provider operation failed',
+                         code=exc.code if exc.code in safe_codes else 'provider_error',
+                         supported=exc.supported)
+    safe.retry_after = getattr(exc, 'retry_after', None)
+    return safe
 
 
 @dataclass(frozen=True)
@@ -26,6 +66,22 @@ class ProviderCapabilities:
     media_types: frozenset[str] = frozenset()
     features: frozenset[str] = frozenset()
 
+    @classmethod
+    def from_manifest(cls, manifest):
+        media_types = set()
+        for media_type in ('text', 'image', 'video'):
+            policy = manifest.capability(f'publish_{media_type}')
+            if policy.enabled:
+                media_types.update(policy.media_types or (media_type,))
+        return cls(
+            connect=manifest.capability('connection').enabled,
+            publish=bool(media_types), stats=manifest.capability('analytics').enabled,
+            inbox=manifest.capability('inbox').enabled,
+            comments=manifest.capability('comments').enabled,
+            revoke=manifest.capability('disconnect').enabled,
+            media_types=frozenset(media_types), features=frozenset(manifest.extensions),
+        )
+
     def supports_feature(self, feature: str) -> bool:
         return feature in self.features
 
@@ -37,8 +93,8 @@ class ProviderCapabilities:
 @dataclass
 class ProviderResult:
     success: bool = True
-    data: dict[str, Any] = field(default_factory=dict)
-    raw_response: dict[str, Any] = field(default_factory=dict)
+    data: dict[str, Any] = field(default_factory=dict, repr=False)
+    raw_response: dict[str, Any] = field(default_factory=dict, repr=False)
     warnings: list[str] = field(default_factory=list)
 
 
@@ -47,10 +103,14 @@ class ConnectionResult(ProviderResult):
     account_id: str = ''
     account_name: str = ''
     destination_id: str = ''
+    destination_type: str = 'profile'
     scope: str = ''
-    access_token: str = ''
-    refresh_token: str = ''
+    access_token: str = field(default='', repr=False)
+    refresh_token: str = field(default='', repr=False)
     expires_at: Any = None
+
+    def public_data(self):
+        return public_provider_data(self.data, (self.access_token, self.refresh_token))
 
 
 @dataclass
@@ -71,6 +131,7 @@ class BasePlatformProvider:
     label = ''
     capabilities = ProviderCapabilities()
     publisher = None
+    manifest = None
 
     def validate_credentials(self, credentials: Mapping[str, Any]) -> ConnectionResult:
         return self._unsupported('validate_credentials')
@@ -111,3 +172,57 @@ class BasePlatformProvider:
             f'{self.label or self.key} does not support {operation}',
             code='unsupported', supported=False,
         )
+
+    def publish_request(self, credential, destination, request) -> PublishResult:
+        return self.publish(
+            credential, media_type=request.media_type, content=request.content,
+            media_urls=list(request.media_urls),
+            destination_id=destination.remote_id or credential.social_account.external_id,
+            **dict(request.extensions),
+        )
+
+    def disconnect(self, credential, destination, request=None) -> ProviderResult:
+        return self.revoke(credential)
+
+    def refresh(self, credential, destination, request=None) -> ConnectionResult:
+        return self._unsupported('refresh')
+
+    def sync(self, credential, destination, request=None) -> StatsResult:
+        return self.sync_stats(credential)
+
+    def analytics(self, credential, destination, request=None) -> StatsResult:
+        return self.sync_stats(credential)
+
+    def ingest(self, credential, destination, request=None) -> InboxResult:
+        return self._unsupported('ingest')
+
+    def reply(self, credential, destination, request=None) -> ProviderResult:
+        return self._unsupported('reply')
+
+    def health(self, credential):
+        from .contracts import HealthResult
+        if (not credential.is_active or not credential.access_token
+                or not getattr(getattr(credential, 'social_account', None), 'is_active', True)):
+            return HealthResult(False, 'not_connected')
+        if credential.is_expired:
+            return HealthResult(False, 'expired', 'token_expired')
+        return HealthResult(True, 'ready')
+
+    def connection_identity(self, result):
+        return result.destination_id or result.account_id, result.account_name, {}
+
+    def connected(self, account, result):
+        """Provider-owned extension persistence, within the connection transaction."""
+
+    def disconnected(self, account):
+        """Provider-owned local extension cleanup."""
+
+    def prepare_publish(self, post, resolve_media):
+        """Translate only this provider's optional extensions into adapter input."""
+        return {}
+
+    def outbound_request(self, method, url, **kwargs):
+        from social_stats.egress import outbound_request
+        if not self.manifest or not self.manifest.egress_service:
+            raise ProviderError('Provider egress service is not configured', code='egress_denied')
+        return outbound_request(self.manifest.egress_service, method, url, **kwargs)
