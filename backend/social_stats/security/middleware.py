@@ -26,6 +26,9 @@ from __future__ import annotations
 
 import logging
 import uuid
+from time import monotonic
+
+from social_stats.observability import request_id_context, safe_request_id
 
 from django.conf import settings
 
@@ -142,16 +145,28 @@ class RequestIDMiddleware:
         # same client address rather than the inner nginx/Daphne loopback IP.
         normalize_request_client_ip(request)
 
-        incoming = (request.META.get(self.HEADER_IN) or '').strip()[:64]
-        request_id = incoming if _looks_safe(incoming) else uuid.uuid4().hex
+        request_id = safe_request_id(request.META.get(self.HEADER_IN)) or uuid.uuid4().hex
         request.id = request_id
-        response = self.get_response(request)
-        response[self.HEADER_OUT] = request_id
-        return response
+        token = request_id_context.set(request_id)
+        started = monotonic()
+        status = 500
+        try:
+            response = self.get_response(request)
+            status = response.status_code
+            response[self.HEADER_OUT] = request_id
+            return response
+        finally:
+            try:
+                logger.info('request_completed', extra={
+                    'method': request.method,
+                    'path': request.path,
+                    'status_code': status,
+                    'duration_ms': round((monotonic() - started) * 1000, 2),
+                })
+            finally:
+                request_id_context.reset(token)
 
 
 def _looks_safe(s: str) -> bool:
-    """Allow alphanumerics + dashes + underscores only."""
-    if not s:
-        return False
-    return all(c.isalnum() or c in '-_' for c in s)
+    """Compatibility helper: require a bounded ASCII correlation identifier."""
+    return bool(safe_request_id(s))

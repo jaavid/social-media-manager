@@ -12,6 +12,7 @@ import sys as _sys
 from datetime import timedelta
 from celery.schedules import crontab
 from dotenv import load_dotenv
+from corsheaders.defaults import default_headers
 from .admin import UNFOLD  # noqa: F401
 
 load_dotenv()
@@ -57,8 +58,8 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'social_stats.admin_locale.BackendAdminLocaleMiddleware',
     'social_stats.security.middleware.RequestIDMiddleware',
+    'social_stats.admin_locale.BackendAdminLocaleMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     # Serves collected static files (Django admin CSS/JS) from the app
@@ -254,6 +255,7 @@ CORS_ALLOWED_ORIGINS   = [
 CORS_ALLOW_CREDENTIALS = True
 # Surface the request-id header so the frontend can include it in support reports.
 CORS_EXPOSE_HEADERS    = ['X-Request-ID']
+CORS_ALLOW_HEADERS = (*default_headers, 'x-request-id')
 
 # ── JWT Auth ──────────────────────────────────────────
 SIMPLE_JWT = {
@@ -437,3 +439,30 @@ PINBOT_BASE_URL              = os.environ.get('PINBOT_BASE_URL', 'https://partne
 WHATSAPP_ENCRYPTION_KEY      = os.environ.get('WHATSAPP_ENCRYPTION_KEY', '')
 WHATSAPP_WEBHOOK_SECRET      = os.environ.get('WHATSAPP_WEBHOOK_SECRET', '')
 WHATSAPP_RATE_LIMIT_PER_SEC  = int(os.environ.get('WHATSAPP_RATE_LIMIT_PER_SEC', '20'))
+
+# JSON on stdout in every environment so development exercises production policy.
+# Celery setup_logging uses this same configuration, including redaction.
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'production': {'()': 'social_stats.observability.ProductionJSONFormatter'},
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler', 'stream': 'ext://sys.stdout',
+            'formatter': 'production',
+        },
+    },
+    'root': {'handlers': ['console'], 'level': os.environ.get('LOG_LEVEL', 'INFO')},
+    'loggers': {
+        'django': {'handlers': ['console'], 'level': 'INFO', 'propagate': False},
+        'celery': {'handlers': ['console'], 'level': 'INFO', 'propagate': False},
+        # Django defaults give this logger its own unredacted access handler.
+        'django.server': {'handlers': ['console'], 'level': 'INFO', 'propagate': False},
+        # Celery's success trace prints raw return values. Our lifecycle events
+        # retain name/id/state instead; failure diagnostics still pass redaction.
+        'celery.app.trace': {'level': 'WARNING'},
+        'celery.worker.strategy': {'level': 'WARNING'},
+    },
+}

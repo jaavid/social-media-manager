@@ -20,6 +20,9 @@ services:
         NEXT_PUBLIC_WS_URL: "${NEXT_PUBLIC_WS_URL:-}"
         NEXT_PUBLIC_PLAUSIBLE_DOMAIN: "${NEXT_PUBLIC_PLAUSIBLE_DOMAIN:-}"
         NEXT_PUBLIC_PLAUSIBLE_HOST: "${NEXT_PUBLIC_PLAUSIBLE_HOST:-}"
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
     env_file:
       - .env
     environment:
@@ -43,7 +46,7 @@ services:
       # Bind to localhost by default: expose the app through the host reverse
       # proxy/CDN, not directly on every network interface. Set APP_BIND=0.0.0.0
       # only when direct host exposure is intentional.
-      - "${APP_BIND:-127.0.0.1}:${APP_PORT:-3000}:80"
+      - "${APP_BIND:-127.0.0.1}:${APP_PORT:-3000}:8080"
     volumes:
       - media:/app/backend/media
     depends_on:
@@ -53,7 +56,7 @@ services:
         condition: service_healthy
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://127.0.0.1/healthz"]
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/healthz"]
       interval: 30s
       timeout: 5s
       retries: 3

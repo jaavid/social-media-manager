@@ -51,7 +51,9 @@ class RuntimeProxyHardeningTests(SimpleTestCase):
         nginx = (self.repo_root / 'docker/nginx.conf').read_text(encoding='utf-8')
         supervisor = (self.repo_root / 'docker/supervisord.conf').read_text(encoding='utf-8')
 
-        self.assertIn('$request_method $uri $server_protocol', nginx)
+        self.assertIn('\"path\":\"$uri\"', nginx)
+        self.assertNotIn('$http_referer', nginx)
+        self.assertNotIn('$http_user_agent', nginx)
         self.assertNotIn('$request_uri', nginx)
         self.assertIn('access_log /dev/stdout socialstats_safe;', nginx)
         self.assertIn('--access-log /dev/null', supervisor)

@@ -45,11 +45,12 @@ RUN --mount=type=secret,id=proxy_ca \
     && apt-get purge -y gcc libpq-dev \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/* \
-    && useradd --system --uid 999 --create-home --home-dir /home/socialstats socialstats \
-    && mkdir -p /app/backend/media /app/backend/staticfiles /var/log/supervisor \
-    && chown -R socialstats:socialstats /app/backend/media /app/backend/staticfiles /home/socialstats \
+    && groupadd --system --gid 999 socialstats \
+    && useradd --system --uid 999 --gid 999 --create-home --home-dir /home/socialstats socialstats \
+    && mkdir -p /app/backend/media /app/backend/staticfiles /run/socialstats /var/cache/nginx \
     && chmod -R a+rX /app/backend \
-    && SECRET_KEY=build-only DEBUG=True python manage.py collectstatic --noinput
+    && SECRET_KEY=build-only DEBUG=True python manage.py collectstatic --noinput \
+    && chown -R 999:999 /app/backend/media /app/backend/staticfiles /home/socialstats /run/socialstats /var/cache/nginx
 # One assembly layer also keeps builds practical on VFS Docker runners, where
 # each COPY otherwise duplicates the complete Python/media dependency image.
 RUN --mount=from=frontend-build,source=/runtime,target=/runtime,ro \
@@ -59,16 +60,21 @@ RUN --mount=from=frontend-build,source=/runtime,target=/runtime,ro \
     && mkdir -p /app/docs /opt/socialstats-docker \
     && cp /tmp/PLATFORM_SUPPORT.md /app/docs/PLATFORM_SUPPORT.md \
     && cp -a /tmp/socialstats-docker/. /opt/socialstats-docker/ \
-    && chown -R 999:999 /app/frontend /app/bin /app/docs \
+    && mkdir -p /app/frontend/.next/cache \
+    && chown -R 999:999 /app/frontend/.next/cache \
     && cp /opt/socialstats-docker/nginx.conf /etc/nginx/conf.d/default.conf \
-    && cp /opt/socialstats-docker/supervisord.conf /etc/supervisor/conf.d/socialstats.conf \
+    && cp /opt/socialstats-docker/nginx-main.conf /etc/nginx/nginx.conf \
+    && cp /opt/socialstats-docker/supervisord.conf /etc/supervisor/supervisord.conf \
     && cp /opt/socialstats-docker/entrypoint.sh /usr/local/bin/socialstats-entrypoint \
     && rm -f /etc/nginx/sites-enabled/default \
-    && chmod +x /usr/local/bin/socialstats-entrypoint
+    && chmod -R a+rX /app/frontend /app/bin /app/docs \
+    && chmod 644 /etc/nginx/nginx.conf /etc/nginx/conf.d/default.conf /etc/supervisor/supervisord.conf \
+    && chmod 755 /usr/local/bin/socialstats-entrypoint
 
-EXPOSE 80
+USER 999:999
+EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
-  CMD curl -fsS http://127.0.0.1/healthz || exit 1
+  CMD curl -fsS http://127.0.0.1:8080/healthz || exit 1
 
 ENTRYPOINT ["/usr/local/bin/socialstats-entrypoint"]
 CMD ["/usr/bin/supervisord", "-n", "-c", "/etc/supervisor/supervisord.conf"]
