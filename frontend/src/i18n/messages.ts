@@ -194,8 +194,32 @@ const marketingEn = {"home.title": "Ravinta — From idea to impact", "home.desc
 const marketingFa = {"home.title": "راوینتا — از ایده تا اثر", "home.description": "حضور دیجیتال را در یک فضای کاری مشترک برنامه‌ریزی، تولید، تأیید، منتشر و ارزیابی کنید.", "home.hero.prefix": "یک", "home.hero.product": "سیستم بازاریابی هوشمند", "home.hero.audience": "برای آژانس‌های مدرن", "home.hero.description": "آمار، محتوا، گفتگوها و تبلیغات هر فضای کاری را در ۵ پلتفرم از یک محل مدیریت کنید.", "home.new": "جدید", "home.announcement": "سازنده بات CTWA در دسترس است", "home.start": "شروع رایگان", "home.demo": "مشاهده عملکرد"} as const;
 const catalogEn = {"catalog.identifier": "RV-115", "catalog.url": "https://example.com/posts/115", "catalog.sample": "Publishing workflow 0123456789", "catalog.mixed": "Content identifier", "catalog.light": "Light", "catalog.dark": "Dark", "catalog.system": "System", "catalog.success": "Success", "catalog.warning": "Warning", "catalog.danger": "Danger", "catalog.info": "Information",  "catalog.persian": "Persian", "catalog.english": "English","catalog.title": "Design system reference", "catalog.intro": "Typography, surfaces, interaction states and layered controls.", "catalog.theme": "Theme", "catalog.language": "Language", "catalog.modal": "Open dialog", "catalog.dialog": "Layering example", "catalog.select": "Choose an option", "catalog.option": "Example option", "catalog.close": "Close", "catalog.primary": "Primary action", "catalog.destructive": "Delete", "catalog.disabled": "Disabled", "catalog.status": "Status colors", "catalog.typography": "Typography"} as const;
 const catalogFa = {"catalog.identifier": "RV-115", "catalog.url": "https://example.com/posts/115", "catalog.sample": "برنامه‌ریزیِ مُحتوا؛ تأیید می‌شود ۰۱۲۳۴۵۶۷۸۹", "catalog.mixed": "شناسهٔ محتوا", "catalog.light": "روشن", "catalog.dark": "تیره", "catalog.system": "سیستم", "catalog.success": "موفق", "catalog.warning": "هشدار", "catalog.danger": "خطر", "catalog.info": "اطلاعات",  "catalog.persian": "فارسی", "catalog.english": "انگلیسی","catalog.title": "مرجع سیستم طراحی", "catalog.intro": "تایپوگرافی، سطح‌ها، حالت‌های تعاملی و کنترل‌های لایه‌ای.", "catalog.theme": "پوسته", "catalog.language": "زبان", "catalog.modal": "باز کردن پنجره", "catalog.dialog": "نمونه لایه‌بندی", "catalog.select": "یک گزینه انتخاب کنید", "catalog.option": "گزینه نمونه", "catalog.close": "بستن", "catalog.primary": "اقدام اصلی", "catalog.destructive": "حذف", "catalog.disabled": "غیرفعال", "catalog.status": "رنگ‌های وضعیت", "catalog.typography": "تایپوگرافی"} as const;
-export const enMessages = { ...accountsEn, ...commonEn, ...marketingEn, ...catalogEn } as const;
+const composerEn = {
+  'composer.queue.action': 'Add to Queue',
+  'composer.queue.destination': 'Destination queue',
+  'composer.queue.select': 'Select a queue',
+  'composer.queue.paused': 'Paused',
+  'composer.queue.loading': 'Loading queues…',
+  'composer.queue.unavailable': 'Queues could not be loaded. Try again by reloading the page after saving your draft.',
+  'composer.queue.empty': 'No queues match this workspace and the selected platforms. Choose platforms or create a matching queue on the Queues page.',
+  'composer.queue.hint': 'The selected queue controls when this content is published. Paused queues wait until resumed.',
+  'composer.queue.success': 'Added to queue',
+  'composer.queue.failed': 'Could not add to queue. Your content is preserved; try again.',
+} as const;
+const composerFa = {
+  'composer.queue.action': 'افزودن به صف',
+  'composer.queue.destination': 'صف مقصد',
+  'composer.queue.select': 'یک صف انتخاب کنید',
+  'composer.queue.paused': 'متوقف',
+  'composer.queue.loading': 'در حال دریافت صف‌ها…',
+  'composer.queue.unavailable': 'دریافت صف‌ها ممکن نشد. پس از ذخیره پیش‌نویس، صفحه را دوباره بارگذاری کنید.',
+  'composer.queue.empty': 'صفی برای این فضای کاری و پلتفرم‌های انتخاب‌شده وجود ندارد. پلتفرم‌ها را انتخاب کنید یا در صفحه صف‌ها یک صف مناسب بسازید.',
+  'composer.queue.hint': 'صف انتخاب‌شده زمان انتشار این محتوا را تعیین می‌کند. صف‌های متوقف تا زمان فعال شدن منتظر می‌مانند.',
+  'composer.queue.success': 'به صف اضافه شد',
+  'composer.queue.failed': 'افزودن به صف ممکن نشد. محتوای شما حفظ شده؛ دوباره تلاش کنید.',
+} as const;
+export const enMessages = { ...composerEn, ...accountsEn, ...commonEn, ...marketingEn, ...catalogEn } as const;
 export type MessageKey = keyof typeof enMessages;
-export const faMessages = { ...accountsFa, ...commonFa, ...marketingFa, ...catalogFa, ...{"common.allClients":"همه فضاهای کاری","common.searchClients":"جست‌وجوی فضاهای کاری…","session.unavailable":"ارتباط با حساب شما ممکن نیست. دوباره تلاش کنید.","session.retry":"تلاش دوباره","common.items":"{count, plural, one {# مورد} other {# مورد}}"} } as const satisfies Record<MessageKey, string>;
+export const faMessages = { ...composerFa, ...accountsFa, ...commonFa, ...marketingFa, ...catalogFa, ...{"common.allClients":"همه فضاهای کاری","common.searchClients":"جست‌وجوی فضاهای کاری…","session.unavailable":"ارتباط با حساب شما ممکن نیست. دوباره تلاش کنید.","session.retry":"تلاش دوباره","common.items":"{count, plural, one {# مورد} other {# مورد}}"} } as const satisfies Record<MessageKey, string>;
 export type Language = 'fa' | 'en';
 export const messages = { en: enMessages, fa: faMessages };
