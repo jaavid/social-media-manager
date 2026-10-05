@@ -201,6 +201,12 @@ SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY    = False  # double-submit cookie pattern needs JS read
 SESSION_COOKIE_SAMESITE = os.environ.get('SESSION_COOKIE_SAMESITE', 'Lax')
 CSRF_COOKIE_SAMESITE    = os.environ.get('CSRF_COOKIE_SAMESITE', 'Lax')
+# Next's external rewrite sends Django its upstream Host. Trust only explicitly
+# configured browser origins for cookie-authenticated requests through that proxy.
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip() for origin in os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',')
+    if origin.strip()
+]
 
 # HSTS — default to 1 year preload-eligible in prod; 0 in dev (so the browser
 # doesn't latch onto http://localhost behaviour).

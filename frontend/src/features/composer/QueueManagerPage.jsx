@@ -19,6 +19,7 @@ import EmptyState from '../../components/ui/EmptyState';
 import Badge from '../../components/ui/Badge';
 import { usePostQueues } from '../../hooks/useComposer';
 import { composerAPI } from '../../services/api';
+import { useLanguage } from '../../i18n';
 
 const STRATEGIES = [
   { id: 'sequential',  label: 'Sequential' },
@@ -68,7 +69,7 @@ export default function QueueManagerPage() {
         {/* Right: queue items */}
         <Card padding="none" style={{ overflow: 'hidden' }}>
           {activeId
-            ? <QueueDetail queueId={activeId} onChanged={refetch} />
+            ? <QueueDetail key={activeId} queueId={activeId} onChanged={refetch} />
             : <EmptyState icon={Layers} title="Select a queue" />}
         </Card>
       </div>
@@ -181,11 +182,10 @@ function QueueDetail({ queueId, onChanged }) {
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [queueId]);
 
   async function addItem(content) {
-    try {
-      await composerAPI.queues.addItems(queueId, [{ content }]);
-      toast.success('Added to queue');
-      load(); onChanged?.();
-    } catch (e) { toast.error('Failed to add'); }
+    await composerAPI.queues.addItems(queueId, [{ content }]);
+    toast.success('Added to queue');
+    setShowAdd(false);
+    load(); onChanged?.();
   }
 
   if (loading || !queue) {
@@ -238,7 +238,7 @@ function QueueDetail({ queueId, onChanged }) {
 
       {showAdd && (
         <AddItemModal onClose={() => setShowAdd(false)}
-                      onSave={(content) => { addItem(content); setShowAdd(false); }} />
+                      onSave={addItem} />
       )}
     </div>
   );
@@ -309,24 +309,37 @@ function CreateQueueModal({ onClose, onCreated }) {
 }
 
 function AddItemModal({ onClose, onSave }) {
+  const { t } = useLanguage();
   const [content, setContent] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  async function save() {
+    if (saving || !content.trim()) return;
+    setSaving(true);
+    setError('');
+    try { await onSave(content); }
+    catch { setError(t('composer.queue.failed')); }
+    finally { setSaving(false); }
+  }
+  function close() { if (!saving) onClose(); }
   return (
-    <Backdrop onClose={onClose}>
+    <Backdrop onClose={close}>
       <Card padding="none" style={{ width: 'min(520px, 92vw)' }}>
         <div style={modalHeader}>
           <h3 style={{ margin: 0, fontSize: 16 }}>Add to queue</h3>
-          <button onClick={onClose} style={iconBtnStyle} aria-label="Close"><X size={14} /></button>
+          <button onClick={close} disabled={saving} style={iconBtnStyle} aria-label="Close"><X size={14} /></button>
         </div>
         <div style={{ padding: 16 }}>
           <Field label="Post content">
-            <textarea value={content} onChange={(e) => setContent(e.target.value)}
+            <textarea value={content} disabled={saving} onChange={(e) => setContent(e.target.value)}
                       rows={6} placeholder="Write the post that'll fire next time this queue runs…"
                       style={{ ...inputStyle, height: 'auto', padding: '10px 12px', resize: 'vertical' }} />
           </Field>
+          {error && <p role="alert" style={{ color: 'var(--danger)' }}>{error}</p>}
         </div>
         <div style={modalFooter}>
-          <Button variant="secondary" onClick={onClose}>Cancel</Button>
-          <Button onClick={() => onSave(content)} disabled={!content.trim()}>Add</Button>
+          <Button variant="secondary" onClick={close} disabled={saving}>Cancel</Button>
+          <Button onClick={save} loading={saving} disabled={!content.trim()}>Add</Button>
         </div>
       </Card>
     </Backdrop>

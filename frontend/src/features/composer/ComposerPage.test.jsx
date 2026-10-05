@@ -10,6 +10,7 @@ let mockId;
 jest.mock('../../core/navigation', () => ({
   useAppNavigate: () => mockNavigate,
   useAppParams: () => ({ id: mockId }),
+  useAppLocation: () => ({ pathname: globalThis.window.location.pathname }),
 }));
 jest.mock('../../core/session', () => ({ useSession: () => ({ user: { client_id: 7 } }) }));
 jest.mock('../../hooks/usePlatformConnections', () => ({ __esModule: true, default: () => ({ status: {} }) }));
@@ -124,4 +125,11 @@ test('switching back to Now retains the independent publish action', async () =>
   fireEvent.click(screen.getByRole('button', { name: 'Publish Now' }));
   await waitFor(() => expect(composerAPI.posts.publishNow).toHaveBeenCalledWith(900));
   expect(composerAPI.posts.addToQueue).not.toHaveBeenCalled();
+});
+
+test.each(['dashboard', 'admin'])('saving a new draft keeps the %s composer route', async prefix => {
+  window.history.replaceState({}, '', `/${prefix}/analytics/composer`);
+  compose();
+  fireEvent.click(screen.getByRole('button', { name: 'Save Draft' }));
+  await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith(`/${prefix}/analytics/composer/900`, { replace: true }));
 });

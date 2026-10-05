@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 
 import { leadAPI } from '../../services/api';
+import { persistentStorage } from '../../lib/runtime/storage';
 import toast from '../../components/ui/toast';
 
 const STATUSES = [
@@ -39,7 +40,7 @@ const STATUSES = [
 export default function LeadsPage() {
   const [leads,    setLeads]    = useState([]);
   const [loading,  setLoading]  = useState(true);
-  const [view,     setView]     = useState(persistentStorage.getItem('leads_view') || 'table');
+  const [view,     setView]     = useState(() => persistentStorage.getItem('leads_view') === 'kanban' ? 'kanban' : 'table');
   const [filters,  setFilters]  = useState({ status: '', q: '', source_flow: '' });
   const [selected, setSelected] = useState(new Set());
   const [importOpen, setImportOpen] = useState(false);

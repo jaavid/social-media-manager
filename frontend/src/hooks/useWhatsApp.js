@@ -6,7 +6,7 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { whatsappAPI } from '../services/api';
 
 function unwrap(res) {
@@ -192,25 +192,41 @@ export function useWhatsAppThread(contactId) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const currentId = useRef(contactId);
+  const requestId = useRef(0);
 
   const refetch = useCallback(async () => {
+    if (currentId.current !== contactId) return;
+    const request = ++requestId.current;
+    await Promise.resolve();
+    if (request !== requestId.current || currentId.current !== contactId) return;
     if (!contactId) {
       setData(null);
+      setLoading(false);
       return;
     }
     try {
       setLoading(true);
       const res = await whatsappAPI.inbox.thread(contactId);
-      setData(res.data);
-      setError(null);
+      if (request === requestId.current && currentId.current === contactId) {
+        setData(res.data);
+        setError(null);
+      }
     } catch (e) {
-      setError(e);
+      if (request === requestId.current && currentId.current === contactId) {
+        setData(null);
+        setError(e);
+      }
     } finally {
-      setLoading(false);
+      if (request === requestId.current && currentId.current === contactId) setLoading(false);
     }
   }, [contactId]);
 
-  useEffect(() => { refetch(); }, [refetch]);
+  useEffect(() => {
+    currentId.current = contactId;
+    refetch();
+    return () => { currentId.current = null; };
+  }, [contactId, refetch]);
 
-  return { data, loading, error, refetch };
+  return { data: String(data?.contact?.id) === String(contactId) ? data : null, loading, error, refetch };
 }

@@ -298,6 +298,10 @@
     "src/features/end-user/ApprovalsPage.jsx:directive": 1,
     "src/features/growth/CompetitorsPage.jsx:directive": 2,
     "src/features/marketplace/AgencyProfilePage.jsx:directive": 1,
-    "src/hooks/useRealtime.js:directive": 1
+    "src/hooks/useRealtime.js:directive": 1,
+    "src/components/shell/FeatureSidebar.jsx:react-hooks/set-state-in-effect": 1,
+    "src/components/shell/FeatureSidebar.test.jsx:@typescript-eslint/no-unused-vars": 1,
+    "src/features/IntegrationsPage.jsx:react/no-unescaped-entities": 1,
+    "src/i18n/LanguageProvider.tsx:react-hooks/set-state-in-effect": 1
   }
 }

@@ -218,8 +218,18 @@ const composerFa = {
   'composer.queue.success': 'به صف اضافه شد',
   'composer.queue.failed': 'افزودن به صف ممکن نشد. محتوای شما حفظ شده؛ دوباره تلاش کنید.',
 } as const;
-export const enMessages = { ...composerEn, ...accountsEn, ...commonEn, ...marketingEn, ...catalogEn } as const;
+const whatsappEn = {
+  'whatsapp.inbox.back': 'Back to conversations',
+  'whatsapp.inbox.reply': 'Reply message',
+  'whatsapp.inbox.send': 'Send message',
+} as const;
+const whatsappFa = {
+  'whatsapp.inbox.back': 'بازگشت به گفتگوها',
+  'whatsapp.inbox.reply': 'متن پاسخ',
+  'whatsapp.inbox.send': 'ارسال پیام',
+} as const;
+export const enMessages = { ...whatsappEn, ...composerEn, ...accountsEn, ...commonEn, ...marketingEn, ...catalogEn } as const;
 export type MessageKey = keyof typeof enMessages;
-export const faMessages = { ...composerFa, ...accountsFa, ...commonFa, ...marketingFa, ...catalogFa, ...{"common.allClients":"همه فضاهای کاری","common.searchClients":"جست‌وجوی فضاهای کاری…","session.unavailable":"ارتباط با حساب شما ممکن نیست. دوباره تلاش کنید.","session.retry":"تلاش دوباره","common.items":"{count, plural, one {# مورد} other {# مورد}}"} } as const satisfies Record<MessageKey, string>;
+export const faMessages = { ...whatsappFa, ...composerFa, ...accountsFa, ...commonFa, ...marketingFa, ...catalogFa, ...{"common.allClients":"همه فضاهای کاری","common.searchClients":"جست‌وجوی فضاهای کاری…","session.unavailable":"ارتباط با حساب شما ممکن نیست. دوباره تلاش کنید.","session.retry":"تلاش دوباره","common.items":"{count, plural, one {# مورد} other {# مورد}}"} } as const satisfies Record<MessageKey, string>;
 export type Language = 'fa' | 'en';
 export const messages = { en: enMessages, fa: faMessages };

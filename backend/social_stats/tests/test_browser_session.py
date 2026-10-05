@@ -57,6 +57,18 @@ class BrowserSessionTests(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(self.client.post('/api/auth/login/', {}, format='json', secure=True, **bad).status_code, 403)
 
+    @override_settings(CSRF_TRUSTED_ORIGINS=['https://frontend.example.com'])
+    def test_explicit_next_proxy_origin_requires_csrf_and_rejects_other_origins(self):
+        self.headers['HTTP_ORIGIN'] = 'https://frontend.example.com'
+        payload = {'username': self.user.username, 'password': 'StrongPass!234xyz', 'terms_accepted': True}
+        self.assertEqual(self.client.post('/api/auth/login/', payload, format='json', secure=True, **self.headers).status_code, 403)
+        self.login()
+        self.csrf()
+        self.assertEqual(self.client.get('/api/auth/me/', secure=True, **self.headers).status_code, 200)
+        bad = {**self.headers, 'HTTP_ORIGIN': 'https://attacker.invalid'}
+        self.assertEqual(self.client.patch('/api/profile/', {}, format='json', secure=True, **bad).status_code, 403)
+        self.assertEqual(self.client.delete('/api/auth/session/', secure=True, **self.headers).status_code, 204)
+
     def test_existing_refresh_is_consumed_once_by_cookie_migration(self):
         refresh = RefreshToken.for_user(self.user)
         self.csrf()

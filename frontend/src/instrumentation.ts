@@ -7,9 +7,9 @@ export async function register() {
     const manifest = JSON.parse(await readFile(`${process.cwd()}/.next/routes-manifest.json`, 'utf8')) as {
       rewrites: { beforeFiles: { source: string; destination: string }[] };
     };
-    const destination = manifest.rewrites.beforeFiles.find(rule => rule.source === '/api/:path*')?.destination;
+    const destination = manifest.rewrites.beforeFiles.find(rule => rule.source === '/api/:path(.*)')?.destination;
     const runtime = process.env.NEXT_BACKEND_URL || 'http://127.0.0.1:8000';
-    if (destination && destination !== `${runtime}/api/:path*`) {
+    if (destination && destination !== `${runtime}/api/:path(.*)`) {
       console.error('NEXT_BACKEND_URL differs from the built API rewrite. Rebuild Next with the runtime destination.');
     }
   } catch (error) {
