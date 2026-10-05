@@ -8,7 +8,7 @@ import Select from '../ui/Select';
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
 import { cn } from '../../lib/utils';
-import { useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import {
   AppNavLink as NavLink,
   useAppLocation as useLocation,
@@ -140,7 +140,18 @@ export default function FeatureSidebar({
           <EmptyModule message={tr(navSet.empty)} />
         ) : (
           navSet.sections.map((section) => (
-            <Section key={section.title} title={tr(section.title)}>
+            <Section
+              key={`${module}/${section.title}`}
+              title={tr(section.title)}
+              pathname={location.pathname}
+              active={section.items.some((item) => {
+                const to = item.path.startsWith('/admin/')
+                  ? item.path
+                  : `${basePath}/${module}${item.path}`;
+                return !item.disabled && (location.pathname === to ||
+                  (!item.end && location.pathname.startsWith(`${to}/`)));
+              })}
+            >
               {section.items.map((item) => (
                 <PermissionGate key={item.path} code={item.permission}>
                   <NavItem
@@ -276,11 +287,30 @@ function NavItem({
     </NavLink>
   );
 }
-function Section({ title, children }) {
+function Section({ title, children, active, pathname }) {
+  const [open, setOpen] = useState(active);
+  const contentId = useId();
+
+  useEffect(() => {
+    if (active) setOpen(true);
+  }, [active, pathname]);
+
   return (
-    <div className={cn('[margin-bottom:14px]')}>
-      <div
+    <div className={cn('[margin-bottom:4px]')}>
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls={contentId}
+        onClick={() => setOpen((value) => !value)}
         className={cn(
+          'hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring',
+          '[display:flex]',
+          '[align-items:center]',
+          '[justify-content:space-between]',
+          '[width:100%]',
+          '[min-height:36px]',
+          '[border-radius:var(--radius-md)]',
+          '[text-align:start]',
           '[font-size:11px]',
           '[font-weight:600]',
           '[text-transform:uppercase]',
@@ -290,9 +320,17 @@ function Section({ title, children }) {
         )}
       >
         {title}
-      </div>
+        <ChevronDown
+          size={14}
+          aria-hidden="true"
+          className={cn('transition-transform', !open && '-rotate-90 rtl:rotate-90')}
+        />
+      </button>
       <div
+        id={contentId}
+        hidden={!open}
         className={cn('[display:flex]', '[flex-direction:column]', '[gap:1px]')}
+        style={!open ? { display: 'none' } : undefined}
       >
         {children}
       </div>
