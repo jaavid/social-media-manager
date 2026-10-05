@@ -79,6 +79,24 @@ feature-local inline colors and CSS aliases (`--bg`, `--surface`, `--blue`,
 migration and reference search. Shared surfaces, popovers and theme scales already
 use canonical values; wholesale page redesign is outside these contracts.
 
+## Data-state contract
+
+Collections use the shared `DataState` primitive for eight distinct conditions:
+initial loading, background refresh, first-use empty, filtered no-results, load
+error, offline, forbidden and partial failure. Empty and no-results are separate
+because their recovery actions differ: empty starts creation, while no-results
+clears or changes filters. Error and forbidden notices are assertive alerts;
+other updates are polite status announcements. Decorative state icons stay out
+of the accessibility tree.
+
+Background refresh, offline and partial failure preserve already loaded content.
+Initial loading and terminal empty/error/forbidden states replace it. A mutation
+that partially succeeds must identify successful and failed destinations rather
+than collapsing the whole operation into a generic error. Feature-owned copy and
+actions are passed into the primitive as semantic messages; the primitive owns
+only layout, roles and continuity behavior. The `/design-system` catalog is the
+reference for both languages and themes.
+
 ## Locale ADR
 
 Use maintained `next-intl` for semantic messages and ICU interpolation/plurals,
