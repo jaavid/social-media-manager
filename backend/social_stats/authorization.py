@@ -138,7 +138,9 @@ def evaluate(user, workspace, action, *, account=None):
     if role == "superadmin":
         return Decision(
             True,
-            requires_approval=workspace.requires_approval
+            requires_approval=(
+                workspace.requires_approval or workspace.organization.requires_approval
+            )
             and action in ("publish_posts", "schedule_posts"),
             role=role,
         )
@@ -212,7 +214,8 @@ def evaluate(user, workspace, action, *, account=None):
     # Workspace/relationship requirements cannot be waived by member/account settings.
     approval = approval or bool(relation and relation.needs_approval(action))
     approval = approval or (
-        workspace.requires_approval and action in ("publish_posts", "schedule_posts")
+        (workspace.requires_approval or workspace.organization.requires_approval)
+        and action in ("publish_posts", "schedule_posts")
     )
     return Decision(
         allowed,

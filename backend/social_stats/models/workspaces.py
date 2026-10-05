@@ -9,7 +9,7 @@
 """Workspaces models."""
 import uuid
 from django.db import models
-from django.db import transaction
+from django.db import transaction, router
 from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import timedelta
@@ -31,6 +31,10 @@ SYNC_STATUS = [
 
 # ── Client (Company) ──────────────────────────────────────────────────────────
 class Client(models.Model):
+    organization = models.ForeignKey(
+        'social_stats.Organization', verbose_name='سازمان', on_delete=models.PROTECT,
+        related_name='workspaces', editable=False,
+    )
     name       = models.CharField(verbose_name='نام مسئول تماس', max_length=200)
     company    = models.CharField(verbose_name='نام کسب‌وکار', max_length=200)
     email      = models.EmailField(verbose_name='ایمیل', unique=True)
@@ -142,6 +146,28 @@ class Client(models.Model):
     # clear error (503 via AIError), and composer create/schedule/publish
     # return 423. The user can still log in to view existing data.
     is_processing_paused = models.BooleanField(help_text='با فعال شدن، همگام‌سازی، درخواست‌های هوش مصنوعی و ایجاد یا انتشار پست متوقف می‌شود.', verbose_name='پردازش داده‌ها متوقف شده', default=False)
+
+    def save(self, *args, **kwargs):
+        # Every creation path (signup, imports, admin and legacy helpers) must
+        # establish a tenant. Never group rows by email, agency or staff access.
+        using = kwargs.get('using') or router.db_for_write(type(self), instance=self)
+        with transaction.atomic(using=using):
+            original = None
+            if self.pk is not None:
+                original = type(self).objects.using(using).filter(pk=self.pk).values_list(
+                    'organization_id', flat=True,
+                ).first()
+            if original is not None and original != self.organization_id:
+                from django.core.exceptions import ValidationError
+
+                raise ValidationError('Workspace tenant cannot be changed in place')
+            if original is None and not self.organization_id:
+                from .organizations import Organization
+
+                self.organization = Organization.objects.using(using).create(
+                    name=self.company, owner_user_id=self.owner_user_id,
+                )
+            super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.company} ({self.name})"
@@ -271,6 +297,9 @@ def ensure_client_profile(profile):
             name=full_name,
             company=company,
             email=email,
+            owner_user=user,
+            ownership_type='end_user_owned',
+            created_via='end_user_signup',
         )
         profile.client = client
         profile.save(update_fields=['client'])

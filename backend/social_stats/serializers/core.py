@@ -29,6 +29,7 @@ class ClientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Client
         fields = '__all__'
+        read_only_fields = ['organization', 'owner_user', 'ownership_type', 'created_via']
 
     def get_competitors(self, obj):
         return CompetitorSerializer(obj.competitors.all(), many=True).data

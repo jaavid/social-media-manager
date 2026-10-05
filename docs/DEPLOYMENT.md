@@ -36,6 +36,8 @@ docker compose exec app supervisorctl status
 
 برای تغییر از سورس: `docker compose up -d --build`. پس از migration، بازگشت image به‌تنهایی تضمین بازگشت schema نیست؛ rollback را با بکاپ و سازگاری migration انجام دهید.
 
+برای ارتقای tenant با migration `0076_organization_tenancy`، API و workerهای نویسندهٔ قدیمی را متوقف کنید، بکاپ بگیرید، migration را اجرا و سپس همهٔ API/workerها را با نسخهٔ جدید راه‌اندازی کنید. از deploy هم‌زمان نسخهٔ قدیم و جدید پرهیز کنید: فضای کاری جدید به FK سازمانِ غیر nullable نیاز دارد. روی دیتابیس بزرگ، زمان migration را در staging اندازه بگیرید؛ یک سازمان برای هر فضای کاری ساخته می‌شود. مالکیت مبهم قدیمی را بعداً با بررسی انسانی در ابزار مدیریتی اصلاح کنید؛ migration آن را حدس نمی‌زند. این migration برای جلوگیری از حذف مالکیت/سیاست سازمان برگشت مستقیم ندارد؛ rollback به بکاپ سازگار نیاز دارد.
+
 ## بکاپ
 
 از ریشه؛ dump فقط PostgreSQL را پوشش می‌دهد:
