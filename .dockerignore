@@ -26,3 +26,6 @@ frontend/playwright-report/
 
 # Historical frontend is never part of deployment builds.
 archive/
+
+# Local development databases must never enter the production image.
+**/*.sqlite3

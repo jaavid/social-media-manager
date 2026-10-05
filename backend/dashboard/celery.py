@@ -10,7 +10,10 @@ import os
 from celery import Celery
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'dashboard.settings')
-app = Celery('dashboard')
+app = Celery('dashboard', task_cls='social_stats.task_observability:CorrelatedTask')
+
+# Register logging/publication/lifecycle signals before worker initialization.
+import social_stats.task_observability  # noqa: E402,F401
 app.config_from_object('django.conf:settings', namespace='CELERY')
 
 # Celery autodiscovery imports each Django app's tasks.py. A number of Social

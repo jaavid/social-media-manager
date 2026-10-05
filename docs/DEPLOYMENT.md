@@ -48,3 +48,37 @@ docker compose exec -T postgres sh -c 'pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB
 
 volumeهای `media`، `postgres_data` و `redis_data` در Compose تعریف شده‌اند. بکاپ media و `.env`/کلیدها را جدا و امن، بیرون سرور نگه دارید؛ بازیابی را در محیط جدا آزمایش کنید. `docker compose down -v` داده‌ها را حذف می‌کند؛ برای restart استفاده نکنید.
 `scripts/verify-backups.sh` فقط برای محیط AWS RDS/S3 است، نه بررسی بکاپ این Compose. ارسال خودکار هشدار به Sentry/Slack/PagerDuty در این پروژه راه‌اندازی نشده است.
+
+## دسترسی فرایندهای کانتینر
+
+image یکپارچه با `USER 999:999` شروع می‌شود؛ migrate، collectstatic، Supervisor، Nginx، Next، Daphne، worker و beat همگی همین UID/GID را دارند. Compose همهٔ capabilityها را حذف و `no-new-privileges` را فعال می‌کند. Nginx داخل کانتینر روی `8080` گوش می‌دهد؛ پورت میزبان همچنان `APP_PORT` (پیش‌فرض 3000) است. برای اجرای دستی image، mapping را `3000:8080` بگذارید.
+
+مسیرهای قابل‌نوشتن: `media` و `staticfiles` در `/app/backend/`، `/app/frontend/.next/cache`، `/home/socialstats`، `/run/socialstats` (PID و socket محلی Supervisor) و `/var/cache/nginx` (فایل موقت upload/proxy). سورس و تنظیمات در اختیار root و فقط خواندنی برای فرایندها هستند. socket با mode `0600` ساخته می‌شود؛ `supervisorctl` از همان socket استفاده می‌کند. راه‌اندازی دیگر chown بازگشتی با root انجام نمی‌دهد.
+
+volume جدید Docker مالکیت image را می‌گیرد. قبل از ارتقای volume موجود یا استفاده از bind mount، مالکیت media را به UID/GID `999:999` بدهید. برای volume موجود، در پنجرهٔ نگهداری پس از توقف app:
+
+```sh
+docker compose stop app
+docker compose run --rm --no-deps --user 0:0 --entrypoint chown app -R 999:999 /app/backend/media
+docker compose up -d app
+```
+
+این دستور فقط آماده‌سازی یک‌بارهٔ مالکیت است؛ سرویس عادی با root اجرا نمی‌شود. برای bind mount، همین مالکیت را روی مسیر media میزبان تنظیم کنید. مسیرهای نامناسب باعث توقف entrypoint با خطای واضح می‌شوند. stack اصلی PostgreSQL دارد؛ فایل SQLite در مسیر سورسِ فقط‌خواندنی برای این image مسیر استقرار پشتیبانی‌شده نیست.
+
+## لاگ و ردیابی درخواست
+
+Django و Celery روی stdout لاگ JSON می‌نویسند؛ `LOG_LEVEL=INFO` پیش‌فرض است. هر رویداد زمان UTC، level، logger، message و `request_id`/`task_id` دارد. پایان درخواست شامل method، path بدون query، status و duration است. `X-Request-ID` با ۱ تا ۶۴ حرف ASCII، عدد، خط تیره یا underscore پذیرفته می‌شود؛ ورودی نامعتبر با شناسهٔ جدید جایگزین می‌شود. Nginx همان شناسه را به upstream و پاسخ مرورگر می‌دهد و در access log JSON ثبت می‌کند. در درخواست مستقیم Django نیز همین قرارداد برقرار است.
+
+انتشار Celery با `.delay()`، `.apply_async()`، `send_task` و retry شناسه را در header پیام منتقل می‌کند؛ jobهای زمان‌بندی‌شده شناسهٔ جدید می‌گیرند و jobهای فرزند همان شناسه را حفظ می‌کنند. رویدادهای `task_started`، `task_finished` و `task_failed` نام job، شناسه و نتیجهٔ اجرا را ثبت می‌کنند؛ args، kwargs و return value ثبت نمی‌شوند. context پس از درخواست/job حتی در خطا پاک می‌شود. این ردیابی برای HTTP و Celery است؛ WebSocket، سرویس خارجی و پردازش stream بعد از پایان middleware ردیابی توزیع‌شدهٔ جداگانه ندارند.
+
+سیاست حذف اطلاعات حساس در formatter اعمال می‌شود: فیلدهای password، secret، token، Authorization، Cookie، API/private key، credential، signature، OAuth code/state، query و args/kwargs (با نادیده‌گرفتن case و punctuation) در ساختارهای تو‌در‌تو حذف می‌شوند. متن پیام و exception هم برای همین assignmentها، Bearer/Basic، JWT و شکل شناخته‌شدهٔ کلیدهای provider پاک می‌شود. query/fragment تمام URLها و credential داخل URL حذف می‌شود. traceback بدون locals، نام exception و frameها باقی می‌ماند؛ request object، header و body خام سریال نمی‌شود. access log Nginx هیچ query، Referer یا User-Agent ندارد؛ stderr خطاهای Nginx از همان formatter عبور می‌کند. لاگ داخلی Supervisor و startup Next قالب خودشان را دارند.
+
+فیلتر، مجوز ثبت payload نیست: credential بدون نام/شکل شناخته‌شده و دادهٔ شخصی دلخواه قابل‌شناسایی قطعی نیستند. هنگام افزودن لاگ فقط شناسه‌ها، state عملیاتی و خطای لازم را ثبت کنید؛ payload، رمز و body خام را وارد لاگ نکنید. پاک‌سازی رویدادهای لاگ، دادهٔ دیتابیس یا نتیجهٔ ذخیره‌شدهٔ Celery را تغییر نمی‌دهد.
+
+بررسی محلی همان قراردادهای CI (پس از آماده‌شدن stack، پیش از seed):
+
+```sh
+python3 scripts/check_observability_stack.py http://localhost:3000
+docker compose cp scripts/check_runtime_privileges.py app:/tmp/check_runtime_privileges.py
+docker compose exec -T app python /tmp/check_runtime_privileges.py
+```

@@ -189,6 +189,16 @@ jobs:
           docker compose logs app | tail -100
           exit 1
 
+      - name: Verify unprivileged runtime and writable paths
+        run: |
+          docker compose cp scripts/check_runtime_privileges.py app:/tmp/check_runtime_privileges.py
+          docker compose exec -T app python /tmp/check_runtime_privileges.py
+          docker compose exec -T app nginx -t
+
+      - name: Request correlation and secret-safe ingress logs
+        run: |
+          python3 scripts/check_observability_stack.py http://localhost:3000
+
       - name: Next rendering, assets and Django routing share one origin
         run: python3 scripts/check_next_stack.py http://localhost:3000
 
