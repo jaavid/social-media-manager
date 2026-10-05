@@ -219,7 +219,7 @@ function Chip({ active, onClick, children }) {
 function AgencyCard({ agency }) {
   return (
     <Link
-      to={`/agencies/${agency.slug}`}
+      to={`/marketplace/${agency.slug}`}
       style={{
         display: 'flex', flexDirection: 'column', gap: 10,
         padding: 16,

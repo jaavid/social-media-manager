@@ -15,9 +15,11 @@ import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import EmptyState from '../../components/ui/EmptyState';
 import { useMediaAssets } from '../../hooks/useComposer';
+import { useLanguage } from '../../i18n';
 import { composerAPI } from '../../services/api';
 
 export default function MediaLibraryPage() {
+  const { tr } = useLanguage();
   const [search, setSearch] = useState('');
   const [folder, setFolder] = useState('');
   const [mime, setMime] = useState('');
@@ -29,7 +31,8 @@ export default function MediaLibraryPage() {
   const params = {};
   if (folder) params.folder = folder;
   if (mime)   params.mime   = mime;
-  const { data: assets, refetch, loading } = useMediaAssets(params);
+  const { data: assets, refetch, loading, error } = useMediaAssets(params);
+  const { data: allAssets, refetch: refetchFolders } = useMediaAssets();
 
   const filtered = !search ? assets
     : assets.filter((a) => (
@@ -38,7 +41,7 @@ export default function MediaLibraryPage() {
     ));
 
   // Folder list derived from existing assets
-  const folders = Array.from(new Set(assets.map((a) => a.folder).filter(Boolean))).sort();
+  const folders = Array.from(new Set(allAssets.map((a) => a.folder).filter(Boolean))).sort();
 
   /* ── Upload handlers ───────────────────────────────────────────────── */
   async function uploadFiles(files) {
@@ -54,6 +57,7 @@ export default function MediaLibraryPage() {
       if (created.length) toast.success(`Uploaded ${created.length} file${created.length === 1 ? '' : 's'}`);
       if (errors.length)  toast.error(`${errors.length} file${errors.length === 1 ? '' : 's'} failed`);
       refetch();
+      refetchFolders();
     } catch (e) {
       toast.error(e.response?.data?.detail || 'Upload failed');
     } finally {
@@ -82,6 +86,7 @@ export default function MediaLibraryPage() {
       await Promise.all([...selected].map((id) => composerAPI.media.delete(id)));
       setSelected(new Set());
       refetch();
+      refetchFolders();
       toast.success('Deleted');
     } catch (e) {
       toast.error('Delete failed');
@@ -121,14 +126,14 @@ export default function MediaLibraryPage() {
           display: 'flex', gap: 8, alignItems: 'center',
           flexWrap: 'wrap', marginBottom: 12, padding: 10,
         }}>
-          <div style={{ position: 'relative', flex: 1, minWidth: 220 }}>
+          <div style={{ position: 'relative', flex: 1, minWidth: 0, flexBasis: 180, maxWidth: '100%' }}>
             <Search size={14} color="var(--text-tertiary)"
                     style={{ position: 'absolute', top: 11, left: 10 }} />
             <input
               placeholder="Search alt text or tags…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              style={{ ...inputStyle, paddingLeft: 30 }}
+              style={{ ...inputStyle, paddingLeft: 30, width: '100%' }}
             />
           </div>
           <select value={mime} onChange={(e) => setMime(e.target.value)} style={inputStyle}>
@@ -161,7 +166,11 @@ export default function MediaLibraryPage() {
             </div>
           )}
 
-          {!loading && filtered.length === 0 && (
+          {!loading && error && <div role="alert">
+            <p>{tr('Could not load media. Your library is unavailable.')}</p>
+            <Button onClick={refetch}>{tr('Retry')}</Button>
+          </div>}
+          {!loading && !error && filtered.length === 0 && (
             <Card padding="none" style={{ overflow: 'hidden' }}>
               <EmptyState
                 icon={ImageIcon}
@@ -172,7 +181,7 @@ export default function MediaLibraryPage() {
             </Card>
           )}
 
-          {!loading && filtered.length > 0 && (
+          {!loading && !error && filtered.length > 0 && (
             <div style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
@@ -265,7 +274,7 @@ const inputStyle = {
   borderRadius: 'var(--radius-md)',
   fontSize: 13, color: 'var(--text-primary)',
   outline: 'none', boxSizing: 'border-box',
-  minHeight: 'unset',
+  minHeight: 'unset', minWidth: 0, maxWidth: '100%',
 };
 
 function fmtBytes(n) {

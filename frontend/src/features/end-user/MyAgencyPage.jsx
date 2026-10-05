@@ -1,3 +1,4 @@
+import { useLanguage } from '../../i18n';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -40,6 +41,7 @@ const STATUS_PILL = {
 };
 
 export default function MyAgencyPage() {
+  const { tr, formatDate } = useLanguage();
   const [relations,    setRelations]    = useState([]);
   const [loading,      setLoading]      = useState(true);
   const [activeIndex,  setActiveIndex]  = useState(0);
@@ -65,10 +67,10 @@ export default function MyAgencyPage() {
         setRelations(rels);
         setActivity(rAct.data?.rows || []);
       })
-      .catch(() => toast.error('Could not load your agency relationships'))
+      .catch(() => toast.error(tr("Could not load your agency relationships")))
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, []);
+  }, [tr]);
 
   // When activeIndex changes, fetch detail (with catalog) and seed draft
   const current = relations[activeIndex];
@@ -80,8 +82,8 @@ export default function MyAgencyPage() {
         permissions:        { ...(r.data.permissions || {}) },
         requiresApprovalFor: [...(r.data.requires_approval_for || [])],
       });
-    }).catch(() => toast.error('Could not load relation details'));
-  }, [current?.id]);
+    }).catch(() => toast.error(tr("Could not load relation details")));
+  }, [current, tr]);
 
   const dirty = useMemo(() => {
     if (!detail) return false;
@@ -106,9 +108,9 @@ export default function MyAgencyPage() {
       // refresh activity
       const a = await activityAPI.list({ limit: 8 });
       setActivity(a.data?.rows || []);
-      toast.success('Permissions updated');
+      toast.success(tr("Permissions updated"));
     } catch (e) {
-      toast.error(e?.response?.data?.error || 'Could not save permissions');
+      toast.error(e?.response?.data?.error || tr("Could not save permissions"));
     } finally {
       setSaving(false);
     }
@@ -128,33 +130,25 @@ export default function MyAgencyPage() {
     }
   }
 
-  if (loading) return <div style={{ padding: 32, color: 'var(--text-tertiary)' }}>Loading…</div>;
+  if (loading) return <div style={{ padding: 32, color: 'var(--text-tertiary)' }}>{tr("Loading…")}</div>;
 
   if (!relations.length) {
     return (
       <div style={{ maxWidth: 720, margin: '0 auto' }}>
-        <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
-          My agency
-        </h1>
-        <p style={{ marginTop: 6, color: 'var(--text-secondary)' }}>
-          You're managing your social media yourself. Want help?
-        </p>
+        <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>{tr("My agency")}</h1>
+        <p style={{ marginTop: 6, color: 'var(--text-secondary)' }}>{tr("You're managing your social media yourself. Want help?")}</p>
         <div style={{ marginTop: 18, padding: 20, background: 'var(--surface-card)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', display: 'flex', gap: 14, alignItems: 'flex-start' }}>
           <span style={{ width: 40, height: 40, background: 'var(--brand-primary-glow)', color: 'var(--brand-primary-hover)', borderRadius: 'var(--radius-sm)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <Send size={18} strokeWidth={2.2} />
           </span>
           <div style={{ flex: 1 }}>
-            <strong style={{ color: 'var(--text-primary)', fontSize: 15 }}>Invite an agency to manage your account</strong>
-            <p style={{ margin: '4px 0 10px', color: 'var(--text-secondary)', fontSize: 13, lineHeight: 'var(--line-height-body)' }}>
-              Already work with someone? Send them an invite by email or pick from the marketplace.
-              You stay in full control of permissions and access.
-            </p>
+            <strong style={{ color: 'var(--text-primary)', fontSize: 15 }}>{tr("Invite an agency to manage your account")}</strong>
+            <p style={{ margin: '4px 0 10px', color: 'var(--text-secondary)', fontSize: 13, lineHeight: 'var(--line-height-body)' }}>{tr("Already work with someone? Send them an invite by email or pick from the marketplace. You stay in full control of permissions and access.")}</p>
             <button type="button" onClick={() => setInviteOpen(true)} style={btnPrimary}>
-              <Send size={13} /> Invite an agency
-            </button>
+              <Send size={13} />{tr("Invite an agency")}</button>
           </div>
         </div>
-        <InviteAgencyModal open={inviteOpen} onClose={() => setInviteOpen(false)} onSent={() => toast.success('They\'ll get an email — we\'ll notify you when they respond.')} />
+        <InviteAgencyModal open={inviteOpen} onClose={() => setInviteOpen(false)} onSent={() => toast.success(tr("They'll get an email — we'll notify you when they respond."))} />
       </div>
     );
   }
@@ -166,18 +160,14 @@ export default function MyAgencyPage() {
     <div style={{ maxWidth: 920, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
-            My agency
-          </h1>
+          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>{tr("My agency")}</h1>
           <p style={{ margin: '4px 0 0', color: 'var(--text-secondary)', fontSize: 14 }}>
-            {relations.length} relationship{relations.length === 1 ? '' : 's'} · you stay in control of permissions and access.
-          </p>
+            {relations.length}{tr("relationship")}{relations.length === 1 ? '' : "s"}{tr("· you stay in control of permissions and access.")}</p>
         </div>
         <button type="button" onClick={() => setInviteOpen(true)} style={btnGhost}>
-          <Send size={13} /> Invite another agency
-        </button>
+          <Send size={13} />{tr("Invite another agency")}</button>
       </header>
-      <InviteAgencyModal open={inviteOpen} onClose={() => setInviteOpen(false)} onSent={() => toast.success('They\'ll get an email — we\'ll notify you when they respond.')} />
+      <InviteAgencyModal open={inviteOpen} onClose={() => setInviteOpen(false)} onSent={() => toast.success(tr("They'll get an email — we'll notify you when they respond."))} />
 
       {relations.length > 1 && (
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -214,10 +204,10 @@ export default function MyAgencyPage() {
                     {current.agency.name}
                   </h2>
                   {current.agency.is_verified && (
-                    <span style={verifiedChip}><ShieldCheck size={11} /> Verified</span>
+                    <span style={verifiedChip}><ShieldCheck size={11} />{tr("Verified")}</span>
                   )}
                   <span style={{ ...pill, background: statusPill.bg, color: statusPill.fg }}>
-                    {statusPill.label}
+                    {tr(statusPill.label)}
                   </span>
                 </div>
                 <div style={{ marginTop: 6, fontSize: 12, color: 'var(--text-tertiary)' }}>
@@ -233,7 +223,7 @@ export default function MyAgencyPage() {
 
             {current.agency.description && (
               <p style={{ marginTop: 12, marginBottom: 0, color: 'var(--text-secondary)', fontSize: 13, lineHeight: 'var(--line-height-body)' }}>
-                {current.agency.description}
+                {tr(current.agency.description)}
               </p>
             )}
 
@@ -241,28 +231,23 @@ export default function MyAgencyPage() {
             <div style={{ marginTop: 16, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {status === 'active' && (
                 <button type="button" onClick={() => lifecycle('pause')} style={btnGhost}>
-                  <Pause size={13} /> Pause access
-                </button>
+                  <Pause size={13} />{tr("Pause access")}</button>
               )}
               {status === 'paused' && (
                 <button type="button" onClick={() => lifecycle('resume')} style={btnGhost}>
-                  <Play size={13} /> Resume
-                </button>
+                  <Play size={13} />{tr("Resume")}</button>
               )}
               {status !== 'terminated' && (
                 <button type="button" onClick={() => lifecycle('flag', 'flagged via end-user UI')} style={btnDangerGhost}>
-                  <Flag size={13} /> Flag for review
-                </button>
+                  <Flag size={13} />{tr("Flag for review")}</button>
               )}
               {status !== 'terminated' && (
                 <button type="button" onClick={() => setTerminateOpen(true)} style={btnDanger}>
-                  <AlertTriangle size={13} /> Terminate
-                </button>
+                  <AlertTriangle size={13} />{tr("Terminate")}</button>
               )}
               {(status === 'active' || status === 'terminated' || status === 'paused') && (
                 <button type="button" onClick={() => setReviewOpen(true)} style={btnGhost}>
-                  <Star size={13} /> Write a review
-                </button>
+                  <Star size={13} />{tr("Write a review")}</button>
               )}
             </div>
           </section>
@@ -271,23 +256,19 @@ export default function MyAgencyPage() {
             open={reviewOpen}
             onClose={() => setReviewOpen(false)}
             agency={current.agency}
-            onSaved={() => toast.success('Thanks — your review is live.')}
+            onSaved={() => toast.success(tr("Thanks — your review is live."))}
           />
 
           {/* Permissions editor */}
           {detail?.permission_catalog && (
             <section style={card}>
               <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}>
-                <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: 'var(--text-primary)' }}>
-                  Permissions
-                </h3>
+                <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: 'var(--text-primary)' }}>{tr("Permissions")}</h3>
                 <button type="button" onClick={savePerms} disabled={!dirty || saving} style={dirty && !saving ? btnPrimary : btnGhost}>
-                  <Save size={13} /> {saving ? 'Saving…' : (dirty ? 'Save changes' : 'No changes')}
+                  <Save size={13} /> {saving ? tr("Saving…") : (dirty ? tr("Save changes") : tr("No changes"))}
                 </button>
               </header>
-              <p style={{ ...hintText, margin: '0 0 12px' }}>
-                Toggle anything off to revoke. Mark sensitive actions "Ask me first" so the agency must request approval before acting.
-              </p>
+              <p style={{ ...hintText, margin: '0 0 12px' }}>{tr("Toggle anything off to revoke. Mark sensitive actions \"Ask me first\" so the agency must request approval before acting.")}</p>
               <PermissionMatrix
                 catalog={detail.permission_catalog}
                 permissions={draftPerms.permissions}
@@ -301,17 +282,12 @@ export default function MyAgencyPage() {
           {/* Activity highlights */}
           <section style={card}>
             <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}>
-              <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: 'var(--text-primary)' }}>
-                Recent activity
-              </h3>
-              <Link to="/u/activity" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--brand-primary-hover)', textDecoration: 'none' }}>
-                Full log <ChevronRight size={12} />
+              <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: 'var(--text-primary)' }}>{tr("Recent activity")}</h3>
+              <Link to="/u/activity" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--brand-primary-hover)', textDecoration: 'none' }}>{tr("Full log")}<ChevronRight size={12} />
               </Link>
             </header>
             {activity.length === 0 ? (
-              <div style={{ padding: 14, fontSize: 13, color: 'var(--text-tertiary)', textAlign: 'center' }}>
-                No activity yet.
-              </div>
+              <div style={{ padding: 14, fontSize: 13, color: 'var(--text-tertiary)', textAlign: 'center' }}>{tr("No activity yet.")}</div>
             ) : (
               <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {activity.slice(0, 6).map((row) => (
@@ -324,9 +300,9 @@ export default function MyAgencyPage() {
                                                                 'var(--text-tertiary)',
                       flexShrink: 0,
                     }} />
-                    <span style={{ flex: 1, fontSize: 13, color: 'var(--text-primary)' }}>{row.description}</span>
+                    <span style={{ flex: 1, fontSize: 13, color: 'var(--text-primary)' }}>{tr(row.description)}</span>
                     <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
-                      {new Date(row.created_at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      {formatDate(row.created_at, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                     </span>
                   </li>
                 ))}
@@ -339,22 +315,19 @@ export default function MyAgencyPage() {
       {terminateOpen && (
         <div style={backdropStyle} onClick={(e) => { if (e.target === e.currentTarget) setTerminateOpen(false); }}>
           <div style={{ ...card, width: '100%', maxWidth: 420 }}>
-            <h3 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 700 }}>End the relationship?</h3>
-            <p style={{ ...hintText, margin: '0 0 10px' }}>
-              The agency loses all access immediately. Tell them why (optional, only the agency sees this).
-            </p>
+            <h3 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 700 }}>{tr("End the relationship?")}</h3>
+            <p style={{ ...hintText, margin: '0 0 10px' }}>{tr("The agency loses all access immediately. Tell them why (optional, only the agency sees this).")}</p>
             <textarea
               rows={3}
               value={terminateReason}
               onChange={(e) => setTerminateReason(e.target.value)}
-              placeholder="Reason (optional)"
+              placeholder={tr("Reason (optional)")}
               style={textareaStyle}
             />
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 12 }}>
-              <button type="button" onClick={() => setTerminateOpen(false)} style={btnGhost}>Cancel</button>
+              <button type="button" onClick={() => setTerminateOpen(false)} style={btnGhost}>{tr("Cancel")}</button>
               <button type="button" onClick={() => { setTerminateOpen(false); lifecycle('terminate', terminateReason); setTerminateReason(''); }} style={btnDanger}>
-                <AlertTriangle size={13} /> Yes, terminate
-              </button>
+                <AlertTriangle size={13} />{tr("Yes, terminate")}</button>
             </div>
           </div>
         </div>

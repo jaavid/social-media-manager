@@ -7,12 +7,13 @@ import toast from '../../components/ui/toast';
 
 const mockNavigate = jest.fn();
 let mockId;
+let mockUser = { id: 1, client_id: 7 };
 jest.mock('../../core/navigation', () => ({
   useAppNavigate: () => mockNavigate,
   useAppParams: () => ({ id: mockId }),
   useAppLocation: () => ({ pathname: globalThis.window.location.pathname }),
 }));
-jest.mock('../../core/session', () => ({ useSession: () => ({ user: { client_id: 7 } }) }));
+jest.mock('../../core/session', () => ({ useSession: () => ({ user: mockUser }) }));
 jest.mock('../../hooks/usePlatformConnections', () => ({ __esModule: true, default: () => ({ status: {} }) }));
 jest.mock('../../hooks/useComposer', () => ({
   useComposerPost: () => ({ data: null, loading: false }),
@@ -44,7 +45,9 @@ function submitQueue() {
 }
 beforeEach(() => {
   jest.clearAllMocks();
+  window.sessionStorage.clear();
   mockId = undefined;
+  mockUser = { id: 1, client_id: 7 };
   window.history.replaceState({}, '', '/dashboard/analytics/composer');
   setLanguage('en');
   usePostQueues.mockReturnValue({ data: [queue], loading: false, error: null });
@@ -132,4 +135,27 @@ test.each(['dashboard', 'admin'])('saving a new draft keeps the %s composer rout
   compose();
   fireEvent.click(screen.getByRole('button', { name: 'Save Draft' }));
   await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith(`/${prefix}/analytics/composer/900`, { replace: true }));
+});
+
+test('unsaved draft survives unmount and reload while another workspace stays empty', async () => {
+  const view = render(<ComposerPage />);
+  const textarea = screen.getAllByRole('textbox').find(input => input.tagName === 'TEXTAREA');
+  fireEvent.change(textarea, { target: { value: 'Unsaved recoverable draft' } });
+  view.unmount();
+  const restored = render(<ComposerPage />);
+  expect(screen.getAllByRole('textbox').find(input => input.tagName === 'TEXTAREA')).toHaveValue('Unsaved recoverable draft');
+  restored.unmount();
+  mockUser = { id: 1, client_id: 8 };
+  render(<ComposerPage />);
+  expect(screen.getAllByRole('textbox').find(input => input.tagName === 'TEXTAREA')).toHaveValue('');
+});
+
+test('successful save clears recovery and no longer warns on unload', async () => {
+  compose();
+  fireEvent.click(screen.getByRole('button', { name: 'Save Draft' }));
+  await waitFor(() => expect(composerAPI.posts.create).toHaveBeenCalledTimes(1));
+  await waitFor(() => expect(window.sessionStorage.length).toBe(0));
+  const event = new Event('beforeunload', { cancelable: true });
+  window.dispatchEvent(event);
+  expect(event.defaultPrevented).toBe(false);
 });

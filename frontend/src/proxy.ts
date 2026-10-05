@@ -7,6 +7,7 @@ import { isPublicRoute } from './i18n/public-routes';
 // HTTP 200. This is unrelated to API forwarding or identity authorization.
 export function proxy(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
+  requestHeaders.set('x-socialstats-return-to', request.nextUrl.pathname + request.nextUrl.search);
   requestHeaders.set('x-socialstats-public-language', isPublicRoute(request.nextUrl.pathname) ? 'fa' : '');
   const [, family, slug] = request.nextUrl.pathname.split('/');
   const known = slugs[family as keyof typeof slugs];

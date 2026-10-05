@@ -1,3 +1,4 @@
+import { useLanguage } from '../../i18n';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -22,6 +23,7 @@ import { endUserAPI } from '../../services/api';
 import { useSession as useAuth } from '../../core/session';
 
 export default function EndUserDashboard() {
+  const { tr, formatNumber } = useLanguage();
   const { user } = useAuth();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -35,17 +37,16 @@ export default function EndUserDashboard() {
 
   const workspace = data?.workspace;
   const relations = data?.relations || { active: 0, pending: 0 };
-  const firstName = (user?.first_name || (user?.email || '').split('@')[0] || 'there').trim();
+  const firstName = (user?.first_name || (user?.email || '').split('@')[0] || '').trim();
 
   return (
     <div style={{ maxWidth: 1100, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 24 }}>
       <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
-            Hi, {firstName} 👋
+          <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>{tr("Hi,")} {firstName} 👋
           </h1>
           <p style={{ margin: '4px 0 0', color: 'var(--text-secondary)', fontSize: 14 }}>
-            {workspace ? <>Here's what's happening with <strong style={{ color: 'var(--text-primary)' }}>{workspace.company || workspace.name}</strong>.</> : 'Welcome to Social Stats.'}
+            {workspace ? <>{tr("Here's what's happening with")} <strong style={{ color: 'var(--text-primary)' }}>{workspace.company || workspace.name}</strong>.</> : tr("Welcome to Social Stats.")}
           </p>
         </div>
         {workspace && (
@@ -60,22 +61,21 @@ export default function EndUserDashboard() {
             display: 'inline-flex', alignItems: 'center', gap: 4,
           }}>
             <Sparkles size={11} strokeWidth={2.4} />
-            {workspace.subscription_plan} plan
-          </span>
+            {workspace.subscription_plan} {tr("plan")}</span>
         )}
       </header>
 
       <section style={statsGrid}>
-        <StatCard icon={BarChart3}     label="Posts published"   value="—" hint={loading ? 'Loading…' : 'No analytics yet'} />
-        <StatCard icon={MessageSquare} label="Engagement (7d)"   value="—" hint={loading ? 'Loading…' : 'Connect a platform'} />
-        <StatCard icon={Calendar}      label="Scheduled"         value="—" hint={loading ? 'Loading…' : 'Nothing in the queue'} />
-        <StatCard icon={Users2}        label="Active agencies"   value={String(relations.active)} hint={relations.pending ? `${relations.pending} pending invite${relations.pending === 1 ? '' : 's'}` : 'Just you'} />
+        <StatCard icon={BarChart3}     label={tr("Posts published")}   value="—" hint={loading ? tr("Loading…") : tr("No analytics yet")} />
+        <StatCard icon={MessageSquare} label={tr("Engagement (7d)")}   value="—" hint={loading ? tr("Loading…") : tr("Connect a platform")} />
+        <StatCard icon={Calendar}      label={tr("Scheduled")}         value="—" hint={loading ? tr("Loading…") : tr("Nothing in the queue")} />
+        <StatCard icon={Users2}        label={tr("Active agencies")}   value={formatNumber(relations.active)} hint={relations.pending ? `${formatNumber(relations.pending)} ${tr('Pending invitations')}` : tr("Just you")} />
       </section>
 
       <section style={cardGrid}>
         <ActionCard
           icon={Plug}
-          title="Connect your social accounts"
+          title={tr("Connect your social accounts")}
           body="Connect Facebook, Instagram, YouTube, LinkedIn or Google My Business to start tracking posts and engagement."
           cta="Open connections"
           to="/u/connections"
@@ -83,13 +83,13 @@ export default function EndUserDashboard() {
         />
         <ActionCard
           icon={Users2}
-          title={relations.active ? 'Working with an agency' : 'Need help running socials?'}
+          title={relations.active ? tr("Working with an agency") : tr("Need help running socials?")}
           body={
             relations.active
-              ? 'Manage your agency permissions, pause access, or review activity any time.'
-              : 'Browse verified agencies in your industry. They can help — and you stay in control of your data.'
+              ? tr("Manage your agency permissions, pause access, or review activity any time.")
+              : tr("Browse verified agencies in your industry. They can help — and you stay in control of your data.")
           }
-          cta={relations.active ? 'Manage agency' : 'Find an agency'}
+          cta={relations.active ? tr("Manage agency") : tr("Find an agency")}
           to={relations.active ? '/u/agency' : '/u/agency/find'}
           tone="ghost"
           disabled
@@ -101,6 +101,7 @@ export default function EndUserDashboard() {
 }
 
 function StatCard({ icon: Icon, label, value, hint }) {
+  const { tr } = useLanguage();
   return (
     <div style={{
       padding: 16,
@@ -119,7 +120,7 @@ function StatCard({ icon: Icon, label, value, hint }) {
         <Icon size={16} strokeWidth={2.2} />
       </div>
       <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-tertiary)' }}>
-        {label}
+        {tr(label)}
       </div>
       <div style={{ fontSize: 26, fontWeight: 700, color: 'var(--text-primary)', marginTop: 2, fontVariantNumeric: 'tabular-nums' }}>
         {value}
@@ -130,6 +131,7 @@ function StatCard({ icon: Icon, label, value, hint }) {
 }
 
 function ActionCard({ icon: Icon, title, body, cta, to, tone, disabled, disabledHint }) {
+  const { tr } = useLanguage();
   const Wrap = disabled ? 'div' : Link;
   const wrapProps = disabled ? {} : { to };
   return (
@@ -157,10 +159,10 @@ function ActionCard({ icon: Icon, title, body, cta, to, tone, disabled, disabled
       }}>
         <Icon size={18} strokeWidth={2.2} />
       </span>
-      <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>{title}</div>
-      <p style={{ margin: 0, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>{body}</p>
+      <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>{tr(title)}</div>
+      <p style={{ margin: 0, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>{tr(body)}</p>
       <div style={{ marginTop: 4, display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 13, fontWeight: 600, color: tone === 'primary' ? 'var(--brand-primary-hover)' : 'var(--text-secondary)' }}>
-        {disabled ? (disabledHint || 'Coming soon') : (<>{cta} <ArrowRight size={13} /></>)}
+        {disabled ? (tr(disabledHint || "Coming soon")) : (<>{tr(cta)} <ArrowRight size={13} /></>)}
       </div>
     </Wrap>
   );

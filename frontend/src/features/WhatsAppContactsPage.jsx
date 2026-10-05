@@ -116,12 +116,12 @@ export default function WhatsAppContactsPage() {
         }
       />
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 280px', gap: 16, padding: '0 16px' }}>
+      <div className="contacts-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 280px', gap: 16, padding: '0 16px' }}>
         {/* Main */}
         <div>
           {/* Toolbar */}
           <div style={{ ...card, padding: 12, marginBottom: 12, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-            <div style={{ position: 'relative', flex: 1, minWidth: 200 }}>
+            <div style={{ position: 'relative', flex: 1, minWidth: 0, flexBasis: 180, maxWidth: '100%' }}>
               <Search size={14} color={COLORS.muted}
                       style={{ position: 'absolute', top: 11, left: 10 }} />
               <input
@@ -156,7 +156,7 @@ export default function WhatsAppContactsPage() {
           )}
 
           {/* Table */}
-          <div style={card}>
+          <div style={{ ...card, overflowX: 'auto', maxWidth: '100%' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
                 <tr>
@@ -222,7 +222,7 @@ export default function WhatsAppContactsPage() {
         <CreateContactModal onClose={() => setShowCreate(false)} onCreated={() => { setShowCreate(false); refetch(); }} />
       )}
 
-      <style>{`.spin { animation: spin 1s linear infinite; } @keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      <style>{`@media (max-width: 880px) { .contacts-grid { grid-template-columns: minmax(0, 1fr) !important; } } .contacts-grid > div { min-width: 0; } .spin { animation: spin 1s linear infinite; } @keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }

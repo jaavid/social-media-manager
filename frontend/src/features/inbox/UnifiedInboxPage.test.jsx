@@ -3,13 +3,14 @@ import UnifiedInboxPage from './UnifiedInboxPage';
 import { inboxAPI } from '../../services/api';
 import { setLanguage } from '../../i18n';
 
+let mockConversations;
 const conversations = [
   { id: 1, contact_name: 'Bob', platform: 'facebook', type: 'dm', messages: [] },
   { id: 2, contact_name: 'Alice', platform: 'facebook', type: 'dm', messages: [] },
 ];
 jest.mock('../../hooks/useInbox', () => ({
   ...jest.requireActual('../../hooks/useInbox'),
-  useConversations: () => ({ data: conversations, refetch: jest.fn(), loading: false }),
+  useConversations: () => ({ data: mockConversations, refetch: jest.fn(), loading: false }),
 }));
 jest.mock('../../core/session', () => ({ useSession: () => ({ user: { client_id: 7 } }) }));
 jest.mock('../../services/api', () => ({ inboxAPI: { conversations: { get: jest.fn(), reply: jest.fn() } } }));
@@ -19,6 +20,7 @@ jest.mock('../../components/ui/toast', () => ({ success: jest.fn(), error: jest.
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockConversations = conversations;
   window.history.replaceState({}, '', '/admin/analytics/inbox');
   setLanguage('en');
   inboxAPI.conversations.get.mockImplementation(async id => ({ data: conversations.find(item => item.id === id) }));
@@ -49,4 +51,17 @@ test('a late send for Bob cannot erase the reply currently being written to Alic
   await act(async () => complete({ data: {} }));
   expect(reply).toHaveValue('For Alice');
   expect(inboxAPI.conversations.get).toHaveBeenCalledTimes(2);
+});
+
+
+test('filter reconciliation removes excluded recipients and clears a zero-result thread', async () => {
+  const view = render(<UnifiedInboxPage />);
+  await screen.findByPlaceholderText('Type a reply… (⌘↵ to send)');
+  mockConversations = [conversations[1]];
+  view.rerender(<UnifiedInboxPage />);
+  await waitFor(() => expect(inboxAPI.conversations.get).toHaveBeenLastCalledWith(2));
+  mockConversations = [];
+  view.rerender(<UnifiedInboxPage />);
+  await waitFor(() => expect(screen.queryByPlaceholderText('Type a reply… (⌘↵ to send)')).not.toBeInTheDocument());
+  expect(screen.queryByRole('button', { name: 'Send', exact: true })).not.toBeInTheDocument();
 });

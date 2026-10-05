@@ -191,3 +191,25 @@ modal and text available for retry; pending submission disables edits and dismis
 
 Contact currently directs visitors to this repository's GitHub issue channel.
 It has no local message submission or receipt; it does not promise a response time.
+
+Composer recovery uses tab-scoped session storage, keyed by user, workspace and
+post. Internal navigation, Back and reload recover unsaved editor content;
+workspace changes mount an independent editor. Successful server saves remove the
+recovery entry. Closing the tab ends this local recovery; unavailable browser
+storage falls back to the before-unload warning.
+
+Login return destinations carry internal path and query through both guards.
+Fragments are captured by the client guard or inherited across the server
+redirect and appended by Login. Return destinations are validated against origin
+and role before navigation; resource authorization remains in Django.
+
+Notification settings and the end-user matrix use the same
+`GET/PUT /api/notifications/preferences/` contract: flat channel booleans on GET,
+`{matrix: [{event_type, channel, enabled}]}` on PUT, followed by GET for the
+canonical saved state. Webhook subscriptions remain unavailable until a server
+registration and delivery API exists. Status shows only health response data;
+missing monitoring history and incidents are explicitly unavailable.
+
+Queue detail includes `items_list`, ordered by `sort_order` and ID, within the
+existing tenant-scoped authorization. The queue UI displays waiting items and
+persists keyboard-accessible up/down changes through the existing reorder API.

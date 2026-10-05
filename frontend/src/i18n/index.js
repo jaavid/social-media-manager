@@ -1,5 +1,5 @@
 import { persistentStorage } from '../lib/runtime/storage';
-import { useContext, useEffect, useSyncExternalStore } from 'react';
+import { useContext, useEffect, useMemo, useSyncExternalStore } from 'react';
 import { isPublicRoute } from './public-routes';
 import { LanguageContext } from './LanguageProvider';
 import { messages } from './messages';
@@ -59,11 +59,11 @@ export function useLanguage() {
   const standalone = useSyncExternalStore(subscribeLanguage, getLanguage, () => 'fa');
   const language = context || standalone;
   useEffect(() => { applyDocumentLanguage(language); }, [language]);
-  return {
+  return useMemo(() => ({
     language, isPersian: language === 'fa', direction: language === 'fa' ? 'rtl' : 'ltr', setLanguage,
     t: (key, fallback, values) => messages[language]?.[key] ? message(key, language, values) : interpolate(translate(key, language, fallback), values),
     tr: value => translateRaw(value, language),
     formatDate: (value, options) => formatUiDate(value, options, language),
     formatNumber: (value, options) => formatUiNumber(value, language, options),
-  };
+  }), [language]);
 }

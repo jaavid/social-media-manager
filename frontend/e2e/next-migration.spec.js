@@ -53,7 +53,7 @@ test('server-owned metadata and RTL survive hydration and public route navigatio
 });
 test('anonymous protected route waits for session then redirects to login', async ({ page }) => {
   await page.goto('/admin/account-settings');
-  await expect(page).toHaveURL(/\/login$/);
+  await expect(page).toHaveURL(/\/login\?next=/);
   await expect(page.locator('input[type="email"]')).toBeVisible();
 });
 test('client cannot render staff account settings', async ({ page }) => {
@@ -242,7 +242,7 @@ test('temporary session outage offers retry; confirmed expiry redirects and clea
   status = 200; await page.getByRole('button', { name: 'Try again' }).click();
   await expect(page.getByRole('heading', { name: 'Settings', exact: true })).toBeVisible();
   status = 401; await page.reload();
-  await expect(page).toHaveURL(/\/login$/);
+  await expect(page).toHaveURL(/\/login\?next=/);
   await expect(page.getByRole('heading', { name: 'Settings', exact: true })).toHaveCount(0);
 });
 
@@ -265,7 +265,7 @@ test('account change and logout propagate across tabs without broadcasting crede
   await expect(second.getByText('first@example.test', { exact: true }).last()).toHaveCount(0);
   identity = null;
   await first.evaluate(() => localStorage.setItem('social-stats.session-invalidated', String(Date.now())));
-  await expect(second).toHaveURL(/\/login$/);
+  await expect(second).toHaveURL(/\/login\?next=/);
   expect(await second.evaluate(() => [localStorage.getItem('access_token'), localStorage.getItem('refresh_token')])).toEqual([null, null]);
   await first.close(); await second.close();
 });

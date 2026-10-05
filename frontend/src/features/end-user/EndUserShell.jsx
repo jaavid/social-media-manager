@@ -1,3 +1,4 @@
+import { useLanguage } from '../../i18n';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -56,12 +57,13 @@ const SECTIONS = [
     items: [
       { to: '/u/settings',      label: 'Settings',      icon: Settings,    comingSoon: true },
       { to: '/u/notifications', label: 'Notifications', icon: Bell },
-      { to: '/u/billing',       label: 'Billing',       icon: CreditCard },
+      { to: '/u/billing',       label: 'Billing',       icon: CreditCard, comingSoon: true },
     ],
   },
 ];
 
 export default function EndUserShell({ children }) {
+  const { tr } = useLanguage();
   const { user } = useAuth();
   const location = useLocation();
   const [badges, setBadges] = useState({ pendingApprovals: 0 });
@@ -82,7 +84,7 @@ export default function EndUserShell({ children }) {
   }, []);
 
   // Close mobile drawer on route change
-  useEffect(() => { setMobileOpen(false); }, [location.pathname]);
+  useEffect(() => { void Promise.resolve().then(() => setMobileOpen(false)); }, [location.pathname]);
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface-page)' }} className="eu-shell">
@@ -96,7 +98,7 @@ export default function EndUserShell({ children }) {
         borderBottom: '1px solid var(--border-subtle)',
       }}>
         <button
-          type="button" onClick={() => setMobileOpen(true)} aria-label="Open menu"
+          type="button" onClick={() => setMobileOpen(true)} aria-label={tr("Open menu")}
           style={{
             width: 36, height: 36, padding: 0,
             display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
@@ -114,7 +116,7 @@ export default function EndUserShell({ children }) {
         }}>
           <Sparkles size={13} strokeWidth={2.4} />
         </span>
-        <strong style={{ fontSize: 14, color: 'var(--text-primary)' }}>Social Stats</strong>
+        <strong style={{ fontSize: 14, color: 'var(--text-primary)' }}>{tr("Social Stats")}</strong>
       </header>
 
       {/* Backdrop */}
@@ -132,8 +134,8 @@ export default function EndUserShell({ children }) {
       )}
 
       <aside
-        aria-label="End-user navigation"
-        className={mobileOpen ? 'eu-sidebar eu-sidebar-open' : 'eu-sidebar'}
+        aria-label={tr("End-user navigation")}
+        className={mobileOpen ? "eu-sidebar eu-sidebar-open" : "eu-sidebar"}
         style={{
           width: 220,
           background: 'var(--surface-card)',
@@ -146,7 +148,7 @@ export default function EndUserShell({ children }) {
         {/* Mobile-only close button */}
         <button
           type="button" onClick={() => setMobileOpen(false)}
-          aria-label="Close menu"
+          aria-label={tr("Close menu")}
           className="eu-sidebar-close"
           style={{
             display: 'none', position: 'absolute', top: 10, right: 10,
@@ -169,25 +171,21 @@ export default function EndUserShell({ children }) {
             <Sparkles size={14} strokeWidth={2.4} />
           </span>
           <div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
-              Social Stats
-            </div>
-            <div style={{ fontSize: 10, color: 'var(--text-tertiary)' }}>
-              Personal account
-            </div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>{tr("Social Stats")}</div>
+            <div style={{ fontSize: 10, color: 'var(--text-tertiary)' }}>{tr("Personal account")}</div>
           </div>
         </div>
 
         <nav style={{ display: 'flex', flexDirection: 'column', gap: 14, overflowY: 'auto', flex: 1 }}>
           {SECTIONS.map((section) => (
-            <div key={section.title}>
+            <div key={tr(section.title)}>
               <div style={{
                 fontSize: 10, fontWeight: 600,
                 letterSpacing: '0.06em', textTransform: 'uppercase',
                 color: 'var(--text-tertiary)',
                 padding: '4px 8px 6px',
               }}>
-                {section.title}
+                {tr(section.title)}
               </div>
               {section.items.map((item) => (
                 <NavRow key={item.to} {...item} badge={item.badgeKey ? badges[item.badgeKey] : 0} />
@@ -241,6 +239,7 @@ export default function EndUserShell({ children }) {
 }
 
 function NavRow({ to, label, icon: Icon, end, comingSoon, badge }) {
+  const { tr } = useLanguage();
   if (comingSoon) {
     return (
       <div style={{
@@ -252,7 +251,7 @@ function NavRow({ to, label, icon: Icon, end, comingSoon, badge }) {
         opacity: 0.55,
       }}>
         <Icon size={15} strokeWidth={2} />
-        <span style={{ flex: 1 }}>{label}</span>
+        <span style={{ flex: 1 }}>{tr(label)}</span>
         <span style={{
           fontSize: 9, fontWeight: 600,
           letterSpacing: '0.04em', textTransform: 'uppercase',
@@ -261,9 +260,7 @@ function NavRow({ to, label, icon: Icon, end, comingSoon, badge }) {
           background: 'var(--surface-card)',
           border: '1px solid var(--border-subtle)',
           borderRadius: 'var(--radius-pill)',
-        }}>
-          Soon
-        </span>
+        }}>{tr("Soon")}</span>
       </div>
     );
   }
@@ -283,7 +280,7 @@ function NavRow({ to, label, icon: Icon, end, comingSoon, badge }) {
       })}
     >
       <Icon size={15} strokeWidth={2} />
-      <span style={{ flex: 1 }}>{label}</span>
+      <span style={{ flex: 1 }}>{tr(label)}</span>
       {badge > 0 && (
         <span style={{
           minWidth: 18, padding: '0 5px',

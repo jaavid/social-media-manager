@@ -36,3 +36,16 @@ export function internalReturnTo(value: string | null, fallback = '/dashboard'):
   const url = new URL(value, 'https://socialstats.invalid');
   return url.origin === 'https://socialstats.invalid' ? `${url.pathname}${url.search}${url.hash}` : fallback;
 }
+
+/** Route-family authorization mirrors Protected; backend access remains final. */
+export function returnToForUser(value: string | null, user: Pick<SessionUser, 'role' | 'account_type'>, hash = ''): string {
+  const staff = ['superadmin', 'staff'].includes(user.role);
+  const fallback = staff ? '/admin' : user.account_type === 'end_user' ? '/u' : '/dashboard';
+  const next = internalReturnTo(value, fallback);
+  const path = new URL(next, 'https://socialstats.invalid').pathname;
+  if (/^\/admin(?:\/|$)/.test(path) && !staff) return fallback;
+  if (/^\/u(?:\/|$)/.test(path) && user.account_type !== 'end_user') return fallback;
+  if (/^\/dashboard(?:\/|$)/.test(path) && (staff || user.account_type === 'end_user')) return fallback;
+  if (/^\/(?:login|auth|logout)(?:\/|$)/.test(path)) return fallback;
+  return next.includes('#') || !hash.startsWith('#') ? next : next + hash;
+}

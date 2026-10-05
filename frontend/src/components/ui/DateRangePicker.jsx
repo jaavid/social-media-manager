@@ -6,6 +6,9 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
+import { useId } from 'react';
+import { useLanguage } from '../../i18n';
+
 const PRESETS = [
   { label: '7d',  days: 7  },
   { label: '30d', days: 30 },
@@ -19,6 +22,8 @@ function isPresetActive(range, days) {
 }
 
 export default function DateRangePicker({ range, onChange }) {
+  const id = useId();
+  const { tr } = useLanguage();
   return (
     <div style={styles.wrap}>
       {/* Preset pills */}
@@ -52,9 +57,10 @@ export default function DateRangePicker({ range, onChange }) {
       {/* Date inputs */}
       <div style={styles.dateGroup}>
         <div style={styles.dateField}>
-          <span style={styles.dateLabel}>From</span>
+          <label htmlFor={`${id}-since`} style={styles.dateLabel}>{tr('From')}</label>
           <input
             type="date"
+            id={`${id}-since`}
             value={range.since}
             max={range.until}
             onChange={e => onChange({ ...range, since: e.target.value })}
@@ -63,9 +69,10 @@ export default function DateRangePicker({ range, onChange }) {
         </div>
         <span style={styles.arrow}>→</span>
         <div style={styles.dateField}>
-          <span style={styles.dateLabel}>To</span>
+          <label htmlFor={`${id}-until`} style={styles.dateLabel}>{tr('To')}</label>
           <input
             type="date"
+            id={`${id}-until`}
             value={range.until}
             min={range.since}
             max={new Date().toISOString().slice(0, 10)}
@@ -113,6 +120,8 @@ const styles = {
   },
   dateGroup: {
     display: 'flex',
+    flexWrap: 'wrap',
+    minWidth: 0,
     alignItems: 'center',
     gap: 8,
   },

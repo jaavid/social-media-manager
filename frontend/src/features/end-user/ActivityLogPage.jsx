@@ -1,3 +1,4 @@
+import { useLanguage } from '../../i18n';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -38,6 +39,7 @@ const SEVERITY_COLOR = {
 };
 
 export default function ActivityLogPage() {
+  const { tr } = useLanguage();
   const [rows,    setRows]    = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
@@ -54,60 +56,54 @@ export default function ActivityLogPage() {
     if (filters.flagged)    params.flagged    = '1';
     activityAPI.list(params)
       .then((r) => setRows(r.data?.rows || []))
-      .catch(() => toast.error('Could not load activity'))
+      .catch(() => toast.error(tr("Could not load activity")))
       .finally(() => setLoading(false));
-  }, [filters]);
+  }, [filters, tr]);
 
   useEffect(() => { void Promise.resolve().then(reload); }, [reload]);
 
   async function flag(id) {
-    const reason = window.prompt('What\'s wrong with this action? (optional)');
+    const reason = window.prompt(tr("What's wrong with this action? (optional)"));
     if (reason === null) return;
     try {
       await activityAPI.flag(id, reason);
       setRows((list) => list.map((r) => r.id === id ? { ...r, flagged_by_user: true } : r));
-      toast.success('Flagged for review');
+      toast.success(tr("Flagged for review"));
     } catch (e) {
-      toast.error(e?.response?.data?.error || 'Could not flag');
+      toast.error(e?.response?.data?.error || tr("Could not flag"));
     }
   }
 
   async function revert(id) {
-    if (!window.confirm('Revert this action? Where supported, the post will be removed from connected platforms.')) return;
+    if (!window.confirm(tr("Revert this action? Where supported, the post will be removed from connected platforms."))) return;
     try {
       const r = await activityAPI.revert(id);
-      toast.success(r.data?.message || 'Reverted');
+      toast.success(r.data?.message || tr("Reverted"));
       reload();
     } catch (e) {
-      toast.error(e?.response?.data?.error || 'Could not revert');
+      toast.error(e?.response?.data?.error || tr("Could not revert"));
     }
   }
 
-  function exportCsv() {
+  async function exportCsv() {
     const params = {};
     if (filters.actor_type) params.actor_type = filters.actor_type;
-    if (filters.severity)   params.severity   = filters.severity;
-    if (filters.flagged)    params.flagged    = '1';
-    // Browsers don't carry the JWT to a plain <a download>; we fetch with axios + force-save instead.
-    activityAPI.list({ ...params, limit: 1 })  // touch the API to ensure token is fresh
-      .then(() => {
-        const url = activityAPI.exportCsvUrl(params);
-            // Use fetch so the Authorization header travels with the download
-        fetch(url, { credentials: 'same-origin' })
-          .then((res) => res.blob())
-          .then((blob) => {
-            const a = document.createElement('a');
-            const dl = window.URL.createObjectURL(blob);
-            a.href = dl;
-            a.download = `socialstats-activity-${new Date().toISOString().slice(0, 10)}.csv`;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            window.URL.revokeObjectURL(dl);
-          })
-          .catch(() => toast.error('Could not download CSV'));
-      })
-      .catch(() => toast.error('Could not download CSV'));
+    if (filters.severity) params.severity = filters.severity;
+    if (filters.flagged) params.flagged = '1';
+    try {
+      const response = await fetch(activityAPI.exportCsvUrl(params), { credentials: 'same-origin' });
+      if (!response.ok || !/^text\/csv(?:;|$)/i.test(response.headers.get('Content-Type') || '')) {
+        throw new Error('CSV export failed');
+      }
+      const url = window.URL.createObjectURL(await response.blob());
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `socialstats-activity-${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch { toast.error(tr('Could not download CSV')); }
   }
 
   const stats = useMemo(() => {
@@ -132,28 +128,22 @@ export default function ActivityLogPage() {
           <ShieldCheck size={20} strokeWidth={2.2} />
         </span>
         <div style={{ flex: 1 }}>
-          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
-            Activity log
-          </h1>
-          <p style={{ margin: '4px 0 0', color: 'var(--text-secondary)', fontSize: 14 }}>
-            Today: <strong>{stats.total}</strong> action{stats.total === 1 ? '' : 's'} · Agency: <strong>{stats.byAgency}</strong> · You: <strong>{stats.byMe}</strong>
+          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>{tr("Activity log")}</h1>
+          <p style={{ margin: '4px 0 0', color: 'var(--text-secondary)', fontSize: 14 }}>{tr("Today:")}<strong>{stats.total}</strong>{tr("action")}{stats.total === 1 ? '' : "s"}{tr("· Agency:")}<strong>{stats.byAgency}</strong>{tr("· You:")}<strong>{stats.byMe}</strong>
           </p>
         </div>
         <div style={{ display: 'flex', gap: 6 }}>
           <button type="button" onClick={exportCsv} style={btnGhost}>
-            <Download size={13} /> Export CSV
-          </button>
-          <button type="button" onClick={reload} style={btnGhost} aria-label="Refresh">
-            <RefreshCw size={13} /> Refresh
-          </button>
+            <Download size={13} />{tr("Export CSV")}</button>
+          <button type="button" onClick={reload} style={btnGhost} aria-label={tr("Refresh")}>
+            <RefreshCw size={13} />{tr("Refresh")}</button>
         </div>
       </header>
 
       {/* Filters */}
       <div style={filterBar}>
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--text-tertiary)', fontSize: 12, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-          <Filter size={11} /> Filter
-        </span>
+          <Filter size={11} />{tr("Filter")}</span>
         <ChipGroup
           value={filters.actor_type}
           onChange={(v) => setFilters((f) => ({ ...f, actor_type: v }))}
@@ -177,18 +167,16 @@ export default function ActivityLogPage() {
           ]}
         />
         <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-secondary)', cursor: 'pointer' }}>
-          <input type="checkbox" checked={filters.flagged} onChange={(e) => setFilters((f) => ({ ...f, flagged: e.target.checked }))} />
-          Flagged only
-        </label>
+          <input type="checkbox" checked={filters.flagged} onChange={(e) => setFilters((f) => ({ ...f, flagged: e.target.checked }))} />{tr("Flagged only")}</label>
       </div>
 
       {/* Timeline */}
       {loading ? (
-        <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-tertiary)' }}>Loading…</div>
+        <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-tertiary)' }}>{tr("Loading…")}</div>
       ) : rows.length === 0 ? (
         <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-tertiary)', background: 'var(--surface-card)', border: '1px dashed var(--border-default)', borderRadius: 'var(--radius-md)' }}>
           <ActivityIcon size={28} strokeWidth={1.6} style={{ opacity: 0.4 }} />
-          <div style={{ marginTop: 8 }}>No activity matches your filters.</div>
+          <div style={{ marginTop: 8 }}>{tr("No activity matches your filters.")}</div>
         </div>
       ) : (
         <ol style={timelineStyle}>
@@ -207,6 +195,7 @@ export default function ActivityLogPage() {
 }
 
 function ChipGroup({ value, onChange, options }) {
+  const { tr } = useLanguage();
   return (
     <div style={{ display: 'inline-flex', gap: 4, flexWrap: 'wrap' }}>
       {options.map((opt) => {
@@ -214,7 +203,7 @@ function ChipGroup({ value, onChange, options }) {
         return (
           <button
             type="button"
-            key={opt.value || '__all__'}
+            key={opt.value || "__all__"}
             onClick={() => onChange(opt.value)}
             style={{
               padding: '4px 10px',
@@ -226,7 +215,7 @@ function ChipGroup({ value, onChange, options }) {
               cursor: 'pointer', fontFamily: 'inherit',
             }}
           >
-            {opt.label}
+            {tr(opt.label)}
           </button>
         );
       })}
@@ -235,6 +224,7 @@ function ChipGroup({ value, onChange, options }) {
 }
 
 function ActivityRow({ row, onFlag, onRevert }) {
+  const { tr, formatDate } = useLanguage();
   const actor = ACTOR_PILL[row.actor_type] || ACTOR_PILL.system;
   const severityColor = SEVERITY_COLOR[row.severity] || SEVERITY_COLOR.info;
   const Icon = row.actor_type === 'ai' ? Sparkles : ActivityIcon;
@@ -252,33 +242,31 @@ function ActivityRow({ row, onFlag, onRevert }) {
       </span>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-          <span style={{ ...actorPill, background: actor.bg, color: actor.fg }}>{actor.label}</span>
+          <span style={{ ...actorPill, background: actor.bg, color: actor.fg }}>{tr(actor.label)}</span>
           {row.actor_user_name && <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>· {row.actor_user_name}</span>}
           {row.actor_agency_name && <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>· {row.actor_agency_name}</span>}
           <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', color: severityColor }}>
             {row.severity}
           </span>
-          {row.flagged_by_user && <span style={flagChip}><Flag size={9} /> Flagged</span>}
-          {row.reverted_at && <span style={revertedChip}><Undo2 size={9} /> Reverted</span>}
+          {row.flagged_by_user && <span style={flagChip}><Flag size={9} />{tr("Flagged")}</span>}
+          {row.reverted_at && <span style={revertedChip}><Undo2 size={9} />{tr("Reverted")}</span>}
         </div>
         <div style={{ marginTop: 4, fontSize: 13, color: 'var(--text-primary)', lineHeight: 'var(--line-height-body)' }}>
-          {row.description}
+          {tr(row.description)}
         </div>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, flexShrink: 0 }}>
         <span style={{ fontSize: 11, color: 'var(--text-tertiary)', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
           <Clock size={10} />
-          {new Date(row.created_at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+          {formatDate(row.created_at, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
         </span>
         {onRevert && (
-          <button type="button" onClick={onRevert} style={{ ...miniBtn, color: 'var(--warning)', borderColor: 'var(--warning)' }} aria-label="Revert this action">
-            <Undo2 size={11} /> Revert
-          </button>
+          <button type="button" onClick={onRevert} style={{ ...miniBtn, color: 'var(--warning)', borderColor: 'var(--warning)' }} aria-label={tr("Revert this action")}>
+            <Undo2 size={11} />{tr("Revert")}</button>
         )}
         {!row.flagged_by_user && (
-          <button type="button" onClick={onFlag} style={miniBtn} aria-label="Flag this action">
-            <Flag size={11} /> Flag
-          </button>
+          <button type="button" onClick={onFlag} style={miniBtn} aria-label={tr("Flag this action")}>
+            <Flag size={11} />{tr("Flag")}</button>
         )}
       </div>
     </li>
