@@ -18,6 +18,7 @@ from . import publishing  # noqa: F401
 from . import inbox  # noqa: F401
 from . import automation  # noqa: F401
 from . import auth  # noqa: F401
+from . import integrations  # noqa: F401
 
 admin.site.site_header = 'مدیریت سامانه شبکه‌های اجتماعی'
 admin.site.site_title = 'مدیریت بک‌اند'

@@ -69,7 +69,7 @@ _DEFAULT_CSP_DIRECTIVES = {
 }
 
 
-def _build_csp() -> str:
+def _build_csp(*, admin_expressions: bool = False) -> str:
     """Compose the CSP header from `settings.CONTENT_SECURITY_POLICY` (a dict
     overriding `_DEFAULT_CSP_DIRECTIVES`) plus optional bonuses."""
     overrides = getattr(settings, 'CONTENT_SECURITY_POLICY', None) or {}
@@ -78,6 +78,11 @@ def _build_csp() -> str:
         merged[k] = list(v)
     for k, v in overrides.items():
         merged[k] = list(v) if isinstance(v, (list, tuple)) else [str(v)]
+
+    # Unfold's bundled Alpine runtime evaluates its declarative expressions.
+    # Keep inline scripts blocked and keep the API's policy unchanged.
+    if admin_expressions and "'unsafe-eval'" not in merged['script-src']:
+        merged['script-src'].append("'unsafe-eval'")
 
     parts: list[str] = []
     for directive, sources in merged.items():
@@ -95,6 +100,7 @@ class SecurityHeadersMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
         self._csp = _build_csp()
+        self._admin_csp = _build_csp(admin_expressions=True)
 
     def __call__(self, request):
         response = self.get_response(request)
@@ -110,7 +116,14 @@ class SecurityHeadersMiddleware:
         ))
         response.setdefault('X-Permitted-Cross-Domain-Policies', 'none')
         if 'Content-Security-Policy' not in response:
-            response['Content-Security-Policy'] = self._csp
+            match = getattr(request, 'resolver_match', None)
+            unfold_page = (
+                bool(getattr(settings, 'UNFOLD', None))
+                and request.path_info.startswith('/backend/')
+                and getattr(match, 'namespace', None) == 'admin'
+                and response.get('Content-Type', '').startswith('text/html')
+            )
+            response['Content-Security-Policy'] = self._admin_csp if unfold_page else self._csp
         return response
 
 

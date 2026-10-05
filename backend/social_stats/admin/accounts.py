@@ -12,10 +12,11 @@ from django.contrib import admin
 from social_stats.models import (
     SocialAccount, PlatformCredential,
 )
-from social_stats.platforms.registry import PLATFORMS_BY_KEY, PLATFORM_REGISTRY, grouped_platform_choices
+from social_stats.platforms.registry import PLATFORMS_BY_KEY, grouped_platform_choices
 
 
 from .shared import WorkspaceLabelsMixin
+from .filters import PlatformCategoryFilter
 
 class PlatformCredentialAdminForm(forms.ModelForm):
     class Meta:
@@ -27,21 +28,6 @@ class PlatformCredentialAdminForm(forms.ModelForm):
         self.fields['platform'].choices = grouped_platform_choices()
 
 
-class PlatformCategoryFilter(admin.SimpleListFilter):
-    title = 'دسته پلتفرم'
-    parameter_name = 'platform_category'
-
-    def lookups(self, request, model_admin):
-        categories = {}
-        for platform in PLATFORM_REGISTRY:
-            categories.setdefault(platform.category, platform.category_title_fa)
-        return categories.items()
-
-    def queryset(self, request, queryset):
-        if not self.value():
-            return queryset
-        keys = [p.key for p in PLATFORM_REGISTRY if p.category == self.value()]
-        return queryset.filter(platform__in=keys)
 
 
 @admin.register(SocialAccount)

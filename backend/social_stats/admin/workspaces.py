@@ -18,6 +18,7 @@ from .shared import WorkspaceLabelsMixin
 
 @admin.register(Client)
 class ClientAdmin(WorkspaceLabelsMixin, ModelAdmin):
+    fieldsets_as_tabs = True
     list_display = ['company', 'name', 'email', 'is_active', 'created_at']
     search_fields = ['company', 'name', 'email']
     list_filter = ['is_active', 'onboarding_complete', 'requires_approval']

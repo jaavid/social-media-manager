@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.db.migrations.loader import MigrationLoader
 from django.http import HttpResponse
-from django.test import RequestFactory, SimpleTestCase, TestCase
+from django.test import RequestFactory, SimpleTestCase, TestCase, override_settings
 from django.utils import translation
 
 from social_stats.admin_locale import BackendAdminLocaleMiddleware
@@ -13,6 +13,10 @@ from social_stats.models import (
 )
 
 
+@override_settings(STORAGES={
+    'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
+    'staticfiles': {'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage'},
+})
 class AdminLayoutTests(TestCase):
     def setUp(self):
         self.request = RequestFactory().get('/backend/')
@@ -76,6 +80,10 @@ class BackendAdminLocaleTests(SimpleTestCase):
                     )
 
 
+@override_settings(STORAGES={
+    'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
+    'staticfiles': {'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage'},
+})
 class PersianAdminTests(TestCase):
     def setUp(self):
         self.user = get_user_model().objects.create_superuser(
@@ -179,6 +187,10 @@ class PersianAdminTests(TestCase):
         self.assertFalse(model_admin.has_delete_permission(request))
 
 
+@override_settings(STORAGES={
+    'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
+    'staticfiles': {'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage'},
+})
 class UnfoldAdminTests(TestCase):
     def setUp(self):
         self.user = get_user_model().objects.create_superuser(
@@ -227,3 +239,51 @@ class UnfoldAdminTests(TestCase):
             [item['link'] for group in groups for item in group['items']],
             ['/backend/social_stats/unifiedpost/'],
         )
+
+    def test_vendor_admin_pages_render_with_unfold_and_keep_permissions(self):
+        for app, models in (
+            ('django_celery_beat', ('periodictask', 'intervalschedule', 'crontabschedule', 'solarschedule', 'clockedschedule')),
+            ('axes', ('accessattempt', 'accesslog', 'accessfailurelog')),
+            ('token_blacklist', ('outstandingtoken', 'blacklistedtoken')),
+        ):
+            for model in models:
+                with self.subTest(app=app, model=model):
+                    response = self.client.get(f'/backend/{app}/{model}/')
+                    self.assertContains(response, 'unfold/css/styles.css')
+        for model in ('periodictask', 'intervalschedule', 'crontabschedule', 'solarschedule', 'clockedschedule'):
+            with self.subTest(add=model):
+                response = self.client.get(f'/backend/django_celery_beat/{model}/add/')
+                self.assertContains(response, 'unfold/css/styles.css')
+                if model == 'periodictask':
+                    self.assertContains(response, 'social_stats/admin/periodic_task.js')
+                    self.assertContains(response, 'id="crontab-description"')
+                    self.assertNotContains(response, 'JSON.parse(')
+        from rest_framework_simplejwt.token_blacklist.models import OutstandingToken
+        request = RequestFactory().get('/backend/')
+        request.user = self.user
+        token_admin = admin.site._registry[OutstandingToken]
+        self.assertFalse(token_admin.has_add_permission(request))
+        request.method = 'POST'
+        self.assertFalse(token_admin.has_change_permission(request))
+        self.assertFalse(token_admin.has_delete_permission(request))
+        staff = get_user_model().objects.create_user(username='integration-staff', is_staff=True)
+        self.client.force_login(staff)
+        self.assertEqual(self.client.get('/backend/django_celery_beat/periodictask/').status_code, 403)
+        self.assertEqual(self.client.get('/backend/token_blacklist/outstandingtoken/').status_code, 403)
+
+    def test_workspace_filter_does_not_expand_queryset(self):
+        first = Client.objects.create(name='First workspace', email='first@example.test')
+        second = Client.objects.create(name='Second workspace', email='second@example.test')
+        UnifiedPost.objects.create(client=first, content='First post')
+        UnifiedPost.objects.create(client=second, content='Second post')
+        response = self.client.get('/backend/social_stats/unifiedpost/', {'client__id__exact': first.pk})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(list(response.context['cl'].queryset.values_list('client_id', flat=True)), [first.pk])
+
+    def test_json_widget_preserves_invalid_input_for_form_validation(self):
+        from social_stats.admin.widgets import AdminJSONWidget
+        widget = AdminJSONWidget()
+        self.assertEqual(widget.format_value('{invalid'), '{invalid')
+        self.assertEqual(widget.format_value('{"name": "فارسی"}'), '{\n  "name": "فارسی"\n}')
+        self.assertEqual(widget.format_value('"فارسی"'), '"فارسی"')
+        self.assertEqual(widget.format_value('null'), 'null')

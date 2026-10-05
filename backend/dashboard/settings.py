@@ -8,7 +8,11 @@
 # ============================================================================
 from pathlib import Path
 import os
+import sys as _sys
+from datetime import timedelta
+from celery.schedules import crontab
 from dotenv import load_dotenv
+from .admin import UNFOLD  # noqa: F401
 
 load_dotenv()
 
@@ -35,6 +39,7 @@ INSTALLED_APPS = [
     # Must be first so it patches `runserver`.
     'daphne',
     'unfold',
+    'unfold.contrib.filters',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -165,6 +170,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # ── Static files (production build, collectstatic) ─────────────────
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+STORAGES = {
+    'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
+    'staticfiles': {'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage'},
+}
 STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -184,7 +193,6 @@ SECURE_SSL_REDIRECT     = _env_bool('SECURE_SSL_REDIRECT',     not DEBUG)
 # Running the test suite (e.g. CI with DEBUG=False): never force an HTTPS
 # redirect — the Django test client speaks http:// and a 301→https turns every
 # API response into an HttpResponsePermanentRedirect (no `.data`), failing tests.
-import sys as _sys
 if 'test' in _sys.argv:
     SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE   = _env_bool('SESSION_COOKIE_SECURE',   not DEBUG)
@@ -242,7 +250,6 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_EXPOSE_HEADERS    = ['X-Request-ID']
 
 # ── JWT Auth ──────────────────────────────────────────
-from datetime import timedelta
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME':       timedelta(minutes=int(os.environ.get('JWT_ACCESS_MIN', '15'))),
     'REFRESH_TOKEN_LIFETIME':      timedelta(days=int(os.environ.get('JWT_REFRESH_DAYS', '7'))),
@@ -286,7 +293,6 @@ CELERY_BEAT_SCHEDULER    = 'django_celery_beat.schedulers:DatabaseScheduler'
 CELERY_TASK_ALWAYS_EAGER = DEBUG
 CELERY_TASK_EAGER_PROPAGATES = DEBUG
 
-from celery.schedules import crontab
 CELERY_BEAT_SCHEDULE = {
     'telegram-recover-jobs': {'task': 'social_stats.telegram_tasks.recover_telegram_jobs', 'schedule': 60.0},
     'telegram-prune-updates': {'task': 'social_stats.telegram_tasks.prune_telegram_updates', 'schedule': 86400.0},
@@ -425,16 +431,3 @@ PINBOT_BASE_URL              = os.environ.get('PINBOT_BASE_URL', 'https://partne
 WHATSAPP_ENCRYPTION_KEY      = os.environ.get('WHATSAPP_ENCRYPTION_KEY', '')
 WHATSAPP_WEBHOOK_SECRET      = os.environ.get('WHATSAPP_WEBHOOK_SECRET', '')
 WHATSAPP_RATE_LIMIT_PER_SEC  = int(os.environ.get('WHATSAPP_RATE_LIMIT_PER_SEC', '20'))
-
-# Unfold uses Django model permissions and the existing /backend/ routes.
-UNFOLD = {
-    'SITE_TITLE': 'مدیریت بک‌اند',
-    'SITE_HEADER': 'مدیریت سامانه شبکه‌های اجتماعی',
-    'SITE_SUBHEADER': 'فضاهای کاری، محتوا و اتصال‌ها',
-    'SHOW_HISTORY': True,
-    'SIDEBAR': {
-        'show_search': True,
-        'show_all_applications': True,
-        'navigation': 'social_stats.admin.navigation.sidebar_navigation',
-    },
-}

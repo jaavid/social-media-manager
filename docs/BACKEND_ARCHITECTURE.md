@@ -15,6 +15,9 @@ that is unnecessary for organizing the implementation.
 | Request validation and response representation | `social_stats/serializers/<domain>.py` | `calendar.py`, `inbox.py`, `marketplace.py` |
 | Backend administration | `social_stats/admin/<domain>.py` | `accounts.py`, `publishing.py`, `auth.py` |
 | Shared admin behavior and read-only policy | `social_stats/admin/shared.py` | `WorkspaceLabelsMixin`, `OperationalReadOnlyAdmin` |
+| Admin filters and JSON presentation | `social_stats/admin/filters.py`, `widgets.py` | Workspace autocomplete, date ranges, readable JSON |
+| Third-party admin integration | `social_stats/admin/integrations/` | Celery Beat, Axes, JWT token blacklist |
+| Admin site configuration | `dashboard/admin.py` | Unfold settings and sidebar callback |
 | Model lifecycle listeners | `social_stats/signals.py` | Onboarding initialization and completion |
 | Platform implementations and metadata | `social_stats/platforms/` | Registry, publishing adapters, capabilities |
 | AI implementation | `social_stats/ai/` | Provider-backed generation and existing AI endpoints |
@@ -52,7 +55,20 @@ forms. Text and JSON widgets retain the existing Persian form labels and styling
 The sidebar groups workspaces, connections, publishing, inbox, analytics, settings,
 and authentication. Links are filtered through the linked admin's model permissions.
 Search helps locate model lists; Unfold also provides theme controls.
-Configuration is the `UNFOLD` setting in `dashboard/settings.py`.
+Configuration is in `dashboard/admin.py`, imported by `dashboard/settings.py`.
+
+`unfold.contrib.filters` supplies choice dropdowns, boolean radio buttons, date
+ranges and workspace autocomplete. Workspace forms use fieldset tabs; lookup
+items use a tabbed sortable inline with their existing `sort_order` field.
+JSON editing keeps Django's validation and displays Unicode with indentation.
+Rich-text widgets are intentionally excluded from plain-text and JSON fields.
+
+Celery Beat, Axes and JWT blacklist admins are adapted in `admin/integrations/`.
+They retain the original forms, actions and permission rules. Celery Beat's
+crontab description uses an external script instead of its inline JavaScript.
+The sidebar adds scheduling and security/session groups with permission checks.
+See the official [filter documentation](https://unfoldadmin.com/docs/filters/dropdown/)
+and [Celery Beat integration](https://unfoldadmin.com/docs/integrations/django-celery-beat/).
 
 Existing authorization is preserved. Publishing records, provider messages,
 reviews, and queue results remain read-only where transitions belong to services.
@@ -62,6 +78,27 @@ the existing staff/model permission policy, so treat it as the internal backend.
 Install updated requirements and collect static files during deployment. No schema
 migration is needed for this refactor. Unfold's assets are served through the
 existing WhiteNoise/static-file configuration.
+
+Both Docker image builds run `collectstatic`; the combined app entrypoint also
+collects on startup. Deploy a newly built image containing the updated Python
+code, dependencies and static assets. For deployments outside these containers,
+run `python manage.py collectstatic --noinput` with the production settings and
+restart the application. Static storage uses WhiteNoise's compressed manifest
+backend: production templates reference content-hashed filenames, avoiding old
+JavaScript/CSS under Nginx's immutable cache. Keep `staticfiles.json` with the
+collected assets, and ensure `/static/` reaches that same directory.
+
+Unfold's Alpine runtime evaluates expressions. `SecurityHeadersMiddleware`
+therefore permits `unsafe-eval` only on HTML responses resolved inside the
+`admin` namespace under `/backend/`; inline scripts remain blocked. API responses,
+admin autocomplete JSON and other routes retain the strict script policy.
+This scoped exception is required by the installed runtime; do not add
+`unsafe-eval` globally to the CSP environment overrides.
+
+After deployment, check that Unfold CSS/JS requests return 200 with hashed URLs,
+the console has no CSP errors, the shortcut help opens with `Shift+?` and closes with
+Escape, and the task/schedule forms render correctly. Re-running `collectstatic`
+alone cannot fix a deployed CSP that blocks Alpine.
 
 ## Review findings and remaining opportunities
 

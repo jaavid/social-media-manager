@@ -25,6 +25,10 @@ class SiteContentAdmin(WorkspaceLabelsMixin, ModelAdmin):
 class LookupItemInline(WorkspaceLabelsMixin, TabularInline):
     model = LookupItem
     extra = 0
+    tab = True
+    ordering_field = "sort_order"
+    hide_ordering_field = True
+    show_count = True
 
 
 @admin.register(LookupCollection)

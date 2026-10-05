@@ -15,11 +15,22 @@ from social_stats.models import (
 )
 
 
+from .filters import domain_filters
+from .widgets import AdminJSONWidget
+
+
 class WorkspaceLabelsMixin:
     """Use product vocabulary for workspace relations without renaming DB fields."""
+    list_filter_submit = True
+    warn_unsaved_form = True
+    fieldsets_as_tabs = False
+
+    def get_list_filter(self, request):
+        return domain_filters(self.model, super().get_list_filter(request))
+
     formfield_overrides = {
         models.TextField: {'widget': UnfoldAdminTextareaWidget(attrs={'rows': 4, 'class': 'vLargeTextField admin-textarea'})},
-        models.JSONField: {'widget': UnfoldAdminTextareaWidget(attrs={'rows': 6, 'class': 'vLargeTextField admin-json', 'spellcheck': 'false'})},
+        models.JSONField: {'widget': AdminJSONWidget(attrs={'rows': 6, 'class': 'vLargeTextField admin-json', 'spellcheck': 'false'})},
     }
 
     class Media:
@@ -37,7 +48,9 @@ class WorkspaceLabelsMixin:
                 continue
             remaining = [field for field in remaining if field not in selected]
             options = {'fields': selected}
-            if collapse:
+            if self.fieldsets_as_tabs:
+                options['classes'] = ['tab']
+            elif collapse:
                 options['classes'] = ['collapse']
             fieldsets.append((title, options))
         if remaining:

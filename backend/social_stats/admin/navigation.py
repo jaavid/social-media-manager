@@ -13,6 +13,15 @@ NAVIGATION_GROUPS = (
     ('صندوق پیام و خودکارسازی', 'forum', ('conversation', 'message', 'unifiedreview', 'automationrule')),
     ('آمار و بازگشت سرمایه', 'monitoring', ('dailymetric', 'roisettings', 'roireport')),
     ('تنظیمات و داده‌های مرجع', 'settings', ('sitecontent', 'lookupcollection')),
+    ('زمان‌بندی پردازش‌ها', 'schedule', (
+        'django_celery_beat.periodictask', 'django_celery_beat.intervalschedule',
+        'django_celery_beat.crontabschedule', 'django_celery_beat.clockedschedule',
+        'django_celery_beat.solarschedule',
+    )),
+    ('امنیت و نشست‌ها', 'shield', (
+        'axes.accessattempt', 'axes.accessfailurelog', 'axes.accesslog',
+        'token_blacklist.outstandingtoken', 'token_blacklist.blacklistedtoken',
+    )),
     ('کاربران و گروه‌ها', 'manage_accounts', ('auth.user', 'auth.group')),
 )
 
