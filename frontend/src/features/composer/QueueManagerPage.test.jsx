@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import QueueManagerPage from './QueueManagerPage';
 import { composerAPI } from '../../services/api';
 import { setLanguage } from '../../i18n';
+import { registerPlatform } from '../../services/platforms';
 
 const mockRefetch = jest.fn();
 const queue = { id: 11, name: 'Morning queue', items_count: 0, waiting_count: 0, platforms: ['facebook'] };
@@ -48,4 +49,23 @@ test('pending prevents duplicate submission and dismissal', async () => {
   expect(screen.getByRole('textbox')).toHaveValue('Keep this');
   await act(async () => complete({ data: {} }));
   await waitFor(() => expect(screen.queryByRole('textbox')).not.toBeInTheDocument());
+});
+
+test('queue platform choices come from publish-capable registry metadata', async () => {
+  const unregister = registerPlatform({
+    key: 'queue_fixture',
+    labels: { default: 'Queue Fixture' },
+    category: 'regional',
+    authType: 'api_credentials',
+    capabilities: ['text'],
+    connection: { fields: [] },
+  });
+  try {
+    render(<QueueManagerPage />);
+    fireEvent.click(screen.getByRole('button', { name: 'New Queue' }));
+    expect(screen.getByRole('checkbox', { name: 'Queue Fixture' })).toBeInTheDocument();
+    expect(screen.queryByPlaceholderText('facebook, instagram')).not.toBeInTheDocument();
+  } finally {
+    unregister();
+  }
 });

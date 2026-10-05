@@ -1,6 +1,6 @@
 # استقرار و نگهداری
 
-مسیر اصلی، [Compose](../docker-compose.yml) در ریشه است. `scripts/deploy_prod.sh` همین مسیر Compose را از سورس اجرا می‌کند. نمونه‌های `infra/` به تنظیم محیط شما نیاز دارند.
+مسیر اصلی، [Compose](../docker-compose.yml) در ریشه است. `scripts/deploy_prod.sh` همین مسیر Compose را از سورس اجرا می‌کند و فقط پس از آماده‌شدن health endpoint، فرایندهای Supervisor، بررسی امنیت Django و قراردادهای provider موفق می‌شود. گزارش OAuth در این مسیر اطلاعاتی است، چون هر استقرار می‌تواند فقط بخشی از providerها را فعال کند. نمونه‌های `infra/` به تنظیم محیط شما نیاز دارند.
 
 ## اولین استقرار
 
@@ -16,6 +16,8 @@ docker compose ps
 curl -fsS http://localhost:3000/healthz
 docker compose exec app supervisorctl status
 docker compose exec app python manage.py check_platform_config
+docker compose exec app python manage.py check_provider_conformance
+docker compose exec app python manage.py check_oauth_readiness
 docker compose exec app python manage.py createsuperuser
 ```
 
@@ -31,6 +33,7 @@ migrate و collectstatic هنگام شروع `app` خودکار اجرا می‌
 docker compose pull
 docker compose up -d
 docker compose exec app python manage.py check_platform_config
+docker compose exec app python manage.py check_provider_conformance
 docker compose exec app supervisorctl status
 ```
 
