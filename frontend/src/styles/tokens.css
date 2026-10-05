@@ -36,7 +36,7 @@
   /* ── Text — light mode ────────────────────────────────────────────────── */
   --text-primary:    #172A28;
   --text-secondary:  #49615C;
-  --text-tertiary:   #5F746F;
+  --text-tertiary:   #5B706B;
   --text-quaternary: #A8B8B3;
   --text-on-brand:   #FFFFFF;
   --text-link:       #21694B;
@@ -53,7 +53,7 @@
   /* ── Semantic ─────────────────────────────────────────────────────────── */
   --success:    #21694B;  --success-bg:    rgba(33, 105, 75, 0.10);
   --warning:    #8A5700;  --warning-bg:    rgba(138, 87, 0, 0.10);
-  --danger:     #B93832;  --danger-bg:     rgba(185, 56, 50, 0.10);
+  --danger:     #B0322D;  --danger-bg:     rgba(176, 50, 45, 0.10);
   --info:       #245C99;  --info-bg:       rgba(36, 92, 153, 0.10);
 
   /* ── Module accents ───────────────────────────────────────────────────── */
@@ -145,7 +145,7 @@
 
   --text-primary:    #F7F9F8;
   --text-secondary:  #B8CDC4;
-  --text-tertiary:   #9AB3A9;
+  --text-tertiary:   #A0B9AF;
   --text-quaternary: #66857C;
   --text-on-brand:   #123D3A;
   --text-link:       #D6F268;
@@ -302,7 +302,7 @@ textarea:focus-visible,
 
   --text-primary:    #F7F9F8;
   --text-secondary:  #B8CDC4;
-  --text-tertiary:   #9AB3A9;
+  --text-tertiary:   #A0B9AF;
   --text-quaternary: #66857C;
   --text-on-brand:   #123D3A;
   --text-link:       #D6F268;
