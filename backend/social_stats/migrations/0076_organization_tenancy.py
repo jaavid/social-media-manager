@@ -42,7 +42,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='client',
             name='organization',
-            field=models.ForeignKey(editable=False, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='workspaces', to='social_stats.organization'),
+            field=models.ForeignKey(editable=False, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='workspaces', to='social_stats.organization', verbose_name='سازمان'),
         ),
         migrations.CreateModel(
             name='OrganizationMembership',
@@ -63,6 +63,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='client',
             name='organization',
-            field=models.ForeignKey(editable=False, on_delete=django.db.models.deletion.PROTECT, related_name='workspaces', to='social_stats.organization'),
+            field=models.ForeignKey(editable=False, on_delete=django.db.models.deletion.PROTECT, related_name='workspaces', to='social_stats.organization', verbose_name='سازمان'),
         ),
     ]

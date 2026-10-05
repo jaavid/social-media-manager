@@ -32,7 +32,7 @@ SYNC_STATUS = [
 # ── Client (Company) ──────────────────────────────────────────────────────────
 class Client(models.Model):
     organization = models.ForeignKey(
-        'social_stats.Organization', on_delete=models.PROTECT,
+        'social_stats.Organization', verbose_name='سازمان', on_delete=models.PROTECT,
         related_name='workspaces', editable=False,
     )
     name       = models.CharField(verbose_name='نام مسئول تماس', max_length=200)
