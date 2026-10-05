@@ -22,7 +22,8 @@ import Badge from '../../components/ui/Badge';
 import AIWriteButton from '../../components/ai/AIWriteButton';
 import { composerAPI, captionAPI, hashtagAPI, socialAccountsAPI } from '../../services/api';
 import { useSession as useAuth } from '../../core/session';
-import { useComposerPost } from '../../hooks/useComposer';
+import { useLanguage } from '../../i18n';
+import { useComposerPost, usePostQueues } from '../../hooks/useComposer';
 import usePlatformConnections from '../../hooks/usePlatformConnections';
 import { connectedPlatforms, getPlatformRegistry } from '../../services/platforms';
 
@@ -40,6 +41,10 @@ const MEDIA_TYPES = [
 
 export default function ComposerPage() {
   const { id } = useParams();
+  const { t } = useLanguage();
+  const savedPostId = useRef(null);
+  const { data: queues, loading: loadingQueues, error: queueError } = usePostQueues();
+  const [queueId, setQueueId] = useState('');
   const navigate = useNavigate();
   const { user } = useAuth();
   const { status: connectionStatus } = usePlatformConnections(user?.client_id);
@@ -59,6 +64,14 @@ export default function ComposerPage() {
   const [accountTargets, setAccountTargets] = useState({});
   const [scheduleMode, setScheduleMode] = useState('now'); // 'now' | 'schedule' | 'queue'
   const [scheduledAt, setScheduledAt] = useState('');
+  const workspaceId = existing?.client || user?.client_id;
+  const availableQueues = queues.filter(queue =>
+    String(queue.client) === String(workspaceId) &&
+    targetPlatforms.length > 0 &&
+    queue.platforms?.length === targetPlatforms.length &&
+    targetPlatforms.every(platform => queue.platforms.includes(platform))
+  );
+  const selectedQueue = !loadingQueues && !queueError && availableQueues.find(queue => String(queue.id) === queueId);
   const allPlatforms = useMemo(() => getPlatformRegistry(), []);
   const availablePlatforms = useMemo(
     () => connectedPlatforms(allPlatforms, connectionStatus, mediaType),
@@ -198,14 +211,15 @@ export default function ComposerPage() {
     };
   }
 
-  async function ensurePost() {
+  async function ensurePost({ navigateAfterSave = true } = {}) {
     const payload = buildPayload();
-    if (isEditing) {
-      const res = await composerAPI.posts.update(id, payload);
+    if (isEditing || savedPostId.current) {
+      const res = await composerAPI.posts.update(id || savedPostId.current, payload);
       return res.data;
     }
     const res = await composerAPI.posts.create(payload);
-    navigate(`/admin/analytics/composer/${res.data.id}`, { replace: true });
+    savedPostId.current = res.data.id;
+    if (navigateAfterSave) navigate(`/admin/analytics/composer/${res.data.id}`, { replace: true });
     return res.data;
   }
 
@@ -247,6 +261,22 @@ export default function ComposerPage() {
       toast.success(`Scheduled for ${new Date(scheduledAt).toLocaleString()}`);
     } catch (e) {
       toast.error(e.response?.data?.detail || 'Schedule failed');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function onAddToQueue() {
+    if (!selectedQueue || !validate()) return;
+    setSaving(true);
+    try {
+      // Keep this editor mounted until enqueue succeeds so failures preserve all input.
+      const post = await ensurePost({ navigateAfterSave: false });
+      await composerAPI.posts.addToQueue(post.id, selectedQueue.id);
+      toast.success(t('composer.queue.success'));
+      if (!isEditing) navigate(`/admin/analytics/composer/${post.id}`, { replace: true });
+    } catch (e) {
+      toast.error(e.response?.data?.detail || t('composer.queue.failed'));
     } finally {
       setSaving(false);
     }
@@ -357,6 +387,10 @@ export default function ComposerPage() {
             {scheduleMode === 'schedule' ? (
               <Button variant="primary" icon={Calendar} onClick={onSchedule} loading={saving}>
                 Schedule
+              </Button>
+            ) : scheduleMode === 'queue' ? (
+              <Button variant="primary" icon={Layers} onClick={onAddToQueue} loading={saving} disabled={!selectedQueue}>
+                {t('composer.queue.action')}
               </Button>
             ) : (
               <Button variant="primary" icon={Send} onClick={onPublishNow} loading={saving}>
@@ -541,7 +575,7 @@ export default function ComposerPage() {
               {[
                 { id: 'now',      label: 'Now',         icon: Send },
                 { id: 'schedule', label: 'Schedule',    icon: Calendar },
-                { id: 'queue',    label: 'Add to Queue', icon: Layers },
+                { id: 'queue',    label: t('composer.queue.action'), icon: Layers },
               ].map((m) => (
                 <button
                   key={m.id}
@@ -568,8 +602,22 @@ export default function ComposerPage() {
             )}
             {scheduleMode === 'queue' && (
               <div style={{ marginTop: 12, fontSize: 13, color: 'var(--text-secondary)' }}>
-                Manage queues from the <strong>Queues</strong> page. Save this as a draft and add it
-                to a queue from there, or use "Add to Queue" after saving.
+                <label htmlFor="composer-queue">{t('composer.queue.destination')}</label>
+                <select id="composer-queue" value={selectedQueue ? queueId : ''}
+                        onChange={(event) => setQueueId(event.target.value)}
+                        disabled={saving || loadingQueues || !!queueError || availableQueues.length === 0}
+                        style={{ ...inputStyle, marginTop: 6 }}>
+                  <option value="">{t('composer.queue.select')}</option>
+                  {availableQueues.map(queue => (
+                    <option key={queue.id} value={queue.id}>
+                      {queue.name}{!queue.is_active ? ` (${t('composer.queue.paused')})` : ''}
+                    </option>
+                  ))}
+                </select>
+                <div role="status" style={{ marginTop: 6 }}>
+                  {t(loadingQueues ? 'composer.queue.loading' : queueError ? 'composer.queue.unavailable' :
+                    availableQueues.length === 0 ? 'composer.queue.empty' : 'composer.queue.hint')}
+                </div>
               </div>
             )}
           </Card>
