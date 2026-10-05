@@ -47,9 +47,14 @@ class PlatformMetadataTests(APISimpleTestCase):
         for platform in response.json()['platforms']:
             self.assertEqual(set(platform), allowed_platform_fields)
 
+        for platform in response.json()['platforms']:
+            # Secret-field descriptors are safe schema, never credential values.
+            for field in platform['contract']['auth']['fields']:
+                self.assertIsInstance(field['secret'], bool)
+                self.assertNotIn('value', field)
         payload = str(response.json()).lower()
         for forbidden in (
-            'secret', 'client_id', 'endpoint', 'publisher',
+            'client_secret', 'access_token', 'refresh_token', 'client_id', 'endpoint', 'publisher',
             'connection_handler', 'egress_service',
         ):
             self.assertNotIn(forbidden, payload)

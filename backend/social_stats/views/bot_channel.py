@@ -5,40 +5,21 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from social_stats.models import Client
 from social_stats.platforms.connection_service import ConnectionService
 from social_stats.platforms.registry import get_provider
 from social_stats.publishers.base import PublishError
 
 
-def _has_client_access(request, client_id) -> bool:
-    try:
-        profile = request.user.profile
-    except Exception:
-        return False
-    if profile.role == 'superadmin':
-        return True
-    if profile.role == 'staff':
-        return profile.assigned_clients.filter(id=client_id).exists()
-    if profile.role == 'client':
-        return profile.client_id == int(client_id)
-    return False
-
-
 def _client_or_error(request, client_id):
-    if not _has_client_access(request, client_id):
-        return None, Response({'detail': 'Access denied'}, status=403)
-    client = Client.objects.filter(id=client_id).first()
-    if not client:
-        return None, Response({'detail': 'Client not found'}, status=404)
-    return client, None
+    from .connections import workspace_for
+    return workspace_for(request, client_id)
 
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def bot_channel_status(request, client_id):
     client, error = _client_or_error(request, client_id)
-    if error:
+    if error is not None:
         return error
     return Response(ConnectionService().statuses(client))
 
@@ -51,12 +32,28 @@ def bot_channel_connection(request, client_id, platform):
         provider = get_provider(platform)
     except NotImplementedError:
         return Response({'detail': 'Unsupported provider'}, status=404)
-    if not provider.capabilities.connect:
+    if not provider.capabilities.connect or provider.manifest.status in {'blocked', 'deprecated'}:
         return Response({'detail': 'Provider does not support connections'}, status=400)
 
     client, error = _client_or_error(request, client_id)
-    if error:
+    if error is not None:
         return error
+
+    from .connections import account_for, permitted
+    account_id = (request.data.get('social_account_id') or
+                  request.query_params.get('social_account_id'))
+    account = account_for(client, provider.manifest.key, account_id)
+    if account_id and account is None:
+        return Response({'code': 'scope_denied'}, status=403)
+    action = 'disconnect_platforms' if request.method == 'DELETE' else 'connect_platforms'
+    if not permitted(request.user, client, action, account):
+        return Response({'code': 'permission_denied'}, status=403)
+    # A legacy provider-wide request must respect every account's restriction.
+    if account is None:
+        from social_stats.models import SocialAccount
+        if any(not permitted(request.user, client, action, item) for item in
+               SocialAccount.objects.filter(client=client, platform=provider.manifest.key)):
+            return Response({'code': 'permission_denied'}, status=403)
 
     if request.method == 'DELETE':
         try:
@@ -78,7 +75,7 @@ def bot_channel_connection(request, client_id, platform):
     try:
         credential, result = ConnectionService().connect(client, platform, {
             'token': token, 'destination_id': destination_id,
-        })
+        }, social_account_id=account_id)
     except PublishError as exc:
         return Response({'detail': str(exc), 'code': exc.code}, status=400)
 

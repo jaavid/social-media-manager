@@ -184,8 +184,7 @@ def publish_to_platform(self, unified_post_id: int, platform: str):
         )
     except TokenExpiredError as e:
         _mark_failed(log, code='token_expired', message=str(e))
-        cred.is_active = False
-        cred.save(update_fields=['is_active'])
+        cred.mark_auth_failure('token_expired')
         Alert.objects.create(
             client=post.client, platform=platform, alert_type='token_expired',
             message=f'{platform} token expired — please reconnect to keep publishing.',

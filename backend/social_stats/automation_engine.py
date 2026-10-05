@@ -449,7 +449,7 @@ def _post_reply(ctx: dict, text: str) -> None:
             )
     except TokenExpiredError:
         logger.warning('Auto-reply: %s token expired (cred=%s)', ctx['platform'], cred.id)
-        PlatformCredential.objects.filter(id=cred.id).update(is_active=False)
+        cred.mark_auth_failure('token_expired')
     except PublishError as e:
         logger.warning('Auto-reply publisher error: %s', e)
 

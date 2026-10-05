@@ -37,6 +37,9 @@ class ReplyRequest:
     kind: str = 'inbox'
 
 
+HEALTH_STATES = frozenset({'ready', 'expired', 'revoked', 'not_connected', 'unknown', 'error'})
+
+
 @dataclass(frozen=True)
 class HealthResult:
     ready: bool

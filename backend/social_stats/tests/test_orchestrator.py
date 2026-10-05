@@ -121,6 +121,7 @@ class OrchestratorTests(TestCase):
 
         fb_cred = PlatformCredential.objects.get(client=self.client_obj, platform='facebook')
         self.assertFalse(fb_cred.is_active)
+        self.assertEqual(fb_cred.auth_failure_code, 'token_expired')
 
         alerts = Alert.objects.filter(client=self.client_obj, platform='facebook',
                                        alert_type='token_expired')

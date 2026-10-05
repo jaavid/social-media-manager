@@ -17,6 +17,7 @@ from .contracts import (
     InboundEvent,
     ReplyRequest,
     HealthResult,
+    HEALTH_STATES,
 )
 from social_stats.publishers.base import PublishError, PublishResult
 
@@ -171,6 +172,12 @@ class ProviderExecution:
                 raise ProviderError(
                     'Provider returned an invalid result', code='invalid_response'
                 )
+            if isinstance(result, HealthResult) and (
+                type(result.ready) is not bool or not isinstance(result.state, str)
+                or result.state not in HEALTH_STATES or not isinstance(result.code, str)
+                or (result.ready != (result.state == 'ready'))
+            ):
+                raise ProviderError('Provider returned invalid health', code='invalid_response')
             if isinstance(result, StatsResult) and (
                 not isinstance(result.metrics, dict)
                 or any(

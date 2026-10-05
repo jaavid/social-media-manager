@@ -207,6 +207,7 @@ def process_platform_deletion(request_id: int) -> str:
         # Revoke each credential — flips is_active=False so refresh / sync skip it.
         # We do NOT delete the row outright — it's referenced from logs.
         n_revoked = matches.update(
+            auth_failure_code='revoked',
             is_active=False,
             access_token='',         # wipe the token
             refresh_token='',

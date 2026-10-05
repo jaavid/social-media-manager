@@ -17,9 +17,14 @@ import {
   useAppLocation as useLocation,
 } from '../../core/navigation';
 import { useSession as useAuth } from '../../core/session';
-import { useOAuthStatus, useLookups } from '../../hooks/useData';
+import { useQueryClient } from '@tanstack/react-query';
+import { QK } from '@/services/queryClient';
+import { useLanguage } from '@/i18n';
+import DataState from '@/components/ui/DataState';
+import Badge from '@/components/ui/Badge';
+import { useLookups } from '../../hooks/useData';
 import { workspacesAPI } from '../../services/api';
-import ConnectedAccounts from '../../components/ui/ConnectedAccounts';
+import ConnectedAccounts from '@/components/ConnectedAccounts';
 import CompetitorSection from '../../components/ui/CompetitorSection';
 import PageHeader from '../../components/layout/PageHeader';
 import SegmentedTabs from '../../components/ui/SegmentedTabs';
@@ -129,7 +134,8 @@ const GENDERS = [
 export default function SettingsPage({ clientId: propClientId }) {
   const { user } = useAuth();
   const clientId = propClientId || user?.client_id;
-  const { status, refetch } = useOAuthStatus(clientId);
+  const queryClient = useQueryClient();
+  const { t } = useLanguage();
   const { lookups, loading: lookupsLoading } = useLookups();
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
@@ -240,31 +246,15 @@ export default function SettingsPage({ clientId: propClientId }) {
     }
 
     // Refetch status now that clientId is ready
-    refetch();
+    void queryClient.invalidateQueries({ queryKey: QK.connections(Number(clientId)) });
     if (connected) {
-      setOauthMsg({
-        type: 'success',
-        text: `${connected.replace(',', ' & ')} connected successfully!`,
-      });
-      setTimeout(() => setOauthMsg(null), 5000);
+      // A return URL is not proof that the account is connected or healthy.
+      setOauthMsg({ type: 'info', text: t('connections.oauthReturned') });
     } else {
-      const msg =
-        error === 'facebook_denied'
-          ? 'Facebook connection was canceled.'
-          : error === 'facebook_consumer_token'
-            ? 'Facebook login failed — check server logs.'
-            : error === 'google_denied'
-              ? 'Google connection was canceled.'
-              : error === 'linkedin_denied'
-                ? 'LinkedIn connection was canceled.'
-                : `Connection failed: ${error}`;
-      setOauthMsg({
-        type: 'error',
-        text: msg,
-      });
-      setTimeout(() => setOauthMsg(null), 8000);
+      setOauthMsg({ type: 'error', text: t(error === 'account_mismatch' ? 'connections.mismatch' : 'connections.mutationFailed') });
     }
-  }, [clientId, location.state, searchParams, refetch, setSearchParams]);
+
+  }, [clientId, location.state, searchParams, queryClient, setSearchParams, t]);
 
   // Form handlers
   const handleInputChange = (field, value) => {
@@ -913,24 +903,9 @@ export default function SettingsPage({ clientId: propClientId }) {
 
       {/* OAuth result banner */}
       {oauthMsg && (
-        <div
-          className={cn(
-            '[padding:12px_18px]',
-            '[border-radius:8px]',
-            '[margin-bottom:16px]',
-            '[font-weight:600]',
-            '[font-size:14px]',
-            oauthMsg.type === 'success'
-              ? '[background:#dcfce7]'
-              : '[background:#fee2e2]',
-            oauthMsg.type === 'success' ? '[color:#166534]' : '[color:#991b1b]',
-            oauthMsg.type === 'success'
-              ? '[border:1px_solid_#86efac]'
-              : '[border:1px_solid_#fca5a5]',
-          )}
-        >
-          {oauthMsg.type === 'success' ? '✓ ' : '✗ '}
-          {oauthMsg.text}
+        <div className="mb-4" role={oauthMsg.type === 'error' ? 'alert' : 'status'}>
+          {oauthMsg.type === 'error' ? <DataState compact state="error" title={oauthMsg.text} />
+            : <Badge variant="info">{oauthMsg.text}</Badge>}
         </div>
       )}
 
@@ -938,8 +913,6 @@ export default function SettingsPage({ clientId: propClientId }) {
       {activeTab === 'accounts' && (
         <ConnectedAccounts
           clientId={clientId}
-          status={status}
-          onRefresh={refetch}
         />
       )}
 

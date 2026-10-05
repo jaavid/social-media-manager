@@ -235,8 +235,7 @@ class ConversationViewSet(TenantScopedMixin, viewsets.ReadOnlyModelViewSet):
             else:
                 return Response({'detail': f'Reply not supported for type={conv.type}'}, status=400)
         except TokenExpiredError as e:
-            cred.is_active = False
-            cred.save(update_fields=['is_active'])
+            cred.mark_auth_failure('token_expired')
             return Response({'detail': str(e), 'code': 'token_expired'}, status=400)
         except RateLimitError as e:
             return Response({'detail': str(e), 'code': 'rate_limited'}, status=429)
@@ -339,7 +338,7 @@ class UnifiedReviewViewSet(TenantScopedMixin, viewsets.ReadOnlyModelViewSet):
         try:
             publisher.reply_to_review(cred, review.platform_review_id, text)
         except TokenExpiredError as e:
-            cred.is_active = False; cred.save(update_fields=['is_active'])
+            cred.mark_auth_failure('token_expired')
             return Response({'detail': str(e), 'code': 'token_expired'}, status=400)
         except PublishError as e:
             return Response({'detail': str(e), 'code': e.code or 'reply_failed'}, status=400)

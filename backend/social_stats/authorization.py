@@ -8,6 +8,8 @@ from dataclasses import dataclass
 
 # An alias is a semantic translation, never a fallback to an unrelated grant.
 LEGACY_ACTIONS = {
+    "connect_platforms": "settings.connect_accounts",
+    "disconnect_platforms": "settings.disconnect_accounts",
     "view_analytics": "analytics.view",
     "view_posts": "composer.view",
     "view_inbox": "inbox.view",

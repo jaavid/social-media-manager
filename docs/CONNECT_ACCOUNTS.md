@@ -41,3 +41,50 @@ Gateway فعلی در مسیر اجرایی Telegram و Bale استفاده می
 `API_GATEWAY_URL/KEY` و `OUTBOUND_TELEGRAM_MODE` یا `OUTBOUND_BALE_MODE` را تنظیم کنید: `direct`، `gateway` یا `auto`. کلید با secret سمت gateway یکسان باشد.
 `auto` فقط برای خطای شبکه fallback می‌کند؛ HTTP `401/403/429/5xx` باعث تغییر مسیر نمی‌شود. زمان circuit از `OUTBOUND_CIRCUIT_TTL_SECONDS` می‌آید. توکن bot از header داخلی ارسال می‌شود و در URL عمومی gateway قرار نمی‌گیرد.
 آزمون اتصال در Settings → Connect Accounts → API Connectivity برای staff/superadmin است. وجود Meta/Google/LinkedIn در health registry به معنی استفادهٔ runtime آن‌ها از gateway نیست.
+
+## قرارداد Connected Accounts
+
+Connected Accounts از `GET /api/workspaces/{id}/connections/` استفاده می‌کند؛ providerها
+از manifest و حساب‌ها از `SocialAccount` همان فضای کاری می‌آیند. هویت حساب و مقصد
+جدا نمایش داده می‌شوند. selector حساب، reconnect و disconnect همیشه شناسهٔ همان
+حساب را ارسال می‌کنند؛ اتصال حساب تازه اقدام مستقل است.
+
+`contract.auth.fields` فرم‌های bot token، API key و custom را تعریف می‌کند. provider
+با custom strategy فقط وقتی schema واقعی دارد فرم می‌گیرد. `oauth_start` مسیر داخلی
+flow متعلق به provider است. فرم عمومی branch بر اساس نام provider ندارد. icon و
+رنگ از `contract.brand` می‌آیند؛ asset ناموجود آیکن عمومی می‌گیرد و رنگ provider
+دکمه یا وضعیت معنایی محصول را عوض نمی‌کند.
+
+سلامت credential از همان `ProviderExecution(...).call('health')` runtime گرفته
+می‌شود. `ready` فقط آمادگی محلی credential است، نه بررسی زندهٔ دسترس‌پذیری provider.
+expired، revoked، disconnected و unknown جدا هستند. خطای health یا پاسخ نامعتبر
+unknown می‌شود و credential را پاک نمی‌کند. وضعیت provider (مثلاً experimental)
+با وضعیت قابلیت connection (مثلاً supported) مستقل نمایش داده می‌شود.
+
+آخرین sync موفق/ناموفق از `SyncLog` همان workspace، provider و SocialAccount است؛
+لاگ قدیمیِ بدون حساب به یک حساب خاص نسبت داده نمی‌شود. پیش‌فرض staleness برابر
+۲۴ ساعت است؛ `ACCOUNT_SYNC_STALE_SECONDS` آن را تغییر می‌دهد (حداقل ۶۰ ثانیه).
+بدون evidence وضعیت unknown است؛ آخرین تلاش failed وضعیت failure می‌گیرد حتی اگر
+قبلاً sync موفق وجود داشته باشد. provider بدون analytics، sync آماده نمایش نمی‌دهد.
+payload خام و متن خطای خصوصی provider در این API وجود ندارند.
+
+`connect_platforms` و `disconnect_platforms` از evaluator مشترک authorization
+استفاده می‌کنند؛ connect برای عضو/آژانس نیاز به grant صریح دارد. policy نیازمند
+approval در این surface fail-closed است: credential در approval payload ذخیره یا
+خودکار replay نمی‌شود. شروع و callback OAuth دسترسی فعلی workspace/account را
+دوباره بررسی می‌کنند. reconnect OAuth فقط identity انتخاب‌شده را به‌روز می‌کند؛
+انتخاب identity دیگر در consent آن حساب را overwrite نمی‌کند.
+
+GETهای این surface key فضای کاری و AbortSignal دارند. خطای initial/malformed/403
+از empty موفق جدا است؛ refresh ناموفق دادهٔ قبلی را حفظ می‌کند، اما forbidden آن
+را می‌پوشاند. فرم در خطای قابل بازیابی ورودی را حفظ می‌کند. POST/DELETE خودکار
+تکرار نمی‌شوند؛ پس از پاسخ مبهم ابتدا refresh و وضعیت provider را بررسی کنید و
+فقط به‌صورت صریح دوباره اقدام کنید. هیچ شبکهٔ واقعی تازه‌ای با این قرارداد آماده
+یا اضافه نشده است.
+
+علت احراز هویت در فیلد `PlatformCredential.auth_failure_code` ثبت می‌شود: مسیرهای
+runtime که `TokenExpiredError` دریافت می‌کنند `token_expired` و revocation صریح
+`revoked` ثبت می‌کنند. migration `0077` مقدار قدیمی را خالی نگه می‌دارد؛ علت از
+`is_active=False` حدس زده نمی‌شود و چنین حسابی unknown است. اتصال موفق علت را
+پاک می‌کند. سیاست readiness فعلی از ۱۰ دقیقه پیش از `expires_at` اتصال را
+نیازمند تمدید می‌داند؛ زمان دقیق انقضا کنار وضعیت نمایش داده می‌شود.

@@ -412,7 +412,7 @@ def youtube_upload(request):
     try:
         result = publisher.publish_video(cred, description, video_url, title=title, **kwargs)
     except TokenExpiredError as e:
-        cred.is_active = False; cred.save(update_fields=['is_active'])
+        cred.mark_auth_failure('token_expired')
         return Response({'error': str(e), 'code': 'token_expired'}, status=400)
     except RateLimitError as e:
         return Response({'error': str(e), 'code': 'rate_limited'}, status=429)

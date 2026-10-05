@@ -9,10 +9,16 @@ from social_stats.publishers.base import PublishError
 
 
 class ConnectionService:
-    def connect(self, client, platform: str, credentials: dict):
+    def connect(self, client, platform: str, credentials: dict, *, social_account_id=None, authorize_account=None):
         if not client or not client.pk:
             raise ProviderError('Workspace is required', code='scope_denied')
         provider = get_provider(platform)
+        target = None
+        if social_account_id is not None:
+            target = SocialAccount.objects.filter(pk=social_account_id, client=client,
+                                                   platform=provider.manifest.key).first()
+            if target is None:
+                raise ProviderError('Account scope denied', code='scope_denied')
         try:
             result = provider.connect(credentials)
         except PublishError as exc:
@@ -26,18 +32,30 @@ class ConnectionService:
             if result.destination_type not in provider.manifest.destination_types:
                 raise ProviderError('Invalid destination type', code='invalid_response')
             metadata = {**metadata, 'destination_type': result.destination_type}
+        if target and target.external_id != str(external_id):
+            raise ProviderError('Select the original account to reconnect', code='account_mismatch')
         if not external_id:
             raise ProviderError('Provider identity is missing', code='invalid_response')
+        metadata = {**metadata, 'destination_type': result.destination_type, 'account_identity': result.account_id,
+                    'account_name': result.account_name,
+                    'destination_id': result.destination_id or result.account_id}
+        if any(secret and secret in str(external_id) for secret in (result.access_token, result.refresh_token)):
+            raise ProviderError('Invalid provider identity', code='invalid_response')
+        display_name = public_provider_data(display_name, (result.access_token, result.refresh_token))
         metadata = public_provider_data(metadata, (result.access_token, result.refresh_token))
         platform = provider.manifest.key
         with transaction.atomic():
             # Serialize reconnects and legacy credential attachment within a workspace.
             type(client).objects.select_for_update().get(pk=client.pk)
+            existing = SocialAccount.objects.filter(client=client, platform=platform, external_id=str(external_id)).first()
+            if authorize_account and not authorize_account(existing):
+                raise ProviderError('Account permission denied', code='permission_denied')
             account, _ = SocialAccount.objects.update_or_create(
                 client=client, platform=platform, external_id=str(external_id),
                 defaults={'display_name': display_name, 'is_active': True, 'metadata': metadata},
             )
             defaults = {
+                'auth_failure_code': '',
                 'client': client, 'platform': platform, 'access_token': result.access_token,
                 'refresh_token': result.refresh_token, 'platform_user_id': result.destination_id or result.account_id,
                 'page_name': result.account_name, 'scope': result.scope, 'is_active': True,

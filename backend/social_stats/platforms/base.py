@@ -201,11 +201,16 @@ class BasePlatformProvider:
 
     def health(self, credential):
         from .contracts import HealthResult
-        if (not credential.is_active or not credential.access_token
-                or not getattr(getattr(credential, 'social_account', None), 'is_active', True)):
-            return HealthResult(False, 'not_connected')
-        if credential.is_expired:
+        reason = getattr(credential, 'auth_failure_code', '')
+        if reason == 'revoked':
+            return HealthResult(False, 'revoked', 'reconnect_required')
+        if reason == 'token_expired' or credential.is_expired:
             return HealthResult(False, 'expired', 'token_expired')
+        if not credential.access_token:
+            return HealthResult(False, 'not_connected')
+        if (not credential.is_active
+                or not getattr(getattr(credential, 'social_account', None), 'is_active', True)):
+            return HealthResult(False, 'unknown', 'reconnect_required')
         return HealthResult(True, 'ready')
 
     def connection_identity(self, result):

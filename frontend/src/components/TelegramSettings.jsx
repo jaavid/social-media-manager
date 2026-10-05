@@ -1,48 +1,58 @@
 import { useLanguage } from "../i18n";
-import { useEffect, useState } from 'react';
-import api from '../services/api';
+import { useState } from 'react';
+import { api } from '@/services/http/client';
+import { apiError } from '@/services/http/errors';
+import { useQuery } from '@tanstack/react-query';
+import { QK } from '@/services/queryClient';
+import DataState from '@/components/ui/DataState';
 import Card from './ui/Card';
 import Button from './ui/Button';
-export default function TelegramSettings() {
+export default function TelegramSettings({ workspaceId, accountId }) {
   const {
-    tr
+    tr, t
   } = useLanguage();
-  const [accounts, setAccounts] = useState([]);
-  const [selected, setSelected] = useState('');
-  const [settings, setSettings] = useState(null);
-  const [error, setError] = useState('');
+  const [draft, setDraft] = useState(null);
+  const [error, setError] = useState(false);
+  const [pending, setPending] = useState(false);
+  const [saved, setSaved] = useState(false);
   const [telegramUser, setTelegramUser] = useState('');
   const [appUser, setAppUser] = useState('');
-  useEffect(() => {
-    api.get('/telegram-accounts/').then(({
-      data
-    }) => setAccounts(data.results || data)).catch(() => {});
-  }, []);
-  useEffect(() => {
-    setSettings(null);
-    setError('');
-    if (selected) api.get(`/telegram-accounts/${selected}/settings/`).then(({
-      data
-    }) => setSettings(data)).catch(e => setError(e.response?.data?.detail || 'Telegram settings unavailable'));
-  }, [selected]);
+  const query = useQuery({
+    queryKey: QK.connectionExtension(workspaceId, accountId, 'telegram_settings'),
+    queryFn: async ({ signal }) => {
+      const { data } = await api.get(`/telegram-accounts/${accountId}/settings/`, { signal });
+      if (!data || typeof data !== 'object' || Array.isArray(data) || typeof data.rich_enabled !== 'boolean'
+          || typeof data.assistant_enabled !== 'boolean' || !data.destination_context
+          || typeof data.destination_context !== 'object') throw new Error('Invalid settings response');
+      return data;
+    },
+    retry: false,
+  });
+  const settings = draft || query.data;
+  const setSettings = setDraft;
   const act = async (path, body) => {
-    setError('');
+    if (pending) return;
+    setError(false); setSaved(false); setPending(true);
     try {
-      const {
-        data
-      } = await api.post(`/telegram-accounts/${selected}/${path}/`, body);
-      if (path === 'settings') setSettings(data);else setError('Saved');
-    } catch (e) {
-      setError(e.response?.data?.detail || JSON.stringify(e.response?.data || 'Request failed'));
-    }
+      await api.post(`/telegram-accounts/${accountId}/${path}/`, body);
+      setSaved(true);
+      if (path === 'settings') { setDraft(null); void query.refetch(); }
+    } catch {
+      setError(true);
+    } finally { setPending(false); }
   };
-  if (!accounts.length) return null;
+  const failed = apiError(query.error).status === 403 ? 'forbidden' : 'error';
+  if (query.isPending) return <DataState compact state="loading" title={t('connections.loading')} />;
+  if ((query.isError && !query.data) || failed === 'forbidden') return <DataState compact state={failed}
+    title={t(failed === 'forbidden' ? 'connections.forbidden' : 'connections.failed')}
+    action={<Button onClick={() => query.refetch()}>{t('connections.retry')}</Button>} />;
   const context = settings?.destination_context || {};
   const type = context.destination_type || 'channel';
   return <Card padding="md" className="mt-5"><Card.Header title={tr("Telegram topics and assistant")} />
-    <select aria-label={tr("Telegram account")} value={selected} onChange={e => setSelected(e.target.value)}><option value="">{tr("Select account")}</option>{accounts.map(a => <option key={a.id} value={a.id}>{a.display_name || a.external_id}</option>)}</select>
-    {error && <p role="status">{error}</p>}
-    {settings && <div style={{
+    {query.isError && <DataState compact state="partial" title={t('connections.partial')} action={<Button onClick={() => query.refetch()}>{t('connections.retry')}</Button>} />}
+    {error && <DataState compact state="error" title={t('connections.mutationFailed')} />}
+    {saved && <p role="status">{tr('Saved')}</p>}
+    {settings && <fieldset disabled={pending} className="border-0 p-0" style={{
       display: 'grid',
       gap: 8,
       marginTop: 12
@@ -94,6 +104,6 @@ export default function TelegramSettings() {
         telegram_user_id: Number(telegramUser),
         user_id: Number(appUser)
       })}>{tr("Link assistant identity")}</Button>
-    </div>}
+    </fieldset>}
   </Card>;
 }

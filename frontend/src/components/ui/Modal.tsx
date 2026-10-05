@@ -9,12 +9,13 @@
 import { useRef } from 'react';
 
 import * as DialogPrimitive from '@radix-ui/react-dialog';
-import type { ReactNode } from 'react';
+import type { ReactNode, RefObject } from 'react';
 import { X } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useLanguage } from '../../i18n';
 export interface DialogProps {
   open: boolean;
+  initialFocusRef?: RefObject<HTMLElement>;
   onClose?: () => void;
   title?: ReactNode;
   description?: ReactNode;
@@ -27,6 +28,7 @@ export interface DialogProps {
 }
 export default function Modal({
   open,
+  initialFocusRef,
   onClose,
   title,
   description,
@@ -49,9 +51,13 @@ export default function Modal({
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay className="ds-overlay" />
         <DialogPrimitive.Content
-          onOpenAutoFocus={() => {
+          onOpenAutoFocus={(event) => {
             previousFocus.current =
               document.activeElement as HTMLElement | null;
+            if (initialFocusRef?.current) {
+              event.preventDefault();
+              initialFocusRef.current.focus();
+            }
           }}
           onCloseAutoFocus={(event) => {
             event.preventDefault();
