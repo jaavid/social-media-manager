@@ -82,6 +82,18 @@ class ProductionJSONFormatter(logging.Formatter):
     """
 
     def format(self, record):
+        try:
+            return self._format_event(record)
+        except Exception:
+            # Logging.handleError otherwise prints the raw message/arguments to
+            # stderr when malformed extras (cycles, NaN, bad __str__) break JSON.
+            # Fail closed without sending that unredacted fallback to production.
+            return json.dumps({
+                'level': 'ERROR', 'logger': 'social_stats.observability',
+                'message': 'log_formatting_failed',
+            })
+
+    def _format_event(self, record):
         event = {
             'timestamp': datetime.fromtimestamp(record.created, timezone.utc).isoformat(),
             'level': record.levelname,

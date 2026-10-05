@@ -112,6 +112,15 @@ class LogPolicyTests(SimpleTestCase):
         self.assertEqual(len(self.stream.getvalue().splitlines()), 1)
         self.assertEqual(self.event()['level'], 'INFO')
 
+    def test_malformed_extras_fail_closed_without_raw_logging_fallback(self):
+        cycle = {}
+        cycle['self'] = cycle
+        for payload in (cycle, float('nan')):
+            with self.subTest(payload_type=type(payload).__name__):
+                self.logger.info('token=%s', 'fallback-private', extra={'payload': payload})
+                self.assertEqual(self.event()['message'], 'log_formatting_failed')
+                self.assertNotIn('fallback-private', self.stream.getvalue())
+
 
 class RequestCorrelationTests(SimpleTestCase):
     def setUp(self):
