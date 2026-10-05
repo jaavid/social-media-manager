@@ -11,6 +11,7 @@ import social_stats.views.rbac as rbac_views
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
+from social_stats.views.organizations import OrganizationViewSet
 
 from social_stats.views.telegram import TelegramAccountViewSet, TelegramSuggestionViewSet, telegram_webhook
 from social_stats.views.core import (
@@ -223,6 +224,7 @@ from social_stats.views.health import services_health
 from social_stats.views.dashboard import dashboard_counts, unified_search, dashboard_today
 
 router = DefaultRouter()
+router.register(r'organizations', OrganizationViewSet, basename='organization')
 router.register(r'workspaces', ClientViewSet, basename='workspace')
 router.register(r'clients',     ClientViewSet,    basename='client')
 router.register(r'credentials', CredentialViewSet,basename='credential')

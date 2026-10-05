@@ -63,11 +63,31 @@ class ClientViewSet(viewsets.ModelViewSet):
         if role not in ('superadmin', 'staff', 'client'):
             from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied()
-        client = serializer.save()
+        # Preserve staff/platform creation semantics; creating a workspace must
+        # not turn a staff member into an unrestricted workspace owner.
+        client = serializer.save(
+            owner_user=self.request.user if role == 'client' else None,
+        )
         # Link new client to this user's profile if they don't have one yet
         if role == 'client' and profile and not profile.client:
             profile.client = client
             profile.save()
+
+    @action(detail=True, methods=['get'])
+    def organization_context(self, request, pk=None):
+        from social_stats.tenancy import resolve_organization_context
+
+        workspace = self.get_object()
+        organization = resolve_organization_context(
+            request.user, workspace.pk,
+            organization_id=request.query_params.get('organization_id'),
+        )
+        # Workspace delegates may resolve the boundary, never enumerate its team.
+        return Response({
+            'workspace_id': workspace.pk,
+            'organization_id': organization.pk,
+            'requires_approval': organization.requires_approval,
+        })
 
     @action(detail=True, methods=['get'])
     def summary(self, request, pk=None):
@@ -246,4 +266,3 @@ class ClientViewSet(viewsets.ModelViewSet):
             logs = logs.filter(social_account_id=request.query_params['social_account'])
         logs = logs.order_by('-started_at')[:20]
         return Response(SyncLogSerializer(logs, many=True).data)
-

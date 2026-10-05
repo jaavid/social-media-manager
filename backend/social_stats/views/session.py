@@ -311,6 +311,8 @@ def setup_solo_client(request):
         company    = first_name or full_name or email.split('@')[0]
         client = Client.objects.create(
             name=full_name, company=company, email=email,
+            owner_user=user, ownership_type='end_user_owned',
+            created_via='end_user_signup',
         )
 
     profile.client = client
@@ -331,4 +333,3 @@ def setup_solo_client(request):
         'refresh':   refresh,
         'client_id': client.id,
     })
-
