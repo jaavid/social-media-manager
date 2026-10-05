@@ -16,10 +16,11 @@ import PageHeader from '../../components/layout/PageHeader';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import Modal from '../../components/ui/Modal';
-import EmptyState from '../../components/ui/EmptyState';
+import DataState from '../../components/ui/DataState';
 import Badge from '../../components/ui/Badge';
 import { usePostQueues } from '../../hooks/useComposer';
 import { composerAPI } from '../../services/api';
+import { getPlatformRegistry, platformHasCapability } from '../../services/platforms';
 import { useLanguage } from '../../i18n';
 
 const STRATEGIES = [
@@ -29,7 +30,8 @@ const STRATEGIES = [
 ];
 
 export default function QueueManagerPage() {
-  const { data: queues, refetch, loading } = usePostQueues();
+  const { data: queues, refetch, loading, error } = usePostQueues();
+  const { tr } = useLanguage();
   const [activeId, setActiveId] = useState(null);
   const [showCreate, setShowCreate] = useState(false);
 
@@ -52,16 +54,21 @@ export default function QueueManagerPage() {
       }} className="queue-grid">
         {/* Left: queue list */}
         <Card padding="none" style={{ overflow: 'hidden' }}>
-          {loading && <div style={{ padding: 16, color: 'var(--text-tertiary)' }}>Loading…</div>}
-          {!loading && queues.length === 0 && (
-            <EmptyState
+          {loading && <DataState state="loading" compact title={tr('Loading queues')} />}
+          {!loading && error && (
+            <DataState state="error" compact title={tr('Queues could not be loaded')}
+                       action={<Button size="sm" onClick={refetch}>{tr('Retry')}</Button>} />
+          )}
+          {!loading && !error && queues.length === 0 && (
+            <DataState
+              state="empty"
               icon={Layers}
               title="No queues yet"
               description="Queues schedule recurring posts. Create one with a cron rule like '0 10 * * 1-5' for weekday mornings."
               action={<Button icon={Plus} onClick={() => setShowCreate(true)}>Create queue</Button>}
             />
           )}
-          {queues.map((q) => (
+          {!error && queues.map((q) => (
             <QueueRow key={q.id} queue={q} active={activeId === q.id}
                       onClick={() => setActiveId(q.id)} onChange={refetch} />
           ))}
@@ -71,7 +78,7 @@ export default function QueueManagerPage() {
         <Card padding="none" style={{ overflow: 'hidden' }}>
           {activeId
             ? <QueueDetail key={activeId} queueId={activeId} onChanged={refetch} />
-            : <EmptyState icon={Layers} title="Select a queue" />}
+            : <DataState state="empty" icon={Layers} title="Select a queue" />}
         </Card>
       </div>
 
@@ -191,7 +198,10 @@ function QueueDetail({ queueId, onChanged }) {
     load(); onChanged?.();
   }
 
-  if (!loading && error) return <div role="alert"><p>{tr('Failed to load queue')}</p><Button onClick={load}>{tr('Retry')}</Button></div>;
+  if (!loading && error) return (
+    <DataState state="error" title={tr('Failed to load queue')}
+               action={<Button onClick={load}>{tr('Retry')}</Button>} />
+  );
 
   async function move(index, direction) {
     const waiting = items.filter(item => item.status === 'waiting');
@@ -207,7 +217,7 @@ function QueueDetail({ queueId, onChanged }) {
   }
 
   if (loading || !queue) {
-    return <div style={{ padding: 16, color: 'var(--text-tertiary)' }}>Loading…</div>;
+    return <DataState state="loading" compact title={tr('Loading queue')} />;
   }
 
   return (
@@ -278,6 +288,16 @@ function CreateQueueModal({ onClose, onCreated }) {
     platforms: ['facebook', 'instagram'],
   });
   const [saving, setSaving] = useState(false);
+  const platforms = getPlatformRegistry().filter(platform => platformHasCapability(platform, 'publish'));
+
+  function togglePlatform(key) {
+    setForm(current => ({
+      ...current,
+      platforms: current.platforms.includes(key)
+        ? current.platforms.filter(platform => platform !== key)
+        : [...current.platforms, key],
+    }));
+  }
 
   async function save() {
     if (!form.name.trim()) { toast.error('Name is required'); return; }
@@ -318,10 +338,15 @@ function CreateQueueModal({ onClose, onCreated }) {
             </select>
           </Field>
           <Field label="Platforms">
-            <input value={(form.platforms || []).join(', ')}
-                   onChange={(e) => setForm({ ...form, platforms: e.target.value.split(',').map((x) => x.trim()).filter(Boolean) })}
-                   placeholder="facebook, instagram"
-                   style={inputStyle} />
+            <span className="grid gap-2 sm:grid-cols-2">
+              {platforms.map(platform => (
+                <label key={platform.key} className="flex min-h-11 items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm">
+                  <input type="checkbox" checked={form.platforms.includes(platform.key)}
+                         onChange={() => togglePlatform(platform.key)} />
+                  <span>{platform.labels?.default || platform.label || platform.key}</span>
+                </label>
+              ))}
+            </span>
           </Field>
         </div>
         <div style={modalFooter}>
