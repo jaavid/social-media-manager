@@ -6,6 +6,7 @@ import Modal from '@/components/ui/Modal';
 import Select from '@/components/ui/Select';
 import Input from '@/components/ui/Input';
 import Badge from '@/components/ui/Badge';
+import DataState, { type DataStateKind } from '@/components/ui/DataState';
 import { Table, TableBody, TableRow, TableCell } from '@/components/ui/Table';
 import { useTheme } from '@/hooks/useTheme';
 import { message } from '@/i18n/translate';
@@ -50,6 +51,24 @@ export default function Catalog() {
       <h2 className="text-xl font-bold">{t('catalog.status')}</h2>
       <div className="flex flex-wrap gap-4">{(['success', 'warning', 'danger', 'info'] as const).map(status =>
         <span key={status} data-status={status} style={{ color: `var(--${status})`, background: `var(--${status}-bg)`, padding: 'var(--space-2)' }}>{t(`catalog.${status}`)}</span>)}</div>
+    </section>
+    <section className="app-surface space-y-4 rounded-lg p-6 shadow-md" data-data-state-catalog>
+      <h2 className="text-xl font-bold">{t('catalog.dataStates')}</h2>
+      <p className="text-sm text-muted-foreground">{t('catalog.dataStatesIntro')}</p>
+      <div className="grid gap-4 md:grid-cols-2">
+        {(['loading', 'empty', 'no-results', 'error', 'offline', 'forbidden', 'partial'] as DataStateKind[]).map(state => (
+          <DataState
+            key={state}
+            state={state}
+            compact
+            title={t(`catalog.state.${state}.title`)}
+            description={t(`catalog.state.${state}.description`)}
+          />
+        ))}
+      </div>
+      <DataState state="refreshing" title={t('catalog.state.refreshing.title')} description={t('catalog.state.refreshing.description')}>
+        <div className="rounded-xl border border-border bg-muted p-4">{t('catalog.state.preserved')}</div>
+      </DataState>
     </section>
     <div className="flex flex-wrap gap-4">
       <Button><span>{t('catalog.primary')}</span></Button><Button variant="danger"><span>{t('catalog.destructive')}</span></Button>
