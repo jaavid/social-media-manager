@@ -134,6 +134,18 @@ class ConnectedAccountsTests(FixtureRegistration, TestCase):
         self.assertEqual(self.api.get(f'/api/oauth/google/start/{self.other.pk}/').status_code, 403)
         self.assertIn(APIClient().get(target).status_code, (401, 403))
 
+    def test_oauth_flow_rejects_cross_provider_selection(self):
+        from rest_framework.exceptions import PermissionDenied
+        self.api.force_login(self.user)
+        for flow, platform in [('facebook', 'youtube'), ('google', 'facebook')]:
+            self.assertEqual(self.api.get(f'/api/oauth/{flow}/start/{self.workspace.pk}/?platform={platform}').status_code, 400)
+        self.assertEqual(self.api.get(f'/api/oauth/google/start/{self.workspace.pk}/').status_code, 302)
+        self.assertEqual(self.api.session['oauth_connection']['platform'], 'all')
+        request = SimpleNamespace(user=self.user, session=self.api.session)
+        with self.assertRaises(PermissionDenied):
+            _save_credential(self.workspace.pk, 'facebook', {'page_id': 'page', 'access_token': 'PRIVATE'}, request=request)
+        self.assertFalse(PlatformCredential.objects.filter(platform='facebook').exists())
+
     def test_oauth_callback_rechecks_permission_and_original_identity(self):
         self.api.force_login(self.user)
         account = SocialAccount.objects.create(client=self.workspace, platform='youtube', external_id='channel')

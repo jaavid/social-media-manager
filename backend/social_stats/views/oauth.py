@@ -121,7 +121,11 @@ def _save_credential(client_id, platform, defaults, *, request=None):
         external_id = f'unidentified-{platform}'
     if request is not None:
         context = request.session.get('oauth_connection', {})
-        if not _oauth_callback_authorized(request) or str(context.get('workspace_id')) != str(client_id):
+        source = context.get('platform')
+        allowed = ({'facebook', 'instagram'} if source in {'facebook', 'instagram'} else
+                   {'youtube', 'google_my_business'} if source == 'all' else {source})
+        if (platform not in allowed or not _oauth_connection_enabled(platform)
+                or not _oauth_callback_authorized(request) or str(context.get('workspace_id')) != str(client_id)):
             from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied('Connection permission changed')
         if context.get('account_id'):
@@ -176,7 +180,10 @@ def _settings_redirect(client_id, query='', *, request=None):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def facebook_oauth_start(request, client_id):
-    error = _authorize_oauth_start(request, client_id, request.GET.get('platform', 'facebook'))
+    platform = request.GET.get('platform', 'facebook')
+    if platform not in {'facebook', 'instagram'}:
+        return Response({'code': 'unsupported'}, status=400)
+    error = _authorize_oauth_start(request, client_id, platform)
     if error is not None:
         return error
     """
@@ -517,7 +524,10 @@ GOOGLE_SCOPES = ' '.join([
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def google_oauth_start(request, client_id):
-    error = _authorize_oauth_start(request, client_id, request.GET.get('platform', 'youtube'))
+    platform = request.GET.get('platform', 'all')
+    if platform not in {'youtube', 'google_my_business', 'all'}:
+        return Response({'code': 'unsupported'}, status=400)
+    error = _authorize_oauth_start(request, client_id, platform)
     if error is not None:
         return error
     """Redirect to Google consent screen.
