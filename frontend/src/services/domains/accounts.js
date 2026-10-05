@@ -29,7 +29,7 @@ export const metaAdsAPI = {
 
 export const notificationPrefsAPI = {
   get:    ()       => api.get ('/notifications/preferences/'),
-  update: (rows)   => api.put ('/notifications/preferences/update/', { rows }),
+  update: (rows)   => api.put ('/notifications/preferences/', { matrix: rows }),
 };
 
 export const verificationAPI = {

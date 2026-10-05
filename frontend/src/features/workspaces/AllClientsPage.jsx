@@ -402,7 +402,7 @@ export default function AllClientsPage({ onSelectClient }) {
               '[align-items:flex-start]',
             )}
           >
-            <div className={cn('[flex:1_1_220px]')}>
+            <div className={cn('[flex:1_1_220px]', '[min-width:0]', '[max-width:100%]')}>
               <Input
                 type="email"
                 required
@@ -424,7 +424,7 @@ export default function AllClientsPage({ onSelectClient }) {
                 }
               />
             </div>
-            <div className={cn('[flex:2_1_300px]')}>
+            <div className={cn('[flex:2_1_300px]', '[min-width:0]', '[max-width:100%]')}>
               <Input
                 placeholder="We'd love to manage your social analytics…"
                 value={inviteMsg}

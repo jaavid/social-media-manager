@@ -6,6 +6,7 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
+import { transientStorage } from '../../lib/runtime/storage';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAppLocation, useAppNavigate as useNavigate, useAppParams as useParams } from '../../core/navigation';
 import {
@@ -40,9 +41,20 @@ const MEDIA_TYPES = [
 ];
 
 export default function ComposerPage() {
+  const { user } = useAuth();
+  const { id } = useParams();
+  const scope = `${user?.id || user?.email || 'session'}:${user?.workspace_id || user?.client_id || 'none'}:${id || 'new'}`;
+  return <ComposerEditor key={scope} draftKey={`composer-draft:${scope}`} />;
+}
+
+function ComposerEditor({ draftKey }) {
   const { id } = useParams();
   const { t } = useLanguage();
-  const savedPostId = useRef(null);
+  const recovered = useMemo(() => {
+    try { return JSON.parse(transientStorage.getItem(draftKey) || 'null'); }
+    catch { return null; }
+  }, [draftKey]);
+  const savedPostId = useRef(recovered?.savedPostId || null);
   const { data: queues, loading: loadingQueues, error: queueError } = usePostQueues();
   const [queueId, setQueueId] = useState('');
   const navigate = useNavigate();
@@ -55,17 +67,17 @@ export default function ComposerPage() {
   const { data: existing, loading: loadingExisting, refetch } = useComposerPost(id);
 
   /* ── Editor state ──────────────────────────────────────────────────── */
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
-  const [mediaType, setMediaType] = useState('text');
-  const [mediaAssets, setMediaAssets] = useState([]);   // [{id, file_url, thumbnail_url, mime_type}]
-  const [targetPlatforms, setTargetPlatforms] = useState([]);
-  const [telegramContent, setTelegramContent] = useState({ rich_message: emptyRich });
-  const [destinationOverrides, setDestinationOverrides] = useState({});
+  const [title, setTitle] = useState(recovered?.title ?? '');
+  const [content, setContent] = useState(recovered?.content ?? '');
+  const [mediaType, setMediaType] = useState(recovered?.mediaType ?? 'text');
+  const [mediaAssets, setMediaAssets] = useState(recovered?.mediaAssets ?? []);   // [{id, file_url, thumbnail_url, mime_type}]
+  const [targetPlatforms, setTargetPlatforms] = useState(recovered?.targetPlatforms ?? []);
+  const [telegramContent, setTelegramContent] = useState(recovered?.telegramContent ?? { rich_message: emptyRich });
+  const [destinationOverrides, setDestinationOverrides] = useState(recovered?.destinationOverrides ?? {});
   const [socialAccounts, setSocialAccounts] = useState([]);
-  const [accountTargets, setAccountTargets] = useState({});
-  const [scheduleMode, setScheduleMode] = useState('now'); // 'now' | 'schedule' | 'queue'
-  const [scheduledAt, setScheduledAt] = useState('');
+  const [accountTargets, setAccountTargets] = useState(recovered?.accountTargets ?? {});
+  const [scheduleMode, setScheduleMode] = useState(recovered?.scheduleMode ?? 'now'); // 'now' | 'schedule' | 'queue'
+  const [scheduledAt, setScheduledAt] = useState(recovered?.scheduledAt ?? '');
   const workspaceId = existing?.client || user?.client_id;
   const availableQueues = queues.filter(queue =>
     String(queue.client) === String(workspaceId) &&
@@ -93,7 +105,7 @@ export default function ComposerPage() {
 
   /* ── Pre-fill when editing ────────────────────────────────────────── */
   useEffect(() => {
-    if (existing && isEditing) {
+    if (existing && isEditing && !recovered) {
       setTitle(existing.title || '');
       setContent(existing.content || '');
       setMediaType(existing.media_type || 'text');
@@ -142,6 +154,36 @@ export default function ComposerPage() {
       return acc;
     }, {});
   }, [content, allPlatforms]);
+
+  const snapshot = JSON.stringify({ title, content, mediaType, mediaAssets, targetPlatforms,
+    telegramContent, destinationOverrides, accountTargets, scheduleMode, scheduledAt });
+  const baseline = useRef(recovered ? null : snapshot);
+  const initializedPost = useRef(null);
+  // Server hydration establishes the baseline once. Recovered changes stay dirty.
+  useEffect(() => {
+    if (existing && !recovered && initializedPost.current !== existing.id) {
+      initializedPost.current = existing.id;
+      baseline.current = null;
+    } else if (baseline.current === null && !recovered) baseline.current = snapshot;
+  }, [existing, recovered, snapshot]);
+  useEffect(() => {
+    if (baseline.current === snapshot) { transientStorage.removeItem(draftKey); return; }
+    if (isEditing && !existing && !recovered) return;
+    transientStorage.setItem(draftKey, JSON.stringify({ ...JSON.parse(snapshot), savedPostId: savedPostId.current }));
+  }, [draftKey, snapshot, isEditing, existing, recovered]);
+  useEffect(() => {
+    const warn = event => {
+      if (baseline.current === snapshot) return;
+      event.preventDefault();
+      event.returnValue = '';
+    };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [snapshot]);
+  function markDraftSaved() {
+    baseline.current = snapshot;
+    transientStorage.removeItem(draftKey);
+  }
 
   /* ── Handlers ──────────────────────────────────────────────────────── */
   function togglePlatform(pid) {
@@ -217,10 +259,12 @@ export default function ComposerPage() {
     const payload = buildPayload();
     if (isEditing || savedPostId.current) {
       const res = await composerAPI.posts.update(id || savedPostId.current, payload);
+      markDraftSaved();
       return res.data;
     }
     const res = await composerAPI.posts.create(payload);
     savedPostId.current = res.data.id;
+    markDraftSaved();
     if (navigateAfterSave) navigate(`${composerPath}/${res.data.id}`, { replace: true });
     return res.data;
   }

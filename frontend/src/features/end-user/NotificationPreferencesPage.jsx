@@ -1,3 +1,4 @@
+import { useLanguage } from '../../i18n';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -18,7 +19,7 @@
  *   - whatsapp + browser push render as "Coming soon" — server still accepts
  *     the preference but doesn't deliver yet (logged TODO).
  */
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Bell, Save, Inbox, Mail, MessageCircle, Globe, Sparkles,
 } from 'lucide-react';
@@ -79,27 +80,40 @@ const SECTIONS = [
 ];
 
 
+function normalizeMatrix(data) {
+  return (data?.matrix || []).map(row => ({
+    ...row,
+    label: data.events?.find(event => event.id === row.event_type)?.label || row.event_type.replaceAll('_', ' '),
+    channels: Object.fromEntries((data.channels || []).map(channel => [channel.id, !!row[channel.id]])),
+  }));
+}
+
 export default function NotificationPreferencesPage() {
+  const { tr } = useLanguage();
+  const [channels, setChannels] = useState([]);
+  const [error, setError] = useState(false);
   const [matrix,  setMatrix]  = useState([]);
   const [draft,   setDraft]   = useState({});  // { event_type: { channel: bool } }
   const [loading, setLoading] = useState(true);
   const [saving,  setSaving]  = useState(false);
 
-  function load() {
+  const load = useCallback(() => {
     setLoading(true);
     notificationPrefsAPI.get()
       .then((r) => {
-        const m = r.data?.matrix || [];
+        const m = normalizeMatrix(r.data);
         setMatrix(m);
+        setChannels((r.data.channels || []).map(c => ({ ...CHANNEL_META.find(meta => meta.key === c.id), key: c.id, label: c.label })));
+        setError(false);
         const d = {};
         m.forEach((row) => { d[row.event_type] = { ...(row.channels || {}) }; });
         setDraft(d);
       })
-      .catch(() => toast.error('Could not load notification preferences'))
+      .catch(() => { setError(true); toast.error(tr("Could not load notification preferences")); })
       .finally(() => setLoading(false));
-  }
+  }, [tr]);
 
-  useEffect(load, []);
+  useEffect(() => { void Promise.resolve().then(load); }, [load]);
 
   const dirty = useMemo(() => {
     return matrix.some((row) =>
@@ -132,61 +146,57 @@ export default function NotificationPreferencesPage() {
     if (rows.length === 0) return;
     setSaving(true);
     try {
-      const r = await notificationPrefsAPI.update(rows);
-      const m = r.data?.matrix || [];
+      await notificationPrefsAPI.update(rows);
+      const r = await notificationPrefsAPI.get();
+      const m = normalizeMatrix(r.data);
       setMatrix(m);
       const d = {};
       m.forEach((row) => { d[row.event_type] = { ...(row.channels || {}) }; });
       setDraft(d);
-      toast.success('Preferences saved');
+      toast.success(tr("Preferences saved"));
     } catch (e) {
-      toast.error(e?.response?.data?.error || 'Could not save preferences');
+      toast.error(e?.response?.data?.error || tr("Could not save preferences"));
     } finally {
       setSaving(false);
     }
   }
 
-  if (loading) return <div style={{ padding: 32, color: 'var(--text-tertiary)' }}>Loading…</div>;
+  if (loading) return <div style={{ padding: 32, color: 'var(--text-tertiary)' }}>{tr("Loading…")}</div>;
 
+  if (error) return <div role="alert"><p>{tr('Could not load notification preferences')}</p><button type="button" onClick={load}>{tr('Retry')}</button></div>;
+  const known = new Set(SECTIONS.flatMap(section => section.events));
+  const sections = [...SECTIONS, { title: 'Other events', events: matrix.map(row => row.event_type).filter(event => !known.has(event)) }];
   return (
     <div style={{ maxWidth: 880, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 18 }}>
       <header style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
         <span style={iconWrap}><Bell size={20} strokeWidth={2.2} /></span>
         <div style={{ flex: 1 }}>
-          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
-            Notifications
-          </h1>
-          <p style={{ margin: '4px 0 0', color: 'var(--text-secondary)', fontSize: 14 }}>
-            Choose how you want to be told about each thing that happens.
-          </p>
+          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>{tr("Notifications")}</h1>
+          <p style={{ margin: '4px 0 0', color: 'var(--text-secondary)', fontSize: 14 }}>{tr("Choose how you want to be told about each thing that happens.")}</p>
         </div>
         <button type="button" onClick={save} disabled={!dirty || saving} style={dirty && !saving ? btnPrimary : btnDisabled}>
-          <Save size={13} /> {saving ? 'Saving…' : (dirty ? 'Save changes' : 'No changes')}
+          <Save size={13} /> {saving ? tr("Saving…") : (dirty ? tr("Save changes") : tr("No changes"))}
         </button>
       </header>
 
       <p style={hint}>
-        <Sparkles size={11} style={{ verticalAlign: '-1px', marginRight: 4, color: 'var(--brand-primary-hover)' }} />
-        WhatsApp and Push are <strong>coming soon</strong> — your preferences are saved and will activate the moment those channels go live.
-      </p>
+        <Sparkles size={11} style={{ verticalAlign: '-1px', marginRight: 4, color: 'var(--brand-primary-hover)' }} />{tr("WhatsApp and Push are")} <strong>{tr("coming soon")}</strong> {tr("— your preferences are saved and will activate the moment those channels go live.")}</p>
 
-      {SECTIONS.map((section) => (
+      {sections.filter(section => section.events.some(event => matrixByEvent[event])).map((section) => (
         <section key={section.title} style={card}>
-          <h2 style={sectionH}>{section.title}</h2>
+          <h2 style={sectionH}>{tr(section.title)}</h2>
           <div style={tableWrap}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr>
-                  <th style={{ ...th, width: '40%' }}>Event</th>
-                  {CHANNEL_META.map((c) => (
+                  <th style={{ ...th, width: '40%' }}>{tr("Event")}</th>
+                  {channels.map((c) => (
                     <th key={c.key} style={{ ...th, textAlign: 'center', width: '15%' }}>
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, justifyContent: 'center' }}>
-                        <c.icon size={12} /> {c.label}
+                        {c.icon && <c.icon size={12} />} {tr(c.label)}
                       </span>
                       {c.status === 'soon' && (
-                        <div style={{ fontSize: 9, color: 'var(--text-tertiary)', fontWeight: 500, textTransform: 'none', letterSpacing: 0 }}>
-                          coming soon
-                        </div>
+                        <div style={{ fontSize: 9, color: 'var(--text-tertiary)', fontWeight: 500, textTransform: 'none', letterSpacing: 0 }}>{tr("coming soon")}</div>
                       )}
                     </th>
                   ))}
@@ -199,16 +209,16 @@ export default function NotificationPreferencesPage() {
                   return (
                     <tr key={ev} style={{ borderTop: '1px solid var(--border-subtle)' }}>
                       <td style={td}>
-                        <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)' }}>{row.label}</div>
+                        <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)' }}>{tr(row.label)}</div>
                         <div style={{ fontSize: 11, color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)' }}>{ev}</div>
                       </td>
-                      {CHANNEL_META.map((c) => (
+                      {channels.map((c) => (
                         <td key={c.key} style={{ ...td, textAlign: 'center' }}>
                           <input
                             type="checkbox"
                             checked={!!draft[ev]?.[c.key]}
                             onChange={() => toggle(ev, c.key)}
-                            aria-label={`${row.label} via ${c.label}`}
+                            aria-label={`${tr(row.label)} · ${tr(c.label)}`}
                           />
                         </td>
                       ))}

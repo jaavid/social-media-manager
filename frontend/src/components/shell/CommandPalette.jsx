@@ -185,7 +185,7 @@ export default function CommandPalette({ open, onOpenChange, basePath }) {
                   <Item
                     key={item.id}
                     item={item}
-                    onSelect={() => pick(item.id, item.run)}
+                    onSelect={() => pick(item.id, item.path ? () => navigate(item.path) : item.run)}
                   />
                 );
               })}

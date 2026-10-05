@@ -72,10 +72,10 @@ export default function UnifiedInboxPage() {
 
   // Auto-select the first conversation when the list loads
   useEffect(() => {
-    if (!activeId && conversations.length > 0) {
-      setActiveId(conversations[0].id);
+    if (!loading && !conversations.some(item => item.id === activeId)) {
+      setActiveId(conversations[0]?.id ?? null);
     }
-  }, [conversations, activeId]);
+  }, [conversations, activeId, loading]);
 
   // Mark-read on selection
   useEffect(() => {
@@ -121,7 +121,7 @@ export default function UnifiedInboxPage() {
         {/* ── RIGHT: thread ─────────────────────────────────────────── */}
         <ThreadColumn
           key={activeId}
-          thread={thread}
+          thread={!loading && conversations.some(item => item.id === activeId) ? thread : null}
           onAction={() => { refetchList(); refetchThread(); }}
         />
       </div>

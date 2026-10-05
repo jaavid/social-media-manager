@@ -21,7 +21,7 @@ it('waits for session before redirecting', () => {
 });
 it('redirects anonymous sessions', () => {
   setup({ user: null, loading: false });
-  expect(mockRouter().replace).toHaveBeenCalledWith('/login', { scroll: true });
+  expect(mockRouter().replace).toHaveBeenCalledWith('/login?next=%2Fprivate', { scroll: true });
   expect(screen.queryByText('Private content')).not.toBeInTheDocument();
 });
 it('blocks client access to admin routes', () => {

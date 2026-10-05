@@ -47,6 +47,7 @@ export default function AIFloatingTrigger() {
     <>
       {!open && (
         <button
+          className="ai-floating-trigger"
           type="button"
           onClick={() => setOpen(true)}
           aria-label="Open Social Stats (Cmd+J)"
@@ -74,6 +75,9 @@ export default function AIFloatingTrigger() {
         </button>
       )}
 
+      <style>{`@media (max-width: 880px) {
+        .ai-floating-trigger { bottom: calc(96px + env(safe-area-inset-bottom)) !important; }
+      }`}</style>
       <AIChatPanel
         open={open}
         onClose={() => setOpen(false)}

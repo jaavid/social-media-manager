@@ -10,23 +10,30 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { inboxAPI } from '../services/api';
 
 export function useConversations(params) {
-  const [data, setData] = useState([]);
+  const key = JSON.stringify(params || {});
+  const [result, setResult] = useState({ key: null, data: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
+  const requestId = useRef(0);
   const refetch = useCallback(async () => {
+    const request = ++requestId.current;
+    setLoading(true);
     try {
-      setLoading(true);
-      const res = await inboxAPI.conversations.list(params);
-      setData(res.data?.results || res.data || []);
+      const res = await inboxAPI.conversations.list(JSON.parse(key));
+      if (request !== requestId.current) return;
+      setResult({ key, data: res.data?.results || res.data || [] });
       setError(null);
-    } catch (e) { setError(e); }
-    finally    { setLoading(false); }
-  // eslint-disable-next-line
-  }, [JSON.stringify(params || {})]);
-
-  useEffect(() => { refetch(); }, [refetch]);
-  return { data, loading, error, refetch };
+    } catch (e) {
+      if (request !== requestId.current) return;
+      setResult({ key, data: [] });
+      setError(e);
+    } finally { if (request === requestId.current) setLoading(false); }
+  }, [key]);
+  useEffect(() => {
+    refetch();
+    return () => { requestId.current += 1; };
+  }, [refetch]);
+  return { data: result.key === key ? result.data : [], loading, error, refetch };
 }
 
 export function useConversation(id) {

@@ -30,7 +30,7 @@ from typing import Optional
 
 from django.db import transaction
 from django.utils import timezone
-from rest_framework import viewsets, status
+from rest_framework import viewsets
 from rest_framework.decorators import action
 from social_stats.workspace_vocabulary import (
     WorkspaceJSONParser as JSONParser, WorkspaceFormParser as FormParser,
@@ -454,6 +454,14 @@ class PostQueueViewSet(TenantScopedMixin, viewsets.ModelViewSet):
     queryset = PostQueue.objects.prefetch_related('items').all()
     serializer_class = PostQueueSerializer
 
+    def retrieve(self, request, *args, **kwargs):
+        queue = self.get_object()
+        data = dict(self.get_serializer(queue).data)
+        data['items_list'] = QueuedItemSerializer(
+            queue.items.order_by('sort_order', 'id'), many=True,
+        ).data
+        return Response(data)
+
     @action(detail=True, methods=['post'])
     def add_items(self, request, pk=None):
         queue = self.get_object()
@@ -520,7 +528,6 @@ class PreflightCheckView(APIView):
         data = request.data or {}
         content = (data.get('content') or '')
         media_type = (data.get('media_type') or 'text').lower()
-        media_urls = data.get('media_urls') or []
         media_asset_ids = data.get('media_assets') or []
         targets = [str(p).lower() for p in (data.get('target_platforms') or [])]
         overrides = data.get('platform_overrides') or {}

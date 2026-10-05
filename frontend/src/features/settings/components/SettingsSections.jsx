@@ -26,17 +26,10 @@ import {
   Plus,
   Copy,
   Trash2,
-  Eye,
-  EyeOff,
   Download,
   AlertTriangle,
-  ExternalLink,
-  Bell,
-  Mail,
-  Smartphone,
   Sparkles,
   ArrowRight,
-  Webhook,
 } from 'lucide-react';
 import { useTheme } from '../../../hooks/useTheme';
 import Button from '../../../components/ui/Button';
@@ -47,220 +40,17 @@ import KeyboardShortcut from '../../../components/ui/KeyboardShortcut';
 import EmptyState from '../../../components/ui/EmptyState';
 import Input from '../../../components/ui/Input';
 import toast from '../../../components/ui/toast';
+import { useLanguage } from '../../../i18n';
+import NotificationPreferencesPage from '../../../components/notifications/NotificationPreferences';
 import { apiKeysAPI, privacyAPI } from '../../../services/api';
 
 // ─────────────────────────────────────────────────────────────────────────
 // 1. Notifications — per-channel × per-event matrix
 // ─────────────────────────────────────────────────────────────────────────
-const NOTIF_CHANNELS = [
-  {
-    id: 'in_app',
-    icon: Bell,
-    label: 'In-app',
-  },
-  {
-    id: 'email',
-    icon: Mail,
-    label: 'Email',
-  },
-  {
-    id: 'browser',
-    icon: Smartphone,
-    label: 'Browser',
-  },
-];
-const NOTIF_EVENTS = [
-  {
-    id: 'mentions',
-    label: 'Mentions',
-    description: 'Someone mentioned a tracked account.',
-  },
-  {
-    id: 'alerts',
-    label: 'Performance alerts',
-    description: 'Engagement drops or viral posts.',
-  },
-  {
-    id: 'reports',
-    label: 'Scheduled reports',
-    description: 'Weekly + monthly report emails.',
-  },
-  {
-    id: 'team',
-    label: 'Team activity',
-    description: 'New members, role changes, invitations.',
-  },
-  {
-    id: 'token_expiry',
-    label: 'Token expiry',
-    description: 'OAuth tokens about to expire.',
-  },
-];
-const NOTIF_KEY = 'socialstats_notif_prefs';
-const NOTIF_DEFAULT = NOTIF_EVENTS.reduce((acc, e) => {
-  acc[e.id] = {
-    in_app: true,
-    email: e.id === 'token_expiry',
-    browser: false,
-  };
-  return acc;
-}, {});
 export function NotificationsSection() {
-  const [prefs, setPrefs] = useState(() => {
-    try {
-      const raw = persistentStorage.getItem(NOTIF_KEY);
-      return raw
-        ? {
-            ...NOTIF_DEFAULT,
-            ...JSON.parse(raw),
-          }
-        : NOTIF_DEFAULT;
-    } catch {
-      return NOTIF_DEFAULT;
-    }
-  });
-  function toggle(eventId, channelId) {
-    setPrefs((p) => ({
-      ...p,
-      [eventId]: {
-        ...p[eventId],
-        [channelId]: !p[eventId]?.[channelId],
-      },
-    }));
-  }
-  function save() {
-    try {
-      persistentStorage.setItem(NOTIF_KEY, JSON.stringify(prefs));
-      toast.success('Notification preferences saved');
-    } catch {
-      toast.error('Could not save preferences');
-    }
-  }
-  return (
-    <SectionContainer
-      title="Notifications"
-      description="Choose which events you'd like to be notified about, and where."
-      action={
-        <Button onClick={save} size="sm">
-          Save preferences
-        </Button>
-      }
-    >
-      <Card padding="none">
-        <div className={cn('[overflow-x:auto]')}>
-          <table
-            className={cn(
-              '[width:100%]',
-              '[border-collapse:collapse]',
-              '[font-size:13px]',
-              '[min-width:560px]',
-            )}
-          >
-            <thead>
-              <tr className={cn('[background:var(--surface-sunken)]')}>
-                <th
-                  scope="col"
-                  className={cn(
-                    '[text-align:start]',
-                    '[padding:12px_16px]',
-                    '[font-size:11px]',
-                    '[font-weight:600]',
-                    '[letter-spacing:0.06em]',
-                    '[text-transform:uppercase]',
-                    '[color:var(--text-tertiary)]',
-                  )}
-                >
-                  Event
-                </th>
-                {NOTIF_CHANNELS.map((c) => (
-                  <th
-                    key={c.id}
-                    scope="col"
-                    className={cn(
-                      '[text-align:start]',
-                      '[padding:12px_16px]',
-                      '[font-size:11px]',
-                      '[font-weight:600]',
-                      '[letter-spacing:0.06em]',
-                      '[text-transform:uppercase]',
-                      '[color:var(--text-tertiary)]',
-                      '[text-align:center]',
-                    )}
-                  >
-                    <span
-                      className={cn(
-                        '[display:inline-flex]',
-                        '[align-items:center]',
-                        '[gap:6px]',
-                      )}
-                    >
-                      <c.icon size={12} /> {c.label}
-                    </span>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {NOTIF_EVENTS.map((e, i) => (
-                <tr
-                  key={e.id}
-                  className={cn(
-                    i > 0
-                      ? '[border-top:1px_solid_var(--border-subtle)]'
-                      : '[border-top:none]',
-                  )}
-                >
-                  <td
-                    className={cn(
-                      '[padding:14px_16px]',
-                      '[vertical-align:top]',
-                    )}
-                  >
-                    <div
-                      className={cn(
-                        '[font-size:14px]',
-                        '[font-weight:600]',
-                        '[color:var(--text-primary)]',
-                      )}
-                    >
-                      {e.label}
-                    </div>
-                    <div
-                      className={cn(
-                        '[margin-top:2px]',
-                        '[font-size:12px]',
-                        '[color:var(--text-secondary)]',
-                        '[line-height:1.5]',
-                      )}
-                    >
-                      {e.description}
-                    </div>
-                  </td>
-                  {NOTIF_CHANNELS.map((c) => (
-                    <td
-                      key={c.id}
-                      className={cn(
-                        '[padding:14px_16px]',
-                        '[text-align:center]',
-                      )}
-                    >
-                      <Switch
-                        checked={!!prefs[e.id]?.[c.id]}
-                        onChange={() => toggle(e.id, c.id)}
-                        size="sm"
-                        aria-label={`${c.label} notifications for ${e.label}`}
-                      />
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Card>
-    </SectionContainer>
-  );
+  return <NotificationPreferencesPage />;
 }
+
 // ─────────────────────────────────────────────────────────────────────────
 // 2. Appearance — theme + density
 // ─────────────────────────────────────────────────────────────────────────
@@ -1237,154 +1027,11 @@ export function DataPrivacySection() {
 // ─────────────────────────────────────────────────────────────────────────
 // 6. Webhooks — external endpoint subscriptions (stub)
 // ─────────────────────────────────────────────────────────────────────────
-const WEBHOOK_KEY = 'socialstats_webhook_endpoints';
-const WEBHOOK_EVENTS = [
-  'composer.post_published',
-  'composer.post_failed',
-  'inbox.new_message',
-  'credential.token_expired',
-  'goal.milestone_hit',
-];
 export function WebhooksSection() {
-  const [endpoints, setEndpoints] = useState(() => {
-    try {
-      return JSON.parse(persistentStorage.getItem(WEBHOOK_KEY) || '[]');
-    } catch {
-      return [];
-    }
-  });
-  const [url, setUrl] = useState('');
-  function save(next) {
-    setEndpoints(next);
-    try {
-      persistentStorage.setItem(WEBHOOK_KEY, JSON.stringify(next));
-    } catch {}
-  }
-  function add() {
-    if (!/^https:\/\//.test(url)) {
-      toast.error('Endpoint must use HTTPS');
-      return;
-    }
-    save([
-      {
-        id: `wh_${Date.now()}`,
-        url: url.trim(),
-        events: WEBHOOK_EVENTS,
-        active: true,
-      },
-      ...endpoints,
-    ]);
-    setUrl('');
-    toast.success('Endpoint added');
-  }
-  function remove(id) {
-    save(endpoints.filter((e) => e.id !== id));
-    toast.success('Endpoint removed');
-  }
-  return (
-    <SectionContainer
-      title="Webhooks"
-      description="Receive HTTP POST notifications when events happen in your workspace."
-    >
-      <Card padding="md" className={cn('[margin-bottom:14px]')}>
-        <div
-          className={cn(
-            '[font-size:14px]',
-            '[font-weight:600]',
-            '[color:var(--text-primary)]',
-            '[margin-bottom:8px]',
-          )}
-        >
-          Add an endpoint
-        </div>
-        <div
-          className={cn(
-            '[display:flex]',
-            '[gap:8px]',
-            '[align-items:flex-end]',
-            '[flex-wrap:wrap]',
-          )}
-        >
-          <div className={cn('[flex:1_1_280px]', '[min-width:0]')}>
-            <Input
-              label="Webhook URL"
-              size="md"
-              type="url"
-              placeholder="https://your-server.com/webhooks/socialstats"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-            />
-          </div>
-          <Button onClick={add} icon={Plus} size="md">
-            Add
-          </Button>
-        </div>
-      </Card>
-
-      {endpoints.length === 0 ? (
-        <Card padding="none">
-          <EmptyState
-            icon={Webhook}
-            title="No webhook endpoints"
-            description="Add an HTTPS endpoint above to start receiving events."
-            compact
-          />
-        </Card>
-      ) : (
-        <Card padding="none">
-          {endpoints.map((e, i) => (
-            <div
-              key={e.id}
-              className={cn(
-                '[display:flex]',
-                '[align-items:center]',
-                '[gap:12px]',
-                '[padding:14px_18px]',
-                i > 0
-                  ? '[border-top:1px_solid_var(--border-subtle)]'
-                  : '[border-top:none]',
-              )}
-            >
-              <span className={cn('[flex:1]', '[min-width:0]')}>
-                <div
-                  className={cn(
-                    '[font-family:var(--font-mono)]',
-                    '[font-size:13px]',
-                    '[color:var(--text-primary)]',
-                    '[overflow:hidden]',
-                    '[text-overflow:ellipsis]',
-                    '[white-space:nowrap]',
-                  )}
-                >
-                  {e.url}
-                </div>
-                <div
-                  className={cn(
-                    '[margin-top:4px]',
-                    '[font-size:12px]',
-                    '[color:var(--text-tertiary)]',
-                  )}
-                >
-                  {e.events.length} events subscribed
-                </div>
-              </span>
-              <Badge variant={e.active ? 'success' : 'default'} size="sm" dot>
-                {e.active ? 'Active' : 'Paused'}
-              </Badge>
-              <Button
-                variant="ghost"
-                size="sm"
-                iconOnly
-                icon={Trash2}
-                aria-label="Remove"
-                onClick={() => remove(e.id)}
-              />
-            </div>
-          ))}
-        </Card>
-      )}
-    </SectionContainer>
-  );
+  const { tr } = useLanguage();
+  return <SectionContainer title={tr('Webhooks')} description={tr('Webhook delivery is not available yet.')} >
+    <Card padding="md"><p role="status">{tr('Coming soon')}</p></Card>
+  </SectionContainer>;
 }
 
 // ─────────────────────────────────────────────────────────────────────────

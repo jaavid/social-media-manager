@@ -10,7 +10,7 @@ import { publicMessage } from '../i18n/public-message';
 import { useAppSearchParams } from '../core/navigation';
 import { apiBaseUrl } from '../lib/runtime/config';
 
-import { internalReturnTo } from '../lib/auth/contracts';
+import { returnToForUser } from '../lib/auth/contracts';
 import { useEffect, useState } from 'react';
 import { AppLink as Link, useAppNavigate as useNavigate, useAppLocation as useLocation } from '../core/navigation';
 import { ArrowRight, AlertCircle, Shield } from 'lucide-react';
@@ -76,7 +76,7 @@ export default function LoginPage() {
 
   function navigateFor(user) {
     if (nextPath) {
-      navigate(internalReturnTo(nextPath), { replace: true });
+      navigate(returnToForUser(nextPath, user, location.hash || window.location.hash), { replace: true });
     } else if (user.role === 'superadmin' || user.role === 'staff') {
       navigate('/admin');
     } else if (user.account_type === 'end_user') {
@@ -103,10 +103,17 @@ export default function LoginPage() {
       navigateFor(user);
     } catch (err) {
       const detail = err?.response?.data?.detail;
+      const status = err?.response?.status;
       setServerError(
         detail === 'email_not_verified'
           ? "پیش از ورود، ایمیل خود را تأیید کنید. لینک تأیید را در صندوق ورودی بررسی کنید."
-          : "ایمیل یا رمز عبور نادرست است. دوباره تلاش کنید."
+          : status === 401
+            ? tr('Incorrect email or password. Try again.')
+            : status === 429
+              ? tr('Too many attempts. Wait a moment and try again.')
+              : status === 400
+                ? tr('Check your login details and try again.')
+                : tr('The login service is unavailable. Please try again.')
       );
     } finally {
       setLoading(false);

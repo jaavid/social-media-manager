@@ -1,3 +1,4 @@
+import { useLanguage } from '../../i18n';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -25,6 +26,7 @@ import { endUserAPI, oauthAPI } from '../../services/api';
 import toast from '../../components/ui/toast';
 
 export default function MyConnectionsPage() {
+  const { tr } = useLanguage();
   const [workspace, setWorkspace] = useState(null);
   const [status,    setStatus]    = useState({});
   const [loading,   setLoading]   = useState(true);
@@ -35,9 +37,9 @@ export default function MyConnectionsPage() {
       const r = await oauthAPI.status(clientId);
       setStatus(r.data || {});
     } catch {
-      toast.error('Failed to load connection status');
+      toast.error(tr("Failed to load connection status"));
     }
-  }, []);
+  }, [tr]);
 
   useEffect(() => {
     let cancelled = false;
@@ -47,10 +49,10 @@ export default function MyConnectionsPage() {
         setWorkspace(r.data?.workspace || null);
         return refreshStatus(r.data?.workspace?.id);
       })
-      .catch(() => toast.error('Could not load your workspace'))
+      .catch(() => toast.error(tr("Could not load your workspace")))
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [refreshStatus]);
+  }, [refreshStatus, tr]);
 
   return (
     <div style={{ maxWidth: 880, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -66,32 +68,25 @@ export default function MyConnectionsPage() {
           <Plug size={20} strokeWidth={2.2} />
         </span>
         <div style={{ flex: 1 }}>
-          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
-            Connections
-          </h1>
-          <p style={{ margin: '4px 0 0', color: 'var(--text-secondary)', fontSize: 14, lineHeight: 'var(--line-height-body)' }}>
-            Plug Social Stats into your social accounts to start tracking posts, engagement, and DMs.
-            You can disconnect any platform at any time — even if an agency is managing your workspace.
-          </p>
+          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>{tr("Connections")}</h1>
+          <p style={{ margin: '4px 0 0', color: 'var(--text-secondary)', fontSize: 14, lineHeight: 'var(--line-height-body)' }}>{tr("Plug Social Stats into your social accounts to start tracking posts, engagement, and DMs. You can disconnect any platform at any time — even if an agency is managing your workspace.")}</p>
         </div>
         {workspace && (
           <button
             type="button"
             onClick={() => refreshStatus(workspace.id)}
             style={refreshBtn}
-            aria-label="Refresh status"
+            aria-label={tr("Refresh status")}
           >
-            <RefreshCw size={13} /> Refresh
-          </button>
+            <RefreshCw size={13} />{tr("Refresh")}</button>
         )}
       </header>
 
       {loading ? (
-        <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-tertiary)' }}>Loading…</div>
+        <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-tertiary)' }}>{tr("Loading…")}</div>
       ) : !workspace ? (
         <div style={emptyBox}>
-          <strong>No workspace yet.</strong> Finish onboarding to connect platforms.
-        </div>
+          <strong>{tr("No workspace yet.")}</strong>{tr("Finish onboarding to connect platforms.")}</div>
       ) : (
         <ConnectedAccounts
           clientId={workspace.id}

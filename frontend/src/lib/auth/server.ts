@@ -1,8 +1,8 @@
 import 'server-only';
 import { cache } from 'react';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { parseSessionUser } from './contracts';
+import { internalReturnTo, parseSessionUser } from './contracts';
 import type { SessionUser } from './contracts';
 type ServerSession = { status: 'authenticated'; user: SessionUser }
   | { status: 'anonymous'; user: null } | { status: 'unavailable'; user: null };
@@ -27,10 +27,15 @@ export const serverSession = cache(async (): Promise<ServerSession> => {
   } catch { return { status: 'unavailable', user: null }; }
 });
 
+async function loginDestination() {
+  const destination = internalReturnTo((await headers()).get('x-socialstats-return-to'));
+  return `/login?next=${encodeURIComponent(destination)}`;
+}
+
 /** Required for future private server fetches; API authorization remains final. */
 export async function requireServerSession(roles?: SessionUser['role'][]): Promise<SessionUser> {
   const session = await serverSession();
-  if (session.status === 'anonymous') redirect('/login');
+  if (session.status === 'anonymous') redirect(await loginDestination());
   if (session.status === 'unavailable') throw new Error('Session service unavailable');
   if (roles && !roles.includes(session.user.role)) redirect('/403');
   return session.user;
@@ -38,7 +43,7 @@ export async function requireServerSession(roles?: SessionUser['role'][]): Promi
 
 export async function authorizeServerRoute(roles: SessionUser['role'][], accountTypes?: SessionUser['account_type'][]) {
   const session = await serverSession();
-  if (session.status === 'anonymous' && (await cookies()).has('sessionid')) redirect('/login');
+  if (session.status === 'anonymous' && (await cookies()).has('sessionid')) redirect(await loginDestination());
   // Anonymous legacy browsers can migrate at the client boundary. Outages show
   // the recovery guard; neither case can fetch/render private server data.
   if (session.status !== 'authenticated') return;

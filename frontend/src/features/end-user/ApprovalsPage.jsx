@@ -1,3 +1,4 @@
+import { useLanguage } from '../../i18n';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -47,6 +48,8 @@ const ACTION_LABEL = {
   disconnect_platform: 'Disconnect platform',
 };
 
+const STATUS_LABEL = { pending: 'Pending', approved: 'Approved', rejected: 'Rejected', expired: 'Expired', auto_approved: 'Automatically approved', cancelled: 'Cancelled' };
+
 const STATUS_PILL = {
   pending:       { bg: 'var(--brand-primary-soft)', fg: 'var(--brand-primary-hover)' },
   approved:      { bg: 'var(--success-bg)',         fg: 'var(--success)' },
@@ -57,6 +60,7 @@ const STATUS_PILL = {
 };
 
 export default function ApprovalsPage() {
+  const { tr } = useLanguage();
   const [tab,     setTab]     = useState('pending');
   const [rows,    setRows]    = useState([]);
   const [loading, setLoading] = useState(true);
@@ -67,11 +71,11 @@ export default function ApprovalsPage() {
     const fn = which === 'pending' ? approvalAPI.pending : approvalAPI.history;
     fn()
       .then((r) => setRows(r.data?.rows || []))
-      .catch(() => toast.error('Could not load approvals'))
+      .catch(() => toast.error(tr("Could not load approvals")))
       .finally(() => setLoading(false));
   }
 
-  useEffect(() => { load(tab); /* eslint-disable-next-line */ }, [tab]);
+  useEffect(() => { void Promise.resolve().then(() => load(tab)); /* eslint-disable-next-line */ }, [tab]);
 
   const pendingCount = useMemo(
     () => tab === 'pending' ? rows.length : 0,
@@ -92,26 +96,19 @@ export default function ApprovalsPage() {
           <ClipboardCheck size={20} strokeWidth={2.2} />
         </span>
         <div style={{ flex: 1 }}>
-          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
-            Approvals
-          </h1>
-          <p style={{ margin: '4px 0 0', color: 'var(--text-secondary)', fontSize: 14 }}>
-            Sensitive actions your agency wants to do — approve, edit, or reject.
-          </p>
+          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>{tr("Approvals")}</h1>
+          <p style={{ margin: '4px 0 0', color: 'var(--text-secondary)', fontSize: 14 }}>{tr("Sensitive actions your agency wants to do — approve, edit, or reject.")}</p>
         </div>
       </header>
 
       <div style={{ display: 'flex', gap: 6, borderBottom: '1px solid var(--border-subtle)' }}>
-        <TabButton active={tab === 'pending'} onClick={() => setTab('pending')}>
-          Pending {pendingCount > 0 && <Badge n={pendingCount} />}
+        <TabButton active={tab === 'pending'} onClick={() => setTab('pending')}>{tr("Pending")}{pendingCount > 0 && <Badge n={pendingCount} />}
         </TabButton>
-        <TabButton active={tab === 'history'} onClick={() => setTab('history')}>
-          History
-        </TabButton>
+        <TabButton active={tab === 'history'} onClick={() => setTab('history')}>{tr("History")}</TabButton>
       </div>
 
       {loading ? (
-        <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-tertiary)' }}>Loading…</div>
+        <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-tertiary)' }}>{tr("Loading…")}</div>
       ) : rows.length === 0 ? (
         <EmptyState tab={tab} />
       ) : (
@@ -163,6 +160,7 @@ function Badge({ n }) {
 }
 
 function EmptyState({ tab }) {
+  const { tr } = useLanguage();
   return (
     <div style={{
       padding: 36,
@@ -175,14 +173,15 @@ function EmptyState({ tab }) {
       <ClipboardCheck size={28} strokeWidth={1.6} style={{ opacity: 0.4 }} />
       <div style={{ marginTop: 8, fontSize: 13 }}>
         {tab === 'pending'
-          ? 'No pending approvals — everything\'s caught up.'
-          : 'No past approvals yet.'}
+          ? tr("No pending approvals — everything's caught up.")
+          : tr("No past approvals yet.")}
       </div>
     </div>
   );
 }
 
 function ApprovalRow({ row, expanded, onToggle, onActed }) {
+  const { tr } = useLanguage();
   const [busy, setBusy] = useState(false);
   const [editor, setEditor] = useState(row.payload?.content || row.payload?.text || row.preview || '');
   const [rejectReason, setRejectReason] = useState('');
@@ -203,12 +202,12 @@ function ApprovalRow({ row, expanded, onToggle, onActed }) {
       if (editedContent) payload.edited_payload = editedContent;
       const r = await approvalAPI.approve(row.id, payload);
       const exec = r.data?.execution_result || {};
-      if (exec.success) toast.success('Approved and executed');
-      else if (exec.message) toast.error(`Approved, but execution failed: ${exec.message}`);
-      else toast.success('Approved');
+      if (exec.success) toast.success(tr("Approved and executed"));
+      else if (exec.message) toast.error([tr("Approved, but execution failed:"), exec.message].join(" "));
+      else toast.success(tr("Approved"));
       onActed?.();
     } catch (e) {
-      toast.error(e?.response?.data?.error || 'Could not approve');
+      toast.error(e?.response?.data?.error || tr("Could not approve"));
     } finally {
       setBusy(false);
     }
@@ -218,10 +217,10 @@ function ApprovalRow({ row, expanded, onToggle, onActed }) {
     setBusy(true);
     try {
       await approvalAPI.reject(row.id, rejectReason);
-      toast.success('Rejected');
+      toast.success(tr("Rejected"));
       onActed?.();
     } catch (e) {
-      toast.error(e?.response?.data?.error || 'Could not reject');
+      toast.error(e?.response?.data?.error || tr("Could not reject"));
     } finally {
       setBusy(false);
       setShowReject(false);
@@ -238,17 +237,15 @@ function ApprovalRow({ row, expanded, onToggle, onActed }) {
         <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
             <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
-              {ACTION_LABEL[row.action_type] || row.action_type}
+              {tr(ACTION_LABEL[row.action_type] || row.action_type)}
             </span>
-            <span style={{ ...pillStyle, background: status.bg, color: status.fg }}>{row.status}</span>
+            <span style={{ ...pillStyle, background: status.bg, color: status.fg }}>{tr(STATUS_LABEL[row.status] || row.status)}</span>
             {isPending && expiresIn !== null && (
               <span style={{ fontSize: 11, color: expiresIn < 6 ? 'var(--warning)' : 'var(--text-tertiary)', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-                <Clock size={11} /> {expiresIn}h left
-              </span>
+                <Clock size={11} /> {expiresIn}{tr("h left")}</span>
             )}
           </div>
-          <div style={{ marginTop: 2, fontSize: 12, color: 'var(--text-tertiary)' }}>
-            From <strong style={{ color: 'var(--text-secondary)' }}>{row.agency_name}</strong> · {row.requested_by_name}
+          <div style={{ marginTop: 2, fontSize: 12, color: 'var(--text-tertiary)' }}>{tr("From")} <strong style={{ color: 'var(--text-secondary)' }}>{row.agency_name}</strong> · {row.requested_by_name}
           </div>
           {!expanded && row.preview && (
             <div style={{ marginTop: 4, fontSize: 12, color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -276,7 +273,7 @@ function ApprovalRow({ row, expanded, onToggle, onActed }) {
 
           {editable ? (
             <div>
-              <label style={fieldLabel}>{row.action_type === 'publish_post' ? 'Post content' : 'Reply text'} (you can edit before approving)</label>
+              <label style={fieldLabel}>{row.action_type === 'publish_post' ? tr("Post content") : tr("Reply text")}{tr("(you can edit before approving)")}</label>
               <textarea
                 rows={4}
                 value={editor}
@@ -307,7 +304,7 @@ function ApprovalRow({ row, expanded, onToggle, onActed }) {
               borderRadius: 'var(--radius-sm)',
             }}>
               <strong style={{ marginRight: 4 }}>
-                {row.execution_result.success ? '✓ Executed:' : <><AlertTriangle size={11} style={{ verticalAlign: '-2px', marginRight: 3 }} />Execution failed:</>}
+                {row.execution_result.success ? tr("✓ Executed:") : <><AlertTriangle size={11} style={{ verticalAlign: '-2px', marginRight: 3 }} />{tr("Execution failed:")}</>}
               </strong>
               {row.execution_result.message}
             </div>
@@ -316,17 +313,16 @@ function ApprovalRow({ row, expanded, onToggle, onActed }) {
           {isPending && (
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
               <button type="button" onClick={() => setShowReject(true)} disabled={busy} style={btnGhost}>
-                <X size={14} /> Reject
-              </button>
+                <X size={14} />{tr("Reject")}</button>
               <button type="button" onClick={approve} disabled={busy} style={btnPrimary}>
-                <Check size={14} /> {busy ? 'Working…' : 'Approve'}
+                <Check size={14} /> {busy ? tr("Working…") : tr("Approve")}
               </button>
             </div>
           )}
 
           {showReject && (
             <div style={rejectBox}>
-              <label style={fieldLabel}>Why are you rejecting? (optional)</label>
+              <label style={fieldLabel}>{tr("Why are you rejecting? (optional)")}</label>
               <textarea
                 rows={2}
                 value={rejectReason}
@@ -334,8 +330,8 @@ function ApprovalRow({ row, expanded, onToggle, onActed }) {
                 style={textareaStyle}
               />
               <div style={{ display: 'flex', gap: 8, marginTop: 8, justifyContent: 'flex-end' }}>
-                <button type="button" onClick={() => setShowReject(false)} style={btnGhost}>Cancel</button>
-                <button type="button" onClick={reject} disabled={busy} style={btnDanger}>Reject</button>
+                <button type="button" onClick={() => setShowReject(false)} style={btnGhost}>{tr("Cancel")}</button>
+                <button type="button" onClick={reject} disabled={busy} style={btnDanger}>{tr("Reject")}</button>
               </div>
             </div>
           )}

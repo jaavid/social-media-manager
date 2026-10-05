@@ -21,9 +21,7 @@ import Meta from '../components/Meta';
  * Falls back to a "checking…" state on first load and an "API unreachable"
  * banner if the backend itself is down (we still render the page).
  *
- * Per-service 90-day uptime bars are deterministic (seeded by service id).
- * The most recent day's bar is overridden to match live status so it never
- * disagrees with reality during an active incident.
+ * History and incidents are displayed only when supplied by monitoring.
  */
 
 const API = apiBaseUrl();
@@ -46,50 +44,6 @@ const SEV = {
   maintenance: { color: 'var(--info)',    bg: 'var(--info-bg)',    label: "نگهداری سامانه",    icon: AlertTriangle },
 };
 
-// 90-day historical uptime — seeded so bars are stable per service. The latest
-// day's status is overridden by the live response so today never disagrees.
-function buildUptime(seed, todayStatus) {
-  const days = [];
-  let r = seed;
-  for (let i = 0; i < 90; i++) {
-    r = (r * 9301 + 49297) % 233280;
-    const v = r / 233280;
-    let s = 'up';
-    if (v > 0.985) s = 'partial';
-    if (v > 0.998) s = 'down';
-    days.push(s);
-  }
-  // Override today (last bar) to match live status.
-  if (todayStatus === 'down')    days[days.length - 1] = 'down';
-  else if (todayStatus === 'partial') days[days.length - 1] = 'partial';
-  else                                days[days.length - 1] = 'up';
-  return days;
-}
-
-const INCIDENTS = [
-  {
-    id: 'i-2026-04-12',
-    date: "12 آوریل 2026",
-    title: "تأخیر مختصر همگام سازی متا (8 دقیقه)",
-    severity: 'minor',
-    summary: "متا Graph API به آرامی بین 14:32 و 14:40 IST پاسخ داد. پر کردن به طور خودکار تکمیل شد.",
-  },
-  {
-    id: 'i-2026-03-28',
-    date: "28 مارس 2026",
-    title: "تأخیر در صف تأیید قالب واتس‌اپ",
-    severity: 'minor',
-    summary: "وب هوک تایید الگوی پین‌بات ~ 12 دقیقه تاخیر داشت. هیچ داده ای از بین نمی رود؛ الگوهای تایید شده طبق برنامه",
-  },
-  {
-    id: 'i-2026-02-14',
-    date: "14 فوریه 2026",
-    title: "تعمیر و نگهداری برنامه‌ریزی شده - ارتقاء DB",
-    severity: 'maintenance',
-    summary: "ارتقاء برنامه‌ریزی شده PostgreSQL 15 → 16. پنجره 2 دقیقه ای فقط خواندنی، 14 روز قبل ارتباط برقرار می‌کند.",
-  },
-];
-
 const FALLBACK_SERVICES = [
   { id: 'web',      name: "برنامه وب" },
   { id: 'api',      name: 'API' },
@@ -111,11 +65,10 @@ export default function StatusPage() {
 
   const fetchHealth = async () => {
     setRefreshing(true);
+    const ctrl = new AbortController();
+    const timeout = setTimeout(() => ctrl.abort(), 8000);
     try {
-      const ctrl = new AbortController();
-      const timeout = setTimeout(() => ctrl.abort(), 8000);
       const res = await fetch(HEALTH_URL, { signal: ctrl.signal, cache: 'no-store' });
-      clearTimeout(timeout);
       if (!res.ok) throw new Error(`http ${res.status}`);
       const j = await res.json();
       setData(j);
@@ -125,6 +78,7 @@ export default function StatusPage() {
       setError('unreachable');
       setLastChecked(new Date());
     } finally {
+      clearTimeout(timeout);
       setRefreshing(false);
     }
   };
@@ -143,9 +97,9 @@ export default function StatusPage() {
   }, [data]);
 
   const overall = useMemo(() => {
-    if (error) return 'down';
+    if (error) return 'unknown';
     if (!data) return 'unknown';
-    return TO_UI[data.overall] || 'operational';
+    return TO_UI[data.overall] || 'unknown';
   }, [data, error]);
 
   const ov = SEV[overall];
@@ -187,7 +141,7 @@ export default function StatusPage() {
           }}>
             <Icon size={16} className={refreshing ? 'spin' : undefined} />
             {error
-              ? "وضعیت API غیرقابل دسترسی - آخرین حافظه پنهان نشان داده شده است"
+              ? "API در دسترس نیست؛ وضعیت فعلی سرویس‌ها نامشخص است"
               : overall === 'operational'
                 ? "همه سیستم ها عملیاتی هستند"
                 : overall === 'unknown'
@@ -244,13 +198,13 @@ export default function StatusPage() {
           }}
         >
           {services.map((svc, i) => {
-            const uiStatus = svc.status === 'unknown'
+            const uiStatus = error || svc.status === 'unknown'
               ? 'unknown'
               : (TO_UI[svc.status] || svc.status); // accept both raw + UI keys
             const s = SEV[uiStatus] || SEV.unknown;
             const SvcIcon = s.icon;
-            const days = buildUptime(svc.id.charCodeAt(0) * 17 + i, uiStatus);
-            const upPct = (days.filter((d) => d === 'up').length / days.length * 100).toFixed(2);
+            const days = Array.isArray(svc.history) ? svc.history : [];
+            const uptime = typeof svc.uptime_percent === 'number' ? svc.uptime_percent : null;
 
             return (
               <div
@@ -270,7 +224,7 @@ export default function StatusPage() {
                     {svc.name}
                   </div>
                   <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2 }}>
-                    {upPct}٪ دسترس‌پذیری · ۹۰ روز
+                    {uptime != null && days.length ? `${uptime}٪ دسترس‌پذیری` : 'تاریخچهٔ پایش در دسترس نیست'}
                     {svc.latency_ms != null && uiStatus === 'operational' && (
                       <> · {svc.latency_ms}ms</>
                     )}
@@ -283,16 +237,17 @@ export default function StatusPage() {
                 {/* 90-day uptime bars */}
                 <div style={{ display: 'flex', gap: 2, alignItems: 'flex-end', minWidth: 0, height: 28 }}>
                   {days.map((d, idx) => {
-                    const c = d === 'up' ? 'var(--success)' : d === 'partial' ? 'var(--warning)' : 'var(--danger)';
+                    const state = d.status;
+                    const c = state === 'up' ? 'var(--success)' : state === 'partial' ? 'var(--warning)' : state === 'down' ? 'var(--danger)' : 'var(--text-tertiary)';
                     const isToday = idx === days.length - 1;
                     return (
                       <span
                         key={idx}
-                        title={`روز -${days.length - 1 - idx}: ${d}${isToday ? "(امروز)" : ''}`}
+                        title={`${d.date}: ${d.status}`}
                         style={{
                           flex: 1, height: '100%',
                           background: c,
-                          opacity: d === 'up' ? 0.85 : 1,
+                          opacity: state === 'up' ? 0.85 : 1,
                           borderRadius: 1,
                           outline: isToday ? '1px solid var(--text-secondary)' : 'none',
                           outlineOffset: isToday ? 1 : 0,
@@ -344,12 +299,12 @@ export default function StatusPage() {
             borderRadius: 'var(--radius-xl)',
             overflow: 'hidden',
           }}>
-            {INCIDENTS.length === 0 ? (
+            {!data?.incidents?.length ? (
               <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-tertiary)' }}>
-                هیچ حادثه ای در 30 روز گذشته رخ نداده است.
+                تاریخچهٔ حوادث در دسترس نیست.
               </div>
             ) : (
-              INCIDENTS.map((inc, i) => {
+              data.incidents.map((inc, i) => {
                 const sev = SEV[inc.severity] || SEV.minor;
                 return (
                   <article

@@ -15,6 +15,7 @@ import toast from '../../components/ui/toast';
 import PageHeader from '../../components/layout/PageHeader';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
+import Modal from '../../components/ui/Modal';
 import EmptyState from '../../components/ui/EmptyState';
 import Badge from '../../components/ui/Badge';
 import { usePostQueues } from '../../hooks/useComposer';
@@ -163,18 +164,20 @@ function QueueDetail({ queueId, onChanged }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
+  const [error, setError] = useState(false);
+  const [reordering, setReordering] = useState(false);
+  const { tr } = useLanguage();
 
   async function load() {
     setLoading(true);
     try {
       const res = await composerAPI.queues.get(queueId);
       setQueue(res.data);
-      setItems(res.data.items_list || []);  // not always exposed; fall back below
-      // Items are nested via prefetch on the serializer's items_count, but the
-      // item list itself isn't part of the queue serializer — fetch separately.
-      // We just compute from items_count & waiting_count for the header here.
+      setItems(res.data.items_list || []);
+      setError(false);
     } catch (e) {
-      toast.error('Failed to load queue');
+      setError(true);
+      toast.error(tr('Failed to load queue'));
     } finally {
       setLoading(false);
     }
@@ -186,6 +189,21 @@ function QueueDetail({ queueId, onChanged }) {
     toast.success('Added to queue');
     setShowAdd(false);
     load(); onChanged?.();
+  }
+
+  if (!loading && error) return <div role="alert"><p>{tr('Failed to load queue')}</p><Button onClick={load}>{tr('Retry')}</Button></div>;
+
+  async function move(index, direction) {
+    const waiting = items.filter(item => item.status === 'waiting');
+    const next = [...waiting];
+    [next[index], next[index + direction]] = [next[index + direction], next[index]];
+    setReordering(true);
+    try {
+      await composerAPI.queues.reorder(queueId, next.map(item => item.id));
+      await load();
+      onChanged?.();
+    } catch { toast.error(tr('Could not reorder queue')); }
+    finally { setReordering(false); }
   }
 
   if (loading || !queue) {
@@ -230,10 +248,16 @@ function QueueDetail({ queueId, onChanged }) {
           )}
         </div>
 
-        <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>
-          To inspect or reorder individual queued items, use the <code style={code}>composer/queues/&#123;id&#125;/reorder</code> endpoint.
-          The next item drains automatically every minute when this queue is active and a slot is due.
-        </div>
+        {items.filter(item => item.status === 'waiting').length === 0
+          ? <p>{tr('No waiting items')}</p>
+          : <ol aria-label={tr('Waiting posts')} style={{ paddingInlineStart: 24 }}>
+            {items.filter(item => item.status === 'waiting').map((item, index, waiting) => <li key={item.id} style={{ padding: 12, borderBottom: '1px solid var(--border-subtle)' }}>
+              <p style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{item.content || tr('Media post')}</p>
+              <Button size="sm" variant="secondary" disabled={reordering || index === 0} onClick={() => move(index, -1)} aria-label={`${tr('Move up')} · ${item.content}`}>{tr('Move up')}</Button>
+              <Button size="sm" variant="secondary" disabled={reordering || index === waiting.length - 1} onClick={() => move(index, 1)} aria-label={`${tr('Move down')} · ${item.content}`}>{tr('Move down')}</Button>
+            </li>)}
+          </ol>}
+
       </div>
 
       {showAdd && (
@@ -246,6 +270,7 @@ function QueueDetail({ queueId, onChanged }) {
 
 /* ── Modals ───────────────────────────────────────────────────────────── */
 function CreateQueueModal({ onClose, onCreated }) {
+  const { tr } = useLanguage();
   const [form, setForm] = useState({
     name: '',
     schedule_rule: '0 10 * * 1-5',
@@ -267,8 +292,8 @@ function CreateQueueModal({ onClose, onCreated }) {
   }
 
   return (
-    <Backdrop onClose={onClose}>
-      <Card padding="none" style={{ width: 'min(480px, 92vw)' }}>
+    <Modal open onClose={onClose} title={tr('New queue')} showClose={false}>
+      <Card padding="none" style={{ width: '100%' }}>
         <div style={modalHeader}>
           <h3 style={{ margin: 0, fontSize: 16 }}>New queue</h3>
           <button onClick={onClose} style={iconBtnStyle} aria-label="Close"><X size={14} /></button>
@@ -276,7 +301,7 @@ function CreateQueueModal({ onClose, onCreated }) {
         <div style={{ padding: 16 }}>
           <Field label="Name">
             <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
-                   placeholder="Weekday mornings" style={inputStyle} autoFocus />
+                   placeholder="Weekday mornings" style={inputStyle} />
           </Field>
           <Field label="Schedule (cron)">
             <input value={form.schedule_rule}
@@ -304,12 +329,12 @@ function CreateQueueModal({ onClose, onCreated }) {
           <Button onClick={save} loading={saving}>Create</Button>
         </div>
       </Card>
-    </Backdrop>
+    </Modal>
   );
 }
 
 function AddItemModal({ onClose, onSave }) {
-  const { t } = useLanguage();
+  const { t, tr } = useLanguage();
   const [content, setContent] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -323,8 +348,8 @@ function AddItemModal({ onClose, onSave }) {
   }
   function close() { if (!saving) onClose(); }
   return (
-    <Backdrop onClose={close}>
-      <Card padding="none" style={{ width: 'min(520px, 92vw)' }}>
+    <Modal open onClose={close} title={tr('Add to queue')} showClose={false}>
+      <Card padding="none" style={{ width: '100%' }}>
         <div style={modalHeader}>
           <h3 style={{ margin: 0, fontSize: 16 }}>Add to queue</h3>
           <button onClick={close} disabled={saving} style={iconBtnStyle} aria-label="Close"><X size={14} /></button>
@@ -342,23 +367,11 @@ function AddItemModal({ onClose, onSave }) {
           <Button onClick={save} loading={saving} disabled={!content.trim()}>Add</Button>
         </div>
       </Card>
-    </Backdrop>
+    </Modal>
   );
 }
 
 /* ── Layout helpers ───────────────────────────────────────────────────── */
-function Backdrop({ onClose, children }) {
-  return (
-    <div onClick={onClose} style={{
-      position: 'fixed', inset: 0, zIndex: 200,
-      background: 'rgba(10,14,20,0.5)', backdropFilter: 'blur(4px)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-    }}>
-      <div onClick={(e) => e.stopPropagation()}>{children}</div>
-    </div>
-  );
-}
-
 function Field({ label, children }) {
   return (
     <label style={{ display: 'block', marginBottom: 12 }}>

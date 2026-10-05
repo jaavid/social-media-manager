@@ -122,7 +122,7 @@ export default function AgencyMarketplaceProfilePage() {
           </p>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <Link to={`/agencies/${slug}`} style={btnGhost} target="_blank" rel="noreferrer">
+          <Link to={`/marketplace/${slug}`} style={btnGhost} target="_blank" rel="noreferrer">
             <ExternalLink size={13} /> Preview
           </Link>
           <button type="button" onClick={save} disabled={!dirty || saving} style={dirty && !saving ? btnPrimary : btnDisabled}>
