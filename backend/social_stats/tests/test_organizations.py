@@ -2,6 +2,7 @@
 
 import tempfile
 import unittest
+import uuid
 from importlib import import_module
 from pathlib import Path
 from types import SimpleNamespace
@@ -340,19 +341,39 @@ class OrganizationMigrationTests(unittest.TestCase):
         # A separate database exercises the real migration without reversing the
         # intentionally irreversible ownership backfill in the suite database.
         alias = "organization_migration"
+        primary = connections["default"]
+        schema = "organization_migration_" + uuid.uuid4().hex
         with tempfile.TemporaryDirectory() as directory:
-            config = connections["default"].settings_dict.copy()
-            config.update(
-                ENGINE="django.db.backends.sqlite3",
-                NAME=str(Path(directory) / "migration.sqlite3"),
-            )
-            connection = DatabaseWrapper(config, alias=alias)
+            config = primary.settings_dict.copy()
+            if primary.vendor == "postgresql":
+                with primary.cursor() as cursor:
+                    cursor.execute("CREATE SCHEMA " + primary.ops.quote_name(schema))
+                config["OPTIONS"] = {"options": "-c search_path=" + schema}
+                connection = type(primary)(config, alias=alias)
+            else:
+                config.update(
+                    ENGINE="django.db.backends.sqlite3",
+                    NAME=str(Path(directory) / "migration.sqlite3"),
+                )
+                connection = DatabaseWrapper(config, alias=alias)
             connections[alias] = connection
             try:
                 executor = MigrationExecutor(connection)
                 before = [("social_stats", "0075_telegram_advanced")]
-                executor.migrate(before)
-                apps = executor.loader.project_state(before).apps
+                state = executor.loader.project_state(before)
+                apps = state.apps
+                # Build the affected tables from the real 0075 state. Older
+                # unrelated data migrations hard-code the default DB alias.
+                with connection.schema_editor() as editor:
+                    for app, model in (
+                        ("contenttypes", "ContentType"),
+                        ("auth", "Permission"),
+                        ("auth", "Group"),
+                        ("auth", "User"),
+                        ("social_stats", "Client"),
+                        ("social_stats", "SocialAccount"),
+                    ):
+                        editor.create_model(apps.get_model(app, model))
                 UserModel = apps.get_model("auth", "User")
                 Workspace = apps.get_model("social_stats", "Client")
                 Account = apps.get_model("social_stats", "SocialAccount")
@@ -371,9 +392,10 @@ class OrganizationMigrationTests(unittest.TestCase):
                         platform="facebook",
                         external_id=str(index),
                     )
-                executor = MigrationExecutor(connection)
                 after = [("social_stats", "0076_organization_tenancy")]
-                executor.migrate(after)
+                executor.apply_migration(
+                    state, executor.loader.get_migration(*after[0])
+                )
                 apps = executor.loader.project_state(after).apps
                 Workspace = apps.get_model("social_stats", "Client")
                 OrganizationModel = apps.get_model("social_stats", "Organization")
@@ -411,3 +433,8 @@ class OrganizationMigrationTests(unittest.TestCase):
             finally:
                 connection.close()
                 del connections[alias]
+                if primary.vendor == "postgresql":
+                    with primary.cursor() as cursor:
+                        cursor.execute(
+                            "DROP SCHEMA " + primary.ops.quote_name(schema) + " CASCADE"
+                        )
