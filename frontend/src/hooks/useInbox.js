@@ -6,7 +6,7 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { inboxAPI } from '../services/api';
 
 export function useConversations(params) {
@@ -32,18 +32,32 @@ export function useConversations(params) {
 export function useConversation(id) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const currentId = useRef(id);
+  const requestId = useRef(0);
 
   const refetch = useCallback(async () => {
-    if (!id) { setData(null); return; }
+    if (currentId.current !== id) return;
+    const request = ++requestId.current;
+    await Promise.resolve();
+    if (request !== requestId.current || currentId.current !== id) return;
+    if (!id) { setData(null); setLoading(false); return; }
     try {
       setLoading(true);
       const res = await inboxAPI.conversations.get(id);
-      setData(res.data);
-    } finally { setLoading(false); }
+      if (request === requestId.current && currentId.current === id) setData(res.data);
+    } catch {
+      if (request === requestId.current && currentId.current === id) setData(null);
+    } finally {
+      if (request === requestId.current && currentId.current === id) setLoading(false);
+    }
   }, [id]);
 
-  useEffect(() => { refetch(); }, [refetch]);
-  return { data, loading, refetch };
+  useEffect(() => {
+    currentId.current = id;
+    refetch();
+    return () => { currentId.current = null; };
+  }, [id, refetch]);
+  return { data: String(data?.id) === String(id) ? data : null, loading, refetch };
 }
 
 export function useReviews(params) {

@@ -182,3 +182,12 @@ not configure a cross-origin browser API URL for the same-origin session design;
 use the existing ingress. `CSRF_TRUSTED_ORIGINS` is only needed when the deployed
 trusted origin differs from Django's normalized request host, not to permit
 arbitrary sites.
+
+Reply inputs in Unified Inbox and WhatsApp belong to the selected conversation.
+Changing the selection (including WhatsApp's mobile Back action) starts a fresh
+reply; unsent replies are cleared. Stale thread responses and sends cannot
+overwrite the newly selected conversation. A failed queue Add item keeps its
+modal and text available for retry; pending submission disables edits and dismissal.
+
+Contact currently directs visitors to this repository's GitHub issue channel.
+It has no local message submission or receipt; it does not promise a response time.

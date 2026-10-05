@@ -39,6 +39,8 @@ node scripts/measure-public-pages.mjs
 ابزار اندازه‌گیری با Chromium و context تازه برای هر صفحه، حجم JavaScript دانلودشده (شامل prefetch)، تعداد درخواست auth و زمان اولین React commit را ثبت می‌کند. زمان commit فقط شاخص آغاز hydration است؛ مدت کامل hydration نیست و برای مقایسه باید بار محیط یکسان باشد.
 
 Next در توسعه API/media/backend را به Django روی `8000` proxy می‌کند؛ `NEXT_BACKEND_URL` مقصد را تغییر می‌دهد. `NEXT_PUBLIC_API_URL` پیش‌فرض `/api` است. WebSocket محلی: `NEXT_PUBLIC_WS_URL=ws://localhost:8000`.
+rewriteها اسلش پایانی API و مسیرهای Upgrade را حفظ می‌کنند. در اتصال مستقیم Next→Django، در محیط Django مقدار `CSRF_TRUSTED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000` را تنظیم کنید؛ در تولید فقط origin عمومی واقعی، مانند `https://app.example.com`، مجاز باشد. این تنظیم CSRF token را جایگزین نمی‌کند؛ ورود و mutationها همچنان token معتبر نیاز دارند.
+از `frontend/` با build آماده، `npm run test:proxy` قرارداد path/query، اسلش، cookie/CSRF، multipart و WebSocket را با upstream محلی بررسی می‌کند؛ برای توسعه `npm run test:proxy -- --dev` و برای خروجی standalone، پس از `npm run build:standalone`، `npm run test:proxy -- --standalone` را اجرا کنید.
 `NEXT_PUBLIC_SITE_URL` origin آدرس‌های canonical است. مقادیر `NEXT_PUBLIC_*` عمومی و زمان build هستند؛ اسرار در آن‌ها نگذارید. `VITE_*` دیگر اثری ندارد.
 کد مرورگر فقط `NEXT_PUBLIC_*` را می‌خواند؛ تنظیمات Next نام‌های قدیمی `REACT_APP_*` را در زمان build به‌عنوان fallback تبدیل می‌کند. مقادیر جدید اولویت دارند. فایل محیطی قبلی در `frontend/next/.env.local` را به `frontend/.env.local` منتقل کنید.
 

@@ -120,6 +120,7 @@ export default function UnifiedInboxPage() {
 
         {/* ── RIGHT: thread ─────────────────────────────────────────── */}
         <ThreadColumn
+          key={activeId}
           thread={thread}
           onAction={() => { refetchList(); refetchThread(); }}
         />
@@ -406,7 +407,7 @@ function ThreadColumn({ thread, onAction }) {
 
   async function send() {
     const text = replyText.trim();
-    if (!text) return;
+    if (!text || sending || thread.is_resolved) return;
     setSending(true);
     try {
       await inboxAPI.conversations.reply(thread.id, text);
@@ -541,7 +542,7 @@ function ThreadColumn({ thread, onAction }) {
               if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); send(); }
             }}
             placeholder={thread.is_resolved ? 'Conversation resolved — reopen to reply' : 'Type a reply… (⌘↵ to send)'}
-            disabled={thread.is_resolved}
+            disabled={thread.is_resolved || sending}
             rows={2}
             style={{
               flex: 1, resize: 'vertical',

@@ -7,7 +7,7 @@
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useAppNavigate as useNavigate, useAppParams as useParams } from '../../core/navigation';
+import { useAppLocation, useAppNavigate as useNavigate, useAppParams as useParams } from '../../core/navigation';
 import {
   Image as ImageIcon, Video, Calendar, Send, Save, AlertCircle, CheckCircle2,
   X, Wand2, Hash, Clock, Layers, Loader2, Upload, Eye, Trash2,
@@ -46,6 +46,8 @@ export default function ComposerPage() {
   const { data: queues, loading: loadingQueues, error: queueError } = usePostQueues();
   const [queueId, setQueueId] = useState('');
   const navigate = useNavigate();
+  const { pathname } = useAppLocation();
+  const composerPath = pathname.startsWith('/dashboard/') ? '/dashboard/analytics/composer' : '/admin/analytics/composer';
   const { user } = useAuth();
   const { status: connectionStatus } = usePlatformConnections(user?.client_id);
 
@@ -219,7 +221,7 @@ export default function ComposerPage() {
     }
     const res = await composerAPI.posts.create(payload);
     savedPostId.current = res.data.id;
-    if (navigateAfterSave) navigate(`/admin/analytics/composer/${res.data.id}`, { replace: true });
+    if (navigateAfterSave) navigate(`${composerPath}/${res.data.id}`, { replace: true });
     return res.data;
   }
 
@@ -274,7 +276,7 @@ export default function ComposerPage() {
       const post = await ensurePost({ navigateAfterSave: false });
       await composerAPI.posts.addToQueue(post.id, selectedQueue.id);
       toast.success(t('composer.queue.success'));
-      if (!isEditing) navigate(`/admin/analytics/composer/${post.id}`, { replace: true });
+      if (!isEditing) navigate(`${composerPath}/${post.id}`, { replace: true });
     } catch (e) {
       toast.error(e.response?.data?.detail || t('composer.queue.failed'));
     } finally {

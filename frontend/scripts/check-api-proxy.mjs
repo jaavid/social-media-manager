@@ -10,6 +10,13 @@ const upstream = http.createServer(async (request, response) => {
   for await (const chunk of request) chunks.push(chunk);
   const body = Buffer.concat(chunks);
   const pathname = new URL(request.url, 'http://localhost').pathname;
+  // Django's APPEND_SLASH: losing the slash creates a redirect to the same
+  // public URL. Assert the first response rather than following the loop.
+  if (/^\/api\/auth\/(session|login|logout|me)$/.test(pathname)) {
+    response.writeHead(301, { Location: `${pathname}/` });
+    response.end();
+    return;
+  }
   const code = Number(pathname.match(/\/status\/(\d+)/)?.[1]) || 200;
   response.writeHead(pathname.endsWith('/redirect') ? 307 : code, {
     'Content-Type': pathname.endsWith('/download') ? 'text/csv' : 'application/json',
@@ -19,10 +26,10 @@ const upstream = http.createServer(async (request, response) => {
     ...(pathname.endsWith('/download') ? { 'Content-Disposition': 'attachment; filename="export.csv"' } : {}),
   });
   response.end(pathname.endsWith('/download') ? 'id,name\n1,Example\n' : JSON.stringify({
-    method: request.method, body: body.toString(), contentType: request.headers['content-type'], cookie: request.headers.cookie,
+    url: request.url, method: request.method, body: body.toString(), contentType: request.headers['content-type'], cookie: request.headers.cookie, csrfToken: request.headers['x-csrftoken'],
   }));
 });
-const sockets = new WebSocketServer({ server: upstream });
+const sockets = new WebSocketServer({ server: upstream, path: '/ws/__contract__/' });
 sockets.on('connection', socket => socket.on('message', message => socket.send(message)));
 await new Promise((resolve, reject) => upstream.listen(8000, '127.0.0.1', resolve).once('error', reject));
 const mode = process.argv.includes('--dev') ? 'dev' : process.argv.includes('--standalone') ? 'standalone' : 'production';
@@ -49,6 +56,23 @@ try {
     await new Promise(resolve => setTimeout(resolve, 250));
   }
   check(ready, 'Next did not start');
+  for (const endpoint of ['session', 'me', 'login', 'logout']) {
+    const response = await fetch(`${base}/api/auth/${endpoint}/?contract=slash`, {
+      method: ['login', 'logout'].includes(endpoint) ? 'POST' : 'GET', redirect: 'manual',
+      headers: { Cookie: 'sessionid=opaque-contract; csrftoken=csrf-contract', 'X-CSRFToken': 'csrf-contract' },
+    });
+    check(response.status === 200, `${endpoint}: trailing slash lost (status ${response.status})`);
+    const payload = await response.json();
+    check(payload.url === `/api/auth/${endpoint}/?contract=slash`, `${endpoint}: path/query changed`);
+    check(payload.cookie.includes('sessionid=opaque-contract') && payload.csrfToken === 'csrf-contract', `${endpoint}: session/CSRF headers lost`);
+  }
+  for (const prefix of ['api', 'media', 'backend', 'static']) {
+    for (const suffix of ['nested/path', 'nested/path/', 'file.csv', '']) {
+      const path = `/${prefix}/${suffix}`;
+      const response = await fetch(`${base}${path}`, { redirect: 'manual' });
+      check(response.status === 200 && (await response.json()).url === path, `Proxy path changed: ${path}`);
+    }
+  }
   for (const status of [200, 401, 403, 404, 429, 500, 503]) {
     const response = await fetch(`${base}/api/__contract__/status/${status}`);
     check(response.status === status, `Status ${status} changed`);

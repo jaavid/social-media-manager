@@ -12,7 +12,9 @@ const config = {
   },
   async rewrites() {
     const backend = process.env.NEXT_BACKEND_URL || 'http://127.0.0.1:8000';
-    return { beforeFiles: ['/api/:path*', '/media/:path*', '/backend/:path*', '/static/:path*', '/ws/:path*'].map(source => ({
+    // Capture the complete suffix (including its slash). A :path* parameter
+    // splits segments and drops the slash even with skipTrailingSlashRedirect.
+    return { beforeFiles: ['/api/:path(.*)', '/media/:path(.*)', '/backend/:path(.*)', '/static/:path(.*)', '/ws/:path(.*)'].map(source => ({
       source, destination: `${backend}${source}`,
     })) };
   },
