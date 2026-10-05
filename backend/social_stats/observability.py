@@ -14,12 +14,14 @@ _ID = re.compile(r'[A-Za-z0-9_-]{1,64}\Z')
 # Field names are case/punctuation insensitive, including provider-specific names.
 _SECRET_KEY = re.compile(
     r'password|passwd|secret|token|authorization|cookie|apikey|privatekey|'
-    r'credential|signature|^code$|^state$|^query$|^querystring$|^args$|^kwargs$'
+    r'credential|signature|encryptionkey|gatewaykey|^sessionid$|^sessionkey$|'
+    r'^code$|^state$|^query$|^querystring$|^args$|^kwargs$'
 )
 _URL = re.compile(r'\b(?:https?|wss?|redis|rediss|postgres(?:ql)?|amqp)s?://[^\s<>\"\']+', re.I)
 _PAIR = re.compile(
     r'(?P<key>[\w-]*(?:password|passwd|secret|token|authorization|cookie|api[_-]?key|'
-    r'private[_-]?key|credential|signature)[\w-]*|code|state|query[_-]?string|query)'
+    r'private[_-]?key|encryption[_-]?key|gateway[_-]?key|credential|signature)[\w-]*|'
+    r'session[_-]?(?:id|key)|code|state|query[_-]?string|query)'
     r'(?P<sep>[\"\']?\s*[:=]\s*)(?P<value>\"[^\"]*\"|\'[^\']*\'|[^\s,;&}\]]+)',
     re.I,
 )
