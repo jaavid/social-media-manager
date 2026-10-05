@@ -43,6 +43,13 @@ class ConnectedAccountsTests(FixtureRegistration, TestCase):
         self.assertNotIn('PRIVATE-', str(self.api.get(self.url).json()))
         self.assertNotIn('access_token', str(item))
         self.assertTrue(item['permissions']['connect'])
+        # Historical/provider metadata is not a public enum or payload boundary.
+        account = self.first.social_account
+        account.metadata['destination_type'] = {'private': 'PRIVATE-FIRST'}
+        account.save(update_fields=['metadata'])
+        response = self.api.get(self.url).json()
+        self.assertNotIn('PRIVATE-', str(response))
+        self.assertEqual(self.item()['accounts'][0]['destination']['kind'], 'unknown')
 
     def test_health_matches_runtime_expiry_revocation_and_unknown(self):
         self.first.expires_at = timezone.now() - timedelta(hours=1)

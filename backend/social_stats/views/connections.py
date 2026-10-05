@@ -62,13 +62,16 @@ def connections(request, workspace_id):
             secrets = (credential.access_token, credential.refresh_token) if credential else ()
             def public_identity(value):
                 return public_provider_data(value, secrets)
+            kind = account.metadata.get('destination_type', manifest.destination_types[0])
+            if not isinstance(kind, str) or kind not in manifest.destination_types:
+                kind = 'unknown'
             accounts.append({
                 'id': account.pk, 'name': public_identity(account.display_name),
                 'external_id': public_identity(account.external_id),
                 'identity': {'id': public_identity(account.metadata.get('account_identity', account.external_id)),
                              'name': public_identity(account.metadata.get('account_name', account.display_name))},
                 'destination': {'id': public_identity(account.metadata.get('destination_id', account.external_id)),
-                                'kind': account.metadata.get('destination_type', manifest.destination_types[0])},
+                                'kind': kind},
                 'health': asdict(health), 'sync': sync_health(provider, account),
                 'expires_at': credential.expires_at if credential else None,
                 'connected_at': credential.connected_at if credential else None,
