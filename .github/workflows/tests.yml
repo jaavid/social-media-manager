@@ -191,8 +191,7 @@ jobs:
 
       - name: Verify unprivileged runtime and writable paths
         run: |
-          docker compose cp scripts/check_runtime_privileges.py app:/tmp/check_runtime_privileges.py
-          docker compose exec -T app python /tmp/check_runtime_privileges.py
+          docker compose exec -T app python - < scripts/check_runtime_privileges.py
           docker compose exec -T app nginx -t
 
       - name: Request correlation and secret-safe ingress logs

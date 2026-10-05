@@ -79,6 +79,5 @@ Django و Celery روی stdout لاگ JSON می‌نویسند؛ `LOG_LEVEL=INFO
 
 ```sh
 python3 scripts/check_observability_stack.py http://localhost:3000
-docker compose cp scripts/check_runtime_privileges.py app:/tmp/check_runtime_privileges.py
-docker compose exec -T app python /tmp/check_runtime_privileges.py
+docker compose exec -T app python - < scripts/check_runtime_privileges.py
 ```
