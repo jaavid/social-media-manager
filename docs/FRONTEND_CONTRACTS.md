@@ -82,18 +82,22 @@ use canonical values; wholesale page redesign is outside these contracts.
 ## Locale ADR
 
 Use maintained `next-intl` for semantic messages and ICU interpolation/plurals,
-and native Intl for numbers, currency, dates and relative time. Locale is chosen
-per request from `socialstats.language=fa|en`, defaulting to fa. The same locale
-initializes HTML lang/dir, client context and the homepage's semantic content and
-metadata. Server code always passes the request locale; it has no mutable locale
-singleton. Switching writes the cookie and refreshes the native router, preserving
+and native Intl for numbers, currency, dates and relative time. Account shells
+choose locale per request from `socialstats.language=fa|en`, defaulting to fa.
+Public routes, including auth, token-based pages and 404s, always use Persian/RTL;
+`i18n/public-routes.ts` defines this boundary and the Next proxy supplies the
+server locale override. Public navigation preserves the saved account preference
+so entering an account shell restores its language. The effective route locale
+initializes HTML lang/dir and client context. Server code always passes that
+locale; it has no mutable locale singleton. Account language switching writes
+the cookie and refreshes the native router, preserving
 pathname, valid query filters and fragments. LocalStorage is only a compatibility
 mirror; it cannot override a request's SSR locale after hydration.
 
-Cookie preference is used for both existing public and private URLs to preserve
-the reviewed route/alias inventory. URL-prefixed public locales can be added with
-their canonical/redirect/SEO plan in #99. Cookie-personalized HTML is dynamically
-rendered with no-store, so English/Persian HTML cannot share a prerender cache.
+Existing URLs preserve the reviewed route/alias inventory. Public English routes
+would require a separate canonical/redirect/SEO plan. Preference-dependent HTML
+is dynamically rendered with no-store, so account locale, theme and session hints
+cannot share a prerender cache.
 This deliberately changes the static-page cache expectation from #109; static
 assets and fonts remain immutable. Never cache the root HTML at a CDN independently
 of these preferences. The cookie contract takes priority over untrusted browser
@@ -106,9 +110,11 @@ primitives. `scripts/i18n-baseline.json` inventories raw JSX/attribute/notificat
 candidates across JS, JSX, TS and TSX. It is explicitly **not** a count of fully
 translated UI. New raw text fails CI; retire those entries and hidden primitive
 translation by feature in #103/#106. Untranslated legacy prose still falls back
-to its original language, and old public page metadata outside the semantic
-homepage remains in the original English. New semantic surfaces never display
-keys as fallback copy.
+to its original language. Public route metadata uses the authored Persian titles
+and the root `Ravinta` title template; private legacy metadata can retain English
+titles. The design-system catalog has a local fa/en specimen selector; it does
+not change the public document locale or the account preference. New semantic
+surfaces never display keys as fallback copy.
 
 Display dates use the Persian calendar for fa and Gregorian for en; default
 display timezone is UTC, with explicit workspace timezone overrides. Scheduling

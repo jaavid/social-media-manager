@@ -11,7 +11,7 @@ test('every inventoried route is served by the standalone Next application', asy
     const response = await request.get(url, { maxRedirects: 0 });
     // Next assigns HTTP 500 to the intentional /500 error page.
     expect(url === '/500' ? [500] : [200, 307, 308], url).toContain(response.status());
-    if (url === '/500') expect(await response.text()).toContain('Something went wrong on our end.');
+    if (url === '/500') expect(await response.text()).toContain('در پایان ما مشکلی پیش آمد.');
     // Private layouts can render a session-loading shell with HTTP 200.
     if (route.redirect && response.status() !== 200) expect(response.headers().location, url).toBe(route.redirect);
   }
@@ -35,20 +35,20 @@ test.beforeEach(async ({ page }) => {
 });
 test('server-owned metadata and RTL survive hydration and public route navigation', async ({ page, request }) => {
   const html = await (await request.get('/privacy')).text();
-  expect(html).toContain('<title>Privacy Policy · Social Stats</title>');
+  expect(html).toContain('<title>سیاست حریم خصوصی · Ravinta</title>');
   expect(html).toContain('dir="rtl"');
-  expect(html).toMatch(/<h1[^>]*>Privacy Policy<\/h1>/);
+  expect(html).toMatch(/<h1[^>]*>سیاست حریم خصوصی<\/h1>/);
   expect(html).not.toContain('access_token');
   const errors = [];
   page.on('pageerror', e => errors.push(e.message));
   await page.goto('/privacy');
-  await expect(page.getByRole('heading', { name: 'Privacy Policy', exact: true })).toBeVisible();
-  await expect(page).toHaveTitle('Privacy Policy · Social Stats');
+  await expect(page.getByRole('heading', { name: 'سیاست حریم خصوصی', exact: true })).toBeVisible();
+  await expect(page).toHaveTitle('سیاست حریم خصوصی · Ravinta');
   await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
-  await page.getByRole('link', { name: 'Terms', exact: true }).click();
+  await page.getByRole('link', { name: 'شرایط استفاده', exact: true }).click();
   await expect(page).toHaveURL(/\/terms$/);
-  await expect(page.getByRole('heading', { name: /Terms of Service/i, exact: true })).toBeVisible();
-  await expect(page).toHaveTitle('Terms of Service · Social Stats');
+  await expect(page.getByRole('heading', { name: 'شرایط استفاده از خدمات', exact: true })).toBeVisible();
+  await expect(page).toHaveTitle('شرایط استفاده از خدمات · Ravinta');
   expect(errors).toEqual([]);
 });
 test('anonymous protected route waits for session then redirects to login', async ({ page }) => {
@@ -70,25 +70,31 @@ test('OAuth MFA callback preserves state across native App Router navigation', a
   await page.reload();
   await expect(page.locator('input[autocomplete="one-time-code"]')).toBeVisible();
 });
-test('persisted English and dark theme apply from SSR through hydration', async ({ page }) => {
+test('public login stays Persian with an English preference and persists dark theme', async ({ page }) => {
   await page.context().addCookies(['socialstats.language', 'theme'].map((name, i) => ({ name, value: i ? 'dark' : 'en', url: process.env.E2E_BASE_URL || 'http://127.0.0.1:3000' })));
   await page.addInitScript(() => {
     localStorage.setItem('socialstats.language', 'en');
     localStorage.setItem('theme', 'dark');
   });
   await page.goto('/login');
-  // Wait for the persisted English preference; streamed hidden SSR content
-  // can briefly coexist with the hydrated form. Assert the accessible field.
-  await expect(page.getByRole('textbox', { name: 'Email', exact: true })).toBeVisible();
+  await expect(page.getByRole('textbox', { name: 'ایمیل', exact: true })).toBeVisible();
+  await expect(page.locator('html')).toHaveAttribute('lang', 'fa');
+  await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  expect((await page.context().cookies()).find(cookie => cookie.name === 'socialstats.language')?.value).toBe('en');
+  await page.route('**/api/auth/me/', route => route.fulfill({ json: { id: 1, role: 'staff', account_type: 'legacy', email: 'locale@example.test', permissions: {} } }));
+  await page.goto('/admin/account-settings');
+  await expect(page.getByRole('heading', { name: 'Settings', exact: true })).toBeVisible();
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
 });
 
 test('public native links preserve browser Back', async ({ page }) => {
   await page.goto('/about');
-  await page.getByRole('link', { name: 'Privacy', exact: true }).click();
+  await page.getByRole('link', { name: 'حریم خصوصی', exact: true }).click();
   await expect(page).toHaveURL(/\/privacy$/);
-  await expect(page).toHaveTitle('Privacy Policy · Social Stats');
+  await expect(page).toHaveTitle('سیاست حریم خصوصی · Ravinta');
   await page.goBack();
   await expect(page).toHaveURL(/\/about$/);
 });
@@ -109,7 +115,7 @@ test('staff session resolves before the native settings page is shown', async ({
   await expect(page.getByRole('heading', { name: 'Settings', exact: true })).not.toBeVisible();
   release();
   await expect(page.getByRole('heading', { name: 'Settings', exact: true })).toBeVisible();
-  await expect(page).toHaveTitle('User Settings · Social Stats');
+  await expect(page).toHaveTitle('User Settings · Ravinta');
 });
 
 test('unknown routes and content slugs return HTTP 404', async ({ request }) => {
@@ -127,13 +133,13 @@ test('dynamic public pages render content and per-slug metadata on the server', 
     if (path.startsWith('/product/')) expect(html).toContain('application/ld+json');
   }
   await page.goto('/product/analytics');
-  await expect(page).toHaveTitle('Cross-platform analytics · Social Stats');
+  await expect(page).toHaveTitle('تحلیل و آمار چند پلتفرم · Ravinta');
   const errors = [];
   page.on('pageerror', e => errors.push(e.message));
   await page.reload();
   // Next may retain hidden streamed content while hydration replaces it.
   // Check the accessible page heading, excluding that temporary hidden copy.
-  await expect(page.getByRole('heading', { level: 1, name: 'See everything across 5 platforms', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'آمار پنج پلتفرم را یکجا ببینید', exact: true })).toBeVisible();
   expect(errors).toEqual([]);
 });
 
@@ -213,13 +219,13 @@ test('public cookie choice persists locally and syncs consent without initializi
     return route.fulfill({ json: {} });
   });
   await page.goto('/privacy');
-  await page.getByRole('button', { name: 'Accept all', exact: true }).click();
-  await expect(page.getByRole('dialog', { name: 'Cookie preferences' })).toHaveCount(0);
+  await page.getByRole('button', { name: 'پذیرش همه', exact: true }).click();
+  await expect(page.getByRole('dialog', { name: 'تنظیمات کوکی‌ها' })).toHaveCount(0);
   await expect.poll(() => consents.length).toBe(2);
   expect(JSON.parse(await page.evaluate(() => localStorage.getItem('socialstats_cookie_choice'))).choices.analytics).toBe(true);
   expect(authRequests).toEqual([]);
   await page.reload();
-  await expect(page.getByRole('dialog', { name: 'Cookie preferences' })).toHaveCount(0);
+  await expect(page.getByRole('dialog', { name: 'تنظیمات کوکی‌ها' })).toHaveCount(0);
 });
 
 test('cookie-personalized public pages render server content without a shared HTML cache', async ({ request }) => {
