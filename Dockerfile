@@ -67,7 +67,9 @@ RUN --mount=from=frontend-build,source=/runtime,target=/runtime,ro \
     && cp /opt/socialstats-docker/supervisord.conf /etc/supervisor/supervisord.conf \
     && cp /opt/socialstats-docker/entrypoint.sh /usr/local/bin/socialstats-entrypoint \
     && rm -f /etc/nginx/sites-enabled/default \
-    && chmod +x /usr/local/bin/socialstats-entrypoint
+    && chmod -R a+rX /app/frontend /app/bin /app/docs \
+    && chmod 644 /etc/nginx/nginx.conf /etc/nginx/conf.d/default.conf /etc/supervisor/supervisord.conf \
+    && chmod 755 /usr/local/bin/socialstats-entrypoint
 
 USER 999:999
 EXPOSE 8080
