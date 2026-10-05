@@ -23,7 +23,7 @@ def main():
         assert status['NoNewPrivs'].strip() == '1', f'no-new-privileges missing: {command}'
         if command:
             processes.append(command)
-    for expected in ('supervisord', 'server.js', 'daphne', 'celery', 'nginx: master', 'nginx: worker'):
+    for expected in ('supervisord', 'next-server', 'daphne', 'celery', 'nginx: master', 'nginx: worker'):
         assert any(expected in command for command in processes), f'missing process: {expected}'
     for directory in ('/app/backend/media', '/app/backend/staticfiles', '/run/socialstats',
                       '/var/cache/nginx', '/app/frontend/.next/cache'):
