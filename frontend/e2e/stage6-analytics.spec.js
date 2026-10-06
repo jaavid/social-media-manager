@@ -54,3 +54,16 @@ test('missing capability has no active analytics or fake measurements',async({pa
   test.skip(!!process.env.STAGE6_BASELINE);const state=await setup(page);state.wire.providers[0].capabilities.analytics='not_available';await page.reload();
   await expect(page.getByRole('table')).toHaveCount(0);await expect(page.getByRole('button',{name:'Sync',exact:true})).toHaveCount(0);
 });
+test('slow account switch ignores obsolete report and disables unhealthy sync',async({page})=>{
+  test.skip(!!process.env.STAGE6_BASELINE);const state=await setup(page);state.slow=true;
+  const account=page.getByRole('combobox',{name:'Account / destination'});
+  await account.selectOption('10');await expect(page.locator('[data-data-state="loading"]')).toBeVisible();
+  await account.selectOption('11');await expect(page.getByRole('table')).toBeVisible();
+  await expect(page.getByRole('button',{name:'Sync',exact:true})).toBeDisabled();await expect(account).toHaveValue('11');
+});
+for(const failure of [403,404,429,500,503,'malformed'])test(`analytics initial ${failure} is not an empty success`,async({page})=>{
+  test.skip(!!process.env.STAGE6_BASELINE);const state=await setup(page);state.failure=failure;
+  await page.getByRole('combobox',{name:'Account / destination'}).selectOption('10');
+  await expect(page.locator('[data-data-state]').filter({hasText:/could not|restricted/})).toBeVisible();await expect(page.getByRole('table')).toHaveCount(0);
+  state.failure=null;await page.getByRole('button',{name:'Try again',exact:true}).click();await expect(page.getByRole('table')).toBeVisible();
+});
