@@ -9,7 +9,7 @@
 import Link from '../components/marketing/MarketingLink';
 import TableOfContents from '../components/marketing/TableOfContents';
 import BlogShare from '../components/marketing/BlogShare';
-import { ArrowLeft, ArrowRight, Linkedin, Facebook, Link as LinkIcon, Quote } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Quote } from 'lucide-react';
 
 import MarketingLayout from '../components/marketing/MarketingLayout';
 import Button from '../components/marketing/MarketingButton';
