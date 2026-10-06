@@ -114,3 +114,33 @@ Validation: frontend Jest 50 suites/197 tests, plus 7 targeted tests after label
 Inbox/reviews inline JSX style sites: 72 before, 0 after. Dynamic provider metadata and legitimate media sizing styles remain at provider boundaries. Global lint/architecture/i18n debt baselines are unchanged; no thresholds were loosened.
 
 Not yet certified: live provider credentials/transport, remote reconciliation or deduplication, and whole-issue completion outside these surfaces. B and C criteria remain pending; this batch does not close #103/#106/#112.
+
+## Batch B — authoritative analytics/reporting
+
+`PlatformManifest.analytics_metrics` describes source key, localized meaning, unit and period;
+`analytics_sync_handler` is a provider-owned legacy adapter boundary. Product report and sync
+surfaces contain no named provider branch or parallel health catalogue. `platforms/analytics.py`,
+`WorkspaceViewSet.analytics_report` and `analytics-reports.ts` enforce account/date/page identity.
+CSV export uses the identical authorized account/date filters; no cross-provider aggregation.
+`DailyMetric.provider_metrics` records only actually received finite numeric values. Migration
+0080 intentionally leaves old rows null: historical presence is unknown, never guessed as zero.
+The existing legacy columns remain for their existing owners; this surface does not read them.
+
+`AnalyticsPage` composes the existing Collection pattern. Account/filter changes remount the
+query boundary; aborted/late reads and mutation responses cannot update another selection.
+Same-key background failures retain measurements with an explicit stale warning, while
+401/403/404 hide them. Sync queue acknowledgement is distinct from successful retrieval.
+Sync health and freshness come from the existing account-health policy; zero/missing/unknown,
+partial/stale/failure/unavailable have distinct text and state. Unknown metrics do not produce
+charts. Provider-only descriptors prevent assumed cross-provider metric equivalence.
+
+Validation: report parser Jest cases; Django `test_analytics_report_contract` (including the
+standard independently registered fixture, zero/missing/history, tenant/export boundaries,
+revoked actor and sanitized transport failure); provider conformance and multi-account tests.
+Browser matrix and screenshot evidence live in `e2e/stage6-analytics.spec.js` and
+`e2e/evidence/stage6/analytics-*`. Source baseline is the same detached origin/main as A.
+
+Legacy owner: provider maintainers own `analytics_defaults.py`/sync task adapters; replace each
+adapter only after its provider supplies typed metric descriptors and conformance-tested
+`sync` execution. Existing historical rows need a genuine provider resync to establish metric
+presence; inventing/backfilling values is forbidden. Live provider credentials are unavailable.

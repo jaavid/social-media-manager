@@ -17,6 +17,7 @@ from social_stats.models.workspaces import Client
 from social_stats.models.accounts import SocialAccount
 
 class DailyMetric(models.Model):
+    provider_metrics = models.JSONField(default=None, null=True, blank=True, verbose_name='شاخص‌های دریافت‌شده از سرویس')
     client    = models.ForeignKey(Client, verbose_name='فضای کاری', on_delete=models.CASCADE, related_name='metrics')
     social_account = models.ForeignKey(SocialAccount, verbose_name='حساب شبکه اجتماعی', on_delete=models.CASCADE, related_name='metrics', null=True, blank=True)
     platform  = models.CharField(verbose_name='پلتفرم', max_length=30, choices=PLATFORM_CHOICES)

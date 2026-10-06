@@ -137,6 +137,18 @@
           "icon": "",
           "color": ""
         },
+        "analytics": {
+          "metrics": [
+            {
+              "key": "views",
+              "title_en": "Views",
+              "title_fa": "بازدیدها",
+              "unit": "count",
+              "period": "snapshot"
+            }
+          ],
+          "sync_available": true
+        },
         "inbound": "both",
         "extensions": [],
         "ui_extensions": [],

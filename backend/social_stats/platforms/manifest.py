@@ -107,6 +107,21 @@ class AuthField:
 
 
 @dataclass(frozen=True)
+class AnalyticsMetric:
+    key: str
+    title_en: str
+    title_fa: str
+    unit: str = 'count'
+    period: str = 'day'
+
+    def __post_init__(self):
+        if not re.fullmatch(r'[a-zA-Z][a-zA-Z0-9_]{0,49}', self.key) or not self.title_en or not self.title_fa:
+            raise ValueError('analytics.metric: localized identity required')
+        if self.unit not in {'count', 'minutes', 'seconds', 'ratio', 'percent'} or self.period not in {'day', 'snapshot'}:
+            raise ValueError('analytics.metric: unsupported unit or period')
+
+
+@dataclass(frozen=True)
 class PlatformManifest:
     key: str
     title_fa: str
@@ -131,6 +146,8 @@ class PlatformManifest:
     extensions: tuple[str, ...] = ()
     ui_extensions: tuple[str, ...] = ()
     inbound: str = 'none'
+    analytics_metrics: tuple[AnalyticsMetric, ...] = ()
+    analytics_sync_handler: str = ''
     legacy_adapter: bool = False
     resilience: ResiliencePolicy = field(default_factory=ResiliencePolicy)
 
@@ -201,6 +218,10 @@ class PlatformManifest:
             raise ValueError('manifest.auth_fields: duplicate key')
         if self.oauth_start and (not self.oauth_start.startswith('/api/oauth/') or '\x00' in self.oauth_start):
             raise ValueError('manifest.oauth_start: internal OAuth path required')
+        if any(not isinstance(m, AnalyticsMetric) for m in self.analytics_metrics) or len({m.key for m in self.analytics_metrics}) != len(self.analytics_metrics):
+            raise ValueError('analytics.metrics: invalid or duplicated descriptors')
+        if self.analytics_metrics and not self.capability('analytics').enabled:
+            raise ValueError('analytics.metrics: capability is unavailable')
         if not self.destination_types:
             raise ValueError('manifest.destination_types: required')
         object.__setattr__(self, 'support', MappingProxyType(dict(self.support)))
@@ -255,6 +276,8 @@ class PlatformManifest:
                 name: asdict(policy) for name, policy in self.constraints.items()
             },
             'brand': {'icon': self.icon, 'color': self.brand_color},
+            'analytics': {'metrics': [asdict(m) for m in self.analytics_metrics],
+                          'sync_available': self.capability('analytics').enabled and (not self.legacy_adapter or bool(self.analytics_sync_handler))},
             'inbound': self.inbound,
             'extensions': list(self.extensions),
             'ui_extensions': list(self.ui_extensions),
