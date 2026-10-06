@@ -8,7 +8,8 @@
  * ========================================================================== */
 import Link from './MarketingLink';
 import Logo from '../ui/Logo';
-import { Github, Linkedin, Twitter, Youtube, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
+import BrandIcon from '../ui/BrandIcon';
 export default function MarketingFooter() {
   const year = new Date().getFullYear();
 
@@ -108,10 +109,10 @@ export default function MarketingFooter() {
               سیستم عامل بازاریابی هوش مصنوعی برای آژانس‌های مدرن. تحلیل و آمار، محتوا، مکالمات و تبلیغات - برای هر مشتری، در یک مکان.
             </p>
             <div style={{ display: 'flex', gap: 6 }}>
-              <SocialIconLink href="https://github.com/socialstats"            label="GitHub"   icon={Github} />
-              <SocialIconLink href="https://linkedin.com/company/socialstats"  label={"لینکدین"} icon={Linkedin} />
-              <SocialIconLink href="https://twitter.com/socialstats"           label={"توییتر"}  icon={Twitter} />
-              <SocialIconLink href="https://youtube.com/@socialstats"          label={"یوتیوب"}  icon={Youtube} />
+              <SocialIconLink href="https://github.com/socialstats"            label="GitHub"   brand="github" />
+              <SocialIconLink href="https://linkedin.com/company/socialstats"  label={"لینکدین"} brand="linkedin" />
+              <SocialIconLink href="https://twitter.com/socialstats"           label={"توییتر"}  brand="x" />
+              <SocialIconLink href="https://youtube.com/@socialstats"          label={"یوتیوب"}  brand="youtube" />
             </div>
             {/* Geographic framing intentionally omitted from the global footer.
                 Office and contact information lives on /contact and /dpdp. */}
@@ -193,7 +194,7 @@ export default function MarketingFooter() {
   );
 }
 
-function SocialIconLink({ href, label, icon: Icon }) {
+function SocialIconLink({ href, label, brand }) {
   return (
     <a
       href={href} target="_blank" rel="noopener noreferrer" aria-label={label}
@@ -208,7 +209,7 @@ function SocialIconLink({ href, label, icon: Icon }) {
         textDecoration: 'none',
       }}
     >
-      <Icon size={14} strokeWidth={2} />
+      <BrandIcon brand={brand} size={14} />
     </a>
   );
 }
