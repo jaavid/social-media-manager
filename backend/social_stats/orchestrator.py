@@ -39,6 +39,7 @@ from .publishers import (
     PublishError, TokenExpiredError, RateLimitError,
     PermissionDeniedError, MediaTooLargeError,
 )
+from .publishers.base import PublishResult
 from .platforms.registry import get_provider
 from . import media_service
 from .realtime import push_event
@@ -259,7 +260,8 @@ def publish_to_platform(self, unified_post_id: int, platform: str, account_id: i
         update_unified_post_status(post.id)
         return
 
-    if not result.success or not result.platform_post_id:
+    if (not isinstance(result, PublishResult) or type(result.success) is not bool
+        or not result.success or not isinstance(result.platform_post_id, str) or not result.platform_post_id):
         _mark_failed(log, code='invalid_response', message='Provider outcome requires review')
         update_unified_post_status(post.id)
         return

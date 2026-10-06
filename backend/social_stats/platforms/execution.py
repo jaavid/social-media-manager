@@ -203,8 +203,8 @@ class ProviderExecution:
                 )
             if (
                 isinstance(result, PublishResult)
-                and result.success
-                and not result.platform_post_id
+                and (type(result.success) is not bool or not isinstance(result.platform_post_id, str)
+                     or (result.success and not result.platform_post_id))
             ):
                 raise ProviderError(
                     'Provider returned no publication identifier',

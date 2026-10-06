@@ -274,3 +274,15 @@ class ComposerContractTests(FixtureRegistration, TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertNotIn('SECRET-NOT-PUBLIC', str(response.data))
         self.assertNotIn('private-provider-copy', str(response.data))
+
+    def test_malformed_or_uncertain_provider_outcome_cannot_claim_success_or_replay(self):
+        from social_stats.publishers.base import PublishResult
+        for result in (None, PublishResult(success='true', platform_post_id='invalid-boolean')):
+            with self.subTest(result=result):
+                post = self.post(status='queued')
+                with patch.object(type(self.provider), 'publish_request', return_value=result) as send, patch('social_stats.orchestrator.publish_to_platform.delay', side_effect=lambda *args: publish_to_platform(*args)):
+                    publish_unified_post(post.pk)
+                    publish_unified_post(post.pk)
+                    self.assertEqual(send.call_count, 2)
+                self.assertFalse(post.publish_logs.filter(status='success').exists())
+                self.assertEqual(set(post.publish_logs.values_list('error_code', flat=True)), {'invalid_response'})
