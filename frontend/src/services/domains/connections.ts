@@ -18,7 +18,7 @@ export interface ConnectedAccount {
 export interface ConnectionProvider {
   key: string; titles: { en: string; fa: string }; category: string; auth_type: string; rollout_status: string;
   capabilities: Record<string, CapabilityStatus>;
-  contract: PublishingContract & { brand: { icon: string; color: string }; auth: { strategy: string; fields: ConnectionField[]; start_path: string }; destination_types: string[]; ui_extensions: string[] };
+  contract: PublishingContract & { analytics?: { sync_available: boolean; metrics: { key: string; title_en: string; title_fa: string; unit: string; period: string }[] }; brand: { icon: string; color: string }; auth: { strategy: string; fields: ConnectionField[]; start_path: string }; destination_types: string[]; ui_extensions: string[] };
   readiness: { configured: boolean; missing: string[] } | null;
   permissions: { connect: boolean }; accounts: ConnectedAccount[];
 }
@@ -64,13 +64,19 @@ function publishing(v: unknown): boolean {
       return name === 'status' && oneOf(value, ['supported', 'beta', 'planned', 'not_available']);
     }));
 }
+function analytics(v: unknown): boolean {
+  return v === undefined || (object(v) && bool(v.sync_available) && Array.isArray(v.metrics)
+    && v.metrics.every(m => object(m) && str(m.key) && /^[a-zA-Z][a-zA-Z0-9_]{0,49}$/.test(m.key)
+      && str(m.title_en) && str(m.title_fa) && oneOf(m.unit, ['count', 'minutes', 'seconds', 'ratio', 'percent'])
+      && oneOf(m.period, ['day', 'snapshot'])));
+}
 function provider(v: unknown): boolean {
   if (!object(v) || !key(v.key) || !object(v.titles) || !str(v.titles.en) || !str(v.titles.fa)
     || !str(v.category) || !oneOf(v.auth_type, ['oauth2', 'oidc', 'api_key', 'bot_token', 'custom', 'unsupported'])
     || !oneOf(v.rollout_status, ['discovery', 'planned', 'experimental', 'beta', 'active', 'blocked', 'deprecated'])
     || !object(v.capabilities) || !Object.values(v.capabilities).every(s => oneOf(s, ['supported', 'beta', 'planned', 'not_available']))
     || !['connection', 'disconnect', 'analytics'].every(k => str((v.capabilities as Record<string, unknown>)[k]))
-    || !object(v.contract) || !publishing(v.contract.publishing_modes) || !object(v.contract.brand) || !str(v.contract.brand.icon) || !str(v.contract.brand.color)
+    || !object(v.contract) || !analytics(v.contract.analytics) || !publishing(v.contract.publishing_modes) || !object(v.contract.brand) || !str(v.contract.brand.icon) || !str(v.contract.brand.color)
     || !object(v.contract.auth) || v.contract.auth.strategy !== v.auth_type || !str(v.contract.auth.start_path)
     || !Array.isArray(v.contract.auth.fields) || !strings(v.contract.destination_types) || !strings(v.contract.ui_extensions)
     || !object(v.permissions) || !bool(v.permissions.connect) || !Array.isArray(v.accounts) || !v.accounts.every(account)) return false;

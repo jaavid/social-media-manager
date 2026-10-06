@@ -18,6 +18,30 @@ from django.utils import timezone
 logger = logging.getLogger(__name__)
 
 
+def _analytics_json(response):
+    """Reject HTTP/provider/malformed failures without exposing credential URLs."""
+    try:
+        response.raise_for_status()
+        data = response.json()
+        if not isinstance(data, dict) or 'error' in data:
+            raise ValueError
+        return data
+    except Exception:
+        raise RuntimeError('Provider analytics response is unavailable') from None
+
+
+def _received_metrics(values):
+    import math
+    result = {}
+    for key, value in values.items():
+        if value is None or isinstance(value, dict):
+            continue
+        if type(value) not in (int, float) or not math.isfinite(value):
+            raise ValueError('Invalid numeric metric')
+        result[key] = value
+    return result
+
+
 def _date_range(days=30):
     today = date.today()
     return today - timedelta(days=days), today - timedelta(days=1)
@@ -56,9 +80,9 @@ def _refresh_google_token(cred):
 
 # ── Facebook ──────────────────────────────────────────────────────────────────
 @shared_task(bind=True, max_retries=3, default_retry_delay=300)
-def sync_facebook(self, client_id, days=30, credential_id=None):
+def sync_facebook(self, client_id, days=30, credential_id=None, retry_on_failure=True):
     """Sync daily Facebook metrics for the selected credential."""
-    from .models import Client, PlatformCredential, DailyMetric, SyncLog
+    from .models import PlatformCredential, DailyMetric, SyncLog
     try:
         cred = _active_credential(client_id, 'facebook', credential_id)
     except PlatformCredential.DoesNotExist:
@@ -81,7 +105,7 @@ def sync_facebook(self, client_id, days=30, credential_id=None):
             'page_total_actions',       # total actions on page
         ])
 
-        insights = requests.get(
+        insights = _analytics_json(requests.get(
             f"https://graph.facebook.com/v21.0/{cred.page_id}/insights",
             params={
                 'metric': metrics_to_fetch,
@@ -90,10 +114,10 @@ def sync_facebook(self, client_id, days=30, credential_id=None):
                 'until':  (until + timedelta(days=1)).isoformat(),
                 'access_token': cred.access_token,
             }, timeout=15
-        ).json()
+        ))
 
         # Fetch reactions breakdown separately
-        reactions_resp = requests.get(
+        reactions_resp = _analytics_json(requests.get(
             f"https://graph.facebook.com/v21.0/{cred.page_id}/insights",
             params={
                 'metric': 'page_actions_post_reactions_total',
@@ -102,7 +126,7 @@ def sync_facebook(self, client_id, days=30, credential_id=None):
                 'until':  (until + timedelta(days=1)).isoformat(),
                 'access_token': cred.access_token,
             }, timeout=15
-        ).json()
+        ))
 
         daily = {}
         metric_map = {
@@ -114,13 +138,19 @@ def sync_facebook(self, client_id, days=30, credential_id=None):
             'page_video_views':        'fb_video_views',
             'page_total_actions':      'clicks',
         }
+        if not isinstance(insights.get('data'), list):
+            raise ValueError('Invalid metric collection')
         for m in insights.get('data', []):
             key = metric_map.get(m['name'])
             if not key: continue
             for v in m.get('values', []):
                 day = v['end_time'][:10]
-                val = v.get('value', 0)
-                daily.setdefault(day, {})[key] = val if isinstance(val, (int, float)) else 0
+                if 'value' not in v:
+                    continue
+                val = v['value']
+                if type(val) not in (int, float):
+                    raise ValueError('Invalid numeric metric')
+                daily.setdefault(day, {})[key] = val
 
         # Merge reactions
         for m in reactions_resp.get('data', []):
@@ -141,41 +171,41 @@ def sync_facebook(self, client_id, days=30, credential_id=None):
         for day_str, vals in daily.items():
             DailyMetric.objects.update_or_create(
                 client_id=client_id, platform='facebook', social_account=cred.social_account, date=day_str,
-                defaults=vals
+                defaults={**vals, 'provider_metrics': _received_metrics(vals)}
             )
             count += 1
 
         # ── Per-post metrics ──────────────────────────────────────────────────
         from .models import PostMetric
-        fb_posts = requests.get(
+        fb_posts = _analytics_json(requests.get(
             f"https://graph.facebook.com/v21.0/{cred.page_id}/posts",
             params={
                 'fields': 'id,message,story,created_time,permalink_url,full_picture',
                 'limit':  25,
                 'access_token': cred.access_token,
             }, timeout=15
-        ).json()
+        ))
 
         for post in fb_posts.get('data', []):
             try:
                 # v21+ only supports post_impressions_unique and post_clicks
-                pi = requests.get(
+                pi = _analytics_json(requests.get(
                     f"https://graph.facebook.com/v21.0/{post['id']}/insights",
                     params={
                         'metric': 'post_impressions_unique,post_clicks',
                         'access_token': cred.access_token,
                     }, timeout=10
-                ).json()
+                ))
                 pm = {x['name']: x['values'][0]['value'] for x in pi.get('data', []) if x.get('values')}
 
                 # Get likes, comments, shares from the post object directly
-                post_detail = requests.get(
+                post_detail = _analytics_json(requests.get(
                     f"https://graph.facebook.com/v21.0/{post['id']}",
                     params={
                         'fields': 'shares,reactions.summary(true),comments.summary(true)',
                         'access_token': cred.access_token,
                     }, timeout=10
-                ).json()
+                ))
                 likes    = post_detail.get('reactions', {}).get('summary', {}).get('total_count', 0)
                 comments = post_detail.get('comments', {}).get('summary', {}).get('total_count', 0)
                 shares   = post_detail.get('shares', {}).get('count', 0)
@@ -202,15 +232,17 @@ def sync_facebook(self, client_id, days=30, credential_id=None):
 
         log.status = 'success'; log.records_synced = count
     except Exception as e:
-        log.status = 'failed'; log.error_message = str(e)
-        raise self.retry(exc=e)
+        log.status = 'failed'; log.error_message = 'Provider analytics sync failed'
+        if retry_on_failure:
+            raise self.retry(exc=RuntimeError('Provider analytics sync failed'))
+        raise RuntimeError('Provider analytics sync failed') from None
     finally:
         log.finished_at = timezone.now(); log.save()
 
 
 # ── Instagram ─────────────────────────────────────────────────────────────────
 @shared_task(bind=True, max_retries=3, default_retry_delay=300)
-def sync_instagram(self, client_id, days=30, credential_id=None):
+def sync_instagram(self, client_id, days=30, credential_id=None, retry_on_failure=True):
     """Sync daily Instagram metrics for the selected credential."""
     from .models import PlatformCredential, DailyMetric, PostMetric, SyncLog
     try:
@@ -228,7 +260,7 @@ def sync_instagram(self, client_id, days=30, credential_id=None):
         # Group 2: period=day + metric_type=total_value (new requirement)
 
         # Group 1 — standard day metrics
-        day_insights = requests.get(
+        day_insights = _analytics_json(requests.get(
             f"https://graph.facebook.com/v21.0/{cred.instagram_account_id}/insights",
             params={
                 'metric': 'reach,follower_count',
@@ -237,10 +269,10 @@ def sync_instagram(self, client_id, days=30, credential_id=None):
                 'until':  (until + timedelta(days=1)).isoformat(),
                 'access_token': cred.access_token,
             }, timeout=15
-        ).json()
+        ))
 
         # Group 2 — total_value metrics (profile_views, website_clicks, etc.)
-        total_insights = requests.get(
+        total_insights = _analytics_json(requests.get(
             f"https://graph.facebook.com/v21.0/{cred.instagram_account_id}/insights",
             params={
                 'metric': ','.join([
@@ -254,34 +286,40 @@ def sync_instagram(self, client_id, days=30, credential_id=None):
                 'until':  (until + timedelta(days=1)).isoformat(),
                 'access_token': cred.access_token,
             }, timeout=15
-        ).json()
+        ))
 
         daily = {}
 
+        if not isinstance(day_insights.get('data'), list) or not isinstance(total_insights.get('data'), list):
+            raise ValueError('Invalid metric collection')
         # Parse Group 1 (standard values array)
         for m in day_insights.get('data', []):
             name = m['name']
             for v in m.get('values', []):
                 day = v['end_time'][:10]
-                daily.setdefault(day, {})[name] = v.get('value', 0)
+                if 'value' in v:
+                    daily.setdefault(day, {})[name] = v['value']
 
         # Parse Group 2 (total_value — each item has a single value dict)
         for m in total_insights.get('data', []):
             name = m['name']
             for v in m.get('values', []):
                 day = v['end_time'][:10]
-                val = v.get('value', 0)
+                if 'value' not in v:
+                    continue
+                val = v['value']
                 if name == 'follows_and_unfollows' and isinstance(val, dict):
                     daily.setdefault(day, {})['ig_followers_lost'] = val.get('unfollows', 0)
                     daily.setdefault(day, {})['followers_gained'] = val.get('follows', 0)
                 else:
-                    daily.setdefault(day, {})[name] = val if isinstance(val, (int, float)) else 0
+                    daily.setdefault(day, {})[name] = val
 
         count = 0
         for day_str, vals in daily.items():
             DailyMetric.objects.update_or_create(
                 client_id=client_id, platform='instagram', social_account=cred.social_account, date=day_str,
                 defaults={
+                    'provider_metrics': _received_metrics(vals),
                     'impressions':        vals.get('total_interactions', 0),
                     'reach':              vals.get('reach', 0),
                     'profile_views':      vals.get('profile_views', 0),
@@ -299,14 +337,14 @@ def sync_instagram(self, client_id, days=30, credential_id=None):
             count += 1
 
         # Per-post metrics
-        posts = requests.get(
+        posts = _analytics_json(requests.get(
             f"https://graph.facebook.com/v21.0/{cred.instagram_account_id}/media",
             params={
                 'fields': 'id,caption,media_type,permalink,timestamp,media_url,thumbnail_url',
                 'limit':  25,
                 'access_token': cred.access_token,
             }, timeout=15
-        ).json()
+        ))
 
         for post in posts.get('data', []):
             try:
@@ -324,26 +362,26 @@ def sync_instagram(self, client_id, days=30, credential_id=None):
                 else:
                     insight_metrics = 'reach,saved,shares'
 
-                pi = requests.get(
+                pi = _analytics_json(requests.get(
                     f"https://graph.facebook.com/v21.0/{post['id']}/insights",
                     params={
                         'metric': insight_metrics,
                         'access_token': cred.access_token,
                     }, timeout=10
-                ).json()
+                ))
                 m = {}
                 for x in pi.get('data', []):
                     vals = x.get('values', [])
                     m[x['name']] = vals[0]['value'] if vals else 0
 
                 # likes and comments come from the media node directly in v18+
-                post_detail = requests.get(
+                post_detail = _analytics_json(requests.get(
                     f"https://graph.facebook.com/v21.0/{post['id']}",
                     params={
                         'fields': 'like_count,comments_count',
                         'access_token': cred.access_token,
                     }, timeout=10
-                ).json()
+                ))
 
                 PostMetric.objects.update_or_create(
                     client_id=client_id, platform='instagram', social_account=cred.social_account, post_id=post['id'],
@@ -367,15 +405,17 @@ def sync_instagram(self, client_id, days=30, credential_id=None):
 
         log.status = 'success'; log.records_synced = count
     except Exception as e:
-        log.status = 'failed'; log.error_message = str(e)
-        raise self.retry(exc=e)
+        log.status = 'failed'; log.error_message = 'Provider analytics sync failed'
+        if retry_on_failure:
+            raise self.retry(exc=RuntimeError('Provider analytics sync failed'))
+        raise RuntimeError('Provider analytics sync failed') from None
     finally:
         log.finished_at = timezone.now(); log.save()
 
 
 # ── YouTube ───────────────────────────────────────────────────────────────────
 @shared_task(bind=True, max_retries=3, default_retry_delay=300)
-def sync_youtube(self, client_id, days=30, credential_id=None):
+def sync_youtube(self, client_id, days=30, credential_id=None, retry_on_failure=True):
     """Sync daily YouTube metrics for the selected credential."""
     from .models import PlatformCredential, DailyMetric, SyncLog
     try:
@@ -391,7 +431,7 @@ def sync_youtube(self, client_id, days=30, credential_id=None):
 
         since, until = _date_range(days)
 
-        analytics = requests.get(
+        analytics = _analytics_json(requests.get(
             'https://youtubeanalytics.googleapis.com/v2/reports',
             params={
                 'ids':        f'channel=={cred.channel_id}',
@@ -403,11 +443,13 @@ def sync_youtube(self, client_id, days=30, credential_id=None):
             },
             headers={'Authorization': f'Bearer {cred.access_token}'},
             timeout=15
-        ).json()
+        ))
 
         if 'error' in analytics:
             raise Exception(f"YouTube API error: {analytics['error'].get('message', analytics['error'])}")
 
+        if not isinstance(analytics.get('columnHeaders'), list) or not isinstance(analytics.get('rows', []), list):
+            raise ValueError('Invalid analytics report')
         rows    = analytics.get('rows', [])
         headers = [h['name'] for h in analytics.get('columnHeaders', [])]
         count   = 0
@@ -417,6 +459,7 @@ def sync_youtube(self, client_id, days=30, credential_id=None):
             DailyMetric.objects.update_or_create(
                 client_id=client_id, platform='youtube', social_account=cred.social_account, date=data['day'],
                 defaults={
+                    'provider_metrics': _received_metrics({k: v for k, v in data.items() if k != 'day'}),
                     'video_views':        int(data.get('views', 0)),
                     'watch_time_minutes': int(data.get('estimatedMinutesWatched', 0)),
                     'avg_view_duration':  float(data.get('averageViewDuration', 0)),
@@ -431,15 +474,17 @@ def sync_youtube(self, client_id, days=30, credential_id=None):
 
         log.status = 'success'; log.records_synced = count
     except Exception as e:
-        log.status = 'failed'; log.error_message = str(e)
-        raise self.retry(exc=e)
+        log.status = 'failed'; log.error_message = 'Provider analytics sync failed'
+        if retry_on_failure:
+            raise self.retry(exc=RuntimeError('Provider analytics sync failed'))
+        raise RuntimeError('Provider analytics sync failed') from None
     finally:
         log.finished_at = timezone.now(); log.save()
 
 
 # ── LinkedIn ──────────────────────────────────────────────────────────────────
 @shared_task(bind=True, max_retries=3, default_retry_delay=300)
-def sync_linkedin(self, client_id, days=30, credential_id=None):
+def sync_linkedin(self, client_id, days=30, credential_id=None, retry_on_failure=True):
     """Sync daily LinkedIn metrics for the selected credential."""
     from .models import PlatformCredential, DailyMetric, SyncLog
     import time
@@ -457,7 +502,7 @@ def sync_linkedin(self, client_id, days=30, credential_id=None):
         since_ms = int(time.mktime(since.timetuple())) * 1000
         until_ms = int(time.mktime(until.timetuple())) * 1000
 
-        stats = requests.get(
+        stats = _analytics_json(requests.get(
             'https://api.linkedin.com/v2/organizationPageStatistics',
             params={
                 'q':           'organization',
@@ -468,8 +513,10 @@ def sync_linkedin(self, client_id, days=30, credential_id=None):
             },
             headers={'Authorization': f'Bearer {cred.access_token}'},
             timeout=15
-        ).json()
+        ))
 
+        if not isinstance(stats.get('elements'), list):
+            raise ValueError('Invalid metric collection')
         count = 0
         for el in stats.get('elements', []):
             ts    = el.get('timeRange', {}).get('start', 0)
@@ -478,6 +525,10 @@ def sync_linkedin(self, client_id, days=30, credential_id=None):
             DailyMetric.objects.update_or_create(
                 client_id=client_id, platform='linkedin', social_account=cred.social_account, date=day,
                 defaults={
+                    'provider_metrics': _received_metrics({
+                        'page_views': views.get('views', {}).get('allPageViews', {}).get('pageViews'),
+                        'total_clicks': views.get('clicks', {}).get('allClicks', {}).get('totalClicks'),
+                        'followers_gained': views.get('followersGained')}),
                     'impressions':    views.get('views', {}).get('allPageViews', {}).get('pageViews', 0),
                     'clicks':         views.get('clicks', {}).get('allClicks', {}).get('totalClicks', 0),
                     'followers':      views.get('followersGained', 0),
@@ -488,15 +539,17 @@ def sync_linkedin(self, client_id, days=30, credential_id=None):
 
         log.status = 'success'; log.records_synced = count
     except Exception as e:
-        log.status = 'failed'; log.error_message = str(e)
-        raise self.retry(exc=e)
+        log.status = 'failed'; log.error_message = 'Provider analytics sync failed'
+        if retry_on_failure:
+            raise self.retry(exc=RuntimeError('Provider analytics sync failed'))
+        raise RuntimeError('Provider analytics sync failed') from None
     finally:
         log.finished_at = timezone.now(); log.save()
 
 
 # ── Google My Business ────────────────────────────────────────────────────────
 @shared_task(bind=True, max_retries=3, default_retry_delay=300)
-def sync_gmb(self, client_id, days=30, credential_id=None):
+def sync_gmb(self, client_id, days=30, credential_id=None, retry_on_failure=True):
     """Sync Business Profile metrics for the selected credential."""
     from .models import PlatformCredential, DailyMetric, SyncLog, GMBBusinessInfo, GMBReview, SocialAccount
     try:
@@ -529,7 +582,7 @@ def sync_gmb(self, client_id, days=30, credential_id=None):
                 headers=headers, timeout=15
             )
             if biz_resp.status_code == 200:
-                biz = biz_resp.json()
+                biz = _analytics_json(biz_resp)
                 addr_obj  = biz.get('storefrontAddress', {})
                 address   = ', '.join(filter(None, [
                     ' '.join(addr_obj.get('addressLines', [])),
@@ -587,7 +640,7 @@ def sync_gmb(self, client_id, days=30, credential_id=None):
                 headers=headers, timeout=10
             )
             if acc_resp.status_code == 200:
-                acc = acc_resp.json()
+                acc = _analytics_json(acc_resp)
                 is_verified = acc.get('verificationState') == 'VERIFIED'
                 GMBBusinessInfo.objects.filter(client_id=client_id).update(is_verified=is_verified)
 
@@ -599,7 +652,7 @@ def sync_gmb(self, client_id, days=30, credential_id=None):
                 headers=headers, timeout=15
             )
             if reviews_resp.status_code == 200:
-                reviews_data  = reviews_resp.json()
+                reviews_data  = _analytics_json(reviews_resp)
                 reviews_list  = reviews_data.get('reviews', [])
                 avg_rating    = float(reviews_data.get('averageRating', 0) or 0)
                 total_reviews = int(reviews_data.get('totalReviewCount', 0) or 0)
@@ -644,7 +697,7 @@ def sync_gmb(self, client_id, days=30, credential_id=None):
         # ── 4. Business Profile Performance API — extended daily metrics ──────
         since, until = _date_range(days)
         if cred.gmb_location_id:
-            perf_resp = requests.post(
+            perf_resp = _analytics_json(requests.post(
                 f'https://businessprofileperformance.googleapis.com/v1/{cred.gmb_location_id}:fetchMultiDailyMetricsTimeSeries',
                 json={
                     'dailyMetrics': [
@@ -663,7 +716,7 @@ def sync_gmb(self, client_id, days=30, credential_id=None):
                     }
                 },
                 headers=headers, timeout=15
-            ).json()
+            ))
 
             daily = {}
             for series in perf_resp.get('multiDailyMetricTimeSeries', []):
@@ -697,15 +750,17 @@ def sync_gmb(self, client_id, days=30, credential_id=None):
             for day_str, vals in daily.items():
                 DailyMetric.objects.update_or_create(
                     client_id=client_id, platform='google_my_business', social_account=cred.social_account, date=day_str,
-                    defaults=vals
+                    defaults={**vals, 'provider_metrics': _received_metrics(vals)}
                 )
                 count += 1
 
         log.status = 'success'; log.records_synced = count
     except Exception as e:
-        log.status = 'failed'; log.error_message = str(e)
+        log.status = 'failed'; log.error_message = 'Provider analytics sync failed'
         logger.error("sync_gmb failed for client %s: %s", client_id, e)
-        raise self.retry(exc=e)
+        if retry_on_failure:
+            raise self.retry(exc=RuntimeError('Provider analytics sync failed'))
+        raise RuntimeError('Provider analytics sync failed') from None
     finally:
         log.finished_at = timezone.now(); log.save()
 
@@ -1057,7 +1112,7 @@ def generate_monthly_roi_reports():
     Runs on 2nd of every month at 8am.
     Calculates ROI for the previous month for all active clients with ROISettings.
     """
-    from .models import Client, ROIReport, ROISettings
+    from .models import Client, ROIReport
     from .roi_calculator import calculate_roi
     from decimal import Decimal
 
@@ -1262,3 +1317,42 @@ def check_overdue_scheduled_posts():
 
 # Register Telegram protocol jobs with the existing Celery autodiscovery module.
 from .telegram_tasks import ingest_update, run_assistant, prune_telegram_updates, recover_telegram_jobs  # noqa: F401
+
+
+@shared_task(bind=True, max_retries=0)
+def sync_provider_account(self, workspace_id, credential_id, actor_id):
+    """New providers use the account execution SPI, never a product task map."""
+    from django.contrib.auth.models import User
+    from .models import PlatformCredential, DailyMetric, SyncLog
+    from .authorization import evaluate
+    from .platforms.registry import get_provider
+    from .platforms.contracts import DestinationContext
+    from .platforms.execution import ProviderExecution
+    credential = PlatformCredential.objects.select_related('social_account__client').filter(
+        pk=credential_id, client_id=workspace_id, is_active=True).first()
+    actor = User.objects.filter(pk=actor_id, is_active=True).first()
+    if not credential or not actor or not credential.social_account:
+        return
+    account = credential.social_account
+    if not evaluate(actor, account.client, 'view_analytics', account=account).allowed:
+        return
+    provider = get_provider(credential.platform)
+    if provider.manifest.analytics_sync_handler:
+        from django.utils.module_loading import import_string
+        import_string(provider.manifest.analytics_sync_handler).run(account.client_id, credential_id=credential.pk, retry_on_failure=False)
+        return
+    log = SyncLog.objects.create(client=account.client, social_account=account,
+        platform=account.platform, status='running')
+    try:
+        result = ProviderExecution(provider, credential, DestinationContext(account.pk, workspace_id,
+            kind=account.metadata.get('destination_type', provider.manifest.destination_types[0]))).call('sync')
+        DailyMetric.objects.update_or_create(client=account.client, social_account=account,
+            platform=account.platform, date=timezone.now().date(), defaults={'provider_metrics': result.metrics})
+        log.status = 'success'
+        log.records_synced = 1
+    except Exception:
+        log.status = 'failed'
+        log.error_message = 'Provider analytics sync failed'
+    finally:
+        log.finished_at = timezone.now()
+        log.save()

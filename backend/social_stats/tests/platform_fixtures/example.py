@@ -7,7 +7,7 @@ from social_stats.platforms.base import (
     StatsResult,
     InboxResult,
 )
-from social_stats.platforms.manifest import PlatformManifest, Capability, CAPABILITIES, AuthField
+from social_stats.platforms.manifest import PlatformManifest, Capability, CAPABILITIES, AuthField, AnalyticsMetric
 from social_stats.platforms.registry import register_provider
 from social_stats.publishers.base import BasePublisher, PublishResult
 
@@ -54,6 +54,7 @@ class ExampleProvider(BasePlatformProvider):
                 'supported', max_characters=100, scopes=('publish',)
             )
         },
+        analytics_metrics=(AnalyticsMetric('views', 'Views', 'بازدیدها', period='snapshot'),),
         inbound='both',
         auth_fields=(AuthField('token', 'Test credential', 'اعتبار آزمایشی', secret=True),
                      AuthField('destination_id', 'Destination ID', 'شناسه مقصد')),

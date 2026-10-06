@@ -90,6 +90,52 @@ class ClientViewSet(viewsets.ModelViewSet):
         })
 
     @action(detail=True, methods=['get'])
+    def analytics_report(self, request, pk=None):
+        from datetime import date
+        from social_stats.models import SocialAccount
+        from social_stats.authorization import evaluate
+        from social_stats.platforms.analytics import report
+        from social_stats.platforms.base import ProviderError
+        workspace = self.get_object()
+        try:
+            account_id = int(request.query_params.get('social_account', ''))
+            since = date.fromisoformat(request.query_params.get('since', ''))
+            until = date.fromisoformat(request.query_params.get('until', ''))
+            page = int(request.query_params.get('page', '1'))
+            if since > until or page < 1:
+                raise ValueError
+        except (ValueError, TypeError):
+            return Response({'code': 'invalid_request'}, status=400)
+        account = SocialAccount.objects.filter(pk=account_id, client=workspace).first()
+        if account is None:
+            return Response({'code': 'not_found'}, status=404)
+        if not evaluate(request.user, workspace, 'view_analytics', account=account).allowed:
+            return Response({'code': 'permission_denied'}, status=403)
+        try:
+            data = report(account, since, until, page)
+        except ProviderError:
+            return Response({'code': 'invalid_response'}, status=502)
+        if request.query_params.get('export') == 'csv':
+            import csv
+            from io import StringIO
+            from django.http import HttpResponse
+            # Export every row in this exact authorized account/date filter.
+            count = data['pagination']['count']
+            data = report(account, since, until, 1, max(count, 1))
+            output = StringIO()
+            writer = csv.writer(output)
+            keys = [m['key'] for m in data['metrics']]
+            writer.writerow(['provider', 'account_id', 'date', 'observed_at', 'state', *keys])
+            for row in data['rows']:
+                writer.writerow([data['provider'], account.pk, row['date'], row['observed_at'], row['state'],
+                                 *[row['values'][key] if row['values'][key] is not None else '' for key in keys]])
+            response = HttpResponse(output.getvalue(), content_type='text/csv; charset=utf-8')
+            response['Content-Disposition'] = 'attachment; filename="analytics.csv"'
+            response['Cache-Control'] = 'no-store'
+            return response
+        return Response(data)
+
+    @action(detail=True, methods=['get'])
     def summary(self, request, pk=None):
         """Aggregate workspace metrics without overlapping unassigned history."""
         if not check_client_access(request, pk):
@@ -228,30 +274,30 @@ class ClientViewSet(viewsets.ModelViewSet):
         if not check_client_access(request, pk):
             return Response({'error': 'Access denied'}, status=403)
 
-        from social_stats.tasks import sync_facebook, sync_instagram, sync_youtube, sync_linkedin, sync_gmb
-        client    = self.get_object()
-        platforms = request.data.get('platforms', ['facebook','instagram','youtube','linkedin','google_my_business'])
-        task_map  = {
-            'facebook': sync_facebook, 'instagram': sync_instagram,
-            'youtube': sync_youtube, 'linkedin': sync_linkedin,
-            'google_my_business': sync_gmb,
-        }
+        from social_stats.platforms.analytics import queue_sync
+        from social_stats.platforms.registry import iter_providers
+        from social_stats.platforms.base import ProviderError
+        client = self.get_object()
+        platforms = request.data.get('platforms')
+        if platforms is None:
+            platforms = [p.manifest.key for p in iter_providers() if p.manifest.capability('analytics').enabled]
+        if not isinstance(platforms, list) or any(not isinstance(p, str) for p in platforms):
+            return Response({'code': 'invalid_request'}, status=400)
         requested_accounts = request.data.get('social_account_ids')
-        credentials = PlatformCredential.objects.filter(
-            client=client, platform__in=platforms, is_active=True,
-        ).exclude(access_token='').select_related('social_account')
+        if requested_accounts is not None and (not isinstance(requested_accounts, list) or
+            any(type(value) is not int or value <= 0 for value in requested_accounts)):
+            return Response({'code': 'invalid_request'}, status=400)
+        credentials = PlatformCredential.objects.filter(client=client, platform__in=platforms,
+            is_active=True).exclude(access_token='').select_related('social_account__client')
         if requested_accounts is not None:
             credentials = credentials.filter(social_account_id__in=requested_accounts)
-
         queued = []
         for credential in credentials:
-            task = task_map.get(credential.platform)
-            if task:
-                task.delay(client.id, credential_id=credential.id)
-                queued.append({
-                    'platform': credential.platform,
-                    'social_account_id': credential.social_account_id,
-                })
+            try:
+                queue_sync(credential, request.user)
+            except ProviderError:
+                continue
+            queued.append({'platform': credential.platform, 'social_account_id': credential.social_account_id})
 
         return Response({'queued': queued})
 
