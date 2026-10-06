@@ -214,6 +214,78 @@ class ComposerContractTests(FixtureRegistration, TestCase):
         self.assertEqual(post.publish_logs.count(), 2)
         self.assertTrue(post.publish_logs.filter(account_target_id=self.credentials[0].social_account_id, platform_post_id='already-sent').exists())
 
+    def test_target_representation_changes_never_replay_completed_or_ambiguous_delivery(self):
+        account = self.credentials[0].social_account
+        for status, code in (('success', ''), ('failed', 'timeout'), ('failed', 'network_error'), ('failed', 'invalid_response')):
+            for representation in ('explicit', 'legacy', 'implicit'):
+                with self.subTest(status=status, code=code, representation=representation):
+                    self.credentials[1].is_active = False
+                    self.credentials[1].save()
+                    options = {'social_account_id': account.pk}
+                    if representation == 'explicit':
+                        options = {'account_targets': [options]}
+                    elif representation == 'implicit':
+                        options = {}
+                    post = self.post({**self.payload, 'platform_overrides': {self.provider.key: options}}, status='partial')
+                    log = PlatformPublishLog.objects.create(unified_post=post, platform=self.provider.key,
+                        account_target_id=account.pk, social_account=account, status=status, error_code=code)
+                    with patch('social_stats.orchestrator.publish_to_platform.delay') as send:
+                        publish_unified_post(post.pk)
+                        send.assert_not_called()
+                    log.refresh_from_db()
+                    self.assertEqual((log.status, log.error_code), (status, code))
+                    self.assertEqual(post.publish_logs.count(), 1)
+                    post.refresh_from_db()
+                    self.assertEqual(post.status, 'published' if status == 'success' else 'failed')
+
+    def test_legacy_worker_uses_canonical_account_log_and_does_not_replay(self):
+        account = self.credentials[0].social_account
+        post = self.post({**self.payload, 'platform_overrides': {self.provider.key: {'social_account_id': account.pk}}}, status='publishing')
+        PlatformPublishLog.objects.create(unified_post=post, platform=self.provider.key, account_target_id=account.pk,
+            social_account=account, status='success')
+        publish_to_platform(post.pk, self.provider.key, 0)
+        self.assertFalse(self.provider.deliveries)
+        self.assertEqual(post.publish_logs.count(), 1)
+
+    def test_unattributed_legacy_ambiguous_outcome_requires_reconciliation(self):
+        post = self.post(status='failed')
+        PlatformPublishLog.objects.create(unified_post=post, platform=self.provider.key,
+            status='failed', error_code='timeout')
+        with patch('social_stats.orchestrator.publish_to_platform.delay') as send:
+            publish_unified_post(post.pk)
+            send.assert_not_called()
+        self.assertEqual(post.publish_logs.count(), 1)
+        self.assertEqual(post.publish_logs.get().error_code, 'timeout')
+
+    def test_missing_provider_account_is_definite_scope_denial_before_transport(self):
+        self.credentials[0].social_account = None
+        self.credentials[0].save()
+        self.credentials[1].is_active = False
+        self.credentials[1].save()
+        post = self.post({**self.payload, 'platform_overrides': {self.provider.key: {}}}, status='publishing')
+        publish_to_platform(post.pk, self.provider.key)
+        self.assertEqual(post.publish_logs.get().error_code, 'scope_denied')
+        self.assertFalse(self.provider.deliveries)
+
+    def test_keyed_save_without_authorized_workspace_returns_denial(self):
+        for path in ('/api/composer/posts/', f'/api/composer/posts/?workspace_id={self.other.pk}'):
+            response = self.api.post(path, self.payload, format='json', HTTP_IDEMPOTENCY_KEY=str(uuid4()))
+            self.assertEqual(response.status_code, 403, response.data)
+        self.assertFalse(UnifiedPost.objects.exists())
+
+    def test_pending_draft_approval_retry_ignores_only_permission_metadata(self):
+        from social_stats.models import ApprovalRequest, WorkspaceMemberPolicy
+        WorkspaceMemberPolicy.objects.create(user=self.user, workspace=self.workspace, approval_overrides={'draft_posts': True})
+        key = uuid4()
+        first, second = self.save(key=key), self.save(key=key)
+        self.assertEqual(first.status_code, 202, first.data)
+        self.assertEqual(second.status_code, 202, second.data)
+        self.assertEqual(first.data, second.data)
+        approval = ApprovalRequest.objects.get()
+        self.assertEqual(approval.payload['_permission_action'], 'draft_posts')
+        self.assertEqual(self.save({**self.payload, 'content': 'different'}, key).status_code, 409)
+        self.assertEqual(ApprovalRequest.objects.count(), 1)
+
     def test_edited_intent_cannot_be_revived_by_stale_fanout(self):
         post = self.post(status='queued')
         from social_stats import authorization

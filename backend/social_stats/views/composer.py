@@ -128,7 +128,9 @@ class UnifiedPostViewSet(TenantScopedMixin, viewsets.ModelViewSet):
                 current = evaluate(self.request.user, client, action_key)
                 if not current.allowed:
                     return deny_response(current.reason)
-                if existing.payload != payload:
+                stored_payload = dict(existing.payload or {})
+                stored_payload.pop('_permission_action', None)
+                if stored_payload != payload:
                     return Response({'code': 'conflict'}, status=409)
                 return approval_pending_response(existing)
         verdict, ctx = check_action(
@@ -180,7 +182,9 @@ class UnifiedPostViewSet(TenantScopedMixin, viewsets.ModelViewSet):
                 key = UUID(key)
             except (ValueError, TypeError):
                 return Response({'code': 'invalid_request'}, status=400)
-            Client.objects.select_for_update().get(pk=self.resolved_client_id())
+            client_id = self.resolved_client_id()
+            if not client_id or not Client.objects.select_for_update().filter(pk=client_id).first():
+                return deny_response('No authorized workspace context')
             existing = UnifiedPost.objects.filter(client_id=self.resolved_client_id(), created_by=request.user, intent_key=key).first()
             if existing:
                 if any(getattr(existing, field) != value for field, value in serializer.validated_data.items() if field != 'client'):

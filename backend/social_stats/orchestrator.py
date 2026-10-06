@@ -29,6 +29,8 @@ from __future__ import annotations
 import logging
 
 from celery import shared_task
+from django.db import transaction
+from django.db.models import Q
 from django.utils import timezone
 
 from .models import (
@@ -46,6 +48,47 @@ from .realtime import push_event
 from .audit import log_action
 
 logger = logging.getLogger(__name__)
+
+
+def _delivery_account_id(post, platform, options):
+    """Resolve delivery identity independently of the target's JSON representation."""
+    account_id = options.get('social_account_id')
+    if type(account_id) is int and account_id > 0:
+        return account_id
+    candidates = list(PlatformCredential.objects.filter(
+        client=post.client, platform=platform, is_active=True,
+    ).values_list('social_account_id', flat=True)[:2])
+    return (candidates[0] or 0) if len(candidates) == 1 else 0
+
+
+@transaction.atomic
+def _delivery_log(post, platform, account_id):
+    """Keep completed/uncertain legacy outcomes authoritative across target changes."""
+    logs = list(PlatformPublishLog.objects.select_for_update().filter(
+        unified_post=post, platform=platform,
+    ).filter(Q(account_target_id=account_id) | Q(account_target_id=0, social_account_id=account_id)
+             | Q(account_target_id=0, social_account__isnull=True)))
+    existing = _retained_delivery_log(logs, account_id)
+    if existing:
+        # An old outcome without an account cannot safely be attributed to a
+        # different target. Preserve it until reconciliation instead of replay.
+        if account_id and existing.account_target_id == 0 and existing.social_account_id == account_id:
+            if not any(log.account_target_id == account_id for log in logs):
+                existing.account_target_id = account_id
+                existing.save(update_fields=['account_target_id'])
+        elif account_id and existing.account_target_id == 0 and existing.status == 'pending':
+            existing.account_target_id = account_id
+            existing.save(update_fields=['account_target_id'])
+        return existing, False
+    return PlatformPublishLog.objects.get_or_create(unified_post=post, platform=platform,
+        account_target_id=account_id, defaults={'status': 'pending'})
+
+
+def _retained_delivery_log(logs, account_id):
+    """Use the same preserved outcome for dispatch and parent status aggregation."""
+    protected = next((log for log in logs if log.status in ('success', 'publishing')
+        or log.error_code in ('timeout', 'network_error', 'invalid_response')), None)
+    return protected or next((log for log in logs if log.account_target_id == account_id), None) or next(iter(logs), None)
 
 
 # ── Public entry points ───────────────────────────────────────────────────────
@@ -93,18 +136,10 @@ def publish_unified_post(self, unified_post_id: int):
     post.status = 'publishing'
 
     from .publishing_contract import delivery_options, post_payload
-    deliveries = [(platform, options.get('social_account_id', 0) if 'account_targets' in options else 0) for platform in targets
+    deliveries = [(platform, _delivery_account_id(post, platform, options)) for platform in targets
                   for options in delivery_options(post_payload(post), platform)]
     for platform, account_id in deliveries:
-        if account_id and not PlatformPublishLog.objects.filter(unified_post=post, platform=platform, account_target_id=account_id).exists():
-            # Preserve a completed legacy single-account delivery when its target
-            # becomes explicit; it must not be sent again under a new key.
-            PlatformPublishLog.objects.filter(unified_post=post, platform=platform, account_target_id=0, social_account_id=account_id).update(account_target_id=account_id)
-        log, created = PlatformPublishLog.objects.get_or_create(
-            unified_post=post, platform=platform, account_target_id=account_id,
-            defaults={'status': 'pending', 'attempted_at': None,
-                      'error_code': '', 'error_message': ''},
-        )
+        log, created = _delivery_log(post, platform, account_id)
         # Preserve completed deliveries during a partial-post retry. A worker
         # that crashed after sending remains ambiguous and needs reconciliation.
         if not created and (log.status in ('success', 'publishing') or
@@ -133,7 +168,11 @@ def publish_to_platform(self, unified_post_id: int, platform: str, account_id: i
                 _mark_failed(stale_log, code='publication_invalidated', message='Publication intent is no longer active')
         return
 
-    log, _ = PlatformPublishLog.objects.get_or_create(unified_post=post, platform=platform, account_target_id=account_id, defaults={'status': 'pending'})
+    from .publishing_contract import delivery_options, post_payload
+    options = delivery_options(post_payload(post), platform)
+    if account_id == 0 and len(options) == 1 and 'account_targets' not in options[0]:
+        account_id = _delivery_account_id(post, platform, options[0])
+    log, _ = _delivery_log(post, platform, account_id)
     if log.status != 'pending':
         return
     from .authorization import post_decision
@@ -156,7 +195,7 @@ def publish_to_platform(self, unified_post_id: int, platform: str, account_id: i
 
     from .publishing_contract import delivery_options, post_payload
     options = delivery_options(post_payload(post), platform)
-    overrides = next((item for item in options if (item.get('social_account_id', 0) if 'account_targets' in item else 0) == account_id), None)
+    overrides = next((item for item in options if _delivery_account_id(post, platform, item) == account_id), None)
     if overrides is None:
         _mark_failed(log, code='publication_invalidated', message='Account target was removed')
         update_unified_post_status(post.id)
@@ -302,7 +341,7 @@ def _dispatch_publish(
     publish_kwargs = dict(options.get('extensions') or {})
     if destination_id:
         publish_kwargs['destination_id'] = destination_id
-    from .platforms.base import BasePlatformProvider
+    from .platforms.base import BasePlatformProvider, ProviderError
     platform = getattr(publisher, 'key', None) or getattr(publisher, 'platform', None)
     try:
         extension_provider = publisher if isinstance(publisher, BasePlatformProvider) else (
@@ -323,6 +362,8 @@ def _dispatch_publish(
         from .platforms.contracts import DestinationContext, PublishRequest
         from .platforms.execution import ProviderExecution
         account = credential.social_account
+        if account is None:
+            raise ProviderError('Provider account scope denied', code='scope_denied')
         destination = DestinationContext(
             account_id=account.pk if account else 0, workspace_id=post.client_id,
             kind=(getattr(account, 'metadata', None) or {}).get('destination_type', 'profile'),
@@ -378,10 +419,15 @@ def update_unified_post_status(unified_post_id: int):
         return
 
     from .publishing_contract import delivery_options, post_payload
-    deliveries = [(platform, options.get('social_account_id', 0) if 'account_targets' in options else 0) for platform in post.target_platforms or []
+    deliveries = [(platform, _delivery_account_id(post, platform, options)) for platform in post.target_platforms or []
                   for options in delivery_options(post_payload(post), platform)]
-    logs = {(item.platform, item.account_target_id): item.status for item in post.publish_logs.all()}
-    statuses = [logs.get(key, 'pending') for key in deliveries]
+    logs = list(post.publish_logs.all())
+    statuses = []
+    for platform, account_id in deliveries:
+        matching = [log for log in logs if log.platform == platform and (log.account_target_id == account_id
+            or (log.account_target_id == 0 and log.social_account_id in (account_id, None)))]
+        retained = _retained_delivery_log(matching, account_id)
+        statuses.append(retained.status if retained else 'pending')
     targets = deliveries
     if not statuses or len(statuses) < len(targets):
         if post.status not in ('publishing',):
