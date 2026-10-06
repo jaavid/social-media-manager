@@ -7,665 +7,191 @@
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
 import { useEffect, useMemo, useRef, useState } from 'react';
-import {
-  Inbox, Search, Star, Archive, ArchiveRestore, CheckCircle2, X, Send,
-  MessageSquare, AtSign, MessageCircle, Loader2, Filter,
-  Smile, Frown, Meh, Sparkles,
-} from 'lucide-react';
-import toast from '../../components/ui/toast';
+import { useQuery } from '@tanstack/react-query';
+import { useSession } from '@/core/session';
+import { useLanguage } from '@/i18n';
+import { connectionsAPI } from '@/services/domains/connections';
+import { workspacesAPI } from '@/services/domains/accounts';
+import { inboxAPI } from '@/services/domains/messaging';
+import { apiError } from '@/services/http/errors';
+import { QK } from '@/services/queryClient';
+import { useConversations, useConversation, useReviews } from '@/hooks/useInbox';
+import Page from '@/components/ui/Page';
+import PageHeader from '@/components/layout/PageHeader';
+import Button from '@/components/ui/Button';
+import Input from '@/components/ui/Input';
+import Textarea from '@/components/ui/Textarea';
+import NativeSelect from '@/components/ui/NativeSelect';
+import Card from '@/components/ui/Card';
+import DataState from '@/components/ui/DataState';
+import EngagementExtensions from '@/components/connections/engagementExtensions';
+import AIReplySuggestions from '@/components/ai/AIReplySuggestions';
+import { useRealtime } from '@/hooks/useRealtime';
 
-import TelegramSuggestions from '../../components/TelegramSuggestions';
-import PageHeader from '../../components/layout/PageHeader';
-import Card from '../../components/ui/Card';
-import Button from '../../components/ui/Button';
-import Badge from '../../components/ui/Badge';
-import EmptyState from '../../components/ui/EmptyState';
-import AIReplySuggestions from '../../components/ai/AIReplySuggestions';
-import { useConversations, useConversation } from '../../hooks/useInbox';
-import { inboxAPI } from '../../services/api';
-import { useSession as useAuth } from '../../core/session';
+const capability = { dm: 'inbox', comment: 'comments', review: 'reviews' };
+const permission = { dm: 'reply_messages', comment: 'reply_comments', review: 'reply_reviews' };
+const enabled = value => ['supported', 'beta'].includes(value);
 
-const TYPE_FILTERS = [
-  { id: '',         label: 'All',      icon: Inbox },
-  { id: 'comment',  label: 'Comments', icon: MessageSquare },
-  { id: 'dm',       label: 'DMs',      icon: MessageCircle },
-  { id: 'mention',  label: 'Mentions', icon: AtSign },
-  { id: 'review',   label: 'Reviews',  icon: Star },
-];
-
-const PLATFORM_PILLS = [
-  { id: '',                   label: 'All',   color: 'var(--text-tertiary)' },
-  { id: 'telegram', label: 'Telegram', color: '#229ED9' },
-  { id: 'facebook',           label: 'FB',    color: '#1877F2' },
-  { id: 'instagram',          label: 'IG',    color: '#E1306C' },
-  { id: 'youtube',            label: 'YT',    color: '#FF0000' },
-  { id: 'linkedin',           label: 'LI',    color: '#0A66C2' },
-  { id: 'google_my_business', label: 'GMB',   color: '#34A853' },
-];
-
-const SENTIMENT = {
-  positive: { color: 'var(--success)', icon: Smile,   label: 'Positive' },
-  neutral:  { color: 'var(--text-tertiary)', icon: Meh, label: 'Neutral' },
-  negative: { color: 'var(--danger)',  icon: Frown,   label: 'Negative' },
-  unknown:  { color: 'var(--text-tertiary)', icon: null, label: 'Unknown' },
-};
-
-export default function UnifiedInboxPage() {
-  const [type, setType] = useState('');
-  const [platform, setPlatform] = useState('');
-  const [sentiment, setSentiment] = useState('');
-  const [unreadOnly, setUnreadOnly] = useState(false);
-  const [starredOnly, setStarredOnly] = useState(false);
+export default function UnifiedInboxPage({ reviewsOnly = false }) {
+  const { user } = useSession();
+  const { t } = useLanguage();
+  const [chosenWorkspace, chooseWorkspace] = useState('');
+  const workspaceId = Number(user?.workspace_id || user?.client_id || chosenWorkspace) || null;
+  const workspaces = useQuery({ queryKey: ['engagement.workspaces', user?.id], enabled: !user?.workspace_id && !user?.client_id,
+    queryFn: async () => { const r = await workspacesAPI.list(); const rows = r.data?.results || r.data;
+      if (!Array.isArray(rows)) throw new Error('Invalid workspace list'); return rows; }, retry: false });
+  return <Page>
+    <PageHeader title={t('engagement.title')} subtitle={t('engagement.description')} sticky={false} />
+    {!user?.workspace_id && !user?.client_id && <label className="my-4 block">{t('engagement.workspace')}
+      <NativeSelect value={chosenWorkspace} onChange={e => chooseWorkspace(e.target.value)}>
+        <option value="">{t('engagement.workspace')}</option>
+        {(workspaces.data || []).map(w => <option key={w.id} value={w.id}>{w.company || w.name}</option>)}
+      </NativeSelect>
+    </label>}
+    {workspaces.error && <DataState state="error" title={t('engagement.error')} action={<Button onClick={() => workspaces.refetch()}>{t('engagement.retry')}</Button>} />}
+    {workspaceId && <InboxWorkspace key={`${user?.id}:${workspaceId}`} workspaceId={workspaceId} reviewsOnly={reviewsOnly} />}
+  </Page>;
+}
+function InboxWorkspace({ workspaceId, reviewsOnly }) {
+  const { t, language } = useLanguage();
+  const { user } = useSession();
+  const metadata = useQuery({ queryKey: QK.connections(workspaceId), queryFn: ({ signal }) => connectionsAPI.get(workspaceId, signal), retry: false });
+  const [accountId, setAccount] = useState('');
+  const [requestedType, setType] = useState(reviewsOnly ? 'review' : 'dm');
+  const types = Object.keys(capability).filter(kind => metadata.data?.providers.some(p => enabled(p.capabilities[capability[kind]])));
+  const type = reviewsOnly || types.includes(requestedType) ? requestedType : types[0] || requestedType;
   const [search, setSearch] = useState('');
-  const [activeId, setActiveId] = useState(null);
-
-  const params = {};
-  if (type) params.type = type;
-  if (platform) params.platform = platform;
-  if (sentiment) params.sentiment = sentiment;
-  if (unreadOnly) params.unread = 1;
-  if (starredOnly) params.starred = 1;
-  if (search) params.search = search;
-
-  const { data: conversations, refetch: refetchList, loading } = useConversations(params);
-  const { data: thread, refetch: refetchThread } = useConversation(activeId);
-
-  // Auto-select the first conversation when the list loads
-  useEffect(() => {
-    if (!loading && !conversations.some(item => item.id === activeId)) {
-      setActiveId(conversations[0]?.id ?? null);
-    }
-  }, [conversations, activeId, loading]);
-
-  // Mark-read on selection
-  useEffect(() => {
-    if (activeId) {
-      const convo = conversations.find((c) => c.id === activeId);
-      if (convo && convo.unread_count > 0) {
-        inboxAPI.conversations.markRead(activeId).then(() => refetchList()).catch(() => {});
-      }
-    }
-  // eslint-disable-next-line
-  }, [activeId]);
-
-  return (
-    <div style={{ paddingBottom: 0 }}>
-      <PageHeader title="Inbox" subtitle="Comments, DMs and mentions across every platform" />
-      <TelegramSuggestions />
-
-      <div className="inbox-grid" style={{
-        display: 'grid',
-        gridTemplateColumns: '240px 340px minmax(0, 1fr)',
-        gap: 0,
-        padding: '0 24px',
-        height: 'calc(100vh - 160px)',
-      }}>
-        {/* ── LEFT: filters ─────────────────────────────────────────── */}
-        <FiltersColumn
-          type={type} setType={setType}
-          platform={platform} setPlatform={setPlatform}
-          sentiment={sentiment} setSentiment={setSentiment}
-          unreadOnly={unreadOnly} setUnreadOnly={setUnreadOnly}
-          starredOnly={starredOnly} setStarredOnly={setStarredOnly}
-          search={search} setSearch={setSearch}
-        />
-
-        {/* ── MIDDLE: conversation list ─────────────────────────────── */}
-        <ListColumn
-          conversations={conversations}
-          activeId={activeId}
-          onSelect={setActiveId}
-          loading={loading}
-        />
-
-        {/* ── RIGHT: thread ─────────────────────────────────────────── */}
-        <ThreadColumn
-          key={activeId}
-          thread={!loading && conversations.some(item => item.id === activeId) ? thread : null}
-          onAction={() => { refetchList(); refetchThread(); }}
-        />
-      </div>
-
-      <style>{`
-        @media (max-width: 1024px) {
-          .inbox-grid { grid-template-columns: 1fr !important; height: auto !important; }
-          .inbox-grid > div { display: none; }
-          .inbox-grid > div:nth-child(2) { display: flex !important; height: 60vh; }
-        }
-      `}</style>
+  const [page, setPage] = useState(1);
+  const scope = `${user?.id}:${workspaceId}:${accountId}:${type}:${search}:${page}`;
+  const accounts = useMemo(() => (metadata.data?.providers || []).flatMap(provider =>
+    provider.accounts.filter(account => account.permissions.view_inbox === true && enabled(provider.capabilities[capability[type]]))
+      .map(account => ({ provider, account }))), [metadata.data, type]);
+  const selected = accounts.find(a => String(a.account.id) === accountId);
+  const params = useMemo(() => ({ workspace_id: workspaceId, ...(accountId ? { social_account: accountId } : {}), type, search, page }), [workspaceId, accountId, type, search, page]);
+  const allowed = !!selected && !metadata.error;
+  const list = useConversations(params, scope, allowed && type !== 'review');
+  const reviews = useReviews(params, scope, allowed && type === 'review');
+  useRealtime(event => {
+    if (event?.client_id !== workspaceId) return;
+    if (event.type?.startsWith('inbox.')) { list.refetch(); reviews.refetch(); }
+    if (event.type === 'credential.token_expired') metadata.refetch();
+  });
+  const resource = type === 'review' ? reviews : list;
+  if (metadata.isPending) return <DataState state="loading" title={t('engagement.loading')} />;
+  if (metadata.error) return <Failure error={metadata.error} retry={() => metadata.refetch()} />;
+  return <>
+    <div className="my-4 flex flex-wrap gap-3">
+      {!reviewsOnly && <NativeSelect aria-label={t('engagement.title')} value={type} onChange={e => { setType(e.target.value); setAccount(''); setPage(1); }}>
+        {Object.keys(capability).filter(kind => metadata.data.providers.some(p => enabled(p.capabilities[capability[kind]]))).map(kind => <option key={kind} value={kind}>{t(`engagement.${kind}`)}</option>)}
+      </NativeSelect>}
+      <NativeSelect aria-label={t('engagement.account')} value={selected ? accountId : ''} onChange={e => { setAccount(e.target.value); setPage(1); }}>
+        <option value="">{t('engagement.account')}</option>
+        {accounts.map(({ provider, account }) => <option key={account.id} value={account.id}>{provider.titles[language]} · {account.name || account.identity.name} · {account.destination.id}</option>)}
+      </NativeSelect>
+      <Input aria-label={t('engagement.search')} value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} />
+      <Button disabled={!allowed || resource.loading} onClick={resource.refetch}>{t('engagement.refresh')}</Button>
     </div>
-  );
+    {selected && <EngagementExtensions names={selected.provider.contract.ui_extensions} accountId={selected.account.id} />}
+    {accounts.length === 0 ? <DataState state="empty" title={t('engagement.unavailable')} /> : !selected ? <DataState state="empty" title={t('engagement.account')} /> :
+      <InboxContent key={scope} resource={resource} scope={scope} params={params} selected={selected} type={type} />}
+    {allowed && resource.pagination && <div className="mt-4 flex gap-3">
+      <Button disabled={!resource.pagination.previous || resource.loading} onClick={() => setPage(n => n - 1)}>{t('engagement.previous')}</Button>
+      <Button disabled={!resource.pagination.next || resource.loading} onClick={() => setPage(n => n + 1)}>{t('engagement.next')}</Button>
+    </div>}
+  </>;
 }
-
-/* ── FILTERS COLUMN ────────────────────────────────────────────────────── */
-function FiltersColumn({
-  type, setType, platform, setPlatform, sentiment, setSentiment,
-  unreadOnly, setUnreadOnly, starredOnly, setStarredOnly, search, setSearch,
-}) {
-  return (
-    <Card padding="none" style={{
-      overflow: 'hidden', display: 'flex', flexDirection: 'column',
-      borderRight: 'none', borderRadius: 'var(--radius-lg) 0 0 var(--radius-lg)',
-    }}>
-      <div style={{ padding: 14, borderBottom: '1px solid var(--border-subtle)' }}>
-        <div style={{ position: 'relative' }}>
-          <Search size={14} color="var(--text-tertiary)"
-                  style={{ position: 'absolute', top: 11, left: 10 }} />
-          <input
-            placeholder="Search…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            style={{
-              width: '100%', height: 36,
-              padding: '0 10px 0 30px',
-              background: 'var(--surface-sunken)',
-              border: '1px solid var(--border-subtle)',
-              borderRadius: 'var(--radius-md)',
-              fontSize: 13, outline: 'none', boxSizing: 'border-box',
-              color: 'var(--text-primary)',
-              minHeight: 'unset',
-            }}
-          />
-        </div>
-      </div>
-
-      <div style={{ flex: 1, overflowY: 'auto', padding: 8 }}>
-        <SectionHeader>Type</SectionHeader>
-        {TYPE_FILTERS.map((f) => (
-          <FilterRow key={f.id} icon={f.icon} label={f.label}
-                     active={type === f.id} onClick={() => setType(f.id)} />
-        ))}
-
-        <SectionHeader>Platform</SectionHeader>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, padding: '4px 10px 8px' }}>
-          {PLATFORM_PILLS.map((p) => {
-            const active = platform === p.id;
-            return (
-              <button
-                key={p.id || 'all'}
-                type="button"
-                onClick={() => setPlatform(p.id)}
-                style={{
-                  padding: '4px 10px', borderRadius: 'var(--radius-pill)',
-                  border: `1px solid ${active ? 'transparent' : 'var(--border-subtle)'}`,
-                  background: active ? p.color : 'var(--surface-card)',
-                  color: active ? '#fff' : 'var(--text-secondary)',
-                  fontSize: 11, fontWeight: 600, cursor: 'pointer',
-                  minHeight: 'unset', minWidth: 'unset',
-                  transition: 'var(--transition-fast)',
-                }}
-              >
-                {p.label}
-              </button>
-            );
-          })}
-        </div>
-
-        <SectionHeader>Sentiment</SectionHeader>
-        {[
-          { id: '',         label: 'All' },
-          { id: 'positive', label: 'Positive', icon: Smile,  color: 'var(--success)' },
-          { id: 'neutral',  label: 'Neutral',  icon: Meh,    color: 'var(--text-tertiary)' },
-          { id: 'negative', label: 'Negative', icon: Frown,  color: 'var(--danger)' },
-        ].map((s) => (
-          <FilterRow key={s.id || 'all'} icon={s.icon} label={s.label}
-                     iconColor={s.color}
-                     active={sentiment === s.id} onClick={() => setSentiment(s.id)} />
-        ))}
-
-        <SectionHeader>Quick</SectionHeader>
-        <FilterRow icon={Inbox} label="Unread only"
-                    active={unreadOnly} onClick={() => setUnreadOnly((v) => !v)} />
-        <FilterRow icon={Star} label="Starred only"
-                    active={starredOnly} onClick={() => setStarredOnly((v) => !v)} />
-      </div>
-    </Card>
-  );
+function Failure({ error, retry, preserved = false }) {
+  const { t } = useLanguage(); const normalized = apiError(error);
+  const forbidden = ['permission', 'authentication'].includes(normalized.kind);
+  const offline = normalized.kind === 'unavailable' && typeof navigator !== 'undefined' && !navigator.onLine;
+  return <DataState state={offline ? 'offline' : preserved && !forbidden ? 'partial' : forbidden ? 'forbidden' : 'error'}
+    title={t(offline ? 'catalog.state.offline.title' : normalized.status === 404 ? 'engagement.notFound' : forbidden ? 'engagement.forbidden' : 'engagement.error')}
+    description={preserved ? t('engagement.preserved') : undefined}
+    action={<Button onClick={retry}>{t('engagement.retry')}</Button>} />;
 }
-
-function SectionHeader({ children }) {
-  return (
-    <div style={{
-      padding: '12px 12px 6px',
-      fontSize: 11, fontWeight: 600,
-      color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: 0.6,
-    }}>
-      {children}
-    </div>
-  );
-}
-
-function FilterRow({ icon: Icon, label, active, onClick, iconColor }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      style={{
-        display: 'flex', alignItems: 'center', gap: 8,
-        width: '100%', padding: '8px 12px',
-        background: active ? 'var(--brand-primary-glow)' : 'transparent',
-        border: 'none', borderRadius: 'var(--radius-sm)',
-        color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
-        fontSize: 13, fontWeight: active ? 600 : 500,
-        cursor: 'pointer', textAlign: 'left',
-        minHeight: 'unset', minWidth: 'unset',
-        transition: 'var(--transition-fast)',
-      }}
-    >
-      {Icon && <Icon size={14} color={iconColor || (active ? 'var(--text-primary)' : 'var(--text-tertiary)')} />}
-      <span style={{ flex: 1 }}>{label}</span>
-    </button>
-  );
-}
-
-/* ── LIST COLUMN ───────────────────────────────────────────────────────── */
-function ListColumn({ conversations, activeId, onSelect, loading }) {
-  return (
-    <Card padding="none" style={{
-      overflow: 'hidden', display: 'flex', flexDirection: 'column',
-      borderRadius: 0, borderLeft: 'none', borderRight: 'none',
-    }}>
-      <div style={{
-        padding: 14, borderBottom: '1px solid var(--border-subtle)',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      }}>
-        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-tertiary)',
-                       textTransform: 'uppercase', letterSpacing: 0.4 }}>
-          {conversations.length} {conversations.length === 1 ? 'conversation' : 'conversations'}
-        </span>
-      </div>
-      <div style={{ flex: 1, overflowY: 'auto' }}>
-        {loading && (
-          <div style={{ padding: 32, textAlign: 'center' }}>
-            <Loader2 size={18} className="ds-spin" color="var(--text-tertiary)" />
-          </div>
-        )}
-        {!loading && conversations.length === 0 && (
-          <EmptyState icon={Inbox} title="Inbox zero"
-                       description="You're all caught up. New comments and messages will appear here as they arrive." />
-        )}
-        {conversations.map((c) => (
-          <ConversationRow
-            key={c.id}
-            conv={c}
-            active={c.id === activeId}
-            onClick={() => onSelect(c.id)}
-          />
-        ))}
-      </div>
-      <style>{`.ds-spin { animation: ds-spin 0.9s linear infinite; } @keyframes ds-spin { to { transform: rotate(360deg); } }`}</style>
-    </Card>
-  );
-}
-
-function ConversationRow({ conv, active, onClick }) {
-  const platform = PLATFORM_PILLS.find((p) => p.id === conv.platform);
-  const sent = SENTIMENT[conv.sentiment] || SENTIMENT.unknown;
-  const initial = (conv.contact_name || conv.contact_handle || '?')[0].toUpperCase();
-
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      style={{
-        display: 'flex', alignItems: 'flex-start', gap: 10,
-        width: '100%', padding: '12px 14px',
-        background: active ? 'var(--brand-primary-glow)' : 'transparent',
-        border: 'none', borderBottom: '1px solid var(--border-subtle)',
-        cursor: 'pointer', textAlign: 'left',
-        minHeight: 'unset', minWidth: 'unset',
-        transition: 'var(--transition-fast)',
-      }}
-    >
-      <div style={{ position: 'relative', flexShrink: 0 }}>
-        <div style={{
-          width: 40, height: 40, borderRadius: 999,
-          background: `linear-gradient(135deg, ${platform?.color || 'var(--text-tertiary)'}, ${shade(platform?.color || 'var(--text-tertiary)', -15)})`,
-          color: '#fff', fontWeight: 700, fontSize: 14,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
-          {initial}
-        </div>
-        <div style={{
-          position: 'absolute', bottom: -2, right: -2,
-          width: 14, height: 14, borderRadius: 999,
-          background: 'var(--surface-card)', border: '2px solid var(--surface-card)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 8, fontWeight: 700, color: platform?.color,
-        }}>
-          {(platform?.label || '?').slice(0, 2)}
-        </div>
-      </div>
-
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
-          <span style={{
-            fontSize: 13, fontWeight: 600,
-            color: 'var(--text-primary)',
-            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-            flex: 1,
-          }}>
-            {conv.contact_name || conv.contact_handle || 'Unknown'}
-          </span>
-          {conv.is_starred && <Star size={11} color="var(--warning)" fill="var(--warning)" />}
-          {conv.unread_count > 0 && (
-            <span style={{
-              minWidth: 18, height: 18, padding: '0 5px',
-              background: 'var(--brand-primary-hover)', color: '#fff',
-              borderRadius: 999, fontSize: 10, fontWeight: 700,
-              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              {conv.unread_count}
-            </span>
-          )}
-        </div>
-        <div style={{
-          fontSize: 12, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)',
-          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-          marginBottom: 4,
-        }}>
-          {conv.last_message_preview || ''}
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          {sent.icon && <sent.icon size={11} color={sent.color} />}
-          <span style={{ fontSize: 10, color: 'var(--text-tertiary)' }}>
-            {fmtTime(conv.last_message_at)}
-          </span>
-        </div>
-      </div>
-    </button>
-  );
-}
-
-/* ── THREAD COLUMN ─────────────────────────────────────────────────────── */
-function ThreadColumn({ thread, onAction }) {
-  const { user } = useAuth();
-  const scrollRef = useRef();
-  const [replyText, setReplyText] = useState('');
-  const [sending, setSending] = useState(false);
-
-  // Auto-scroll to the bottom on thread change
-  useEffect(() => {
-    if (scrollRef.current && thread?.messages?.length) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [thread?.id, thread?.messages?.length]);
-
-  if (!thread) {
-    return (
-      <Card padding="none" style={{
-        overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        borderRadius: '0 var(--radius-lg) var(--radius-lg) 0', borderLeft: 'none',
-      }}>
-        <EmptyState icon={MessageSquare} title="Select a conversation"
-                     description="Pick a conversation from the list to read it and reply." />
+function InboxContent({ resource, scope, params, selected, type }) {
+  const { t } = useLanguage();
+  const [activeId, setActive] = useState(null);
+  const active = resource.data.find(row => row.id === activeId);
+  const thread = useConversation(type === 'review' ? null : active?.id, scope, params);
+  const data = type === 'review' ? active : thread.data;
+  useRealtime(event => { if (event?.client_id === params.workspace_id && event.type?.startsWith('inbox.')) thread.refetch(); });
+  const canReply = selected.account.health.ready && selected.account.engagement_readiness?.[capability[type]] === true && selected.account.permissions[permission[type]] === true;
+  return <>
+    {resource.error && <Failure error={resource.error} retry={resource.refetch} preserved={resource.data.length > 0} />}
+    {resource.loading && <DataState state={resource.data.length ? 'refreshing' : 'loading'} title={t(resource.data.length ? 'engagement.refreshing' : 'engagement.loading')} compact />}
+    {!resource.loading && !resource.error && resource.data.length === 0 && <DataState state={params.search ? 'no-results' : 'empty'} title={t(params.search ? 'engagement.noResults' : 'engagement.empty')} />}
+    <div className="grid min-w-0 gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+      <Card className={activeId ? 'hidden md:block' : ''}>
+        {resource.data.map(row => <button key={row.id} type="button" aria-pressed={activeId === row.id} className="block w-full border-b border-border p-3 text-start focus-visible:outline focus-visible:outline-2" onClick={() => setActive(row.id)}>
+          <span className="block font-semibold">{row.contact_name || row.contact_handle || row.reviewer_name}</span>
+          <span className="block break-words text-sm text-muted-foreground">{row.last_message_preview || row.comment}</span>
+        </button>)}
       </Card>
-    );
-  }
-
-  const platform = PLATFORM_PILLS.find((p) => p.id === thread.platform);
-
-  async function send() {
-    const text = replyText.trim();
-    if (!text || sending || thread.is_resolved) return;
-    setSending(true);
-    try {
-      await inboxAPI.conversations.reply(thread.id, text);
-      setReplyText('');
-      onAction?.();
-      toast.success('Reply sent');
-    } catch (e) {
-      const code = e.response?.data?.code;
-      if (code === 'token_expired') {
-        toast.error(`${thread.platform} token expired — please reconnect.`);
-      } else {
-        toast.error(e.response?.data?.detail || 'Reply failed');
-      }
-    } finally {
-      setSending(false);
-    }
-  }
-
-  async function toggleStar() {
-    if (thread.is_starred) await inboxAPI.conversations.unstar(thread.id);
-    else                    await inboxAPI.conversations.star(thread.id);
-    onAction?.();
-  }
-  async function toggleArchive() {
-    if (thread.is_archived) await inboxAPI.conversations.unarchive(thread.id);
-    else                     await inboxAPI.conversations.archive(thread.id);
-    onAction?.();
-  }
-  async function toggleResolve() {
-    if (thread.is_resolved) await inboxAPI.conversations.reopen(thread.id);
-    else                     await inboxAPI.conversations.resolve(thread.id);
-    onAction?.();
-  }
-
-  // Last inbound message — used to show AI suggested reply if available
-  const lastInbound = (thread.messages || [])
-    .filter((m) => m.direction === 'inbound')
-    .slice(-1)[0];
-
-  return (
-    <Card padding="none" style={{
-      overflow: 'hidden', display: 'flex', flexDirection: 'column',
-      borderRadius: '0 var(--radius-lg) var(--radius-lg) 0', borderLeft: 'none',
-    }}>
-      {/* Thread header */}
-      <div style={{
-        padding: 14, borderBottom: '1px solid var(--border-subtle)',
-        display: 'flex', alignItems: 'center', gap: 10,
-      }}>
-        <div style={{
-          width: 36, height: 36, borderRadius: 999,
-          background: `linear-gradient(135deg, ${platform?.color || 'var(--text-tertiary)'}, ${shade(platform?.color || 'var(--text-tertiary)', -15)})`,
-          color: '#fff', fontWeight: 700, fontSize: 13,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
-          {(thread.contact_name || thread.contact_handle || '?')[0].toUpperCase()}
-        </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
-            {thread.contact_name || thread.contact_handle || 'Unknown'}
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2 }}>
-            <span style={{ color: platform?.color, fontWeight: 600 }}>{platform?.label}</span>
-            <span>·</span>
-            <span>{thread.type}</span>
-            {thread.contact_handle && (
-              <>
-                <span>·</span>
-                <span>@{thread.contact_handle}</span>
-              </>
-            )}
-          </div>
-        </div>
-        <div style={{ display: 'flex', gap: 4 }}>
-          <ActionIcon icon={Star} active={thread.is_starred}
-                      onClick={toggleStar} ariaLabel="Star" />
-          <ActionIcon icon={thread.is_archived ? ArchiveRestore : Archive}
-                      active={thread.is_archived}
-                      onClick={toggleArchive} ariaLabel="Archive" />
-          <ActionIcon icon={CheckCircle2} active={thread.is_resolved}
-                      onClick={toggleResolve} ariaLabel="Resolve" />
-        </div>
-      </div>
-
-      {/* Messages */}
-      <div ref={scrollRef} style={{
-        flex: 1, overflowY: 'auto', padding: 16,
-        background: 'var(--surface-sunken)',
-        display: 'flex', flexDirection: 'column', gap: 8,
-      }}>
-        {(thread.messages || []).map((m) => <Bubble key={m.id} msg={m} />)}
-      </div>
-
-      {/* Reply box */}
-      <div style={{ padding: 12, borderTop: '1px solid var(--border-subtle)', background: 'var(--surface-card)' }}>
-        {/* Social Stats — 3 reply variants for the latest inbound message */}
-        {lastInbound && !thread.is_resolved && (
-          <AIReplySuggestions
-            clientId={user?.client_id || thread.client}
-            messageId={lastInbound.id}
-            platform={thread.platform}
-            senderName={thread.contact_name || ''}
-            onPick={(text) => setReplyText(text)}
-            autoLoad={false}
-          />
-        )}
-        {lastInbound?.ai_suggested_reply && (
-          <button
-            type="button"
-            onClick={() => setReplyText(lastInbound.ai_suggested_reply)}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              padding: '6px 10px',
-              background: 'var(--brand-primary-glow)',
-              color: 'var(--brand-primary-hover)',
-              border: '1px solid var(--border-subtle)',
-              borderRadius: 'var(--radius-pill)',
-              fontSize: 11, fontWeight: 600,
-              cursor: 'pointer', marginBottom: 8,
-              minHeight: 'unset', minWidth: 'unset',
-            }}
-          >
-            <Sparkles size={11} />
-            AI suggests: {lastInbound.ai_suggested_reply.slice(0, 60)}…
-          </button>
-        )}
-        <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
-          <textarea
-            value={replyText}
-            onChange={(e) => setReplyText(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); send(); }
-            }}
-            placeholder={thread.is_resolved ? 'Conversation resolved — reopen to reply' : 'Type a reply… (⌘↵ to send)'}
-            disabled={thread.is_resolved || sending}
-            rows={2}
-            style={{
-              flex: 1, resize: 'vertical',
-              padding: '10px 12px',
-              background: 'var(--surface-sunken)',
-              border: '1px solid var(--border-subtle)',
-              borderRadius: 'var(--radius-md)',
-              fontSize: 13, fontFamily: 'inherit',
-              color: 'var(--text-primary)',
-              outline: 'none', boxSizing: 'border-box',
-              minHeight: 'unset',
-            }}
-          />
-          <Button
-            icon={Send}
-            onClick={send}
-            loading={sending}
-            disabled={!replyText.trim() || thread.is_resolved}
-          >
-            Send
-          </Button>
-        </div>
-      </div>
-    </Card>
-  );
-}
-
-function ActionIcon({ icon: Icon, active, onClick, ariaLabel }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={ariaLabel}
-      title={ariaLabel}
-      style={{
-        width: 32, height: 32, borderRadius: 'var(--radius-sm)',
-        background: active ? 'var(--brand-primary-glow)' : 'transparent',
-        color: active ? 'var(--brand-primary-hover)' : 'var(--text-tertiary)',
-        border: 'none', cursor: 'pointer',
-        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-        minHeight: 'unset', minWidth: 'unset',
-        transition: 'var(--transition-fast)',
-      }}
-    >
-      <Icon size={14} />
-    </button>
-  );
-}
-
-function Bubble({ msg }) {
-  const isOut = msg.direction === 'outbound';
-  const sent = SENTIMENT[msg.sentiment] || SENTIMENT.unknown;
-  return (
-    <div style={{
-      display: 'flex', flexDirection: 'column',
-      alignItems: isOut ? 'flex-end' : 'flex-start',
-      gap: 2,
-    }}>
-      <div style={{
-        maxWidth: '75%',
-        padding: '10px 14px',
-        borderRadius: 16,
-        background: isOut
-          ? 'linear-gradient(135deg, #00CCF5, #00A8D8)'
-          : 'var(--surface-card)',
-        color: isOut ? '#fff' : 'var(--text-primary)',
-        fontSize: 13, lineHeight: 'var(--line-height-body)',
-        boxShadow: isOut ? '0 2px 6px rgba(0,168,216,0.15)' : 'var(--shadow-sm)',
-        border: isOut ? 'none' : '1px solid var(--border-subtle)',
-        whiteSpace: 'pre-wrap',
-        wordBreak: 'break-word',
-      }}>
-        {!isOut && msg.author_name && (
-          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)', marginBottom: 4 }}>
-            {msg.author_name}
-          </div>
-        )}
-        {msg.content || <em style={{ opacity: 0.7 }}>[no content]</em>}
-      </div>
-      <div style={{
-        display: 'flex', gap: 6, alignItems: 'center',
-        fontSize: 10, color: 'var(--text-tertiary)',
-        padding: '0 6px',
-      }}>
-        <span>{fmtDateTime(msg.sent_at || msg.created_at)}</span>
-        {!isOut && sent.icon && (
-          <>
-            <span>·</span>
-            <sent.icon size={10} color={sent.color} />
-          </>
-        )}
-      </div>
+      <Card className={!activeId ? 'hidden md:block' : ''}>
+        {activeId && <Button className="mb-3 md:hidden" onClick={() => setActive(null)}>{t('engagement.back')}</Button>}
+        {thread.error && <Failure error={thread.error} retry={thread.refetch} preserved={!!thread.data} />}
+        {thread.loading && <DataState state={thread.data ? 'refreshing' : 'loading'} title={t('engagement.loading')} compact />}
+        {!activeId && <DataState state="empty" title={t('engagement.select')} />}
+        {data && <ReplyThread key={data.id} thread={data} type={type} canReply={canReply && !thread.error} refresh={() => { resource.refetch(); thread.refetch(); }} />}
+      </Card>
     </div>
-  );
+  </>;
 }
-
-/* ── helpers ───────────────────────────────────────────────────────────── */
-function fmtTime(iso) {
-  if (!iso) return '';
-  const d = new Date(iso);
-  const diff = Date.now() - d.getTime();
-  const min = Math.floor(diff / 60000);
-  if (min < 1)  return 'now';
-  if (min < 60) return `${min}m`;
-  if (min < 1440) return `${Math.floor(min / 60)}h`;
-  return d.toLocaleDateString();
-}
-
-function fmtDateTime(iso) {
-  if (!iso) return '';
-  const d = new Date(iso);
-  return d.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-}
-
-function shade(hex, pct) {
-  const m = /^#([0-9a-f]{6})$/i.exec(hex);
-  if (!m) return hex;
-  let n = parseInt(m[1], 16);
-  let r = (n >> 16) + Math.round(255 * pct / 100);
-  let g = ((n >> 8) & 0xff) + Math.round(255 * pct / 100);
-  let b = (n & 0xff) + Math.round(255 * pct / 100);
-  r = Math.max(0, Math.min(255, r));
-  g = Math.max(0, Math.min(255, g));
-  b = Math.max(0, Math.min(255, b));
-  return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
+function ReplyThread({ thread, type, canReply, refresh }) {
+  const { t } = useLanguage();
+  const [text, setText] = useState(''); const [pending, setPending] = useState(false);
+  const [outcome, setOutcome] = useState(null); const [ambiguous, setAmbiguous] = useState(false);
+  const busy = useRef(false); const mounted = useRef(true); const feedback = useRef(null);
+  const readSent = useRef(false);
+  useEffect(() => {
+    if (type !== 'review' && thread.unread_count > 0 && !readSent.current) {
+      readSent.current = true;
+      inboxAPI.conversations.markRead(thread.id).then(() => { if (mounted.current) refresh(); }).catch(() => { readSent.current = false; });
+    }
+  }, [type, thread.id, thread.unread_count, refresh]);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
+  useEffect(() => { if (outcome === 'failed' || outcome === 'ambiguous') feedback.current?.focus(); }, [outcome]);
+  async function send(event) {
+    event.preventDefault(); if (busy.current || !canReply || ambiguous || !text.trim() || thread.is_resolved) return;
+    busy.current = true; setPending(true); setOutcome(null);
+    try {
+      const response = await (type === 'review' ? inboxAPI.reviews : inboxAPI.conversations).reply(thread.id, text.trim());
+      if (!mounted.current) return;
+      if (response.status === 202) { setOutcome('approval'); return; }
+      if (![200, 201].includes(response.status) || !response.data || !Number.isSafeInteger(response.data.id)) throw new Error('Invalid reply result');
+      setText(''); setOutcome('sent'); refresh();
+    } catch (error) {
+      if (!mounted.current) return;
+      const failure = apiError(error); const unknown = !failure.status || failure.status >= 500;
+      setAmbiguous(unknown); setOutcome(unknown ? 'ambiguous' : 'failed');
+    } finally { busy.current = false; if (mounted.current) setPending(false); }
+  }
+  async function update(operation) {
+    if (busy.current) return; busy.current = true; setPending(true);
+    try { await inboxAPI.conversations[operation](thread.id); if (mounted.current) { refresh(); setOutcome('updated'); } }
+    catch { if (mounted.current) setOutcome('failed'); }
+    finally { busy.current = false; if (mounted.current) setPending(false); }
+  }
+  return <>
+    {type !== 'review' && <div className="mb-3 flex flex-wrap gap-2">
+      <Button disabled={pending} onClick={() => update(thread.is_starred ? 'unstar' : 'star')}>{t('engagement.star')}</Button>
+      <Button disabled={pending} onClick={() => update(thread.is_archived ? 'unarchive' : 'archive')}>{t('engagement.archive')}</Button>
+      <Button disabled={pending} onClick={() => update(thread.is_resolved ? 'reopen' : 'resolve')}>{t('engagement.resolve')}</Button>
+    </div>}
+    <h2 className="break-words font-semibold">{thread.contact_name || thread.reviewer_name}</h2>
+    <div className="my-4 max-h-96 space-y-3 overflow-auto" aria-busy={pending}>
+      {(thread.messages || []).map(message => <p key={message.id} className="whitespace-pre-wrap break-words rounded-lg bg-muted p-3">{message.content}</p>)}
+      {type === 'review' && <p className="whitespace-pre-wrap break-words">{thread.comment}</p>}
+    </div>
+    {outcome && <div ref={feedback} tabIndex={-1} role={['failed', 'ambiguous'].includes(outcome) ? 'alert' : 'status'} className="my-3 rounded-lg border border-border p-3">{t(`engagement.${outcome}`)}</div>}
+    {!canReply && <DataState state="forbidden" title={t('engagement.notReady')} compact />}
+    {canReply && thread.messages?.some(m => m.direction === 'inbound') && <AIReplySuggestions
+      clientId={thread.client} messageId={thread.messages.filter(m => m.direction === 'inbound').slice(-1)[0].id}
+      platform={thread.platform} senderName={thread.contact_name || ''} onPick={value => { if (!pending) setText(value); }} autoLoad={false} />}
+    {canReply && <form onSubmit={send}>
+      <Textarea label={t('engagement.reply')} value={text} onChange={e => setText(e.target.value)} disabled={pending} />
+      <Button type="submit" disabled={pending || ambiguous || outcome === 'approval' || !text.trim() || thread.is_resolved}>{t(pending ? 'engagement.loading' : 'engagement.send')}</Button>
+    </form>}
+  </>;
 }

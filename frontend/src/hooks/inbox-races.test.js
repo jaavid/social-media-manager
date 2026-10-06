@@ -11,14 +11,14 @@ jest.mock('../services/api', () => ({
 beforeEach(() => jest.clearAllMocks());
 
 describe.each([
-  ['unified', useConversation, inboxAPI.conversations.get, id => ({ id })],
+  ['unified', useConversation, inboxAPI.conversations.get, id => ({ id, messages: [] })],
   ['WhatsApp', useWhatsAppThread, whatsappAPI.inbox.thread, id => ({ contact: { id } })],
 ])('%s conversation identity', (_name, useThread, get, data) => {
   test('a late response for A never replaces B; an old refetch cannot load A again', async () => {
     let finishA;
     get.mockImplementation(id => id === 1 ? new Promise(resolve => { finishA = resolve; }) : Promise.resolve({ data: data(2) }));
     const { result, rerender } = renderHook(({ id }) => useThread(id), { initialProps: { id: 1 } });
-    await waitFor(() => expect(get).toHaveBeenCalledWith(1));
+    await waitFor(() => expect(get).toHaveBeenCalledWith(...(_name === 'unified' ? [1, {}, expect.any(AbortSignal)] : [1])));
     const oldRefetch = result.current.refetch;
     rerender({ id: 2 });
     expect(result.current.data).toBeNull();
@@ -33,7 +33,7 @@ describe.each([
     let finish;
     get.mockImplementation(() => new Promise(resolve => { finish = resolve; }));
     const { result, rerender } = renderHook(({ id }) => useThread(id), { initialProps: { id: 1 } });
-    await waitFor(() => expect(get).toHaveBeenCalledWith(1));
+    await waitFor(() => expect(get).toHaveBeenCalledWith(...(_name === 'unified' ? [1, {}, expect.any(AbortSignal)] : [1])));
     rerender({ id: null });
     expect(result.current.data).toBeNull();
     await act(async () => finish({ data: data(1) }));

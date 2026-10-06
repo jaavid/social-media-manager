@@ -44,8 +44,8 @@ export const activityAPI = {
 
 export const inboxAPI = {
   conversations: {
-    list:        (params)   => api.get('/inbox/conversations/', { params }),
-    get:         (id)       => api.get(`/inbox/conversations/${id}/`),
+    list:        (params, signal) => api.get('/inbox/conversations/', { params, signal }),
+    get:         (id, params, signal) => api.get(`/inbox/conversations/${id}/`, { params, signal }),
     markRead:    (id)       => api.post(`/inbox/conversations/${id}/mark_read/`),
     archive:     (id)       => api.post(`/inbox/conversations/${id}/archive/`),
     unarchive:   (id)       => api.post(`/inbox/conversations/${id}/unarchive/`),
@@ -60,12 +60,12 @@ export const inboxAPI = {
     list:        (params)   => api.get('/inbox/messages/', { params }),
   },
   reviews: {
-    list:        (params)   => api.get('/inbox/reviews/', { params }),
+    list:        (params, signal) => api.get('/inbox/reviews/', { params, signal }),
     get:         (id)       => api.get(`/inbox/reviews/${id}/`),
     reply:       (id, text) => api.post(`/inbox/reviews/${id}/reply/`, { text }),
     flag:        (id)       => api.post(`/inbox/reviews/${id}/flag/`),
   },
-  stats:         ()         => api.get('/inbox/stats/'),
+  stats:         (params, signal) => api.get('/inbox/stats/', { params, signal }),
 };
 
 export const whatsappAPI = {

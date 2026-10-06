@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import api from '../services/api';
 import Card from './ui/Card';
 import Button from './ui/Button';
-export default function TelegramSuggestions() {
+export default function TelegramSuggestions({ accountId }) {
   const {
     tr
   } = useLanguage();
@@ -11,12 +11,14 @@ export default function TelegramSuggestions() {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(null);
   const [sendDates, setSendDates] = useState({});
-  const load = () => api.get('/telegram-suggestions/').then(({
+  const load = () => api.get('/telegram-suggestions/', { params: accountId ? { account: accountId } : {} }).then(({
     data
   }) => setRows(data.results || data));
   useEffect(() => {
-    load().catch(() => {});
-  }, []);
+    let active = true;
+    api.get('/telegram-suggestions/', { params: accountId ? { account: accountId } : {} }).then(({ data }) => { if (active) setRows(data.results || data); }).catch(() => {});
+    return () => { active = false; };
+  }, [accountId]);
   async function decide(row, decision) {
     setBusy(row.id);
     setError('');

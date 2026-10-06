@@ -197,7 +197,20 @@ class BasePlatformProvider:
         return self._unsupported('ingest')
 
     def reply(self, credential, destination, request=None) -> ProviderResult:
-        return self._unsupported('reply')
+        # Integration maintainers own this compatibility path. Remove it when
+        # each builtin implements typed reply with its transport regression tests.
+        if not self.manifest.legacy_adapter or self.publisher is None:
+            return self._unsupported('reply')
+        if request.kind == 'comments':
+            result = self.publisher.reply_to_comment(credential, request.thread_id, request.content)
+        elif request.kind == 'reviews':
+            result = self.publisher.reply_to_review(credential, request.thread_id, request.content)
+        else:
+            result = self.publisher.reply_to_dm(credential, request.thread_id, request.content,
+                psid=request.recipient_id, recipient_id=request.recipient_id)
+        if not isinstance(result, PublishResult) or result.success is not True:
+            raise ProviderError('Invalid reply result', code='invalid_response')
+        return ProviderResult(data={'message_id': result.platform_post_id})
 
     def health(self, credential):
         from .contracts import HealthResult

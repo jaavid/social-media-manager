@@ -28,9 +28,9 @@ import logging
 from datetime import timedelta
 from typing import Optional
 
-from django.db.models import Avg, Count, F, Q
+from django.db.models import Count, Q
 from django.utils import timezone
-from rest_framework import viewsets, status
+from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -43,8 +43,7 @@ from social_stats.models import (
     Conversation, Message, UnifiedReview, PlatformCredential,
 )
 from social_stats.publishers import (
-    get_publisher,
-    PublishError, TokenExpiredError, RateLimitError,
+    PublishError,
 )
 from social_stats.tenant_mixins import TenantScopedMixin
 from social_stats.marketplace_permissions import (
@@ -179,7 +178,8 @@ class ConversationViewSet(TenantScopedMixin, viewsets.ReadOnlyModelViewSet):
     def reply(self, request, pk=None):
         """Compose a reply: routes through the right publisher and persists outbound Message."""
         conv = self.get_object()
-        text = (request.data.get('text') or '').strip()
+        value = request.data.get('text')
+        text = value.strip() if isinstance(value, str) else ''
         if not text:
             return Response({'detail': 'text is required'}, status=400)
 
@@ -205,60 +205,14 @@ class ConversationViewSet(TenantScopedMixin, viewsets.ReadOnlyModelViewSet):
             if verdict == 'approval_required':
                 return approval_pending_response(ctx['approval'])
 
-        # Resolve credentials + the originating message we're replying to.
-        cred = PlatformCredential.objects.filter(
-            client_id=conv.client_id, platform=conv.platform,
-            social_account_id=conv.social_account_id, is_active=True,
-        ).first()
-        if not cred:
-            return Response({'detail': f'No active {conv.platform} credential'}, status=400)
-
-        publisher = get_publisher(conv.platform)
-        last_inbound = (Message.objects
-                        .filter(conversation=conv, direction='inbound')
-                        .order_by('-created_at').first())
-
+        from social_stats.platforms.engagement import deliver_reply
         try:
-            if conv.type == 'comment':
-                if not last_inbound or not last_inbound.platform_message_id:
-                    return Response({'detail': 'No inbound comment to reply to'}, status=400)
-                result = publisher.reply_to_comment(cred, last_inbound.platform_message_id, text)
-            elif conv.type == 'dm':
-                psid = (last_inbound.author_handle if last_inbound else conv.contact_handle)
-                if not psid:
-                    return Response({'detail': 'No recipient ID on this thread'}, status=400)
-                result = publisher.reply_to_dm(cred, conv.platform_thread_id, text, psid=psid, recipient_id=psid)
-            elif conv.type == 'review':
-                if not last_inbound or not last_inbound.platform_message_id:
-                    return Response({'detail': 'No review to reply to'}, status=400)
-                result = publisher.reply_to_review(cred, last_inbound.platform_message_id, text)
-            else:
-                return Response({'detail': f'Reply not supported for type={conv.type}'}, status=400)
-        except TokenExpiredError as e:
-            cred.mark_auth_failure('token_expired')
-            return Response({'detail': str(e), 'code': 'token_expired'}, status=400)
-        except RateLimitError as e:
-            return Response({'detail': str(e), 'code': 'rate_limited'}, status=429)
-        except PublishError as e:
-            return Response({'detail': str(e), 'code': e.code or 'publish_error'}, status=400)
-
-        # Persist outbound message
-        msg = Message.objects.create(
-            conversation=conv,
-            platform_message_id=getattr(result, 'platform_post_id', '') or '',
-            direction='outbound',
-            author_name=request.user.get_full_name() or request.user.email or 'Social Stats',
-            author_handle=request.user.email or '',
-            content=text,
-            sent_at=timezone.now(),
-            replied_at=timezone.now(),
-            sentiment=last_inbound.sentiment if last_inbound else 'unknown',
-            sent_by=request.user,
-        )
-        # Touch the conversation
-        conv.last_message_preview = text[:500]
-        conv.last_message_at = msg.sent_at
-        conv.save(update_fields=['last_message_preview', 'last_message_at'])
+            msg = deliver_reply(conv, text, request.user)
+        except PublishError as exc:
+            if exc.code == 'token_expired':
+                PlatformCredential.objects.filter(social_account=conv.social_account).first().mark_auth_failure('token_expired')
+            return Response({'detail': 'Reply failed', 'code': exc.code},
+                status=429 if exc.code == 'rate_limited' else 502 if exc.code in {'network_error', 'timeout', 'invalid_response', 'provider_error'} else 400)
 
         log_activity_for_request(
             request, conv.client,
@@ -280,21 +234,17 @@ class MessageViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = MessageSerializer
 
     def get_queryset(self):
-        try:
-            profile = self.request.user.profile
-        except Exception:
-            return self.queryset.none()
-        qs = self.queryset
-        # Filter by tenant via the parent conversation
-        if profile.role == 'superadmin':
-            cid = self.request.query_params.get('client_id')
-            if cid: qs = qs.filter(conversation__client_id=cid)
-        elif profile.role == 'staff':
-            qs = qs.filter(conversation__client__in=profile.assigned_clients.all())
-        else:
-            qs = qs.filter(conversation__client_id=profile.client_id)
-        if self.request.query_params.get('conversation'):
-            qs = qs.filter(conversation_id=self.request.query_params['conversation'])
+        from social_stats.authorization import accessible_workspaces, scope_account_queryset
+        conversations = scope_account_queryset(
+            Conversation.objects.filter(client__in=accessible_workspaces(self.request.user)),
+            self.request.user, 'view_inbox')
+        params = self.request.query_params
+        workspace = params.get('workspace_id') or params.get('client_id')
+        if workspace:
+            conversations = conversations.filter(client_id=workspace)
+        qs = self.queryset.filter(conversation__in=conversations)
+        if params.get('conversation'):
+            qs = qs.filter(conversation_id=params['conversation'])
         return qs.order_by('sent_at', 'id')
 
 
@@ -305,6 +255,11 @@ class UnifiedReviewViewSet(TenantScopedMixin, viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         qs = super().get_queryset()
+        if self.request.query_params.get('social_account'):
+            qs = qs.filter(social_account_id=self.request.query_params['social_account'])
+        if self.request.query_params.get('search'):
+            term = self.request.query_params['search']
+            qs = qs.filter(Q(reviewer_name__icontains=term) | Q(comment__icontains=term))
         if self.request.query_params.get('status'):
             qs = qs.filter(status=self.request.query_params['status'])
         if self.request.query_params.get('rating'):
@@ -317,7 +272,8 @@ class UnifiedReviewViewSet(TenantScopedMixin, viewsets.ReadOnlyModelViewSet):
     @action(detail=True, methods=['post'])
     def reply(self, request, pk=None):
         review = self.get_object()
-        text = (request.data.get('text') or '').strip()
+        value = request.data.get('text')
+        text = value.strip() if isinstance(value, str) else ''
         if not text:
             return Response({'detail': 'text is required'}, status=400)
 
@@ -327,27 +283,29 @@ class UnifiedReviewViewSet(TenantScopedMixin, viewsets.ReadOnlyModelViewSet):
                 'code': 'account_identity_required',
             }, status=400)
 
-        cred = PlatformCredential.objects.filter(
-            client_id=review.client_id, platform=review.platform,
-            social_account_id=review.social_account_id, is_active=True,
-        ).first()
-        if not cred:
-            return Response({'detail': f'No active {review.platform} credential'}, status=400)
+        verdict, ctx = check_action(
+            request, review.client, 'reply_reviews',
+            action_type='reply_review',
+            payload={'review_id': review.pk, 'platform': review.platform, 'text': text},
+            target_object_type='UnifiedReview', target_object_id=review.pk,
+            social_account=review.social_account, preview=text[:300],
+        )
+        if verdict == 'denied':
+            return deny_response(ctx['reason'])
+        if verdict == 'approval_required':
+            return approval_pending_response(ctx['approval'])
 
-        publisher = get_publisher(review.platform)
+        from social_stats.platforms.engagement import deliver_reply
         try:
-            publisher.reply_to_review(cred, review.platform_review_id, text)
-        except TokenExpiredError as e:
-            cred.mark_auth_failure('token_expired')
-            return Response({'detail': str(e), 'code': 'token_expired'}, status=400)
-        except PublishError as e:
-            return Response({'detail': str(e), 'code': e.code or 'reply_failed'}, status=400)
+            deliver_reply(review, text, request.user)
+        except PublishError as exc:
+            if exc.code == 'token_expired':
+                credential = PlatformCredential.objects.filter(social_account=review.social_account).first()
+                if credential:
+                    credential.mark_auth_failure('token_expired')
+            return Response({'detail': 'Reply failed', 'code': exc.code},
+                status=429 if exc.code == 'rate_limited' else 502 if exc.code in {'network_error', 'timeout', 'invalid_response', 'provider_error'} else 400)
 
-        review.reply_text = text
-        review.replied_at = timezone.now()
-        review.replied_by = request.user
-        review.status = 'replied'
-        review.save(update_fields=['reply_text', 'replied_at', 'replied_by', 'status'])
         return Response(UnifiedReviewSerializer(review).data)
 
     @action(detail=True, methods=['post'])

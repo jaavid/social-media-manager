@@ -11,8 +11,9 @@ export interface ConnectedAccount {
   health: { ready: boolean; state: ConnectionState; code: string };
   sync: { state: SyncState; last_success_at: string | null; last_failure_at: string | null; last_attempt_at: string | null; stale_after_seconds: number };
   expires_at: string | null; connected_at: string | null;
+  engagement_readiness?: Record<string, boolean>;
   publishing_readiness?: Record<string, boolean>;
-  permissions: { reconnect: boolean; disconnect: boolean; publish?: boolean; schedule?: boolean };
+  permissions: { reconnect: boolean; disconnect: boolean; publish?: boolean; schedule?: boolean; view_inbox?: boolean; reply_messages?: boolean; reply_comments?: boolean; reply_reviews?: boolean; view_analytics?: boolean };
 }
 export interface ConnectionProvider {
   key: string; titles: { en: string; fa: string }; category: string; auth_type: string; rollout_status: string;
@@ -46,9 +47,11 @@ function account(v: unknown): boolean {
     && typeof v.sync.stale_after_seconds === 'number' && v.sync.stale_after_seconds >= 60
     && date(v.expires_at) && date(v.connected_at)
     && (v.publishing_readiness === undefined || (object(v.publishing_readiness) && Object.values(v.publishing_readiness).every(bool)))
+    && (v.engagement_readiness === undefined || (object(v.engagement_readiness) && Object.values(v.engagement_readiness).every(bool)))
     && object(v.permissions) && bool(v.permissions.reconnect) && bool(v.permissions.disconnect)
     && (v.permissions.publish === undefined || bool(v.permissions.publish))
-    && (v.permissions.schedule === undefined || bool(v.permissions.schedule));
+    && (v.permissions.schedule === undefined || bool(v.permissions.schedule))
+    && ['view_inbox', 'reply_messages', 'reply_comments', 'reply_reviews', 'view_analytics'].every(k => (v.permissions as Record<string, unknown>)[k] === undefined || bool((v.permissions as Record<string, unknown>)[k]));
 }
 function publishing(v: unknown): boolean {
   if (v === undefined) return true; // Older metadata disables Composer rather than inventing modes.

@@ -9,93 +9,84 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { inboxAPI } from '../services/api';
 
-export function useConversations(params) {
-  const key = JSON.stringify(params || {});
-  const [result, setResult] = useState({ key: null, data: [] });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const requestId = useRef(0);
+// This feature-owned abstraction has no persistent cache. Every snapshot and
+// error belongs to a scope key; cleanup cancels transport and rejects late work.
+function useInboxResource(key, fetcher, parse, enabled = true) {
+  const [result, setResult] = useState({ key: null, data: null, error: null, loading: false });
+  const generation = useRef(0);
+  const current = useRef(key);
+  current.current = key;
+  const controller = useRef(null);
   const refetch = useCallback(async () => {
-    const request = ++requestId.current;
-    setLoading(true);
+    if (current.current !== key || !enabled) return;
+    const request = ++generation.current;
+    controller.current?.abort();
+    controller.current = new AbortController();
+    setResult(old => ({ key, data: old.key === key ? old.data : null, error: null, loading: true }));
     try {
-      const res = await inboxAPI.conversations.list(JSON.parse(key));
-      if (request !== requestId.current) return;
-      setResult({ key, data: res.data?.results || res.data || [] });
-      setError(null);
-    } catch (e) {
-      if (request !== requestId.current) return;
-      setResult({ key, data: [] });
-      setError(e);
-    } finally { if (request === requestId.current) setLoading(false); }
-  }, [key]);
-  useEffect(() => {
-    refetch();
-    return () => { requestId.current += 1; };
-  }, [refetch]);
-  return { data: result.key === key ? result.data : [], loading, error, refetch };
-}
-
-export function useConversation(id) {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const currentId = useRef(id);
-  const requestId = useRef(0);
-
-  const refetch = useCallback(async () => {
-    if (currentId.current !== id) return;
-    const request = ++requestId.current;
-    await Promise.resolve();
-    if (request !== requestId.current || currentId.current !== id) return;
-    if (!id) { setData(null); setLoading(false); return; }
-    try {
-      setLoading(true);
-      const res = await inboxAPI.conversations.get(id);
-      if (request === requestId.current && currentId.current === id) setData(res.data);
-    } catch {
-      if (request === requestId.current && currentId.current === id) setData(null);
-    } finally {
-      if (request === requestId.current && currentId.current === id) setLoading(false);
+      const response = await fetcher(controller.current.signal);
+      const data = parse(response.data);
+      if (current.current === key && generation.current === request) setResult({ key, data, error: null, loading: false });
+    } catch (error) {
+      if (current.current !== key || generation.current !== request) return;
+      const status = error.response?.status;
+      setResult(old => ({ key, data: [401, 403, 404].includes(status) ? null : old.data, error, loading: false }));
     }
-  }, [id]);
-
+  }, [key, enabled, fetcher, parse]);
   useEffect(() => {
-    currentId.current = id;
     refetch();
-    return () => { currentId.current = null; };
-  }, [id, refetch]);
-  return { data: String(data?.id) === String(id) ? data : null, loading, refetch };
+    const reconnect = () => refetch();
+    window.addEventListener('online', reconnect);
+    return () => {
+      generation.current += 1;
+      controller.current?.abort();
+      window.removeEventListener('online', reconnect);
+    };
+  }, [refetch]);
+  const matching = result.key === key && enabled;
+  return { data: matching ? result.data : null, error: matching ? result.error : null,
+    loading: enabled && (!matching || result.loading), refetch };
 }
 
-export function useReviews(params) {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  const refetch = useCallback(async () => {
-    try {
-      setLoading(true);
-      const res = await inboxAPI.reviews.list(params);
-      setData(res.data?.results || res.data || []);
-    } finally { setLoading(false); }
-  // eslint-disable-next-line
-  }, [JSON.stringify(params || {})]);
-
-  useEffect(() => { refetch(); }, [refetch]);
-  return { data, loading, refetch };
+export function parseInboxList(wire) {
+  const data = Array.isArray(wire) ? wire : wire?.results;
+  if (!Array.isArray(data) || data.some(item => !item || typeof item !== 'object' || !Number.isSafeInteger(item.id))) {
+    throw new Error('Invalid inbox response');
+  }
+  if (!Array.isArray(wire) && (typeof wire.count !== 'number' || ![wire.next, wire.previous].every(v => v === null || typeof v === 'string'))) {
+    throw new Error('Invalid inbox pagination');
+  }
+  return { items: data, count: Array.isArray(wire) ? data.length : wire.count,
+    next: Array.isArray(wire) ? null : wire.next, previous: Array.isArray(wire) ? null : wire.previous };
 }
-
-export function useInboxStats() {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  const refetch = useCallback(async () => {
-    try {
-      setLoading(true);
-      const res = await inboxAPI.stats();
-      setData(res.data);
-    } finally { setLoading(false); }
-  }, []);
-
-  useEffect(() => { refetch(); }, [refetch]);
-  return { data, loading, refetch };
+const parseThread = wire => {
+  if (!wire || !Number.isSafeInteger(wire.id) || !Array.isArray(wire.messages)) throw new Error('Invalid inbox thread');
+  return wire;
+};
+const parseStats = wire => {
+  if (!wire || typeof wire !== 'object' || Array.isArray(wire)) throw new Error('Invalid inbox stats');
+  return wire;
+};
+export function useConversations(params, scope = '', enabled = true) {
+  const serialized = JSON.stringify(params || {});
+  const fetcher = useCallback(signal => inboxAPI.conversations.list(JSON.parse(serialized), signal), [serialized]);
+  const result = useInboxResource(`${scope}:${serialized}`, fetcher, parseInboxList, enabled);
+  return { ...result, data: result.data?.items || [], pagination: result.data, refreshing: !!result.data && result.loading };
+}
+export function useConversation(id, scope = '', params = {}) {
+  const serialized = JSON.stringify(params);
+  const fetcher = useCallback(signal => inboxAPI.conversations.get(id, JSON.parse(serialized), signal), [id, serialized]);
+  const result = useInboxResource(`${scope}:${id}:${serialized}`, fetcher, parseThread, !!id);
+  return { ...result, data: String(result.data?.id) === String(id) ? result.data : null };
+}
+export function useReviews(params, scope = '', enabled = true) {
+  const serialized = JSON.stringify(params || {});
+  const fetcher = useCallback(signal => inboxAPI.reviews.list(JSON.parse(serialized), signal), [serialized]);
+  const result = useInboxResource(`${scope}:${serialized}`, fetcher, parseInboxList, enabled);
+  return { ...result, data: result.data?.items || [], pagination: result.data };
+}
+export function useInboxStats(params = {}, scope = '') {
+  const serialized = JSON.stringify(params);
+  const fetcher = useCallback(signal => inboxAPI.stats(JSON.parse(serialized), signal), [serialized]);
+  return useInboxResource(`${scope}:${serialized}`, fetcher, parseStats);
 }

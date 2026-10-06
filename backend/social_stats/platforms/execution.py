@@ -109,6 +109,15 @@ class ProviderExecution:
                     'Typed reply request required', code='invalid_request'
                 )
             capability = request.kind
+            if not isinstance(request.thread_id, str) or not request.thread_id or not isinstance(request.content, str) or not request.content.strip():
+                raise ProviderError('Invalid reply request', code='invalid_request')
+            policy = provider.manifest.capability(request.kind)
+            if policy.max_characters and len(request.content) > policy.max_characters:
+                raise ProviderError('Reply exceeds provider limit', code='text_limit')
+            if policy.scopes and not set(policy.scopes) <= set(self.credential.scope.split()):
+                raise ProviderError('Required provider permissions are missing', code='permission_denied')
+            if policy.destination_types and self.destination.kind not in policy.destination_types:
+                raise ProviderError('Destination is unsupported', code='invalid_destination')
         if capability and not provider.manifest.capability(capability).enabled:
             provider._unsupported(operation)
         if operation not in {'health', 'disconnect'} and self.credential.is_expired:
@@ -222,6 +231,8 @@ class ProviderExecution:
                 raise ProviderError(
                     'Provider returned invalid inbox items', code='invalid_response'
                 )
+            if isinstance(result, ProviderResult) and result.success is not True:
+                raise ProviderError('Provider operation was not successful', code='invalid_response')
             return result
         except PublishError as exc:
             raise safe_provider_error(exc) from None
