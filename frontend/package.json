@@ -55,6 +55,7 @@
     "eslint-plugin-import": "^2.32.0",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
+    "prettier": "3.9.9",
     "tailwindcss": "^4.1.14",
     "typescript": "^5.9.3",
     "whatwg-fetch": "^3.6.20"
@@ -75,7 +76,9 @@
     "check:next": "node scripts/check-next-independence.cjs",
     "lint": "node scripts/check-lint.mjs",
     "check:architecture": "node scripts/check-architecture.cjs",
-    "test:proxy": "node scripts/check-api-proxy.mjs"
+    "test:proxy": "node scripts/check-api-proxy.mjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "browserslist": {
     "production": [
