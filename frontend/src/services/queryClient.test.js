@@ -5,16 +5,22 @@
  * here so cache invalidation never silently misses.
  */
 import { createQueryClient, QK } from './queryClient';
+import { MutationObserver, onlineManager } from '@tanstack/react-query';
 
 describe('QueryClient defaults', () => {
   test('has SPA-tuned defaults applied', () => {
     const opts = createQueryClient().getDefaultOptions();
     expect(opts.queries.staleTime).toBe(30_000);
     expect(opts.queries.gcTime).toBe(5 * 60_000);
-    expect(opts.queries.retry).toBe(1);
+    const failure = status => ({ isAxiosError: true, response: { status, data: {}, headers: {} }, message: 'Request failed' });
+    expect(opts.queries.retry(0, failure(503))).toBe(true);
+    expect(opts.queries.retry(1, failure(503))).toBe(false);
+    for (const status of [400,401,403,404,429]) expect(opts.queries.retry(0, failure(status))).toBe(false);
+    expect(opts.queries.retry(0, new Error('Malformed response'))).toBe(false);
     expect(opts.queries.refetchOnWindowFocus).toBe(true);
     // Mutations: callers handle retry policy themselves.
     expect(opts.mutations.retry).toBe(0);
+    expect(opts.mutations.networkMode).toBe('always');
   });
 });
 
@@ -59,4 +65,19 @@ test('independent render roots never share query or mutation caches', () => {
   expect(first.getMutationCache()).not.toBe(second.getMutationCache());
   first.clear();
   second.clear();
+});
+
+test('an offline unsafe mutation fails immediately and is never queued for reconnect', async () => {
+  const client = createQueryClient();
+  const operation = jest.fn().mockRejectedValue(new Error('Network unavailable'));
+  const mutation = new MutationObserver(client, { mutationFn: operation });
+  const previous = onlineManager.isOnline();
+  try {
+    onlineManager.setOnline(false);
+    await expect(mutation.mutate()).rejects.toThrow('Network unavailable');
+    expect(operation).toHaveBeenCalledTimes(1);
+    onlineManager.setOnline(true);
+    await client.resumePausedMutations();
+    expect(operation).toHaveBeenCalledTimes(1);
+  } finally { onlineManager.setOnline(previous); client.clear(); }
 });

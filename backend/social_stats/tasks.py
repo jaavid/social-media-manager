@@ -30,6 +30,44 @@ def _analytics_json(response):
         raise RuntimeError('Provider analytics response is unavailable') from None
 
 
+def _gmb_received_metrics(payload):
+    """Performance v1 dated values; omitted measures never become zero."""
+    groups = payload.get('multiDailyMetricTimeSeries')
+    if not isinstance(groups, list):
+        raise ValueError('Invalid performance report')
+    keys = {'WEBSITE_CLICKS': 'website_clicks', 'CALL_CLICKS': 'phone_calls',
+            'BUSINESS_DIRECTION_REQUESTS': 'direction_requests', 'BUSINESS_CONVERSATIONS': 'business_conversations'}
+    daily = {}
+    for group in groups:
+        series_list = group.get('dailyMetricTimeSeries') if isinstance(group, dict) else None
+        if not isinstance(series_list, list):
+            raise ValueError('Invalid performance series')
+        for series in series_list:
+            name = series.get('dailyMetric')
+            entries = series.get('timeSeries', {}).get('datedValues')
+            if not isinstance(entries, list):
+                raise ValueError('Invalid dated metrics')
+            for entry in entries:
+                if 'value' not in entry:
+                    continue
+                d = entry['date']
+                day = date(d['year'], d['month'], d['day']).isoformat()
+                raw = entry['value']
+                if type(raw) not in (str, int) or (isinstance(raw, str) and not raw.isdigit()):
+                    raise ValueError('Invalid performance value')
+                value = int(raw)
+                if value < 0:
+                    raise ValueError('Invalid performance value')
+                values = daily.setdefault(day, {})
+                if name in keys:
+                    values[keys[name]] = value
+                elif isinstance(name, str) and ('MAPS' in name or 'SEARCH' in name):
+                    key = 'maps_impressions' if 'MAPS' in name else 'search_impressions'
+                    values[key] = values.get(key, 0) + value
+                    values['impressions'] = values.get('impressions', 0) + value
+    return daily
+
+
 def _received_metrics(values):
     import math
     result = {}
@@ -697,55 +735,24 @@ def sync_gmb(self, client_id, days=30, credential_id=None, retry_on_failure=True
         # ── 4. Business Profile Performance API — extended daily metrics ──────
         since, until = _date_range(days)
         if cred.gmb_location_id:
-            perf_resp = _analytics_json(requests.post(
+            perf_resp = _analytics_json(requests.get(
                 f'https://businessprofileperformance.googleapis.com/v1/{cred.gmb_location_id}:fetchMultiDailyMetricsTimeSeries',
-                json={
+                params={
                     'dailyMetrics': [
-                        'BUSINESS_IMPRESSIONS_DESKTOP_MAPS',
-                        'BUSINESS_IMPRESSIONS_MOBILE_MAPS',
-                        'BUSINESS_IMPRESSIONS_DESKTOP_SEARCH',
-                        'BUSINESS_IMPRESSIONS_MOBILE_SEARCH',
-                        'WEBSITE_CLICKS',
-                        'CALL_CLICKS',
-                        'BUSINESS_DIRECTION_REQUESTS',
-                        'BUSINESS_CONVERSATIONS',
+                        'BUSINESS_IMPRESSIONS_DESKTOP_MAPS', 'BUSINESS_IMPRESSIONS_MOBILE_MAPS',
+                        'BUSINESS_IMPRESSIONS_DESKTOP_SEARCH', 'BUSINESS_IMPRESSIONS_MOBILE_SEARCH',
+                        'WEBSITE_CLICKS', 'CALL_CLICKS', 'BUSINESS_DIRECTION_REQUESTS', 'BUSINESS_CONVERSATIONS',
                     ],
-                    'dailyRange': {
-                        'startDate': {'year': since.year, 'month': since.month, 'day': since.day},
-                        'endDate':   {'year': until.year, 'month': until.month, 'day': until.day},
-                    }
-                },
-                headers=headers, timeout=15
+                    'dailyRange.startDate.year': since.year,
+                    'dailyRange.startDate.month': since.month,
+                    'dailyRange.startDate.day': since.day,
+                    'dailyRange.endDate.year': until.year,
+                    'dailyRange.endDate.month': until.month,
+                    'dailyRange.endDate.day': until.day,
+                }, headers=headers, timeout=15
             ))
 
-            daily = {}
-            for series in perf_resp.get('multiDailyMetricTimeSeries', []):
-                metric_name = series.get('dailyMetric', '')
-                for entry in series.get('dailyMetricTimeSeries', {}).get('datedValues', []):
-                    d   = entry['date']
-                    day = f"{d['year']}-{d['month']:02d}-{d['day']:02d}"
-                    val = int(entry.get('value', 0) or 0)
-                    daily.setdefault(day, {
-                        'impressions': 0, 'maps_impressions': 0, 'search_impressions': 0,
-                        'website_clicks': 0, 'phone_calls': 0, 'direction_requests': 0,
-                        'business_conversations': 0,
-                    })
-
-                    if 'MAPS' in metric_name:
-                        daily[day]['maps_impressions'] += val
-                        daily[day]['impressions'] += val
-                    elif 'SEARCH' in metric_name:
-                        daily[day]['search_impressions'] += val
-                        daily[day]['impressions'] += val
-                    elif metric_name == 'WEBSITE_CLICKS':
-                        daily[day]['website_clicks'] = val
-                    elif metric_name == 'CALL_CLICKS':
-                        daily[day]['phone_calls'] = val
-                    elif metric_name == 'BUSINESS_DIRECTION_REQUESTS':
-                        daily[day]['direction_requests'] = val
-                    elif metric_name == 'BUSINESS_CONVERSATIONS':
-                        daily[day]['business_conversations'] = val
-                        daily[day]['clicks'] = val
+            daily = _gmb_received_metrics(perf_resp)
 
             for day_str, vals in daily.items():
                 DailyMetric.objects.update_or_create(
@@ -757,7 +764,7 @@ def sync_gmb(self, client_id, days=30, credential_id=None, retry_on_failure=True
         log.status = 'success'; log.records_synced = count
     except Exception as e:
         log.status = 'failed'; log.error_message = 'Provider analytics sync failed'
-        logger.error("sync_gmb failed for client %s: %s", client_id, e)
+        logger.warning("Provider analytics sync failed")
         if retry_on_failure:
             raise self.retry(exc=RuntimeError('Provider analytics sync failed'))
         raise RuntimeError('Provider analytics sync failed') from None
@@ -1339,7 +1346,11 @@ def sync_provider_account(self, workspace_id, credential_id, actor_id):
     provider = get_provider(credential.platform)
     if provider.manifest.analytics_sync_handler:
         from django.utils.module_loading import import_string
-        import_string(provider.manifest.analytics_sync_handler).run(account.client_id, credential_id=credential.pk, retry_on_failure=False)
+        try:
+            import_string(provider.manifest.analytics_sync_handler).run(account.client_id, credential_id=credential.pk, retry_on_failure=False)
+        finally:
+            from .realtime import push_event
+            push_event('analytics.synced', workspace_id, {'social_account_id': account.pk})
         return
     log = SyncLog.objects.create(client=account.client, social_account=account,
         platform=account.platform, status='running')
@@ -1356,3 +1367,5 @@ def sync_provider_account(self, workspace_id, credential_id, actor_id):
     finally:
         log.finished_at = timezone.now()
         log.save()
+        from .realtime import push_event
+        push_event('analytics.synced', workspace_id, {'social_account_id': account.pk})

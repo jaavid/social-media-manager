@@ -5,7 +5,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Save, Send, Upload, X } from 'lucide-react';
-import { useAppLocation, useAppNavigate, useAppParams } from '@/core/navigation';
+import { useAppLocation, useAppNavigate, useAppParams, useAppSearchParams } from '@/core/navigation';
 import { useSession } from '@/core/session';
 import { useLanguage } from '@/i18n';
 import { transientStorage } from '@/lib/runtime/storage';
@@ -31,7 +31,9 @@ const empty = { title: '', content: '', mediaType: 'text', mediaAssets: [], targ
 export default function ComposerPage() {
   const { user } = useSession();
   const { id } = useAppParams();
-  const workspaceId = user?.workspace_id || user?.client_id;
+  const [search] = useAppSearchParams();
+  const requested = Number(search.get('workspace'));
+  const workspaceId = Number.isSafeInteger(requested) && requested > 0 ? requested : user?.workspace_id || user?.client_id;
   const scope = `${user?.id}:${workspaceId}:${id || 'new'}`;
   return <ComposerEditor key={scope} workspaceId={workspaceId} id={id} draftKey={`composer-draft:${scope}`} />;
 }

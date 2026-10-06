@@ -56,7 +56,7 @@ export default function Catalog() {
       <h2 className="text-xl font-bold">{t('catalog.dataStates')}</h2>
       <p className="text-sm text-muted-foreground">{t('catalog.dataStatesIntro')}</p>
       <div className="grid gap-4 md:grid-cols-2">
-        {(['loading', 'empty', 'no-results', 'error', 'offline', 'forbidden', 'partial'] as DataStateKind[]).map(state => (
+        {(['loading', 'refreshing', 'empty', 'no-results', 'error', 'offline', 'forbidden', 'partial', 'unavailable', 'not-found', 'stale'] as DataStateKind[]).map(state => (
           <DataState
             key={state}
             state={state}

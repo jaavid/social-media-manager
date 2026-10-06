@@ -6,7 +6,7 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
-import type { ReactNode } from 'react';
+import type { ReactNode, Ref } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import {
   AlertTriangle,
@@ -28,12 +28,17 @@ export type DataStateKind =
   | 'error'
   | 'offline'
   | 'forbidden'
-  | 'partial';
+  | 'partial'
+  | 'unavailable'
+  | 'not-found'
+  | 'stale';
 
 interface DataStateProps {
   state: DataStateKind;
   title: ReactNode;
   description?: ReactNode;
+  referenceId?: string;
+  focusRef?: Ref<HTMLDivElement>;
   action?: ReactNode;
   children?: ReactNode;
   icon?: LucideIcon;
@@ -50,6 +55,9 @@ const icons: Record<DataStateKind, DataStateProps['icon']> = {
   offline: CloudOff,
   forbidden: Ban,
   partial: CircleSlash2,
+  unavailable: CloudOff,
+  'not-found': SearchX,
+  stale: AlertTriangle,
 };
 
 /**
@@ -61,6 +69,8 @@ export default function DataState({
   state,
   title,
   description,
+  referenceId,
+  focusRef,
   action,
   children,
   icon,
@@ -68,12 +78,14 @@ export default function DataState({
   className,
 }: DataStateProps) {
   const Icon = icon ?? icons[state];
-  const preservesContent = Boolean(children) && ['refreshing', 'offline', 'partial'].includes(state);
+  const preservesContent = Boolean(children) && ['refreshing', 'offline', 'partial', 'stale', 'unavailable'].includes(state);
   const isBusy = state === 'loading' || state === 'refreshing';
-  const isError = state === 'error' || state === 'forbidden';
+  const isError = state === 'error' || state === 'forbidden' || state === 'not-found';
 
   const notice = (
     <div
+      ref={focusRef}
+      tabIndex={focusRef ? -1 : undefined}
       role={isError ? 'alert' : 'status'}
       aria-live={isError ? 'assertive' : 'polite'}
       aria-busy={isBusy || undefined}
@@ -106,6 +118,7 @@ export default function DataState({
             {description}
           </span>
         )}
+        {referenceId && /^(?:[a-f0-9]{32}|[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})$/i.test(referenceId) && <bdi className="mt-2 block text-xs">{referenceId}</bdi>}
         {action && <span className="mt-3 flex flex-wrap gap-2">{action}</span>}
       </span>
     </div>

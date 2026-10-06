@@ -301,6 +301,7 @@ class SharedReport(models.Model):
     created_by  = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     date_from   = models.DateField()
     date_until  = models.DateField()
+    social_account_ids = models.JSONField(default=None, null=True, blank=True)
     platforms   = models.JSONField(default=list)        # e.g. ['facebook', 'instagram']
     is_password_protected = models.BooleanField(default=False)
     password_hash         = models.CharField(max_length=128, blank=True)

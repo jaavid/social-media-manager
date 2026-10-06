@@ -13,7 +13,7 @@ export interface ConnectedAccount {
   expires_at: string | null; connected_at: string | null;
   engagement_readiness?: Record<string, boolean>;
   publishing_readiness?: Record<string, boolean>;
-  permissions: { reconnect: boolean; disconnect: boolean; publish?: boolean; schedule?: boolean; view_inbox?: boolean; reply_messages?: boolean; reply_comments?: boolean; reply_reviews?: boolean; view_analytics?: boolean };
+  permissions: { reconnect: boolean; disconnect: boolean; publish?: boolean; schedule?: boolean; view_inbox?: boolean; reply_messages?: boolean; reply_comments?: boolean; reply_reviews?: boolean; view_analytics?: boolean; view_posts?: boolean; export_data?: boolean; generate_reports?: boolean };
 }
 export interface ConnectionProvider {
   key: string; titles: { en: string; fa: string }; category: string; auth_type: string; rollout_status: string;
@@ -51,7 +51,7 @@ function account(v: unknown): boolean {
     && object(v.permissions) && bool(v.permissions.reconnect) && bool(v.permissions.disconnect)
     && (v.permissions.publish === undefined || bool(v.permissions.publish))
     && (v.permissions.schedule === undefined || bool(v.permissions.schedule))
-    && ['view_inbox', 'reply_messages', 'reply_comments', 'reply_reviews', 'view_analytics'].every(k => (v.permissions as Record<string, unknown>)[k] === undefined || bool((v.permissions as Record<string, unknown>)[k]));
+    && ['view_inbox', 'reply_messages', 'reply_comments', 'reply_reviews', 'view_analytics', 'view_posts', 'export_data', 'generate_reports'].every(k => (v.permissions as Record<string, unknown>)[k] === undefined || bool((v.permissions as Record<string, unknown>)[k]));
 }
 function publishing(v: unknown): boolean {
   if (v === undefined) return true; // Older metadata disables Composer rather than inventing modes.

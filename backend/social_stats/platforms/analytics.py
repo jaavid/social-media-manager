@@ -44,6 +44,8 @@ def queue_sync(credential, actor, days=30):
     provider = get_provider(credential.platform)
     if (account is None or not evaluate(actor, account.client, 'view_analytics', account=account).allowed
         or not provider.manifest.capability('analytics').enabled
+        or not provider.manifest.analytics_metrics
+        or (provider.manifest.legacy_adapter and not provider.manifest.analytics_sync_handler)
         or not connection_health(provider, credential).ready):
         raise ProviderError('Analytics sync is unavailable', code='permission_denied')
     from social_stats.tasks import sync_provider_account

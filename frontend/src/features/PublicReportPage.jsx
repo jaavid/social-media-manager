@@ -1,444 +1,236 @@
-import { publicMessage } from '../i18n/public-message';
-/* ============================================================================
- *  Social Stats — Social Media Management & Marketing Platform
- *  Author    : Chandrabhan Shekhawat
- *  Company   : Gigai Kripa Services
- *  Website   : https://gigaikripaservices.com/
- *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
- *  Released under the MIT License — see LICENSE. Keep this notice.
- * ========================================================================== */
-import { useState, useEffect } from 'react';
-import { useAppParams as useParams } from '../core/navigation';
+import { useEffect, useRef, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useAppParams } from '@/core/navigation';
+import { useLanguage } from '@/i18n';
+import { publicReportAPI } from '@/services/domains/reporting';
+import { parseReport } from '@/services/domains/analytics-reports';
+import { apiError } from '@/services/http/errors';
+import Page from '@/components/ui/Page';
+import PageHeader from '@/components/layout/PageHeader';
+import Button from '@/components/ui/Button';
+import Input from '@/components/ui/Input';
+import DataState from '@/components/ui/DataState';
+import Card from '@/components/ui/Card';
 import {
-  BarChart, Bar, LineChart, Line, XAxis, YAxis,
-  Tooltip, ResponsiveContainer, CartesianGrid, Legend,
-} from 'recharts';
-import { Lock, Eye, TrendingUp, Users, MousePointerClick, Play, Heart, ExternalLink } from 'lucide-react';
-import { publicReportAPI } from '../services/api';
-import { useLookups } from '../hooks/useData';
-import { formatUiNumber } from '../i18n';
-import SocialPlatformIcon from '../components/ui/SocialPlatformIcon';
-
-const fmt = value => formatUiNumber(value, 'fa', { notation: 'compact', maximumFractionDigits: 1 });
-
-// ── Inject styles once ────────────────────────────────────────────────────────
-if (typeof document !== 'undefined' && !document.getElementById('pub-report-styles')) {
-  const s = document.createElement('style');
-  s.id = 'pub-report-styles';
-  s.textContent = `
-    @media print {
-      .no-print { display: none !important; }
-      body { background: #fff; }
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(8px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-  `;
-  document.head.appendChild(s);
-}
-
-const KPI_ICON_MAP = {
-  impressions: Eye,
-  reach: TrendingUp,
-  clicks: MousePointerClick,
-  likes: Heart,
-  followers: Users,
-  video_views: Play,
-};
-
-const KPI_COLOR_MAP = {
-  impressions: '#00d7ff',
-  reach: '#00d7ff',
-  clicks: '#059669',
-  likes: '#ef4444',
-  followers: '#d97706',
-  video_views: '#ff0000',
-};
-
-const PLATFORM_COLOR_MAP = {
-  facebook: '#1877f2',
-  instagram: '#e1306c',
-  youtube: '#ff0000',
-  linkedin: '#0077b5',
-  google_my_business: '#34a853',
-};
-
-const KPI_DEFS = [
-  { key: 'impressions', label: "تعداد نمایش" },
-  { key: 'reach',       label: "دسترسی مخاطبان" },
-  { key: 'clicks',      label: "کلیک‌ها" },
-  { key: 'likes',       label: "پسندها" },
-  { key: 'followers',   label: "دنبال‌کنندگان" },
-  { key: 'video_views', label: "بازدید ویدئو" },
-];
-
-function KpiCard({ label, value, icon: Icon, color }) {
-  return (
-    <div style={{ ...kpiCard, animation: 'fadeIn .4s ease' }}>
-      <div style={{ ...kpiIconWrap, background: color + '18' }}>
-        <Icon size={18} style={{ color }} />
-      </div>
-      <div>
-        <p style={kpiLabel}>{label}</p>
-        <p style={kpiValue}>{fmt(value || 0)}</p>
-      </div>
-    </div>
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from '@/components/ui/Table';
+function parseShared(wire) {
+  if (
+    !wire ||
+    wire.version !== 2 ||
+    !['available', 'unavailable'].includes(wire.availability) ||
+    typeof wire.client?.name !== 'string' ||
+    !Array.isArray(wire.reports) ||
+    typeof wire.period?.from !== 'string' ||
+    typeof wire.period?.until !== 'string'
+  )
+    throw new Error('Invalid shared report');
+  const reports = wire.reports.map((report) =>
+    parseReport(report, report.workspace_id, {
+      social_account: report.account_id,
+      since: wire.period.from,
+      until: wire.period.until,
+      page: 1,
+    }),
   );
+  if (wire.availability === 'unavailable' && reports.length)
+    throw new Error('Invalid unavailable report');
+  return { ...wire, reports };
 }
-
-function PasswordGate({ token, clientName, period, onUnlock }) {
-  const [pw, setPw]   = useState('');
-  const [fieldError, setFieldError] = useState('');
-  const [err, setErr] = useState('');
-  const [busy, setBusy] = useState(false);
-
-  async function submit(e) {
-    e.preventDefault();
-    if (!pw.trim()) {
-      setFieldError("وارد کردن رمز عبور الزامی است.");
-      return;
-    }
-    setBusy(true);
-    setErr('');
-    setFieldError('');
-    try {
-      const res = await publicReportAPI.verify(token, pw);
-      onUnlock(res.data);
-    } catch {
-      setErr("رمز عبور اشتباه است. لطفا دوباره امتحان کنید.");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return (
-    <div style={gateWrap}>
-      <div style={gateCard}>
-        <div style={{ textAlign: 'center', marginBottom: 24 }}>
-          <div style={lockCircle}><Lock size={28} style={{ color: '#00d7ff' }} /></div>
-          <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)', margin: '12px 0 4px' }}>
-            {clientName}
-          </h2>
-          <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0 }}>
-            {period?.from} → {period?.until}
-          </p>
-        </div>
-        <p style={{ fontSize: 14, color: 'var(--text-secondary)', textAlign: 'center', marginBottom: 20 }}>
-          این گزارش با رمز محافظت می‌شود.
-        </p>
-        <form onSubmit={submit}>
-          <label style={pwLabel}>گذرواژه <span style={requiredAsterisk}>*</span></label>
-          <input
-            type="password"
-            value={pw}
-            onChange={e => {
-              setPw(e.target.value);
-              if (fieldError) setFieldError('');
-            }}
-            placeholder={"رمز عبور را وارد کنید…"}
-            style={{ ...pwInput, ...(fieldError ? pwInputError : {}) }}
-            autoFocus
-          />
-          {fieldError && <p style={pwErrorText}>{publicMessage(fieldError, "انجام درخواست ممکن نشد. لطفاً اطلاعات واردشده را بررسی کنید.")}</p>}
-          {err && <p style={{ color: '#dc2626', fontSize: 13, margin: '8px 0 0' }}>{publicMessage(err, "انجام درخواست ممکن نشد. لطفاً اطلاعات واردشده را بررسی کنید.")}</p>}
-          <button type="submit" disabled={busy} style={pwBtn}>
-            {busy ? 'در حال بررسی…' : "مشاهده گزارش"}
-          </button>
-        </form>
-      </div>
-    </div>
-  );
-}
-
 export default function PublicReportPage() {
-  const { token } = useParams();
-  const { lookups } = useLookups();
-  const [data,    setData]    = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error,   setError]   = useState('');
-  const [meta,    setMeta]    = useState(null); // password gate meta
-
+  const { token } = useAppParams();
+  return <SharedReport key={token} token={token} />;
+}
+function SharedReport({ token }) {
+  const { t, language, formatDate, formatNumber } = useLanguage();
+  const [password, setPassword] = useState('');
+  const [pending, setPending] = useState(false);
+  const [failure, setFailure] = useState(null);
+  const [unlocked, setUnlocked] = useState(null);
+  const busy = useRef(false);
+  const current = useRef(true);
+  const failureRef = useRef(null);
   useEffect(() => {
-    publicReportAPI.get(token)
-      .then(res => {
-        if (res.data.requires_password) {
-          setMeta(res.data);
-        } else {
-          setData(res.data);
-        }
-      })
-      .catch(err => {
-        const msg = err.response?.data?.error;
-        setError(msg || "این گزارش بارگیری نشد.");
-      })
-      .finally(() => setLoading(false));
-  }, [token]);
-
-  if (loading) return <div style={centeredMsg}>در حال بارگیری گزارش…</div>;
-  if (error)   return <div style={{ ...centeredMsg, color: '#dc2626' }}>{publicMessage(error, "انجام درخواست ممکن نشد. لطفاً اطلاعات واردشده را بررسی کنید.")}</div>;
-
-  if (meta?.requires_password) {
-    return (
-      <PasswordGate
-        token={token}
-        clientName={meta.client_name}
-        period={meta.period}
-        onUnlock={setData}
-      />
-    );
-  }
-
-  if (!data) return null;
-
-  const platformLabels = (lookups.platforms || []).reduce((acc, item) => {
-    acc[item.key] = item.label;
-    return acc;
-  }, {});
-
-  const kpiDefs = (lookups.kpi_defs || KPI_DEFS.map(item => ({ key: item.key, label: item.label }))).map(def => ({
-    ...def,
-    icon: KPI_ICON_MAP[def.key] || Eye,
-    color: KPI_COLOR_MAP[def.key] || '#00d7ff',
-  }));
-
-  const { client, period, totals, by_platform, timeseries, top_posts } = data;
-
-  // Build line chart data: group timeseries by date
-  const tsMap = {};
-  (timeseries || []).forEach(row => {
-    if (!tsMap[row.date]) tsMap[row.date] = { date: row.date };
-    tsMap[row.date][row.platform] = row.impressions;
+    current.current = true;
+    return () => {
+      current.current = false;
+    };
+  }, []);
+  useEffect(() => {
+    if (failure) failureRef.current?.focus();
+  }, [failure]);
+  const query = useQuery({
+    queryKey: ['public.report', token],
+    retry: false,
+    queryFn: async ({ signal }) => {
+      const wire = (await publicReportAPI.get(token, signal)).data;
+      if (wire?.requires_password === true && typeof wire.client_name === 'string') return wire;
+      return parseShared(wire);
+    },
   });
-  const tsData = Object.values(tsMap).sort((a, b) => a.date.localeCompare(b.date));
-
-  // Platforms present in by_platform
-  const activePlatforms = [...new Set((by_platform || []).map(r => r.platform))];
-
+  async function unlock(event) {
+    event.preventDefault();
+    if (busy.current) return;
+    busy.current = true;
+    setPending(true);
+    setFailure(null);
+    try {
+      const wire = parseShared((await publicReportAPI.verify(token, password)).data);
+      if (current.current) setUnlocked(wire);
+    } catch (error) {
+      if (current.current) setFailure(error);
+    } finally {
+      busy.current = false;
+      if (current.current) setPending(false);
+    }
+  }
+  // Never retain an unlocked payload across an explicit refresh or access revalidation.
+  async function refresh() {
+    setUnlocked(null);
+    setPassword('');
+    setFailure(null);
+    await query.refetch();
+  }
+  const error = query.error && apiError(query.error);
+  const denied = error && [401, 403, 404, 410].includes(error.status);
+  const data = denied ? null : unlocked || (query.data?.version === 2 ? query.data : null);
   return (
-    <div style={pageWrap}>
-      {/* ── Header ─────────────────────────────────────── */}
-      <div style={headerBand}>
-        <div style={headerInner}>
-          <div>
-            <h1 style={companyName}>{client?.name}</h1>
-            <p style={periodLabel}>
-              گزارش شبکه‌های اجتماعی · {period?.from} → {period?.until}
-            </p>
+    <Page>
+      <PageHeader
+        title={data?.client.name || query.data?.client_name || t('reports.title')}
+        subtitle={t('analytics.report.description')}
+        sticky={false}
+      />
+      {query.fetchStatus === 'paused' && (
+        <DataState state="offline" title={t('catalog.state.offline.title')} />
+      )}
+      {query.isPending && query.fetchStatus !== 'paused' && (
+        <DataState state="loading" title={t('engagement.loading')} />
+      )}
+      {query.error && (
+        <DataState
+          state={
+            data
+              ? 'stale'
+              : error.status === 404 || error.status === 410
+                ? 'not-found'
+                : error.status === 403
+                  ? 'forbidden'
+                  : 'error'
+          }
+          title={t('analytics.report.error')}
+          referenceId={error.referenceId}
+          action={<Button onClick={() => query.refetch()}>{t('analytics.report.retry')}</Button>}
+        />
+      )}
+      {!data && !query.error && query.data?.requires_password && (
+        <form onSubmit={unlock} className="my-4 max-w-md space-y-3">
+          <Input
+            type="password"
+            required
+            autoComplete="current-password"
+            label={t('reports.unlockPassword')}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <Button type="submit" disabled={pending}>
+            {t('reports.open')}
+          </Button>
+          {failure && (
+            <DataState
+              focusRef={failureRef}
+              state="error"
+              compact
+              title={t('analytics.report.error')}
+              referenceId={apiError(failure).referenceId}
+            />
+          )}
+        </form>
+      )}
+      {data?.availability === 'unavailable' && (
+        <DataState state="unavailable" title={t('reports.unavailableScope')} />
+      )}
+      {data?.availability === 'available' && (
+        <>
+          <p className="my-4">
+            <bdi>
+              {formatDate(data.period.from, { dateStyle: 'short' })} –{' '}
+              {formatDate(data.period.until, { dateStyle: 'short' })}
+            </bdi>
+          </p>
+          <div className="flex gap-3">
+            <Button onClick={() => window.print()}>{t('reports.print')}</Button>
+            <Button onClick={refresh}>{t('analytics.report.refresh')}</Button>
           </div>
-          <button
-            className="no-print"
-            onClick={() => window.print()}
-            style={printBtn}
-          >
-            دانلود PDF
-          </button>
-        </div>
-      </div>
-
-      <div style={content}>
-        {/* ── KPI Cards ──────────────────────────────────── */}
-        <section style={sectionWrap}>
-          <h2 style={sectionTitle}>نمای کلی</h2>
-          <div style={kpiGrid}>
-            {kpiDefs.map(k => (
-              <KpiCard key={k.key} label={k.label} value={totals?.[k.key]} icon={k.icon} color={k.color} />
-            ))}
-          </div>
-        </section>
-
-        {/* ── Platform Breakdown ─────────────────────────── */}
-        {by_platform?.length > 0 && (
-          <section style={sectionWrap}>
-            <h2 style={sectionTitle}>توسط پلتفرم</h2>
-            <div style={{ overflowX: 'auto' }}>
-              <table style={tableStyle}>
-                <thead>
-                  <tr>
-                    {["پلتفرم", "تعداد نمایش", "دسترسی مخاطبان", "کلیک‌ها", "پسندها", "دنبال‌کنندگان", "بازدید ویدئو"].map(h => (
-                      <th key={h} style={thStyle}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {by_platform.map(row => {
-                    const label = platformLabels[row.platform] || row.platform;
-                    return (
-                      <tr key={row.platform} style={trStyle}>
-                        <td style={tdStyle}>
-                          <span style={{ fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                            <SocialPlatformIcon platform={row.platform} size={15} />
-                            {label}
-                          </span>
-                        </td>
-                        {['impressions', 'reach', 'clicks', 'likes', 'followers', 'video_views'].map(k => (
-                          <td key={k} style={{ ...tdStyle, textAlign: 'right' }}>{fmt(row[k] || 0)}</td>
+          {data.reports.map((report) => (
+            <Card key={`${report.provider}:${report.account_id}`} className="my-4">
+              <h2 className="mb-3 font-semibold">
+                <bdi>
+                  {report.provider} · {formatNumber(report.account_id)}
+                </bdi>
+              </h2>
+              <p role="status">
+                {t(
+                  `analytics.report.${['fresh', 'stale', 'failure', 'pending'].includes(report.sync.state) ? report.sync.state : 'syncUnknown'}`,
+                )}
+              </p>
+              <p>
+                {t('analytics.report.lastSuccess', undefined, {
+                  time: report.sync.last_success_at
+                    ? formatDate(report.sync.last_success_at, {
+                        dateStyle: 'medium',
+                        timeStyle: 'short',
+                      })
+                    : t('analytics.report.never'),
+                })}
+              </p>
+              {report.availability === 'unavailable' ? (
+                <DataState state="unavailable" title={t('analytics.report.unavailable')} />
+              ) : !report.rows.length ? (
+                <DataState
+                  state={report.dataset_count ? 'no-results' : 'empty'}
+                  title={t('analytics.report.empty')}
+                />
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{t('analytics.report.date')}</TableHead>
+                      <TableHead>{t('analytics.report.state')}</TableHead>
+                      {report.metrics.map((metric) => (
+                        <TableHead key={metric.key}>
+                          {metric[`title_${language}`]} ({t(`analytics.report.${metric.unit}`)} /{' '}
+                          {t(`analytics.report.${metric.period}`)})
+                        </TableHead>
+                      ))}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {report.rows.map((row) => (
+                      <TableRow key={row.id}>
+                        <TableCell>{formatDate(row.date, { dateStyle: 'short' })}</TableCell>
+                        <TableCell>{t(`analytics.report.${row.state}`)}</TableCell>
+                        {report.metrics.map((metric) => (
+                          <TableCell key={metric.key}>
+                            {row.values[metric.key] === null
+                              ? '—'
+                              : formatNumber(row.values[metric.key])}
+                          </TableCell>
                         ))}
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </section>
-        )}
-
-        {/* ── Platform Bar Chart ─────────────────────────── */}
-        {by_platform?.length > 0 && (
-          <section style={sectionWrap}>
-            <h2 style={sectionTitle}>برداشت بر اساس پلتفرم</h2>
-            <ResponsiveContainer width="100%" height={240}>
-              <BarChart data={by_platform} margin={{ top: 0, right: 20, bottom: 0, left: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--surface-sunken)" />
-                <XAxis dataKey="platform" tick={{ fontSize: 12 }}
-                  tickFormatter={p => platformLabels[p] || p} />
-                <YAxis tick={{ fontSize: 12 }} tickFormatter={v => fmt(v)} />
-                <Tooltip formatter={(v, n) => [fmt(v), platformLabels[n] || n]} />
-                <Bar dataKey="impressions" fill="#00d7ff" radius={[4, 4, 0, 0]} name="Impressions" />
-              </BarChart>
-            </ResponsiveContainer>
-          </section>
-        )}
-
-        {/* ── Timeseries Line Chart ──────────────────────── */}
-        {tsData.length > 1 && (
-          <section style={sectionWrap}>
-            <h2 style={sectionTitle}>برداشت در طول زمان</h2>
-            <ResponsiveContainer width="100%" height={260}>
-              <LineChart data={tsData} margin={{ top: 0, right: 20, bottom: 0, left: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--surface-sunken)" />
-                <XAxis dataKey="date" tick={{ fontSize: 11 }}
-                  tickFormatter={d => d.slice(5)} />
-                <YAxis tick={{ fontSize: 11 }} tickFormatter={v => fmt(v)} />
-                <Tooltip formatter={(v, n) => [fmt(v), platformLabels[n] || n]} />
-                <Legend formatter={n => platformLabels[n] || n} />
-                {activePlatforms.map((p, i) => (
-                  <Line
-                    key={p}
-                    type="monotone"
-                    dataKey={p}
-                    stroke={PLATFORM_COLOR_MAP[p] || `hsl(${i * 60},70%,50%)`}
-                    strokeWidth={2}
-                    dot={false}
-                    name={platformLabels[p] || p}
-                  />
-                ))}
-              </LineChart>
-            </ResponsiveContainer>
-          </section>
-        )}
-
-        {/* ── Top Posts ──────────────────────────────────── */}
-        {top_posts?.length > 0 && (
-          <section style={sectionWrap}>
-            <h2 style={sectionTitle}>پست‌های برتر</h2>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {top_posts.map((post, i) => {
-                const pl = {
-                  label: platformLabels[post.platform] || post.platform,
-                  color: PLATFORM_COLOR_MAP[post.platform] || 'var(--text-secondary)',
-                };
-                return (
-                  <div key={i} style={postRow}>
-                    {post.thumbnail_url && (
-                      <img src={post.thumbnail_url} alt="" style={postThumb} onError={e => { e.target.style.display = 'none'; }} />
-                    )}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 4 }}>
-                        <span style={{ fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                          <SocialPlatformIcon platform={post.platform} size={15} />
-                          {pl.label || post.platform}
-                        </span>
-                        {post.published_at && (
-                          <span style={{ marginLeft: 8 }}>
-                            {new Date(post.published_at).toLocaleDateString('fa-IR', { day: 'numeric', month: 'short', year: 'numeric' })}
-                          </span>
-                        )}
-                      </div>
-                      {post.caption && (
-                        <p style={{ margin: '0 0 6px', fontSize: 13, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>
-                          {post.caption.length > 120 ? post.caption.slice(0, 120) + '…' : post.caption}
-                        </p>
-                      )}
-                      <div style={{ display: 'flex', gap: 14, fontSize: 12, color: 'var(--text-secondary)' }}>
-                        {post.likes      > 0 && <span>❤️ {fmt(post.likes)}</span>}
-                        {post.comments   > 0 && <span>💬 {fmt(post.comments)}</span>}
-                        {post.shares     > 0 && <span>🔁 {fmt(post.shares)}</span>}
-                        {post.video_views > 0 && <span><Play size={12} style={{ verticalAlign: 'text-bottom' }} /> {fmt(post.video_views)}</span>}
-                      </div>
-                    </div>
-                    {post.post_url && (
-                      <a href={post.post_url} target="_blank" rel="noreferrer" style={viewPostLink}>
-                        <ExternalLink size={13} />
-                      </a>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-        )}
-      </div>
-
-      {/* ── Footer ─────────────────────────────────────── */}
-      <div style={footer}>
-        <p style={{ margin: 0, fontSize: 12, color: 'var(--text-tertiary)' }}>
-          تولید شده توسط <strong style={{ color: '#00d7ff' }}>Xper8</strong> · {period?.from} → {period?.until}
-        </p>
-      </div>
-    </div>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </Card>
+          ))}
+        </>
+      )}
+    </Page>
   );
 }
-
-// ── Styles ────────────────────────────────────────────────────────────────────
-const pageWrap = { minHeight: '100vh', background: 'var(--surface-page)', fontFamily: 'inherit' };
-
-const headerBand = { background: 'var(--surface-card)', borderBottom: '1px solid var(--border-default)', padding: '20px 0' };
-const headerInner = {
-  maxWidth: 900, margin: '0 auto', padding: '0 24px',
-  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-};
-const companyName = { margin: 0, fontSize: 22, fontWeight: 800, color: 'var(--text-primary)' };
-const periodLabel = { margin: '4px 0 0', fontSize: 13, color: 'var(--text-secondary)' };
-const printBtn = {
-  padding: '8px 18px', background: '#00d7ff', color: 'var(--text-primary)',
-  border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer',
-};
-
-const content     = { maxWidth: 900, margin: '0 auto', padding: '28px 24px' };
-const sectionWrap = { background: 'var(--surface-card)', borderRadius: 14, padding: 24, marginBottom: 24, boxShadow: '0 1px 6px rgba(0,0,0,.06)' };
-const sectionTitle = { margin: '0 0 18px', fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' };
-
-const kpiGrid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(140px,1fr))', gap: 14 };
-const kpiCard = {
-  display: 'flex', alignItems: 'center', gap: 12,
-  background: 'var(--surface-page)', borderRadius: 10, padding: '12px 14px',
-  border: '1px solid var(--border-default)',
-};
-const kpiIconWrap = { width: 36, height: 36, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 };
-const kpiLabel = { margin: '0 0 2px', fontSize: 11, color: 'var(--text-secondary)', fontWeight: 600 };
-const kpiValue = { margin: 0, fontSize: 16, fontWeight: 800, color: 'var(--text-primary)' };
-
-const tableStyle = { width: '100%', borderCollapse: 'collapse', fontSize: 13 };
-const thStyle    = { textAlign: 'start', padding: '8px 12px', background: 'var(--surface-page)', color: 'var(--text-secondary)', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', borderBottom: '1px solid var(--border-default)' };
-const trStyle    = { borderBottom: '1px solid var(--surface-sunken)' };
-const tdStyle    = { padding: '10px 12px', color: 'var(--text-secondary)' };
-
-const postRow   = { display: 'flex', gap: 14, alignItems: 'flex-start', background: 'var(--surface-page)', borderRadius: 10, padding: 14, border: '1px solid var(--border-default)' };
-const postThumb = { width: 72, height: 72, objectFit: 'cover', borderRadius: 8, flexShrink: 0 };
-const viewPostLink = { color: 'var(--text-tertiary)', display: 'flex', alignSelf: 'flex-start', padding: 4 };
-
-const footer = { borderTop: '1px solid var(--border-default)', padding: '16px 24px', textAlign: 'center', background: 'var(--surface-card)' };
-
-const centeredMsg = { display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', fontSize: 16, color: 'var(--text-secondary)' };
-
-// Password gate
-const gateWrap = { display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--surface-page)', padding: 24 };
-const gateCard = { background: 'var(--surface-card)', borderRadius: 16, padding: 32, width: '100%', maxWidth: 380, boxShadow: '0 4px 24px rgba(0,0,0,.1)' };
-const lockCircle = { width: 60, height: 60, borderRadius: '50%', background: '#e6fbff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto' };
-const pwLabel = { display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 700, color: 'var(--text-secondary)' };
-const requiredAsterisk = { color: '#ef4444', marginLeft: 2, fontWeight: 800 };
-const pwInput = { width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border-default)', fontSize: 14, outline: 'none', boxSizing: 'border-box' };
-const pwInputError = { borderColor: '#ef4444', background: '#fef2f2' };
-const pwErrorText = { color: '#dc2626', fontSize: 12, margin: '6px 0 8px' };
-const pwBtn   = { width: '100%', marginTop: 16, padding: '11px 0', background: '#00d7ff', color: 'var(--text-primary)', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 700, cursor: 'pointer' };

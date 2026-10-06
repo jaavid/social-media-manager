@@ -116,6 +116,8 @@ class ClientViewSet(viewsets.ModelViewSet):
         except ProviderError:
             return Response({'code': 'invalid_response'}, status=502)
         if request.query_params.get('export') == 'csv':
+            if not evaluate(request.user, workspace, 'export_data', account=account).allowed:
+                return Response({'code': 'permission_denied'}, status=403)
             import csv
             from io import StringIO
             from django.http import HttpResponse
@@ -246,25 +248,22 @@ class ClientViewSet(viewsets.ModelViewSet):
         offset   = int(request.query_params.get('offset', 0))
         since, until = parse_dates(request)
 
-        qs = PostMetric.objects.filter(
-            client=client,
-            published_at__date__gte=since,
-            published_at__date__lte=until,
-        )
+        from social_stats.authorization import scope_account_queryset
+        base = scope_account_queryset(PostMetric.objects.filter(client=client), request.user, 'view_posts')
+        qs = base.filter(published_at__date__gte=since, published_at__date__lte=until)
         if platform and platform != 'all':
             qs = qs.filter(platform=platform)
-        from social_stats.authorization import scope_account_queryset
-        qs = scope_account_queryset(qs, request.user, 'view_posts')
         social_account_id = request.query_params.get('social_account')
         if social_account_id:
             qs = qs.filter(social_account_id=social_account_id)
 
         total = qs.count()
-        posts = list(PostMetricSerializer(qs[offset:offset + limit], many=True).data)
+        posts = list(PostMetricSerializer(qs.order_by('-published_at', '-pk')[offset:offset + limit], many=True).data)
 
         return Response({
             'results': posts,
             'total': total,
+            'dataset_count': base.count(),
             'has_more': (offset + limit) < total,
         })
 

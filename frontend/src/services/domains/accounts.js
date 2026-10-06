@@ -87,7 +87,7 @@ export const reviewAPI = {
 };
 
 export const workspacesAPI = {
-  list:        ()           => api.get('/workspaces/'),
+  list:        (params, signal) => api.get('/workspaces/', { params, signal }),
   get:         (id)         => api.get(`/workspaces/${id}/`),
   create:      (data)       => api.post('/workspaces/', data),
   update:      (id, data)   => api.patch(
@@ -98,9 +98,9 @@ export const workspacesAPI = {
       : undefined
   ),
   delete:      (id)         => api.delete(`/workspaces/${id}/`),
-  summary:     (id, params) => api.get(`/workspaces/${id}/summary/`, { params }),
-  timeseries:  (id, params) => api.get(`/workspaces/${id}/timeseries/`, { params }),
-  posts:       (id, params) => api.get(`/workspaces/${id}/posts/`, { params }),
+  summary:     (id, params, signal) => api.get(`/workspaces/${id}/summary/`, { params, signal }),
+  timeseries:  (id, params, signal) => api.get(`/workspaces/${id}/timeseries/`, { params, signal }),
+  posts:       (id, params, signal) => api.get(`/workspaces/${id}/posts/`, { params, signal }),
   triggerSync: (id, platforms, socialAccountIds) => api.post(`/workspaces/${id}/trigger_sync/`, {
     platforms,
     ...(socialAccountIds ? { social_account_ids: socialAccountIds } : {}),

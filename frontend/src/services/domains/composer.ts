@@ -10,6 +10,13 @@ export interface ComposerQueue { id: number; client: number; name: string; platf
 export interface ComposerMedia { id: number; file_url: string; mime_type: string; file_size: number; width: number | null; height: number | null; duration_seconds: number | null; thumbnail_url?: string; caption?: string; source_url?: string }
 const obj = (v: unknown): v is Record<string, unknown> => Boolean(v) && typeof v === 'object' && !Array.isArray(v);
 const strings = (v: unknown): v is string[] => Array.isArray(v) && v.every(s => typeof s === 'string');
+export function parseMedia(wire: unknown, workspaceId: number): ComposerMedia {
+  if (!obj(wire) || !Number.isSafeInteger(wire.id) || wire.client !== workspaceId || typeof wire.file_url !== 'string'
+      || !wire.file_url || typeof wire.mime_type !== 'string' || !/^(image|video|audio)\//.test(wire.mime_type)
+      || typeof wire.file_size !== 'number' || !Number.isFinite(wire.file_size) || wire.file_size < 0
+      || !['width', 'height', 'duration_seconds'].every(key => wire[key] === null || (typeof wire[key] === 'number' && Number.isFinite(wire[key]) && Number(wire[key]) >= 0))) throw new Error('Invalid scoped media');
+  return wire as unknown as ComposerMedia;
+}
 export function parsePost(wire: unknown, workspaceId: number): ComposerPost {
   if (!obj(wire) || !Number.isSafeInteger(wire.id) || wire.client !== workspaceId
       || typeof wire.content !== 'string' || typeof wire.title !== 'string' || typeof wire.media_type !== 'string'

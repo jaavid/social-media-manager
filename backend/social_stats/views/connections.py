@@ -87,7 +87,7 @@ def connections(request, workspace_id):
                 'connected_at': credential.connected_at if credential else None,
                 'permissions': {
                     **{action: evaluate(request.user, workspace, action, account=account).allowed
-                       for action in ('view_inbox', 'reply_messages', 'reply_comments', 'reply_reviews', 'view_analytics')},
+                       for action in ('view_inbox', 'reply_messages', 'reply_comments', 'reply_reviews', 'view_analytics', 'view_posts', 'export_data', 'generate_reports')},
                     'publish': evaluate(request.user, workspace, 'publish_posts', account=account).allowed,
                     'schedule': evaluate(request.user, workspace, 'schedule_posts', account=account).allowed
                         and set(manifest.capability('scheduling').scopes) <= set(credential.scope.split() if credential else ()),

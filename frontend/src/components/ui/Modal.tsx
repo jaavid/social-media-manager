@@ -15,6 +15,7 @@ import { cn } from '../../lib/utils';
 import { useLanguage } from '../../i18n';
 export interface DialogProps {
   open: boolean;
+  role?: 'dialog' | 'alertdialog';
   initialFocusRef?: RefObject<HTMLElement>;
   onClose?: () => void;
   title?: ReactNode;
@@ -28,6 +29,7 @@ export interface DialogProps {
 }
 export default function Modal({
   open,
+  role = 'dialog',
   initialFocusRef,
   onClose,
   title,
@@ -51,6 +53,7 @@ export default function Modal({
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay className="ds-overlay" />
         <DialogPrimitive.Content
+          role={role}
           onOpenAutoFocus={(event) => {
             previousFocus.current =
               document.activeElement as HTMLElement | null;

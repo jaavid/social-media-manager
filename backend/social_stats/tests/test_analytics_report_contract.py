@@ -100,3 +100,13 @@ class GenericAnalyticsFixtureTests(FixtureRegistration, TestCase):
         self.user.is_active=False;self.user.save()
         sync_provider_account.run(self.workspace.pk,self.credential.pk,self.user.pk)
         self.assertFalse(SyncLog.objects.exists())
+
+class PerformanceMetricPresenceTests(TestCase):
+    def test_real_zero_is_not_missing_and_actual_performance_response_is_dated(self):
+        from social_stats.tasks import _gmb_received_metrics
+        payload={'multiDailyMetricTimeSeries':[{'dailyMetricTimeSeries':[{'dailyMetric':'WEBSITE_CLICKS',
+            'timeSeries':{'datedValues':[{'date':{'year':2026,'month':10,'day':1},'value':'0'},
+                                       {'date':{'year':2026,'month':10,'day':2}}]}}]}]}
+        self.assertEqual(_gmb_received_metrics(payload),{'2026-10-01':{'website_clicks':0}})
+        for malformed in [{}, {'multiDailyMetricTimeSeries':[{}]}, {'multiDailyMetricTimeSeries':'invalid'}]:
+            with self.assertRaises(ValueError): _gmb_received_metrics(malformed)

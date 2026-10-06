@@ -9,6 +9,7 @@
 type WorkspaceId = number | null | undefined;
 type Filters = Readonly<Record<string, unknown>>;
 import { QueryClient } from '@tanstack/react-query';
+import { apiError } from './http/errors';
 
 /**
  *
@@ -17,8 +18,8 @@ import { QueryClient } from '@tanstack/react-query';
  *     the re-fetch storm when a user navigates away and back.
  *   - gcTime 5min — keep stale results around for 5 min so re-mounts are
  *     instant (data shows immediately, then revalidates in background).
- *   - retry once — we already wrap network failures in toast.error in
- *     individual fetchers; React Query retries on top would be noisy.
+ *   - retry once only for unavailable transport/5xx reads; malformed,
+ *     authentication, permission and rate-limit failures need explicit recovery.
  *   - refetchOnWindowFocus on — when the user comes back to the tab, the
  *     critical lists revalidate. WebSocket events handle the inter-tab
  *     case for free.
@@ -32,12 +33,13 @@ export function createQueryClient() { return new QueryClient({
     queries: {
       staleTime:           30_000,        // 30s
       gcTime:              5 * 60_000,    // 5min
-      retry:               1,
+      retry: (failures, error) => failures < 1 && apiError(error).kind === 'unavailable',
       refetchOnWindowFocus: true,
       refetchOnReconnect:   true,
     },
     mutations: {
       retry: 0, // never silently re-do a write — let the caller decide
+      networkMode: 'always', // offline writes fail immediately; never queue an unsafe replay
     },
   },
 }); }

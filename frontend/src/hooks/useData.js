@@ -6,6 +6,9 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
+import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
+import { useSession } from '@/core/session';
+import { apiError } from '@/services/http/errors';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { workspacesAPI, oauthAPI, overviewAPI, syncLogsAPI, goalsAPI, alertsAPI, lookupsAPI } from '../services/api';
 import { PLATFORM_LIST } from '../services/platforms';
@@ -19,110 +22,62 @@ export function useDateRange(defaultDays = 30) {
   return [range, setRange];
 }
 
+function privateSnapshot(query) {
+  return query.error && [401, 403, 404].includes(apiError(query.error).status) ? undefined : query.data;
+}
+function collection(wire) {
+  const rows = Array.isArray(wire) ? wire : wire?.results;
+  if (!Array.isArray(rows) || rows.some(row => !row || !Number.isSafeInteger(row.id))) throw new Error('Invalid collection');
+  return rows;
+}
 export function useWorkspaces() {
-  const [clients, setClients] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  const fetch = useCallback(async () => {
-    try {
-      setLoading(true);
-      const res = await workspacesAPI.list();
-      setClients(res.data.results || res.data);
-    } catch (e) { console.error(e); }
-    finally { setLoading(false); }
-  }, []);
-
-  useEffect(() => { fetch(); }, [fetch]);
-  return { workspaces: clients, clients, loading, refetch: fetch };
+  const { user } = useSession();
+  const query = useQuery({ queryKey: ['workspaces.list', user?.id, user?.workspace_id, user?.client_id], retry: false,
+    queryFn: async ({ signal }) => collection((await workspacesAPI.list(undefined, signal)).data) });
+  const clients = privateSnapshot(query) || [];
+  return { workspaces: clients, clients, loading: query.isPending, refreshing: query.isFetching && !!query.data,
+    error: query.error, offline: query.fetchStatus === 'paused', refetch: query.refetch };
 }
 
 export function useWorkspaceSummary(clientId, range, platform) {
-  const [data, setData]       = useState(null);
-  const [loading, setLoading] = useState(false);
-
-  const fetch = useCallback(async () => {
-    if (!clientId) return;
-    try {
-      setLoading(true);
-      const params = { ...range };
-      if (platform && platform !== 'all') params.platform = platform;
-      const res = await workspacesAPI.summary(clientId, params);
-      setData(res.data);
-    } catch (e) { console.error(e); }
-    finally { setLoading(false); }
-  }, [clientId, range, platform]);
-
-  useEffect(() => { fetch(); }, [fetch]);
-  return { data, loading, refetch: fetch };
+  const { user } = useSession();
+  const params = { ...range, ...(platform && platform !== 'all' ? { platform } : {}) };
+  const query = useQuery({ queryKey: ['workspace.summary', user?.id, clientId, params], enabled: !!clientId, retry: false,
+    queryFn: async ({ signal }) => {
+      const data = (await workspacesAPI.summary(clientId, params, signal)).data;
+      if (!data || typeof data !== 'object' || !data.client || !data.totals || !Array.isArray(data.by_platform)) throw new Error('Invalid summary');
+      return data;
+    } });
+  return { data: privateSnapshot(query), loading: !!clientId && query.isPending, refreshing: query.isFetching && !!query.data, error: query.error, offline: query.fetchStatus === 'paused', refetch: query.refetch };
 }
 
 export function useTimeseries(clientId, range, platform) {
-  const [data, setData]       = useState([]);
-  const [loading, setLoading] = useState(false);
-
-  const fetch = useCallback(async () => {
-    if (!clientId) return;
-    try {
-      setLoading(true);
-      const params = { ...range };
-      if (platform && platform !== 'all') params.platform = platform;
-      const res = await workspacesAPI.timeseries(clientId, params);
-      setData(res.data.results || res.data);
-    } catch (e) { console.error(e); }
-    finally { setLoading(false); }
-  }, [clientId, range, platform]);
-
-  useEffect(() => { fetch(); }, [fetch]);
-  return { data, loading, refetch: fetch };
+  const { user } = useSession();
+  const params = { ...range, ...(platform && platform !== 'all' ? { platform } : {}) };
+  const query = useQuery({ queryKey: ['workspace.timeseries', user?.id, clientId, params], enabled: !!clientId, retry: false,
+    queryFn: async ({ signal }) => collection((await workspacesAPI.timeseries(clientId, params, signal)).data) });
+  return { data: privateSnapshot(query) || [], loading: !!clientId && query.isPending, refreshing: query.isFetching && !!query.data, error: query.error, offline: query.fetchStatus === 'paused', refetch: query.refetch };
 }
 
-export function usePosts(clientId, platform, range, pageSize = 20) {
-  const [posts, setPosts]         = useState([]);
-  const [total, setTotal]         = useState(0);
-  const [hasMore, setHasMore]     = useState(false);
-  const [loading, setLoading]     = useState(false);
-  const [loadingMore, setLoadingMore] = useState(false);
-
-  const fetch = useCallback(async () => {
-    if (!clientId) return;
-    try {
-      setLoading(true);
-      const params = { limit: pageSize, offset: 0, ...range };
-      if (platform && platform !== 'all') params.platform = platform;
-      const res = await workspacesAPI.posts(clientId, params);
-      const data = res.data;
-      if (data.results) {
-        setPosts(data.results);
-        setTotal(data.total || 0);
-        setHasMore(data.has_more || false);
-      } else {
-        setPosts(Array.isArray(data) ? data : []);
-        setTotal(Array.isArray(data) ? data.length : 0);
-        setHasMore(false);
-      }
-    } catch (e) { console.error(e); }
-    finally { setLoading(false); }
-  }, [clientId, platform, range, pageSize]);
-
-  const loadMore = useCallback(async () => {
-    if (!clientId || !hasMore || loadingMore) return;
-    try {
-      setLoadingMore(true);
-      const params = { limit: pageSize, offset: posts.length, ...range };
-      if (platform && platform !== 'all') params.platform = platform;
-      const res = await workspacesAPI.posts(clientId, params);
-      const data = res.data;
-      if (data.results) {
-        setPosts(prev => [...prev, ...data.results]);
-        setTotal(data.total || 0);
-        setHasMore(data.has_more || false);
-      }
-    } catch (e) { console.error(e); }
-    finally { setLoadingMore(false); }
-  }, [clientId, platform, range, pageSize, posts.length, hasMore, loadingMore]);
-
-  useEffect(() => { fetch(); }, [fetch]);
-  return { posts, total, hasMore, loading, loadingMore, loadMore };
+export function usePosts(clientId, platform, range, pageSize = 20, accountId = null) {
+  const { user } = useSession();
+  const params = { ...range, ...(platform && platform !== 'all' ? { platform } : {}), ...(accountId ? { social_account: accountId } : {}) };
+  const query = useInfiniteQuery({ queryKey: ['workspace.posts', user?.id, clientId, params, pageSize], enabled: !!clientId,
+    initialPageParam: 0, retry: false,
+    queryFn: async ({ signal, pageParam }) => {
+      const wire = (await workspacesAPI.posts(clientId, { ...params, limit: pageSize, offset: pageParam }, signal)).data;
+      if (!wire || !Array.isArray(wire.results) || !Number.isSafeInteger(wire.total) || wire.total < 0 || typeof wire.has_more !== 'boolean'
+          || (wire.dataset_count !== undefined && (!Number.isSafeInteger(wire.dataset_count) || wire.dataset_count < 0))
+          || (wire.has_more && !wire.results.length) || wire.results.some(row => !row || !Number.isSafeInteger(row.id))) throw new Error('Invalid posts');
+      return { ...wire, offset: pageParam };
+    },
+    getNextPageParam: page => page.has_more ? page.offset + page.results.length : undefined,
+  });
+  const data = privateSnapshot(query);
+  const posts = data?.pages.flatMap(page => page.results) || [];
+  return { posts, total: data?.pages[0]?.total ?? null, datasetCount: data?.pages[0]?.dataset_count ?? null, hasMore: !!query.hasNextPage, loading: !!clientId && query.isPending,
+    loadingMore: query.isFetchingNextPage, loadMore: query.fetchNextPage, refreshing: query.isFetching && !!data, offline: query.fetchStatus === 'paused',
+    error: query.error, refetch: query.refetch };
 }
 
 export function useOAuthStatus(clientId) {

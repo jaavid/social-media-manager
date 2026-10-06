@@ -479,11 +479,14 @@ class LegacyAccountIdentityTests(TestCase):
                     expires_at=timezone.now() + timedelta(hours=1),
                 )
             )
-        post.return_value.json.return_value = {}
+        get.return_value.json.return_value = {'multiDailyMetricTimeSeries': []}
         for credential in credentials:
             sync_gmb(self.workspace.pk, credential_id=credential.pk)
-        get.assert_not_called()
-        self.assertEqual(post.call_count, 2)
+        post.assert_not_called()
+        self.assertEqual(get.call_count, 2)
+        for call in get.call_args_list:
+            self.assertIn('businessprofileperformance.googleapis.com', call.args[0])
+            self.assertIn('dailyRange.startDate.year', call.kwargs['params'])
         legacy.refresh_from_db()
         self.assertEqual(legacy.business_name, "Unresolved")
         self.assertEqual(legacy.avg_rating, 3)

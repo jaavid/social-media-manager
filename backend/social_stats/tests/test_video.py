@@ -17,7 +17,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from rest_framework.test import APIClient
 
-from social_stats.models import Client, MediaAsset, PlatformCredential, UserProfile
+from social_stats.models import Client, MediaAsset, PlatformCredential, SocialAccount, UserProfile
 from social_stats.publishers import PublishResult
 
 
@@ -231,8 +231,9 @@ class YouTubeUploadTests(TestCase):
         self.u = _user_for(self.c)
         self.api = _api(self.u)
         self.asset = _seed_video_asset(self.c)
+        self.account = SocialAccount.objects.create(client=self.c, platform='youtube', external_id='UCxxx', display_name='Channel')
         PlatformCredential.objects.create(
-            client=self.c, platform='youtube',
+            client=self.c, social_account=self.account, platform='youtube',
             access_token='tok', refresh_token='r',
             channel_id='UCxxx', is_active=True,
         )
@@ -242,7 +243,7 @@ class YouTubeUploadTests(TestCase):
                    return_value=PublishResult(success=True, platform_post_id='VID-1',
                                               platform_url='https://youtu.be/VID-1')) as mock_pub:
             res = self.api.post('/api/video/youtube-upload/', {
-                'asset_id': self.asset.id, 'title': 'My Video',
+                'social_account': self.account.pk, 'asset_id': self.asset.id, 'title': 'My Video',
                 'description': 'desc here', 'privacy': 'unlisted',
             }, format='json')
         self.assertEqual(res.status_code, 200, res.content)
@@ -255,7 +256,7 @@ class YouTubeUploadTests(TestCase):
     def test_no_credential_returns_400(self):
         PlatformCredential.objects.filter(client=self.c, platform='youtube').delete()
         res = self.api.post('/api/video/youtube-upload/', {
-            'asset_id': self.asset.id, 'title': 't',
+            'social_account': self.account.pk, 'asset_id': self.asset.id, 'title': 't',
         }, format='json')
         self.assertEqual(res.status_code, 400)
         self.assertIn('YouTube credential', res.data['error'])
@@ -265,10 +266,30 @@ class YouTubeUploadTests(TestCase):
         self.asset.mime_type = 'image/jpeg'
         self.asset.save(update_fields=['mime_type'])
         res = self.api.post('/api/video/youtube-upload/', {
-            'asset_id': self.asset.id, 'title': 't',
+            'social_account': self.account.pk, 'asset_id': self.asset.id, 'title': 't',
         }, format='json')
         self.assertEqual(res.status_code, 400)
 
+
+
+    def test_approval_cannot_be_bypassed(self):
+        self.c.requires_approval = True
+        self.c.save(update_fields=['requires_approval'])
+        with patch('social_stats.publishers.youtube.YouTubePublisher.publish_video') as publisher:
+            res = self.api.post('/api/video/youtube-upload/', {'social_account': self.account.pk, 'asset_id': self.asset.id}, format='json')
+        self.assertEqual(res.status_code, 409)
+        publisher.assert_not_called()
+
+    def test_failed_provider_result_is_not_success(self):
+        with patch('social_stats.publishers.youtube.YouTubePublisher.publish_video', return_value=PublishResult(success=False)):
+            res = self.api.post('/api/video/youtube-upload/', {'social_account': self.account.pk, 'asset_id': self.asset.id}, format='json')
+        self.assertEqual(res.status_code, 502)
+
+    def test_provider_exception_does_not_leak(self):
+        with patch('social_stats.publishers.youtube.YouTubePublisher.publish_video', side_effect=RuntimeError('private-token-123')):
+            res = self.api.post('/api/video/youtube-upload/', {'social_account': self.account.pk, 'asset_id': self.asset.id}, format='json')
+        self.assertEqual(res.status_code, 502)
+        self.assertNotIn('private-token', str(res.data))
 
 class TenantIsolationTests(TestCase):
     def test_cannot_operate_on_other_tenants_asset(self):
@@ -296,3 +317,30 @@ def mock_open_videos(*args, **kwargs):
     fake.__enter__.return_value = fake
     fake.__exit__.return_value = False
     return fake
+
+class VideoPermissionRecoveryTests(TestCase):
+    def test_explicit_foreign_workspace_and_revoked_draft_permission_are_denied(self):
+        from social_stats.models import WorkspaceMemberPolicy
+        own = _client_factory('video-permission')
+        foreign = _client_factory('video-foreign')
+        user = _user_for(own)
+        api = _api(user)
+        self.assertEqual(api.post('/api/video/upload/', {'workspace_id':foreign.pk}, format='json').status_code,404)
+        WorkspaceMemberPolicy.objects.create(user=user,workspace=own,permissions={'draft_posts':False})
+        self.assertEqual(api.post('/api/video/upload/', {'workspace_id':own.pk}, format='json').status_code,403)
+        self.assertFalse(MediaAsset.objects.filter(client=own).exists())
+
+    def test_account_publish_override_does_not_deactivate_valid_credential(self):
+        from social_stats.models import SocialAccountPermissionOverride
+        own = _client_factory('video-account-permission')
+        user = _user_for(own)
+        account = SocialAccount.objects.create(client=own,platform='youtube',external_id='UCsafe')
+        credential = PlatformCredential.objects.create(client=own,social_account=account,platform='youtube',access_token='fixture-token',is_active=True)
+        asset = _seed_video_asset(own)
+        SocialAccountPermissionOverride.objects.create(user=user,account=account,permissions={'publish_posts':False})
+        with patch('social_stats.publishers.youtube.YouTubePublisher.publish_video') as publisher:
+            response = _api(user).post('/api/video/youtube-upload/', {'workspace_id':own.pk,'asset_id':asset.pk,'social_account':account.pk}, format='json')
+        self.assertEqual(response.status_code,403)
+        publisher.assert_not_called()
+        credential.refresh_from_db()
+        self.assertTrue(credential.is_active)

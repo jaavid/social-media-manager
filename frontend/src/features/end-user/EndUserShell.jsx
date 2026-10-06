@@ -1,3 +1,4 @@
+import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import { useLanguage } from '../../i18n';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
@@ -212,7 +213,7 @@ export default function EndUserShell({ children }) {
       </aside>
 
       <main style={{ flex: 1, minWidth: 0, padding: 28 }} className="eu-main">
-        {children}
+        <ErrorBoundary key={location.pathname}>{children}</ErrorBoundary>
       </main>
 
       <style>{`

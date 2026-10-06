@@ -1,2 +1,3 @@
 'use client';
-export default function ErrorPage({ reset }) { return <button onClick={reset}>تلاش دوباره</button>; }
+import RouteFailure from '../components/ui/RouteFailure';
+export default function ErrorPage({ reset }) { return <RouteFailure reset={reset} />; }
