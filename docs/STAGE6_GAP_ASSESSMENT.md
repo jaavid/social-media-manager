@@ -165,7 +165,7 @@ The baseline tables above are historical and unchanged. **done** below is suppor
 | composer + scheduling | done | Composer #162; stage5-composer.spec.js; ComposerPage.test.jsx including stage6 scope handoff |
 | inbox/engagement | done | UnifiedInboxPage/ReviewsPage/useInboxResource; stage6-inbox.spec.js and inbox-races tests |
 | analytics/reporting | done | AnalyticsSurface/ReportsPage/PublicReportPage; analytics parser/backend reports tests and stage6 browser suites |
-| fullscreen/complex editors | remaining | BotFlow/VideoStudio migrated scope/recovery and narrow drawer; legacy NodeInspector/TestMode/TriggerConfig controls and other complex editor internals still need canonical field/overlay migration |
+| fullscreen/complex editors | remaining | BotFlow/VideoStudio migrated scope/recovery and narrow drawer; TestMode/TriggerConfig now use shared Drawer/Modal with failure preservation and ambiguity guards; legacy NodeInspector/trigger widget controls, MetaAdsPicker read/error scope and other complex editor internals still need field/read migration |
 | marketing surfaces در حدی که product brand مشترک لازم دارد | remaining | Existing MarketingLayout/tokens preserved; no broad marketing migration in stage6; typography/first-paint tests certify existing common brand only |
 | API مستند برای primitiveها و پنج page pattern. | done | STAGE6_SURFACE_CONTRACTS API and five existing pattern tables, including documented extensions |
 | هیچ visual token جدید page-local بدون دلیل ثبت‌شده اضافه نشود. | done | Migrated collections use canonical utilities/tokens; editor geometry is documented; no new palette/theme or unregistered visual token |
@@ -255,6 +255,12 @@ Counts below are a diagnostic inventory, not an acceptance score. Scope is JSX `
 | `components/ui/ErrorBoundary.jsx` | 13 → 0 | 17 → 0 |
 | `components/ui/ErrorState.jsx` | 5 → 1 | 7 → 0 |
 | `features/bots/BotFlowEditorPage.jsx` | 27 → 25 | 36 → 36 |
+| `components/bot/TestModeDrawer.jsx` | 30 → 21 | 47 → 32 |
+| `components/bot/TriggerConfigModal.jsx` | 41 → 28 | 44 → 29 |
 | `features/video/VideoStudioPage.jsx` | 52 → 45 | 53 → 46 |
 
 Global lint/i18n/architecture baseline files and dependencies were not edited. The actual visible finding count may fall as old source is migrated; valid dynamic styles were not removed to improve counts. See STAGE6_SURFACE_CONTRACTS.md for each adapter owner and removal condition.
+
+### Final batch C local validation
+
+112 Playwright cases passed against the final production build: status/slow/offline/reconnect matrices, publication approval, ambiguous test-run locking, password/report recovery and 72 locale/theme/viewport combinations. Actual baseline/after screenshots and failure evidence are in `frontend/e2e/evidence/stage6/`. Relevant Django suites passed 151 cases, including real SessionAuthentication CSRF verification and bot DTO scope. Lint, check:next, architecture, i18n, typecheck and production build passed without changing debt baselines. GitHub CI is recorded in PR #168 after final-head verification.

@@ -207,19 +207,20 @@ for (const failure of [401, 403, 404, 429, 500, 503, 'malformed', 'network'])
       return route.fulfill({ json: [] });
     });
     await page.goto('/report/01234567-89ab-cdef-0123-456789abcdef');
-    const password = page.getByLabel('Report password', { exact: true });
+    // The existing public/token locale contract stays Persian, even with an English workspace preference.
+    const password = page.getByLabel('گذرواژهٔ گزارش', { exact: true });
     await password.fill('Retain this password');
-    await page.getByRole('button', { name: 'Open report', exact: true }).click();
+    await page.getByRole('button', { name: 'بازکردن گزارش', exact: true }).click();
     await expect(page.locator('[data-data-state="error"]')).toBeFocused();
     await expect(password).toHaveValue('Retain this password');
     await expect(page.getByRole('table')).toHaveCount(0);
     expect(verifies).toBe(1);
     currentFailure = null;
-    await page.getByRole('button', { name: 'Open report', exact: true }).click();
+    await page.getByRole('button', { name: 'بازکردن گزارش', exact: true }).click();
     await expect(page.getByRole('table')).toBeVisible();
-    await expect(page.getByText('0', { exact: true })).toBeVisible();
-    await expect(page.getByRole('columnheader', { name: /Actual views/ })).toBeVisible();
-    await page.getByRole('button', { name: 'Refresh', exact: true }).click();
+    await expect(page.getByRole('cell', { name: '۰', exact: true })).toBeVisible();
+    await expect(page.getByRole('columnheader', { name: /بازدید واقعی/ })).toBeVisible();
+    await page.getByRole('button', { name: 'به‌روزرسانی', exact: true }).click();
     await expect(page.getByRole('table')).toHaveCount(0);
     await expect(password).toHaveValue('');
   });

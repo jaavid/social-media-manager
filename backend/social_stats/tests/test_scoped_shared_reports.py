@@ -143,7 +143,7 @@ class ScopedSharedReportTests(TestCase):
             self.api.post(
                 "/api/shared-reports/", self.payload, format="json"
             ).status_code,
-            400,
+            403,
         )
 
     def test_report_token_list_obeys_account_permission_boundary(self):
@@ -176,3 +176,30 @@ class ScopedSharedReportTests(TestCase):
         self.assertEqual(
             self.api.delete(f"/api/shared-reports/{hidden.pk}/").status_code, 404
         )
+
+    def test_authenticated_password_verification_uses_browser_csrf_contract(self):
+        created = self.api.post(
+            "/api/shared-reports/",
+            {**self.payload, "password": "fixture-password"},
+            format="json",
+        )
+        self.assertEqual(created.status_code, 201, created.data)
+        browser = APIClient(enforce_csrf_checks=True)
+        browser.force_login(self.actor)
+        path = f"/api/public/report/{created.data['token']}/verify/"
+        self.assertEqual(
+            browser.post(
+                path, {"password": "fixture-password"}, format="json"
+            ).status_code,
+            403,
+        )
+        session = browser.get("/api/auth/session/")
+        self.assertEqual(session.status_code, 200, session.content)
+        verified = browser.post(
+            path,
+            {"password": "fixture-password"},
+            format="json",
+            HTTP_X_CSRFTOKEN=session.data["csrfToken"],
+        )
+        self.assertEqual(verified.status_code, 200, verified.content)
+        self.assertEqual(verified.data["reports"][0]["account_id"], self.account.pk)

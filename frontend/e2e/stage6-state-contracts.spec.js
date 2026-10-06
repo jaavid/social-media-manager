@@ -35,7 +35,16 @@ async function setup(page, family, language = 'en', theme = 'light', failure = n
       JSON.stringify({ version: '2024-11-01', choices: { essential: true, functional: true } }),
     ),
   );
-  const flow = { id: 1, name: 'Scoped flow fixture', nodes: [], edges: [], is_active: false };
+  const flow = {
+    id: 1,
+    name: 'Scoped flow fixture',
+    client: 7,
+    trigger_type: 'manual',
+    trigger_config: {},
+    nodes: [],
+    edges: [],
+    is_active: false,
+  };
   await page.route('**/api/**', async (route) => {
     const request = route.request(),
       url = new URL(request.url()),
@@ -59,6 +68,14 @@ async function setup(page, family, language = 'en', theme = 'light', failure = n
       return route.fulfill({
         json: [{ id: 7, name: 'Fixture workspace', company: 'Fixture workspace' }],
       });
+    if (family === 'editor' && path === '/api/bot-flows/1/publish/') {
+      state.writes++;
+      return route.fulfill({ status: 202, json: { requires_approval: true } });
+    }
+    if (family === 'editor' && path === '/api/bot-flows/1/test/') {
+      state.writes++;
+      return route.fulfill({ status: 503, json: { error: 'private upstream details' } });
+    }
     const targeted =
       (family === 'reports' && path.includes('/shared-reports/')) ||
       (family === 'dashboard' && path.includes('/posts/')) ||
@@ -161,11 +178,9 @@ for (const family of ['reports', 'dashboard', 'editor'])
             state.saveFailure = 503;
             await page.getByRole('button', { name: 'Save', exact: true }).click();
             await expect(
-              page
-                .getByRole('alert')
-                .filter({
-                  hasText: language === 'fa' ? 'تغییرات شما حفظ' : 'Your changes are preserved',
-                }),
+              page.getByRole('alert').filter({
+                hasText: language === 'fa' ? 'تغییرات شما حفظ' : 'Your changes are preserved',
+              }),
             ).toBeFocused();
             await expect(input).toHaveValue('Preserved editor fixture');
             expect(state.writes).toBe(1);
@@ -336,3 +351,33 @@ for (const count of [0, 1])
     ).toBeVisible();
     await expect(page.locator('[data-data-state="error"]')).toHaveCount(0);
   });
+
+test('editor publication approval uses shared modal and never claims live publication', async ({
+  page,
+}) => {
+  test.skip(!!process.env.STAGE6_BASELINE);
+  const state = await setup(page, 'editor');
+  await page.getByRole('button', { name: 'Publish', exact: true }).click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole('button', { name: 'Publish flow', exact: true }).click();
+  await expect(dialog.locator('[data-data-state="partial"]')).toBeVisible();
+  await expect(dialog.getByRole('button', { name: 'Publish flow', exact: true })).toBeDisabled();
+  expect(state.writes).toBe(2);
+});
+test('editor test drawer preserves phone, focuses failure and locks ambiguous replay', async ({
+  page,
+}) => {
+  test.skip(!!process.env.STAGE6_BASELINE);
+  const state = await setup(page, 'editor');
+  await page.getByRole('button', { name: 'Test', exact: true }).click();
+  const drawer = page.getByRole('dialog');
+  const phone = drawer.getByLabel('Tester phone (E.164)');
+  await phone.fill('+12025550123');
+  await drawer.getByRole('button', { name: 'Run', exact: true }).click();
+  await expect(drawer.locator('[data-data-state="error"]')).toBeFocused();
+  await expect(phone).toHaveValue('+12025550123');
+  await expect(drawer.getByRole('button', { name: 'Run', exact: true })).toBeDisabled();
+  expect(state.writes).toBe(1);
+  await expect(page.getByText('private upstream details')).toHaveCount(0);
+});

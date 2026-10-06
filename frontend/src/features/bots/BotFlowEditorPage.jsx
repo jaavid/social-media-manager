@@ -91,12 +91,13 @@ function Editor() {
   const [panel, setPanel] = useState(null);
   const cancelDelete = useRef(null);
   const [saveError, setSaveError] = useState(null);
+  const [actionError, setActionError] = useState(null); const actionBusy = useRef(false);
   const revision = useRef(0);
   const busy = useRef(false);
   const alive = useRef(true);
   const errorRef = useRef(null);
   useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
-  useEffect(() => { if (saveError) errorRef.current?.focus(); }, [saveError]);
+  useEffect(() => { if (saveError || actionError) errorRef.current?.focus(); }, [saveError, actionError]);
   function markDirty() { revision.current++; setDirty(true); }
 
   const [flow, setFlow] = useState(null);
@@ -303,25 +304,30 @@ function Editor() {
 
   // ── Validation + publish ─────────────────────────────
   async function validateNow() {
-    if (dirty && !await save()) return;
+    if (actionBusy.current) return;
+    actionBusy.current = true; setActionError(null);
     try {
+      if (dirty && !await save()) return;
       const r = await botAPI.validate(id);
-      setValidation(r.data);
-    } catch { toast.error('Validation failed'); }
+      if (!r.data || typeof r.data.ok !== 'boolean' || !Array.isArray(r.data.issues)) throw new Error('Invalid validation');
+      if (alive.current) setValidation(r.data);
+    } catch (error) { if (alive.current) setActionError(error); }
+    finally { actionBusy.current = false; }
   }
   async function openPublishModal() {
     if (dirty && !await save()) return;
     setPublishOpen(true);
   }
   async function unpublish() {
-    if (!flow) return;
+    if (!flow || actionBusy.current) return;
+    actionBusy.current = true; setActionError(null);
     try {
       const r = await botAPI.unpublish(id);
-      setFlow(r.data);
-      toast.success('Flow unpublished');
-    } catch {
-      toast.error('Could not unpublish');
-    }
+      if (r.status === 202 && r.data?.requires_approval === true) { if (alive.current) toast.info(t('editor.approvalQueued')); return; }
+      if (!r.data || r.data.id !== flow.id || r.data.is_active !== false) throw new Error('Invalid unpublished flow');
+      if (alive.current) { setFlow(previous => ({...previous, is_active:false})); toast.success('Flow unpublished'); }
+    } catch (error) { if (alive.current) setActionError(error); }
+    finally { actionBusy.current = false; }
   }
 
   // ── Variable list (for inserter) ─────────────────────
@@ -345,6 +351,7 @@ function Editor() {
     <div className="flex min-w-0 flex-col bg-background" style={{ height: 'calc(100dvh - var(--topbar-height, 64px))' }}>
       <Modal open={deleteOpen} role="alertdialog" initialFocusRef={cancelDelete} title={t('editor.deleteNode')} description={t('editor.deleteConfirm')} onClose={() => setDeleteOpen(false)} footer={<><Button ref={cancelDelete} onClick={() => setDeleteOpen(false)}>{t('reports.cancel')}</Button><Button variant="danger" onClick={deleteConfirmed}>{t('editor.deleteNode')}</Button></>} />
       {!online && <DataState state="offline" compact title={t('catalog.state.offline.title')} />}
+      {actionError && <DataState focusRef={errorRef} state="error" compact title={t('editor.actionFailed')} referenceId={apiError(actionError).referenceId} />}
       {saveError && <DataState focusRef={errorRef} state="error" compact title={t('editor.saveFailed')} referenceId={apiError(saveError).referenceId} action={<Button onClick={save}>{t('analytics.report.retry')}</Button>} />}
       {/* Top bar */}
       <header style={{

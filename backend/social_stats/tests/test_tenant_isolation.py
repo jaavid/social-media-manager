@@ -64,6 +64,8 @@ class TwoTenantBase(TestCase):
 class SharedReportIsolationTests(TwoTenantBase):
     def setUp(self):
         super().setUp()
+        from social_stats.models import SocialAccount
+        SocialAccount.objects.create(client=self.client_b, platform='youtube', external_id='scoped-report')
         self.report_a = SharedReport.objects.create(
             client=self.client_a, date_from='2026-01-01', date_until='2026-01-31',
         )

@@ -7,6 +7,7 @@
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
 import { api, publicApi } from '../http/client';
+import { ensureCsrf } from '@/lib/auth/browser';
 
 export const overviewAPI = {
   get: (params) => api.get('/overview/', { params }),
@@ -73,7 +74,7 @@ export const sharedReportsAPI = {
 
 export const publicReportAPI = {
   get:    (token, signal)  => publicApi.get(`/public/report/${token}/`, { signal }),
-  verify: (token, password) => publicApi.post(`/public/report/${token}/verify/`, { password }),
+  verify: async (token, password) => publicApi.post(`/public/report/${token}/verify/`, { password }, { headers: { 'X-CSRFToken': await ensureCsrf() } }),
 };
 
 export const lookupsAPI = {

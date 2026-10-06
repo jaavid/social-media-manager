@@ -107,3 +107,9 @@ explicit refresh clears its locally unlocked payload before revalidation.
 Captions remain unavailable (backend implementation is absent); the UI makes no
 active generation claim. Actual ffmpeg/remote transport and live provider credentials
 were not exercised. No scope prerequisite PR is missing from origin/main.
+
+## Editor overlays and public report verification
+
+TriggerConfigModal and TestModeDrawer use the canonical Modal/Drawer and restore focus. Typed acknowledgements distinguish approval from publication, preserve configuration/phone on failure and lock replay after ambiguous unsafe responses. Test phone is component-local; the old persistent phone key is removed. Polling validates conversation, flow and workspace identity using the existing read-only bot conversation client field; failed stop retains running data. NodeInspector fields and MetaAdsPicker scope/error reads remain explicitly owned legacy gaps, not certified by this overlay migration.
+
+Public password verification uses the existing CSRF bootstrap/header contract, including authenticated sessions. Token/public routes retain the existing Persian locale policy; browser tests cover this policy rather than assuming an English preference overrides it.

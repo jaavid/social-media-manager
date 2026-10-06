@@ -6,7 +6,6 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
-import { persistentStorage } from '../../lib/runtime/storage';
 
 /**
  * TestModeDrawer — slide-in panel that lets the editor fire a test run of
@@ -22,19 +21,30 @@ import { persistentStorage } from '../../lib/runtime/storage';
  *      tap "Restart" to fire a fresh run.
  */
 import { useEffect, useRef, useState } from 'react';
+import { persistentStorage } from '@/lib/runtime/storage';
 import {
-  X, PlayCircle, RefreshCw, StopCircle, Sparkles, User, Bot,
+  PlayCircle, RefreshCw, StopCircle, Sparkles, User, Bot,
   ArrowDown,
 } from 'lucide-react';
 
 import { botAPI, botConversationAPI } from '../../services/api';
-import toast from '../ui/toast';
+import Drawer from '../ui/Drawer';
+import Input from '../ui/Input';
+import DataState from '../ui/DataState';
+import { useLanguage } from '@/i18n';
+import { apiError } from '@/services/http/errors';
 
 const POLL_INTERVAL_MS = 1500;
 const ABANDON_AFTER_MS = 5 * 60 * 1000;  // stop polling after 5min idle
 
 export default function TestModeDrawer({ flow, onClose }) {
-  const [phone, setPhone]           = useState(persistentStorage.getItem('bot_test_phone') || '');
+  const { t } = useLanguage();
+  const [phone, setPhone] = useState('');
+  const [failure, setFailure] = useState(null); const [ambiguous, setAmbiguous] = useState(false);
+  const busyRef = useRef(false); const alive = useRef(true); const generation = useRef(0); const failureRef = useRef(null);
+  const conversationId = useRef(null); const stepCount = useRef(0);
+  useEffect(() => { alive.current = true; persistentStorage.removeItem('bot_test_phone'); return () => { alive.current = false; }; }, []);
+  useEffect(() => { if (failure) failureRef.current?.focus(); }, [failure]);
   const [conv,  setConv]            = useState(null);
   const [steps, setSteps]           = useState([]);
   const [running, setRunning]       = useState(false);
@@ -60,92 +70,62 @@ export default function TestModeDrawer({ flow, onClose }) {
     }
   }
 
-  function poll(convId) {
-    botConversationAPI.get(convId)
-      .then((r) => {
-        const c = r.data;
-        const newSteps = c.steps || [];
-        if (newSteps.length !== steps.length) lastActivityAt.current = Date.now();
-        setSteps(newSteps);
-        setConv(c);
-        const stillRunning = c.status === 'active';
-        setRunning(stillRunning);
-
-        const idleFor = Date.now() - lastActivityAt.current;
-        if (stillRunning && idleFor < ABANDON_AFTER_MS) {
-          pollTimer.current = setTimeout(() => poll(convId), POLL_INTERVAL_MS);
-        }
-      })
-      .catch(() => {
-        // transient — keep trying
-        if (running) pollTimer.current = setTimeout(() => poll(convId), POLL_INTERVAL_MS * 2);
-      });
+  function poll(convId, owner = generation.current) {
+    botConversationAPI.get(convId).then(r => {
+      if (!alive.current || owner !== generation.current) return;
+      const c = r.data;
+      if (!c || c.id !== convId || c.flow !== flow.id || c.client !== flow.client
+          || !Array.isArray(c.steps) || !['active','completed','abandoned','handed_off','failed','exited'].includes(c.status)) throw new Error('Invalid conversation');
+      if (c.steps.length !== stepCount.current) lastActivityAt.current = Date.now();
+      stepCount.current = c.steps.length;
+      setFailure(null); setSteps(c.steps); setConv(c); setRunning(c.status === 'active');
+      if (c.status === 'active' && Date.now() - lastActivityAt.current < ABANDON_AFTER_MS) pollTimer.current = setTimeout(() => poll(convId, owner), POLL_INTERVAL_MS);
+    }).catch(error => {
+      if (!alive.current || owner !== generation.current) return;
+      if ([401,403,404].includes(apiError(error).status)) { setConv(null); setSteps([]); setRunning(false); }
+      setFailure(error); // Keep the valid snapshot; explicit retry reads only, never starts another test.
+    });
   }
-
   async function start() {
-    if (!phone.trim()) return toast.error('Enter a phone number');
-    persistentStorage.setItem('bot_test_phone', phone.trim());
-    setBusy(true); setSteps([]);
-    stopPolling();
+    if (!phone.trim() || busyRef.current || ambiguous) return;
+    busyRef.current = true; setBusy(true); setFailure(null); stopPolling(); generation.current++;
     try {
       const r = await botAPI.test(flow.id, phone.trim());
-      const convId = r.data?.conversation_id;
-      if (!convId) throw new Error('No conversation_id returned');
-      lastActivityAt.current = Date.now();
-      setRunning(true);
-      poll(convId);
-    } catch (e) {
-      toast.error(e?.response?.data?.error || 'Could not start test run');
-    } finally {
-      setBusy(false);
-    }
+      if (!Number.isSafeInteger(r.data?.conversation_id) || r.data.conversation_id <= 0) throw new Error('Invalid test acknowledgement');
+      if (!alive.current) return;
+      conversationId.current = r.data.conversation_id; setSteps([]); lastActivityAt.current = Date.now(); setRunning(true); poll(r.data.conversation_id);
+    } catch (error) {
+      if (!alive.current) return;
+      const normalized = apiError(error);
+      if (!normalized.status || normalized.status >= 500) setAmbiguous(true);
+      setFailure(error);
+    } finally { busyRef.current = false; if (alive.current) setBusy(false); }
   }
-
   async function stop() {
-    if (!conv?.id) return;
-    stopPolling();
-    try { await botConversationAPI.end(conv.id); } catch {}
-    setRunning(false);
-    botConversationAPI.get(conv.id).then((r) => setConv(r.data)).catch(() => {});
+    if (!conv?.id || busyRef.current) return;
+    busyRef.current = true; setBusy(true); stopPolling(); setFailure(null); generation.current++;
+    try {
+      const r = await botConversationAPI.end(conv.id);
+      if (!r.data || r.data.id !== conv.id || r.data.status !== 'exited') throw new Error('Invalid stop result');
+      if (alive.current) { setRunning(false); setConv(r.data); }
+    } catch (error) { if (alive.current) setFailure(error); }
+    finally { busyRef.current = false; if (alive.current) setBusy(false); }
   }
 
   return (
-    <aside style={drawerStyle}>
-      {/* Header */}
-      <header style={headerStyle}>
-        <span style={{
-          width: 28, height: 28,
-          background: 'var(--brand-gradient)', color: '#fff',
-          borderRadius: 'var(--radius-sm)',
-          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-        }}>
-          <PlayCircle size={14} strokeWidth={2.4} />
-        </span>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-            Test mode
-          </div>
-          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {flow?.name || 'Flow'}
-          </div>
-        </div>
-        <button type="button" onClick={onClose} aria-label="Close" style={iconBtn}>
-          <X size={14} />
-        </button>
-      </header>
-
+    <Drawer open onClose={() => { if (!busy) onClose(); }} title={t('editor.testTitle')} width={420}>
+      {failure && <DataState focusRef={failureRef} state={conv ? 'stale' : 'error'} compact title={t(ambiguous ? 'editor.testUnknown' : 'editor.testFailed')} referenceId={apiError(failure).referenceId}
+        action={conversationId.current && <button type="button" onClick={() => poll(conversationId.current)}>{t('analytics.report.retry')}</button>} />}
       {/* Phone + start */}
       <div style={{ padding: '12px 14px', borderBottom: '1px solid var(--border-subtle)' }}>
-        <label style={lbl}>Tester phone (E.164)</label>
         <div style={{ display: 'flex', gap: 6 }}>
-          <input value={phone} onChange={(e) => setPhone(e.target.value)}
-                 placeholder="+91 9876543210" style={inputStyle} />
+          <Input label={t('editor.testPhone')} value={phone} onChange={(e) => setPhone(e.target.value)} autoComplete="tel" />
           {!running ? (
-            <button type="button" onClick={start} disabled={busy} style={btnPrimary}>
+            <button type="button" onClick={start} disabled={busy || ambiguous || !phone.trim()} style={btnPrimary}>
               {busy ? '…' : <>{steps.length ? <><RefreshCw size={13} /> Restart</> : <><PlayCircle size={13} /> Run</>}</>}
             </button>
           ) : (
-            <button type="button" onClick={stop} style={btnDanger}>
+            <button type="button" onClick={stop} disabled={busy} style={btnDanger}>
               <StopCircle size={13} /> Stop
             </button>
           )}
@@ -172,7 +152,7 @@ export default function TestModeDrawer({ flow, onClose }) {
         {running && (
           <div style={{ display: 'flex', gap: 6, padding: '8px 12px', color: 'var(--text-tertiary)', fontSize: 12 }}>
             <Sparkles size={11} className="ai-loading-pulse" /> Bot is thinking…
-            <style>{`@keyframes ai-loading-pulse{0%,100%{opacity:.6}50%{opacity:1}} .ai-loading-pulse{animation:ai-loading-pulse 1.4s ease-in-out infinite}`}</style>
+            <style>{`@keyframes ai-loading-pulse{0%,100%{opacity:.6}50%{opacity:1}} .ai-loading-pulse{animation:ai-loading-pulse 1.4s ease-in-out infinite} @media(prefers-reduced-motion:reduce){.ai-loading-pulse{animation:none}}`}</style>
           </div>
         )}
       </div>
@@ -200,7 +180,7 @@ export default function TestModeDrawer({ flow, onClose }) {
           </div>
         </div>
       )}
-    </aside>
+    </Drawer>
   );
 }
 
@@ -275,37 +255,6 @@ function Empty() {
   );
 }
 
-const drawerStyle = {
-  position: 'fixed', top: 0, right: 0, bottom: 0,
-  width: 'min(420px, 100vw)',
-  background: 'var(--surface-card)',
-  borderLeft: '1px solid var(--border-subtle)',
-  boxShadow: 'var(--shadow-xl)',
-  zIndex: 1100,
-  display: 'flex', flexDirection: 'column',
-  animation: 'bot-test-slide 220ms ease-out',
-};
-
-const headerStyle = {
-  display: 'flex', alignItems: 'center', gap: 10,
-  padding: '12px 14px',
-  borderBottom: '1px solid var(--border-subtle)',
-};
-
-const lbl = {
-  display: 'block', fontSize: 11, fontWeight: 600,
-  letterSpacing: '0.04em', textTransform: 'uppercase',
-  color: 'var(--text-tertiary)', marginBottom: 4,
-};
-const inputStyle = {
-  flex: 1, padding: '8px 10px',
-  background: 'var(--surface-sunken)',
-  border: '1px solid var(--border-default)',
-  borderRadius: 'var(--radius-sm)',
-  fontSize: 13, color: 'var(--text-primary)',
-  outline: 'none', fontFamily: 'inherit',
-};
-
 const btnPrimary = {
   display: 'inline-flex', alignItems: 'center', gap: 4,
   padding: '0 14px',
@@ -316,10 +265,4 @@ const btnPrimary = {
 const btnDanger = {
   ...btnPrimary,
   background: 'var(--danger)',
-};
-const iconBtn = {
-  width: 28, height: 28, padding: 0,
-  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-  background: 'transparent', color: 'var(--text-tertiary)',
-  border: 'none', borderRadius: 'var(--radius-sm)', cursor: 'pointer',
 };
