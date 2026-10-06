@@ -790,6 +790,7 @@ def _t_reply_to_message(ti, *, client, user):
         else:
             return {'error': f'cannot reply to conversation type {conv.type} via tool'}
     except TokenExpiredError:
+        cred.mark_auth_failure('token_expired')
         return {'error': f'{conv.platform} token expired — reconnect the integration'}
     except RateLimitError:
         return {'error': f'{conv.platform} rate-limited — try again in a few minutes'}

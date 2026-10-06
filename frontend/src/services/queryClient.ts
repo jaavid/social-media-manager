@@ -51,6 +51,9 @@ export function createQueryClient() { return new QueryClient({
  * client id so cross-tenant queries don't collide in the cache.
  */
 export const QK = {
+  connectionExtension: (workspaceId: WorkspaceId, accountId: number, name: string) => ['connections.extension', workspaceId, accountId, name],
+  connectionWorkspace: () => ['connections.workspace'],
+  connections: (workspaceId: WorkspaceId) => ['connections', workspaceId],
   dashboardCounts: (clientId: WorkspaceId) => ['dashboard.counts', clientId],
   dashboardToday:  (clientId: WorkspaceId) => ['dashboard.today', clientId],
   search:          (clientId: WorkspaceId, q: string) => ['search', clientId, q],

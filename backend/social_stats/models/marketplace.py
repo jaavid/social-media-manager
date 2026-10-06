@@ -78,6 +78,7 @@ AGENCY_CLIENT_PERMISSIONS = {
     'manage_automation':   {'label': 'Set Up Automations',      'category': 'settings',   'default': False, 'risk': 'medium'},
     'manage_brand_voice':  {'label': 'Train AI Brand Voice',    'category': 'settings',   'default': True,  'risk': 'low'},
     # Critical (cannot be silently granted; UI must call them out separately)
+    'connect_platforms':   {'label': 'Connect Platforms',       'category': 'critical', 'default': False, 'risk': 'critical'},
     'disconnect_platforms':{'label': 'Disconnect Platforms',    'category': 'critical',   'default': False, 'risk': 'critical'},
     'change_billing':      {'label': 'Change Billing',          'category': 'critical',   'default': False, 'risk': 'critical'},
 }

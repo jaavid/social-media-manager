@@ -67,6 +67,23 @@ class ResiliencePolicy:
 
 
 @dataclass(frozen=True)
+class AuthField:
+    key: str
+    title_en: str
+    title_fa: str
+    secret: bool = False
+    required: bool = True
+
+    def __post_init__(self):
+        if not re.fullmatch(r'[a-z][a-z0-9_]{0,49}', self.key):
+            raise ValueError('auth.field: invalid key')
+        if not self.title_en or not self.title_fa:
+            raise ValueError('auth.field: localized titles required')
+        if type(self.secret) is not bool or type(self.required) is not bool:
+            raise ValueError('auth.field: boolean flags required')
+
+
+@dataclass(frozen=True)
 class PlatformManifest:
     key: str
     title_fa: str
@@ -83,9 +100,12 @@ class PlatformManifest:
     egress_service: str | None = None
     connection_handler: str | None = None
     destination_types: tuple[str, ...] = ('profile',)
+    auth_fields: tuple[AuthField, ...] = ()
+    oauth_start: str = ''
     icon: str = ''
     brand_color: str = ''
     extensions: tuple[str, ...] = ()
+    ui_extensions: tuple[str, ...] = ()
     inbound: str = 'none'
     legacy_adapter: bool = False
     resilience: ResiliencePolicy = field(default_factory=ResiliencePolicy)
@@ -141,6 +161,14 @@ class PlatformManifest:
                 or constraint.status != self.support[key]
             ):
                 raise ValueError(f'manifest.constraints.{key}: inconsistent status')
+        if any(not isinstance(item, str) or not re.fullmatch(r'[a-z][a-z0-9_]{1,49}', item) for item in self.ui_extensions):
+            raise ValueError('manifest.ui_extensions: invalid extension key')
+        if any(not isinstance(item, AuthField) for item in self.auth_fields):
+            raise ValueError('manifest.auth_fields: invalid field')
+        if len({item.key for item in self.auth_fields}) != len(self.auth_fields):
+            raise ValueError('manifest.auth_fields: duplicate key')
+        if self.oauth_start and (not self.oauth_start.startswith('/api/oauth/') or '\x00' in self.oauth_start):
+            raise ValueError('manifest.oauth_start: internal OAuth path required')
         if not self.destination_types:
             raise ValueError('manifest.destination_types: required')
         object.__setattr__(self, 'support', MappingProxyType(dict(self.support)))
@@ -157,11 +185,26 @@ class PlatformManifest:
             name, Capability(self.support.get(name, 'not_available'))
         )
 
+    def connection_fields(self):
+        if self.auth_fields:
+            return self.auth_fields
+        if self.auth_type == 'bot_token':
+            return (AuthField('token', 'Bot token', 'توکن ربات', secret=True),
+                    AuthField('destination_id', 'Destination ID', 'شناسه مقصد'))
+        if self.auth_type == 'api_key':
+            return (AuthField('api_key', 'API key', 'کلید API', secret=True),)
+        return ()
+
     def public_contract(self):
         from dataclasses import asdict
 
         return {
             'version': 1,
+            'auth': {
+                'strategy': self.auth_type,
+                'fields': [asdict(item) for item in self.connection_fields()],
+                'start_path': self.oauth_start,
+            },
             'destination_types': list(self.destination_types),
             'constraints': {
                 name: asdict(policy) for name, policy in self.constraints.items()
@@ -169,5 +212,6 @@ class PlatformManifest:
             'brand': {'icon': self.icon, 'color': self.brand_color},
             'inbound': self.inbound,
             'extensions': list(self.extensions),
+            'ui_extensions': list(self.ui_extensions),
             'resilience': asdict(self.resilience),
         }

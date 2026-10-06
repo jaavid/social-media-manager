@@ -147,6 +147,7 @@ def _exec_reply(approval) -> tuple[bool, str, dict]:
         else:
             return (False, f'reply not supported for type={conv.type}', {})
     except TokenExpiredError as e:
+        cred.mark_auth_failure('token_expired')
         return (False, str(e), {'code': 'token_expired'})
     except RateLimitError as e:
         return (False, str(e), {'code': 'rate_limited'})

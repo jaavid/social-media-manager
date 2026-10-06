@@ -82,6 +82,9 @@ PLATFORM_REGISTRY = (
         publisher='social_stats.publishers.facebook.FacebookPublisher',
         egress_service='meta',
         connection_handler='social_stats.views.oauth.oauth_disconnect',
+        icon='facebook',
+        brand_color='#1877F2',
+        oauth_start='/api/oauth/facebook/start/{workspace_id}/',
         legacy_adapter=True,
         destination_types=(
             'channel',
@@ -120,6 +123,9 @@ PLATFORM_REGISTRY = (
         publisher='social_stats.publishers.instagram.InstagramPublisher',
         egress_service='meta',
         connection_handler='social_stats.views.oauth.oauth_disconnect',
+        icon='instagram',
+        brand_color='#E1306C',
+        oauth_start='/api/oauth/facebook/start/{workspace_id}/?platform=instagram',
         legacy_adapter=True,
         destination_types=(
             'channel',
@@ -160,6 +166,9 @@ PLATFORM_REGISTRY = (
         publisher='social_stats.publishers.linkedin.LinkedInPublisher',
         egress_service='linkedin',
         connection_handler='social_stats.views.oauth.oauth_disconnect',
+        icon='linkedin',
+        brand_color='#0A66C2',
+        oauth_start='/api/oauth/linkedin/start/{workspace_id}/',
         legacy_adapter=True,
         destination_types=(
             'channel',
@@ -216,6 +225,9 @@ PLATFORM_REGISTRY = (
         publisher='social_stats.publishers.telegram.TelegramPublisher',
         egress_service='telegram',
         connection_handler='social_stats.views.bot_channel.bot_channel_connection',
+        ui_extensions=('telegram_settings',),
+        icon='telegram',
+        brand_color='#229ED9',
         legacy_adapter=True,
         destination_types=(
             'channel',
@@ -252,6 +264,8 @@ PLATFORM_REGISTRY = (
         publisher='social_stats.publishers.bale.BalePublisher',
         egress_service='bale',
         connection_handler='social_stats.views.bot_channel.bot_channel_connection',
+        icon='bale',
+        brand_color='#00A884',
         legacy_adapter=True,
         destination_types=(
             'channel',
@@ -285,6 +299,8 @@ PLATFORM_REGISTRY = (
             reviews='not_available',
             webhooks='planned',
         ),
+        icon='eitaa',
+        brand_color='#F58220',
         legacy_adapter=True,
         destination_types=(
             'channel',
@@ -317,6 +333,9 @@ PLATFORM_REGISTRY = (
         publisher='social_stats.publishers.youtube.YouTubePublisher',
         egress_service='google',
         connection_handler='social_stats.views.oauth.oauth_disconnect',
+        icon='youtube',
+        brand_color='#FF0000',
+        oauth_start='/api/oauth/google/start/{workspace_id}/?platform=youtube',
         legacy_adapter=True,
         destination_types=(
             'channel',
@@ -346,6 +365,8 @@ PLATFORM_REGISTRY = (
             comments='planned',
             webhooks='planned',
         ),
+        icon='aparat',
+        brand_color='#ED145B',
         legacy_adapter=True,
         destination_types=(
             'channel',
@@ -378,6 +399,9 @@ PLATFORM_REGISTRY = (
         publisher='social_stats.publishers.gmb.GMBPublisher',
         egress_service='google',
         connection_handler='social_stats.views.oauth.oauth_disconnect',
+        icon='google_my_business',
+        brand_color='#34A853',
+        oauth_start='/api/oauth/google/start/{workspace_id}/?platform=google_my_business',
         legacy_adapter=True,
         destination_types=(
             'channel',

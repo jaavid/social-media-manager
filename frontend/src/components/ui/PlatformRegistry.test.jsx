@@ -1,5 +1,4 @@
 import { render, screen } from '@testing-library/react';
-import ConnectedAccounts from './ConnectedAccounts';
 import { PlatformChoices } from '../../features/composer/ComposerPage';
 import { connectedPlatforms, getPlatformRegistry, registerPlatform } from '../../services/platforms';
 
@@ -13,7 +12,7 @@ jest.mock('../../services/botChannels', () => ({
 jest.mock('../ApiConnectivityPanel', () => () => null);
 
 describe('metadata-driven platform UI', () => {
-  test('a registry fixture creates its category, connection card and compatible composer option', () => {
+  test('a registry fixture creates a compatible composer option', () => {
     const fixture = {
       key: 'fixture_network',
       labels: { default: 'Fixture Network', short: 'Fixture' },
@@ -30,9 +29,6 @@ describe('metadata-driven platform UI', () => {
     const unregister = registerPlatform(fixture);
 
     try {
-      render(<ConnectedAccounts clientId={42} status={{ fixture_network: { status: 'active' } }} />);
-      expect(screen.getByRole('region', { name: 'regional' })).toHaveTextContent('Fixture Network');
-
       const options = connectedPlatforms(
         getPlatformRegistry(),
         { __connectionState: 'ready', fixture_network: { status: 'active' } },

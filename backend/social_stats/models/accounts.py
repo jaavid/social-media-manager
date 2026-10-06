@@ -71,6 +71,10 @@ class PlatformCredential(models.Model):
     gmb_account_id       = models.CharField(verbose_name='شناسه حساب کسب‌وکار گوگل', max_length=200, blank=True)   # GMB Account
     gmb_location_id      = models.CharField(verbose_name='شناسه موقعیت کسب‌وکار گوگل', max_length=200, blank=True)   # GMB Location
 
+    # Observed auth failures only. Empty means no recorded evidence, not health.
+    auth_failure_code = models.CharField(verbose_name='دلیل خطای احراز هویت', max_length=32, blank=True, default='', editable=False,
+                                        choices=[('token_expired', 'Token expired'), ('revoked', 'Revoked')])
+
     is_active    = models.BooleanField(verbose_name='فعال', default=True)
     connected_at = models.DateTimeField(verbose_name='زمان اتصال', auto_now_add=True)
     updated_at   = models.DateTimeField(verbose_name='آخرین ویرایش', auto_now=True)
@@ -91,6 +95,13 @@ class PlatformCredential(models.Model):
 
     def __str__(self):
         return f"{self.client.company} — {self.get_platform_display()}"
+
+    def mark_auth_failure(self, code):
+        if code not in {'token_expired', 'revoked'}:
+            raise ValueError('Unknown credential failure code')
+        self.auth_failure_code = code
+        self.is_active = False
+        self.save(update_fields=['auth_failure_code', 'is_active', 'updated_at'])
 
     @property
     def is_expired(self):

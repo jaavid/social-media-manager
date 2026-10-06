@@ -10,28 +10,28 @@
 OAuth 2.0 handlers for all 5 platforms:
   Facebook, Instagram, YouTube, Google My Business, LinkedIn
 """
-import secrets, requests, logging
+import secrets
+import requests
+import logging
 from urllib.parse import urlencode
 from datetime import timedelta
-
-logger = logging.getLogger(__name__)
 
 from django.conf import settings
 from django.shortcuts import redirect
 from django.utils import timezone
 from django.db.models.functions import Coalesce
-from django.contrib.auth.decorators import login_required
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 
 from social_stats.models import SocialAccount, PlatformCredential, Client, SyncLog
-from django.contrib.auth.models import User
 from social_stats.marketplace_permissions import (
     resolve_acting_context, check_action, deny_response, approval_pending_response,
 )
 from social_stats.activity_logger import log_activity_for_request
+
+logger = logging.getLogger(__name__)
 
 # ── Consumer app (public_profile + email only) ────────────────────────────────
 # App ID is public (appears in OAuth URLs). Secret comes from env.
@@ -48,6 +48,56 @@ def _facebook_consumer_secret():
     return getattr(settings, 'FACEBOOK_SOCIAL_APP_SECRET', '') or settings.META_APP_SECRET
 
 
+def _oauth_connection_enabled(platform):
+    from social_stats.platforms.registry import get_provider
+    keys = ('youtube', 'google_my_business') if platform == 'all' else (platform,)
+    return all(get_provider(key).manifest.capability('connection').enabled and
+               get_provider(key).manifest.status not in {'blocked', 'deprecated'} for key in keys)
+
+
+def _authorize_oauth_start(request, client_id, platform):
+    from .connections import workspace_for, account_for, permitted
+    workspace, error = workspace_for(request, client_id)
+    if error is not None:
+        return error
+    if platform not in {'facebook', 'instagram', 'youtube', 'google_my_business', 'linkedin', 'all'}:
+        return Response({'code': 'unsupported'}, status=400)
+    if not _oauth_connection_enabled(platform):
+        return Response({'code': 'unsupported'}, status=400)
+    account_id = request.GET.get('account_id')
+    account = account_for(workspace, platform, account_id)
+    if account_id and account is None:
+        return Response({'code': 'scope_denied'}, status=403)
+    if not permitted(request.user, workspace, 'connect_platforms', account):
+        return Response({'code': 'permission_denied'}, status=403)
+    request.session['oauth_connection'] = {
+        'workspace_id': workspace.pk, 'platform': platform,
+        'account_id': account.pk if account else None, 'matched': False,
+    }
+
+
+def _oauth_reconnect_account(request):
+    context = request.session.get('oauth_connection', {})
+    account_id = context.get('account_id')
+    if not account_id:
+        return None
+    return SocialAccount.objects.filter(pk=account_id, client_id=context.get('workspace_id')).first()
+
+
+def _oauth_callback_authorized(request):
+    from .connections import workspace_for, account_for, permitted
+    context = request.session.get('oauth_connection')
+    if not context or not _oauth_connection_enabled(context['platform']):
+        return False
+    workspace, error = workspace_for(request, context['workspace_id'])
+    if error is not None:
+        return False
+    account = account_for(workspace, context['platform'], context['account_id'])
+    if context['account_id'] and account is None:
+        return False
+    return permitted(request.user, workspace, 'connect_platforms', account)
+
+
 def _oauth_state_valid(request) -> bool:
     """OAuth CSRF guard: the callback's `state` must equal the one-time value
     stored in this browser's session at /start. Pops the stored value so a
@@ -55,10 +105,10 @@ def _oauth_state_valid(request) -> bool:
     import hmac as _hmac
     returned = request.GET.get('state', '') or ''
     expected = request.session.pop('oauth_state', '') or ''
-    return bool(expected) and _hmac.compare_digest(returned, expected)
+    return bool(expected) and _hmac.compare_digest(returned, expected) and _oauth_callback_authorized(request)
 
 
-def _save_credential(client_id, platform, defaults):
+def _save_credential(client_id, platform, defaults, *, request=None):
     """Upsert a provider identity without overwriting another account's tokens."""
     external_id = str(
         defaults.get('instagram_account_id') or defaults.get('channel_id')
@@ -69,6 +119,27 @@ def _save_credential(client_id, platform, defaults):
     # reconnectable while ensuring that a later, identified account is distinct.
     if not external_id:
         external_id = f'unidentified-{platform}'
+    if request is not None:
+        context = request.session.get('oauth_connection', {})
+        source = context.get('platform')
+        allowed = ({'facebook', 'instagram'} if source in {'facebook', 'instagram'} else
+                   {'youtube', 'google_my_business'} if source == 'all' else {source})
+        if (platform not in allowed or not _oauth_connection_enabled(platform)
+                or not _oauth_callback_authorized(request) or str(context.get('workspace_id')) != str(client_id)):
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied('Connection permission changed')
+        if context.get('account_id'):
+            target = SocialAccount.objects.get(pk=context['account_id'], client_id=client_id)
+            if target.platform != platform or target.external_id != external_id:
+                return  # Consent selected a different identity; never overwrite it.
+        from .connections import permitted
+        workspace = Client.objects.get(pk=client_id)
+        existing = SocialAccount.objects.filter(client=workspace, platform=platform, external_id=external_id).first()
+        if not permitted(request.user, workspace, 'connect_platforms', existing):
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied('Account connection permission denied')
+        context['matched'] = True
+        request.session['oauth_connection'] = context
     display_name = (
         defaults.get('channel_name') or defaults.get('organization_name')
         or defaults.get('page_name') or external_id
@@ -80,18 +151,22 @@ def _save_credential(client_id, platform, defaults):
     PlatformCredential.objects.update_or_create(
         social_account=account,
         defaults={
-            **defaults, 'client_id': client_id, 'platform': platform,
+            **defaults, 'client_id': client_id, 'platform': platform, 'auth_failure_code': '',
             'is_active': True,
         },
     )
 
 
-def _settings_redirect(client_id, query=''):
+def _settings_redirect(client_id, query='', *, request=None):
     """
     Redirect through /oauth/callback so the frontend can route correctly
     based on the logged-in user's role (admin vs client).
     query is either '?connected=xxx' or '?error=xxx'.
     """
+    if request is not None and query.startswith('?connected='):
+        context = request.session.pop('oauth_connection', {})
+        if context.get('account_id') and not context.get('matched'):
+            query = '?error=account_mismatch'
     sep = '&' if query else '?'
     return redirect(
         f"{settings.FRONTEND_URL}/oauth/callback{query}{sep}client_id={client_id}"
@@ -103,8 +178,14 @@ def _settings_redirect(client_id, query=''):
 # ══════════════════════════════════════════════════════════════════════
 
 @api_view(['GET'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def facebook_oauth_start(request, client_id):
+    platform = request.GET.get('platform', 'facebook')
+    if platform not in {'facebook', 'instagram'}:
+        return Response({'code': 'unsupported'}, status=400)
+    error = _authorize_oauth_start(request, client_id, platform)
+    if error is not None:
+        return error
     """
     Use the Business app to request page + Instagram access.
     This is the platform-connect flow (not social login).
@@ -132,13 +213,16 @@ def facebook_consumer_callback(request):
     """
     Step 1 callback: exchange code for user identity, then redirect to Step 2 (Business app).
     """
+    if not _oauth_state_valid(request):
+        return Response({'code': 'permission_denied'}, status=403)
+
     code  = request.GET.get('code')
     state = request.GET.get('state', '')
     error = request.GET.get('error')
 
     if error or not code:
         client_id = state.split(':')[0] if state else '0'
-        return _settings_redirect(client_id, '?error=facebook_denied')
+        return _settings_redirect(client_id, '?error=facebook_denied', request=request)
 
     client_id = state.split(':')[0]
 
@@ -160,10 +244,10 @@ def facebook_consumer_callback(request):
 
     if 'error' in token_resp:
         logger.error(
-            "FB consumer token exchange failed: app_id=%s error=%s",
-            FACEBOOK_CONSUMER_APP_ID, token_resp.get('error')
+            "FB consumer token exchange failed: app_id=%s",
+            FACEBOOK_CONSUMER_APP_ID
         )
-        return _settings_redirect(client_id, '?error=facebook_consumer_token')
+        return _settings_redirect(client_id, '?error=facebook_consumer_token', request=request)
 
     consumer_token = token_resp.get('access_token', '')
     expires_in     = token_resp.get('expires_in', 5184000)
@@ -205,7 +289,7 @@ def facebook_consumer_callback(request):
             'expires_at':    expires_at,
             'page_id':       page_id,
             'page_name':     page_name,
-        })
+        }, request=request)
 
         # Try to get linked Instagram Business Account
         ig_resp = requests.get(
@@ -227,7 +311,7 @@ def facebook_consumer_callback(request):
                 'page_id':              page_id,
                 'page_name':            ig_info.get('username', page_name),
                 'instagram_account_id': ig_id,
-            })
+            }, request=request)
     else:
         # No pages found — save user identity token so UI shows connected
         me_resp = requests.get(
@@ -240,7 +324,7 @@ def facebook_consumer_callback(request):
             'refresh_token': long_token,
             'expires_at':    expires_at,
             'page_name':     me_resp.get('name', 'Facebook User'),
-        })
+        }, request=request)
         logger.warning("FB: no pages found for client %s — saved user token only", client_id)
 
     # ── Step 2: Business app (uncomment after Meta App Review approval) ────────
@@ -262,7 +346,7 @@ def facebook_consumer_callback(request):
     # ──────────────────────────────────────────────────────────────────────────
 
     # For now: consumer login complete, redirect back to settings
-    return _settings_redirect(client_id, '?connected=facebook')
+    return _settings_redirect(client_id, '?connected=facebook', request=request)
 
 
 @api_view(['GET'])
@@ -275,11 +359,11 @@ def facebook_oauth_callback(request):
     client_id = state.split(':')[0] if ':' in state else state or '0'
 
     if error:
-        return _settings_redirect(client_id, '?error=facebook_denied')
+        return _settings_redirect(client_id, '?error=facebook_denied', request=request)
 
     if not _oauth_state_valid(request):
-        logger.warning("FB business callback rejected — state mismatch (client_id=%s)", client_id)
-        return _settings_redirect(client_id, '?error=oauth_state_mismatch')
+        logger.warning("FB business callback rejected — state mismatch")
+        return _settings_redirect(client_id, '?error=oauth_state_mismatch', request=request)
 
     # Step 1: Short-lived token
     token_resp = requests.get(
@@ -295,8 +379,8 @@ def facebook_oauth_callback(request):
     logger.info("FB business callback: client_id=%s token_resp_keys=%s", client_id, list(token_resp.keys()))
 
     if 'error' in token_resp:
-        logger.error("FB business token error: %s", token_resp)
-        return _settings_redirect(client_id, '?error=facebook_token')
+        logger.error("FB business token exchange failed")
+        return _settings_redirect(client_id, '?error=facebook_token', request=request)
 
     short_token = token_resp['access_token']
 
@@ -330,12 +414,12 @@ def facebook_oauth_callback(request):
         ).json()
         granted = [p.get('permission') for p in perms_resp.get('data', []) if p.get('status') == 'granted']
         logger.info("FB granted permissions for client %s: %s", client_id, granted)
-    except Exception as e:
-        logger.warning("FB permissions probe failed for client %s: %s", client_id, e)
+    except Exception:
+        logger.warning("FB permissions probe failed for client %s", client_id)
 
     if not pages:
         logger.warning("FB callback: /me/accounts returned no pages for client %s", client_id)
-        return _settings_redirect(client_id, '?error=facebook_no_pages')
+        return _settings_redirect(client_id, '?error=facebook_no_pages', request=request)
 
     # Step 4: Probe every page for a linked Instagram Business Account.
     # Prefer the first page that has IG linked. If none do, fall back to
@@ -357,11 +441,14 @@ def facebook_oauth_callback(request):
 
         ig_id = ig_resp.get('instagram_business_account', {}).get('id', '')
         logger.info(
-            "FB page candidate: client=%s page_id=%s name=%s ig_id=%r ig_resp=%s",
-            client_id, page_id, page_name, ig_id, ig_resp
+            "FB page candidate: client=%s page_id=%s",
+            client_id, page_id
         )
 
-        if ig_id and not chosen_page:
+        reconnect = _oauth_reconnect_account(request)
+        matches = reconnect and ((reconnect.platform == 'facebook' and str(page_id) == reconnect.external_id)
+                                 or (reconnect.platform == 'instagram' and str(ig_id) == reconnect.external_id))
+        if matches or (not reconnect and ig_id and not chosen_page):
             chosen_page  = page
             chosen_ig_id = ig_id
             break
@@ -382,7 +469,7 @@ def facebook_oauth_callback(request):
         'expires_at':    expires_at,
         'page_id':       page_id,
         'page_name':     page_name,
-    })
+    }, request=request)
     connected.append('facebook')
 
     # Save Instagram credential if a linked IG Business Account was found
@@ -399,7 +486,7 @@ def facebook_oauth_callback(request):
             'page_id':               page_id,
             'page_name':             ig_info.get('username', page_name),
             'instagram_account_id':  chosen_ig_id,
-        })
+        }, request=request)
         connected.append('instagram')
     else:
         logger.warning(
@@ -408,7 +495,7 @@ def facebook_oauth_callback(request):
         )
 
     platforms = ','.join(connected)
-    return _settings_redirect(client_id, f"?connected={platforms}")
+    return _settings_redirect(client_id, f"?connected={platforms}", request=request)
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -435,8 +522,14 @@ GOOGLE_SCOPES = ' '.join([
 ])
 
 @api_view(['GET'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def google_oauth_start(request, client_id):
+    platform = request.GET.get('platform', 'all')
+    if platform not in {'youtube', 'google_my_business', 'all'}:
+        return Response({'code': 'unsupported'}, status=400)
+    error = _authorize_oauth_start(request, client_id, platform)
+    if error is not None:
+        return error
     """Redirect to Google consent screen.
     Optional ?platform=youtube or ?platform=google_my_business for separate flows.
     """
@@ -479,8 +572,8 @@ def google_oauth_callback(request):
     platform  = parts[1] if len(parts) >= 3 else 'all'  # youtube | google_my_business | all
 
     if not _oauth_state_valid(request):
-        logger.warning("Google callback rejected — state mismatch (client_id=%s)", client_id)
-        return _settings_redirect(client_id, '?error=oauth_state_mismatch')
+        logger.warning("Google callback rejected — state mismatch")
+        return _settings_redirect(client_id, '?error=oauth_state_mismatch', request=request)
 
     # Exchange code for tokens
     token_resp = requests.post(
@@ -495,7 +588,7 @@ def google_oauth_callback(request):
     ).json()
 
     if 'error' in token_resp:
-        logger.error("Google token exchange failed: %s", token_resp)
+        logger.error("Google token exchange failed")
         return redirect(f"{settings.FRONTEND_URL}/settings?error=google_token")
 
     access_token  = token_resp['access_token']
@@ -516,11 +609,12 @@ def google_oauth_callback(request):
             }, timeout=10
         ).json()
 
-        logger.info("YouTube channels response: %s", yt_resp)
+        logger.info("YouTube channel lookup completed")
 
         yt_items = yt_resp.get('items', [])
         if yt_items:
-            channel      = yt_items[0]
+            reconnect = _oauth_reconnect_account(request)
+            channel = next((item for item in yt_items if reconnect and str(item.get('id')) == reconnect.external_id), yt_items[0])
             channel_id   = channel['id']
             channel_name = channel['snippet']['title']
 
@@ -530,7 +624,7 @@ def google_oauth_callback(request):
                 'expires_at':    expires_at,
                 'channel_id':    channel_id,
                 'channel_name':  channel_name,
-            })
+            }, request=request)
             connected.append('youtube')
 
     # ── Google My Business ────────────────────────────────
@@ -540,11 +634,14 @@ def google_oauth_callback(request):
             headers={'Authorization': f'Bearer {access_token}'}, timeout=10
         )
         gmb_accounts = gmb_accounts_resp.json()
-        logger.info("GMB accounts status=%s body=%s", gmb_accounts_resp.status_code, gmb_accounts)
+        logger.info("GMB accounts status=%s", gmb_accounts_resp.status_code)
 
         accounts = gmb_accounts.get('accounts', [])
         if accounts:
-            gmb_account_id = accounts[0]['name']
+            reconnect = _oauth_reconnect_account(request)
+            previous = getattr(reconnect, 'credential', None) if reconnect else None
+            selected_account = next((item for item in accounts if previous and item.get('name') == previous.gmb_account_id), accounts[0])
+            gmb_account_id = selected_account['name']
 
             gmb_locations_resp = requests.get(
                 f'https://mybusinessbusinessinformation.googleapis.com/v1/{gmb_account_id}/locations',
@@ -552,11 +649,11 @@ def google_oauth_callback(request):
                 headers={'Authorization': f'Bearer {access_token}'}, timeout=10
             )
             gmb_locations = gmb_locations_resp.json()
-            logger.info("GMB locations status=%s body=%s", gmb_locations_resp.status_code, gmb_locations)
+            logger.info("GMB locations status=%s", gmb_locations_resp.status_code)
 
             locations = gmb_locations.get('locations', [])
             if locations:
-                location    = locations[0]
+                location = next((item for item in locations if reconnect and item.get('name') == reconnect.external_id), locations[0])
                 location_id = location['name']
                 biz_name    = location.get('title', '')
 
@@ -567,7 +664,7 @@ def google_oauth_callback(request):
                     'gmb_account_id':  gmb_account_id,
                     'gmb_location_id': location_id,
                     'page_name':       biz_name,
-                })
+                }, request=request)
                 connected.append('google_my_business')
             else:
                 # No locations found — save token anyway so user shows as connected
@@ -579,11 +676,11 @@ def google_oauth_callback(request):
                     'gmb_account_id':  gmb_account_id,
                     'gmb_location_id': '',
                     'page_name':       accounts[0].get('accountName', 'Google My Business'),
-                })
+                }, request=request)
                 connected.append('google_my_business')
         else:
             # No GMB account — still save the token with the Google profile name
-            logger.warning("GMB: no accounts found. Response: %s", gmb_accounts)
+            logger.warning("GMB: no accounts found")
             user_info = requests.get(
                 'https://www.googleapis.com/oauth2/v3/userinfo',
                 headers={'Authorization': f'Bearer {access_token}'}, timeout=10
@@ -595,11 +692,11 @@ def google_oauth_callback(request):
                 'gmb_account_id':  '',
                 'gmb_location_id': '',
                 'page_name':       user_info.get('name', 'Google My Business'),
-            })
+            }, request=request)
             connected.append('google_my_business')
 
     platforms = ','.join(connected)
-    return _settings_redirect(client_id, f"?connected={platforms}")
+    return _settings_redirect(client_id, f"?connected={platforms}", request=request)
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -607,8 +704,11 @@ def google_oauth_callback(request):
 # ══════════════════════════════════════════════════════════════════════
 
 @api_view(['GET'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def linkedin_oauth_start(request, client_id):
+    error = _authorize_oauth_start(request, client_id, 'linkedin')
+    if error is not None:
+        return error
     """Redirect to LinkedIn consent screen."""
     state = f"{client_id}:{secrets.token_urlsafe(16)}"
     request.session['oauth_state'] = state
@@ -641,8 +741,8 @@ def linkedin_oauth_callback(request):
     client_id = state.split(':')[0]
 
     if not _oauth_state_valid(request):
-        logger.warning("LinkedIn callback rejected — state mismatch (client_id=%s)", client_id)
-        return _settings_redirect(client_id, '?error=oauth_state_mismatch')
+        logger.warning("LinkedIn callback rejected — state mismatch")
+        return _settings_redirect(client_id, '?error=oauth_state_mismatch', request=request)
 
     # Exchange code for access token
     token_resp = requests.post(
@@ -686,9 +786,9 @@ def linkedin_oauth_callback(request):
         'expires_at':        expires_at,
         'organization_id':   user_sub,
         'organization_name': user_name,
-    })
+    }, request=request)
 
-    return _settings_redirect(client_id, "?connected=linkedin")
+    return _settings_redirect(client_id, "?connected=linkedin", request=request)
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -708,8 +808,8 @@ def _refresh_google_token(cred):
             cred.access_token = resp['access_token']
             cred.expires_at   = timezone.now() + timedelta(seconds=resp.get('expires_in', 3600))
             cred.save(update_fields=['access_token', 'expires_at'])
-    except Exception as e:
-        logger.warning(f"Google token refresh failed for cred {cred.id}: {e}")
+    except Exception:
+        logger.warning("Google token refresh failed for credential %s", cred.id)
 
 
 def _refresh_facebook_token(cred):
@@ -726,8 +826,8 @@ def _refresh_facebook_token(cred):
             cred.access_token = resp['access_token']
             cred.expires_at   = timezone.now() + timedelta(seconds=expires_in)
             cred.save(update_fields=['access_token', 'expires_at'])
-    except Exception as e:
-        logger.warning(f"Facebook token refresh failed for cred {cred.id}: {e}")
+    except Exception:
+        logger.warning("Facebook token refresh failed for credential %s", cred.id)
 
 
 @api_view(['GET'])
@@ -823,7 +923,7 @@ def oauth_disconnect(request, client_id, platform):
     account_id = request.query_params.get('account_id')
     if account_id:
         credentials = credentials.filter(social_account_id=account_id)
-    credentials.update(access_token='', refresh_token='', is_active=False)
+    credentials.update(access_token='', refresh_token='', is_active=False, auth_failure_code='')
     SocialAccount.objects.filter(
         credential__client_id=client_id,
         credential__platform=platform,
@@ -857,7 +957,6 @@ def oauth_debug(request):
         'facebook_consumer_app_id':        FACEBOOK_CONSUMER_APP_ID,
         'facebook_consumer_redirect':      FACEBOOK_CONSUMER_REDIRECT,
         'facebook_consumer_secret_set':    bool(secret),
-        'facebook_consumer_secret_prefix': secret[:6] + '...' if secret else '(empty)',
         'meta_app_id':                     settings.META_APP_ID,
         'FACEBOOK_SOCIAL_APP_SECRET_env':  bool(getattr(settings, 'FACEBOOK_SOCIAL_APP_SECRET', '')),
     })

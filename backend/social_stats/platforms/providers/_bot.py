@@ -31,6 +31,8 @@ class BotPlatformProvider(BasePlatformProvider):
         chat_name = chat.get('title') or chat.get('username') or destination
         return ConnectionResult(
             account_id=str(bot.get('id') or ''), account_name=bot_name,
+            destination_type=('channel' if chat.get('type') == 'channel' else
+                              'group' if chat.get('type') in {'group', 'supergroup'} else 'profile'),
             destination_id=destination, scope=f'bot:{chat_name}', access_token=token,
             data={'bot': {'id': bot.get('id'), 'name': bot_name},
                   'destination': {'id': destination, 'name': chat_name, 'chat_id': chat.get('id'),

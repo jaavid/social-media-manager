@@ -157,3 +157,24 @@ production catalogue entries. Build and Jest remain mandatory PR checks.
 The checklist describes required behavioral coverage per capability. It is not
 possible to prove authenticity, deduplication or remote idempotency through Python
 method introspection; each future adapter supplies transport tests and evidence.
+
+## Connected Accounts auth and UI extensions
+
+`contract.auth` derives from the manifest's `auth_type`, optional `auth_fields`
+(localized `AuthField` descriptors, never values), and `oauth_start` internal path.
+Ordinary bot/API-key schemas are derived defaults; custom strategies must declare
+fields or a real OAuth start path before the UI offers a flow. The generic surface
+consumes the workspace-scoped connections API, validates responses, and does not
+consume the legacy frontend fallback catalogue or OAuth-provider name map.
+
+Optional `ui_extensions` names are separate from publishing request `extensions`.
+Only a provider that declares an installed UI extension gets that UI. The Telegram
+settings extension lives at `components/connections/providerExtensions.jsx`, uses
+the currently selected account and workspace in its query key, and preserves the
+existing account-scoped Telegram API. Providers with ordinary authentication need
+no frontend registration; extension registration is only for actual custom UI.
+
+See [Connected Accounts](CONNECT_ACCOUNTS.md) for readiness, sync staleness,
+authorization and recovery policies. Connection additions and reconnects share the
+`connect_platforms` action; the persistence boundary also authorizes an existing
+identity when a caller submits it through “Add account”.

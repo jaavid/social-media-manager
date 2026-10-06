@@ -14,9 +14,13 @@ import { useAppNavigate as useNavigate } from '../core/navigation';
 import { useSession as useAuth } from '../core/session';
 import { workspacesAPI } from '../services/api';
 import PageHeader from '../components/layout/PageHeader';
-import ConnectedAccounts from '../components/ui/ConnectedAccounts';
+import ConnectedAccounts from '@/components/ConnectedAccounts';
 import CompetitorSection from '../components/ui/CompetitorSection';
-import { useOAuthStatus, useLookups } from '../hooks/useData';
+import { useQuery } from '@tanstack/react-query';
+import { QK } from '@/services/queryClient';
+import { useLanguage } from '@/i18n';
+import { connectionsAPI } from '@/services/domains/connections';
+import { useLookups } from '../hooks/useData';
 import {
   ArrowRight, Building2, CheckCircle2, Globe2, ImagePlus, Loader2,
   MapPin, MessageCircle, Palette, Phone, PlugZap, Upload, Users, X,
@@ -62,9 +66,12 @@ const GENDERS = [
 
 export default function ClientOnboardingPage() {
   const { user, refreshUser } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const clientId = user?.client_id;
-  const { status: oauthStatus } = useOAuthStatus(clientId);
+  const connections = useQuery({ queryKey: QK.connections(Number(clientId)),
+    queryFn: ({ signal }) => connectionsAPI.get(Number(clientId), signal),
+    enabled: Boolean(clientId), retry: false });
   const { lookups } = useLookups();
 
   const businessCategoryOptions = (lookups.business_categories || BUSINESS_CATEGORIES.map((label) => ({
@@ -202,9 +209,7 @@ export default function ClientOnboardingPage() {
   ];
   const currentStepData = steps[currentStep];
   const progressPct = Math.round(((currentStep + 1) / steps.length) * 100);
-  const connectedAccountsCount = Object.values(oauthStatus || {}).filter(
-    (item) => item?.status === 'active'
-  ).length;
+  const connectedAccountsCount = connections.data?.providers.flatMap(provider => provider.accounts).filter(account => account.health.ready).length;
 
   const handleInputChange = (field, value) => {
     setErrors((prev) => {
@@ -347,8 +352,8 @@ export default function ClientOnboardingPage() {
       }
     }
 
-    if (stepIndex === 5 && connectedAccountsCount < 1) {
-      nextErrors.social_connection = 'Connect at least one social media account before completing setup.';
+    if (stepIndex === 5 && (connectedAccountsCount == null || connectedAccountsCount < 1)) {
+      nextErrors.social_connection = connectedAccountsCount == null ? t('connections.failed') : 'Connect at least one social media account before completing setup.';
     }
 
     setErrors((prev) => ({ ...prev, ...nextErrors }));
@@ -871,7 +876,7 @@ export default function ClientOnboardingPage() {
               </div>
               <div style={styles.connectHeroCard}>
                 <div style={styles.connectMiniStat}>
-                  <div style={styles.connectMiniValue}>{Object.values(oauthStatus || {}).filter(Boolean).length}</div>
+                  <div style={styles.connectMiniValue}>{connections.data ? connections.data.providers.filter(provider => provider.accounts.length > 0).length : '—'}</div>
                   <div style={styles.connectMiniLabel}>Accounts ready</div>
                 </div>
                 <div style={styles.connectMiniNote}>You can still finish setup now and connect more later from Settings.</div>
@@ -881,8 +886,6 @@ export default function ClientOnboardingPage() {
             <div style={styles.connectPanel}>
               <ConnectedAccounts
                 clientId={clientId}
-                status={oauthStatus}
-                onRefresh={() => {}}
               />
 
               {getFieldError('social_connection') && (

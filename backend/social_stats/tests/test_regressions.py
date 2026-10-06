@@ -181,6 +181,8 @@ class OAuthStateValidationTests(TestCase):
     the session at /start (OAuth CSRF guard)."""
 
     def _start_facebook(self, http, client_id):
+        # Provider connections require an authenticated, authorized workspace actor.
+        http.force_login(_user_for(Client.objects.get(pk=client_id)))
         return http.get(f'/api/oauth/facebook/start/{client_id}/')
 
     def test_forged_state_is_rejected(self):
