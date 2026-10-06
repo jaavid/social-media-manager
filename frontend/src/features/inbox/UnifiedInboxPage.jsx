@@ -68,7 +68,8 @@ function InboxWorkspace({ workspaceId, reviewsOnly }) {
       .map(account => ({ provider, account }))), [metadata.data, type]);
   const selected = accounts.find(a => String(a.account.id) === accountId);
   const params = useMemo(() => ({ workspace_id: workspaceId, ...(accountId ? { social_account: accountId } : {}), type, search, page }), [workspaceId, accountId, type, search, page]);
-  const allowed = !!selected && !metadata.error;
+  const metadataDenied = metadata.error && ['authentication', 'permission'].includes(apiError(metadata.error).kind);
+  const allowed = !!selected && !metadataDenied;
   const list = useConversations(params, scope, allowed && type !== 'review');
   const reviews = useReviews(params, scope, allowed && type === 'review');
   useRealtime(event => {
@@ -78,8 +79,9 @@ function InboxWorkspace({ workspaceId, reviewsOnly }) {
   });
   const resource = type === 'review' ? reviews : list;
   if (metadata.isPending) return <DataState state="loading" title={t('engagement.loading')} />;
-  if (metadata.error) return <Failure error={metadata.error} retry={() => metadata.refetch()} />;
+  if (metadata.error && (!metadata.data || metadataDenied)) return <Failure error={metadata.error} retry={() => metadata.refetch()} />;
   return <>
+    {metadata.error && <Failure error={metadata.error} retry={() => metadata.refetch()} preserved />}
     <div className="my-4 flex flex-wrap gap-3">
       {!reviewsOnly && <NativeSelect aria-label={t('engagement.title')} value={type} onChange={e => { setType(e.target.value); setAccount(''); setPage(1); }}>
         {Object.keys(capability).filter(kind => metadata.data.providers.some(p => enabled(p.capabilities[capability[kind]]))).map(kind => <option key={kind} value={kind}>{t(`engagement.${kind}`)}</option>)}
@@ -93,7 +95,7 @@ function InboxWorkspace({ workspaceId, reviewsOnly }) {
     </div>
     {selected && <EngagementExtensions names={selected.provider.contract.ui_extensions} accountId={selected.account.id} />}
     {accounts.length === 0 ? <DataState state="empty" title={t('engagement.unavailable')} /> : !selected ? <DataState state="empty" title={t('engagement.account')} /> :
-      <InboxContent key={scope} resource={resource} scope={scope} params={params} selected={selected} type={type} />}
+      <InboxContent key={scope} resource={resource} scope={scope} params={params} selected={selected} type={type} metadataCurrent={!metadata.error} />}
     {allowed && resource.pagination && <div className="mt-4 flex gap-3">
       <Button disabled={!resource.pagination.previous || resource.loading} onClick={() => setPage(n => n - 1)}>{t('engagement.previous')}</Button>
       <Button disabled={!resource.pagination.next || resource.loading} onClick={() => setPage(n => n + 1)}>{t('engagement.next')}</Button>
@@ -109,14 +111,14 @@ function Failure({ error, retry, preserved = false }) {
     description={preserved ? t('engagement.preserved') : undefined}
     action={<Button onClick={retry}>{t('engagement.retry')}</Button>} />;
 }
-function InboxContent({ resource, scope, params, selected, type }) {
+function InboxContent({ resource, scope, params, selected, type, metadataCurrent }) {
   const { t } = useLanguage();
   const [activeId, setActive] = useState(null);
   const active = resource.data.find(row => row.id === activeId);
   const thread = useConversation(type === 'review' ? null : active?.id, scope, params);
   const data = type === 'review' ? active : thread.data;
   useRealtime(event => { if (event?.client_id === params.workspace_id && event.type?.startsWith('inbox.')) thread.refetch(); });
-  const canReply = selected.account.health.ready && selected.account.engagement_readiness?.[capability[type]] === true && selected.account.permissions[permission[type]] === true;
+  const canReply = metadataCurrent && selected.account.health.ready && selected.account.engagement_readiness?.[capability[type]] === true && selected.account.permissions[permission[type]] === true;
   return <>
     {resource.error && <Failure error={resource.error} retry={resource.refetch} preserved={resource.data.length > 0} />}
     {resource.loading && <DataState state={resource.data.length ? 'refreshing' : 'loading'} title={t(resource.data.length ? 'engagement.refreshing' : 'engagement.loading')} compact />}

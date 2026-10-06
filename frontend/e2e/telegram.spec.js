@@ -60,6 +60,7 @@ test('Telegram poll composer saves ordered options', async ({ page }) => {
 test('paid Telegram suggestions display financial terms without an approval button', async ({ page }, testInfo) => {
   await setup(page);
   await page.goto('/admin/analytics/inbox');
+  await page.getByRole('combobox', { name: 'Account / destination' }).selectOption('1');
   await expect(page.getByText('Suggested post', { exact: true })).toBeVisible();
   await expect(page.getByText(/10 XTR/)).toBeVisible();
   await expect(page.getByRole('button', { name: 'Approve on Telegram', exact: true })).toHaveCount(0);

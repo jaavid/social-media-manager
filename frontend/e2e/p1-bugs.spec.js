@@ -105,7 +105,10 @@ test('Inbox never offers Bob’s unsent text as a reply to Alice', async ({ page
       return route.fulfill({ json: id ? conversations.find(item => item.id === id) : conversations });
     }
   } });
+  await mockComposerConnections(page);
   await page.goto('/admin/analytics/inbox');
+  await page.getByRole('combobox', { name: 'Account / destination' }).selectOption('7');
+  await page.getByRole('button', { name: /Bob/ }).click();
   await page.locator('textarea').fill('Private reply for Bob');
   await page.getByRole('button', { name: /Alice/ }).click();
   await expect(page.locator('textarea')).toHaveValue('');

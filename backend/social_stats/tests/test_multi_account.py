@@ -258,7 +258,7 @@ class LegacyAccountIdentityTests(TestCase):
         for endpoint, record in objects:
             with (
                 self.subTest(endpoint=endpoint),
-                patch("social_stats.views.inbox.get_publisher") as publisher,
+                patch("social_stats.platforms.engagement.get_provider") as publisher,
             ):
                 response = self.api.post(
                     f"/api/inbox/{endpoint}/{record.pk}/reply/",

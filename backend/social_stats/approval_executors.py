@@ -123,7 +123,7 @@ def _exec_reply(approval) -> tuple[bool, str, dict]:
         return (False, 'reply target is unavailable', {})
     try:
         result = deliver_reply(target, text.strip(), approval.requested_by)
-        return (True, 'reply sent', {'id': result.pk})
+        return (True, 'reply sent', {'message_id': result.pk, 'conversation_id': target.pk} if model is Conversation else {'review_id': result.pk})
     except PublishError as exc:
         return (False, 'reply failed', {'code': exc.code})
 
