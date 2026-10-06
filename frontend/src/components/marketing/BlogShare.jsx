@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Linkedin, Facebook, Link as LinkIcon } from 'lucide-react';
+import { Link as LinkIcon } from 'lucide-react';
+import BrandIcon from '../ui/BrandIcon';
 import toast from '../ui/toast';
 export default function BlogShare() {
   const [url, setUrl] = useState('');
@@ -9,9 +10,9 @@ export default function BlogShare() {
     try { await navigator.clipboard.writeText(window.location.href); toast.success("پیوند در کلیپ بورد کپی شد"); }
     catch { toast.error("پیوند کپی نشد"); }
   }
-  return <><ShareBtn icon={Linkedin} href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`} label={"در لینکدین به اشتراک بگذارید"} /><ShareBtn icon={Facebook} href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`} label={"در فیس‌بوک به اشتراک بگذارید"} /><ShareBtn icon={LinkIcon} onClick={copyLink} label={"کپی لینک"} /></>;
+  return <><ShareBtn brand="linkedin" href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`} label={"در لینکدین به اشتراک بگذارید"} /><ShareBtn brand="facebook" href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`} label={"در فیس‌بوک به اشتراک بگذارید"} /><ShareBtn icon={LinkIcon} onClick={copyLink} label={"کپی لینک"} /></>;
 }
-function ShareBtn({ icon: Icon, href, onClick, label }) {
+function ShareBtn({ icon: Icon, brand, href, onClick, label }) {
   const Wrap = href ? 'a' : 'button';
   return (
     <Wrap
@@ -36,7 +37,7 @@ function ShareBtn({ icon: Icon, href, onClick, label }) {
       onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--brand-primary-hover)'; e.currentTarget.style.borderColor = 'var(--brand-primary-glow)'; }}
       onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-secondary)'; e.currentTarget.style.borderColor = 'var(--border-subtle)'; }}
     >
-      <Icon size={14} strokeWidth={2} />
+      {brand ? <BrandIcon brand={brand} size={14} /> : <Icon size={14} strokeWidth={2} />}
     </Wrap>
   );
 }
