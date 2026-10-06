@@ -3,7 +3,7 @@ Tests for: audit log + notification dispatch + smart watchers
 + approval queue + preferences API.
 """
 import uuid
-from datetime import datetime, timedelta, timezone as dt_tz
+from datetime import timedelta
 from unittest.mock import patch
 
 from django.contrib.auth.models import User
@@ -12,7 +12,7 @@ from django.utils import timezone
 from rest_framework.test import APIClient
 
 from social_stats.models import (
-    Client, UserProfile, ActionLog, Notification, NotificationPreference,
+    Client, UserProfile, Notification, NotificationPreference,
     PlatformCredential, PostMetric, DailyMetric, UnifiedPost, Alert,
 )
 
@@ -270,6 +270,8 @@ class ApprovalQueueTests(TestCase):
             target_platforms=['facebook'], status='draft',
             created_by=self.client_user,
         )
+        from social_stats.models import PlatformCredential
+        PlatformCredential.objects.create(client=self.c, platform='facebook', access_token='test-only', is_active=True)
         client_api = _api(self.client_user)
         with patch('social_stats.notification_watchers.dispatch_notification') as mock_dis:
             res = client_api.post(f'/api/composer/posts/{post.id}/publish_now/')

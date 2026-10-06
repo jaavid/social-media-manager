@@ -350,6 +350,8 @@ class ApprovalExecutorTests(TestCase):
             'draft_post',
             {
                 'content':         'hello from approved draft',
+                'media_type': 'image',
+                'media_urls': ['https://example.org/image.jpg'],
                 'target_platforms': ['facebook', 'instagram'],
                 'title':           'Approved title',
             },

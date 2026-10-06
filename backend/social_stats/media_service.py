@@ -32,7 +32,7 @@ import mimetypes
 import os
 import uuid
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Optional
 
 from django.conf import settings
 from django.core.files.base import ContentFile
@@ -40,6 +40,7 @@ from django.core.files.uploadedfile import UploadedFile
 from django.utils.text import slugify
 from PIL import Image, ImageOps
 
+from .platforms.publishing_defaults import PLATFORM_LIMITS
 from .models import MediaAsset
 
 logger = logging.getLogger(__name__)
@@ -47,39 +48,7 @@ logger = logging.getLogger(__name__)
 
 # ── Per-platform limits ───────────────────────────────────────────────────────
 # Conservative limits — under official caps to leave headroom for re-encoding.
-PLATFORM_LIMITS: dict[str, dict] = {
-    'facebook': {
-        'image': {'max_bytes': 10 * 1024 * 1024,        'allowed_mime': {'image/jpeg', 'image/png', 'image/gif'}},
-        'video': {'max_bytes': 4 * 1024 * 1024 * 1024,  'max_seconds': 240 * 60, 'allowed_mime': {'video/mp4', 'video/quicktime'}},
-    },
-    'instagram': {
-        # IG Feed
-        'image': {'max_bytes': 8 * 1024 * 1024, 'allowed_mime': {'image/jpeg'},
-                  'aspect_min': 4 / 5, 'aspect_max': 1.91, 'min_width': 320, 'max_width': 1440},
-        'video': {'max_bytes': 1024 * 1024 * 1024, 'max_seconds': 60, 'allowed_mime': {'video/mp4', 'video/quicktime'},
-                  'aspect_min': 4 / 5, 'aspect_max': 16 / 9},
-        'reel':  {'max_bytes': 1024 * 1024 * 1024, 'max_seconds': 90, 'allowed_mime': {'video/mp4'},
-                  'aspect_target': 9 / 16},
-        'story': {'max_bytes': 100 * 1024 * 1024, 'max_seconds': 60, 'allowed_mime': {'video/mp4', 'image/jpeg'},
-                  'aspect_target': 9 / 16},
-    },
-    'youtube': {
-        'video': {'max_bytes': 256 * 1024 * 1024 * 1024, 'max_seconds': 12 * 3600,
-                  'allowed_mime': {'video/mp4', 'video/quicktime', 'video/x-matroska', 'video/webm'}},
-        'reel':  {'max_bytes': 256 * 1024 * 1024, 'max_seconds': 60, 'allowed_mime': {'video/mp4'},
-                  'aspect_target': 9 / 16},
-    },
-    'linkedin': {
-        'image': {'max_bytes': 5 * 1024 * 1024, 'allowed_mime': {'image/jpeg', 'image/png'}},
-        'video': {'max_bytes': 5 * 1024 * 1024 * 1024, 'max_seconds': 10 * 60,
-                  'allowed_mime': {'video/mp4', 'video/quicktime'}},
-    },
-    'google_my_business': {
-        'image': {'max_bytes': 5 * 1024 * 1024, 'allowed_mime': {'image/jpeg', 'image/png'},
-                  'min_width': 250, 'min_height': 250},
-        'video': {'max_bytes': 100 * 1024 * 1024, 'max_seconds': 30, 'allowed_mime': {'video/mp4'}},
-    },
-}
+
 
 
 # ── Result dataclasses ────────────────────────────────────────────────────────
@@ -89,7 +58,9 @@ class ValidationResult:
     errors: list
     warnings: list
 
-    def add_error(self, msg):    self.errors.append(msg);   self.ok = False
+    def add_error(self, msg):
+        self.errors.append(msg)
+        self.ok = False
     def add_warning(self, msg):  self.warnings.append(msg)
 
 
@@ -235,7 +206,8 @@ def transcode_for_platform(asset: MediaAsset, platform: str, post_type: str) -> 
                 quality = 90
                 buf = io.BytesIO()
                 while quality >= 40:
-                    buf.seek(0); buf.truncate(0)
+                    buf.seek(0)
+                    buf.truncate(0)
                     img.save(buf, format='JPEG', quality=quality, optimize=True)
                     if buf.tell() <= max_bytes:
                         break
@@ -249,8 +221,10 @@ def transcode_for_platform(asset: MediaAsset, platform: str, post_type: str) -> 
         except Exception:
             logger.exception('Image transcode failed for asset %s', asset.id)
         finally:
-            try: asset.file.close()
-            except Exception: pass
+            try:
+                asset.file.close()
+            except Exception:
+                pass
         return asset
 
     # Video: lazy moviepy. A later iteration will expand this with smart-crop / resize.

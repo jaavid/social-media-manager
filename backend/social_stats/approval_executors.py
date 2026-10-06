@@ -58,22 +58,28 @@ def _exec_publish_post(approval) -> tuple[bool, str, dict]:
     except UnifiedPost.DoesNotExist:
         return (False, 'post no longer exists', {})
 
+    if payload.get('revision') and payload['revision'] != post.updated_at.isoformat():
+        return False, 'post changed since review was requested', {}
+
     # If the user edited the body before approving, persist that
     body = payload.get('body') or payload.get('content')
     if body and body != post.content:
         post.content = body
-        post.save(update_fields=['content'])
+        # Validate the reviewed content before changing the stored post.
+
 
     if post.status not in ('draft', 'scheduled', 'failed', 'partial', 'pending_approval'):
         return (False, f'post is in status {post.status}; cannot publish', {'post_id': post.id})
 
+    from .publishing_contract import validate_intent, post_payload
+    validate_intent(post_payload(post), post.client, approval.requested_by, action='publish_posts', ready=True)
     post.publish_action = 'publish_posts'
     post.publish_requested_by = approval.requested_by
     post.approved_by = approval.decided_by
     post.approved_at = timezone.now()
     post.status = 'queued'
     post.scheduled_at = timezone.now()
-    post.save(update_fields=['status', 'scheduled_at', 'approved_by', 'approved_at', 'publish_requested_by', 'publish_action'])
+    post.save(update_fields=['content', 'status', 'scheduled_at', 'approved_by', 'approved_at', 'publish_requested_by', 'publish_action'])
     publish_unified_post.delay(post.id)
     return (True, 'queued for publishing', {'post_id': post.id})
 
@@ -204,10 +210,13 @@ def _exec_draft_post(approval) -> tuple[bool, str, dict]:
     if not content and not payload.get('media_urls') and payload.get('media_type') not in ('album', 'rich', 'poll'):
         return (False, 'no content or media in payload — cannot create draft', {})
 
+    from .publishing_contract import validate_intent
+    validate_intent(payload, approval.client, approval.requested_by)
     post = UnifiedPost.objects.create(
         client=approval.client,
         created_by=approval.requested_by,
-        title=(payload.get('title') or '')[:255],
+        intent_key=payload.get('intent_key'),
+        title=(payload.get('title') or '')[:200],
         content=content,
         target_platforms=list(payload.get('target_platforms') or []),
         media_urls=list(payload.get('media_urls') or []),
@@ -287,6 +296,8 @@ def _exec_edit_post(approval):
     from social_stats.serializers.composer import UnifiedPostSerializer
     serializer = UnifiedPostSerializer(post, data=payload, partial=True)
     serializer.is_valid(raise_exception=True)
+    from .publishing_contract import validate_intent, post_payload
+    validate_intent({**post_payload(post), **serializer.validated_data}, post.client, approval.requested_by, action='draft_posts')
     extra = {'approved_by': None, 'approved_at': None, 'publish_requested_by': None}
     if post.status in ('scheduled', 'queued', 'pending_approval'):
         extra['status'] = 'draft'
@@ -299,8 +310,12 @@ def _exec_schedule_post(approval):
     payload = _payload(approval)
     post = UnifiedPost.objects.filter(pk=payload.get('post_id'), client=approval.client).first()
     when = parse_datetime(payload.get('scheduled_at', ''))
-    if not post or not when or when <= timezone.now():
+    if not post or not when or timezone.is_naive(when) or when <= timezone.now():
         return False, 'post missing or schedule is no longer in the future', {}
+    if payload.get('revision') and payload['revision'] != post.updated_at.isoformat():
+        return False, 'post changed since review was requested', {}
+    from .publishing_contract import validate_intent, post_payload
+    validate_intent(post_payload(post), post.client, approval.requested_by, action='schedule_posts', ready=True)
     post.status = 'scheduled'
     post.scheduled_at = when
     post.publish_action = 'schedule_posts'
@@ -385,5 +400,8 @@ def execute_approval(approval) -> tuple[bool, str, dict]:
     try:
         return handler(approval)
     except Exception as e:  # noqa: BLE001
+        if approval.action_type in {'draft_post', 'edit_post', 'publish_post', 'schedule_post'}:
+            logger.error('composer approval execution rejected action_type=%s', approval.action_type)
+            return False, 'Composer approval execution rejected; review the intent and current permissions', {}
         logger.exception('approval executor crashed for action_type=%s', approval.action_type)
         return (False, f'executor error: {e}', {})

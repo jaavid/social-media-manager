@@ -61,7 +61,7 @@ class OrchestratorTests(TestCase):
         # IG doesn't support text; orchestrator will skip via PublishError(supported=False).
         # For this test we use carousel-style media so both publishers work.
         post.media_type = 'image'
-        post.media_urls = ['https://x/img.jpg']
+        post.media_urls = ['https://example.org/img.jpg']
         post.save()
 
         with patch.object(__import__('social_stats.publishers.facebook', fromlist=['FacebookPublisher']).FacebookPublisher,
@@ -88,7 +88,7 @@ class OrchestratorTests(TestCase):
 
     # ── Partial: one success, one failed ─────────────────────────────────
     def test_partial_status_when_one_fails(self):
-        post = self._make_post(media_type='image', media_urls=['https://x/img.jpg'])
+        post = self._make_post(media_type='image', media_urls=['https://example.org/img.jpg'])
         from social_stats.publishers.facebook import FacebookPublisher
         from social_stats.publishers.instagram import InstagramPublisher
 
@@ -108,7 +108,7 @@ class OrchestratorTests(TestCase):
 
     # ── Token expired: deactivates cred + writes Alert ───────────────────
     def test_token_expired_deactivates_cred_and_writes_alert(self):
-        post = self._make_post(media_type='image', media_urls=['https://x/img.jpg'])
+        post = self._make_post(media_type='image', media_urls=['https://example.org/img.jpg'])
         from social_stats.publishers.facebook import FacebookPublisher
         from social_stats.publishers.instagram import InstagramPublisher
 
@@ -134,7 +134,7 @@ class OrchestratorTests(TestCase):
     def test_missing_credential_marks_failed(self):
         # Remove the FB cred
         PlatformCredential.objects.filter(client=self.client_obj, platform='facebook').delete()
-        post = self._make_post(media_type='image', media_urls=['https://x/img.jpg'],
+        post = self._make_post(media_type='image', media_urls=['https://example.org/img.jpg'],
                                target_platforms=['facebook'])
         from social_stats.orchestrator import publish_unified_post
         publish_unified_post(post.id)
@@ -149,7 +149,7 @@ class OrchestratorTests(TestCase):
     def test_approval_gate_blocks_publish_until_approved(self):
         self.client_obj.requires_approval = True
         self.client_obj.save(update_fields=['requires_approval'])
-        post = self._make_post(media_type='image', media_urls=['https://x/img.jpg'])
+        post = self._make_post(media_type='image', media_urls=['https://example.org/img.jpg'])
 
         from social_stats.orchestrator import publish_unified_post
         # First call: should be parked in pending_approval, no API calls.
@@ -163,7 +163,7 @@ class OrchestratorTests(TestCase):
     # ── Status update helper ─────────────────────────────────────────────
     def test_update_unified_post_status_aggregates_children(self):
         from social_stats.orchestrator import update_unified_post_status
-        post = self._make_post(media_type='image', media_urls=['https://x/img.jpg'])
+        post = self._make_post(media_type='image', media_urls=['https://example.org/img.jpg'])
         # Manually create logs simulating mixed outcome
         PlatformPublishLog.objects.create(unified_post=post, platform='facebook', status='success')
         PlatformPublishLog.objects.create(unified_post=post, platform='instagram', status='failed')
@@ -173,7 +173,7 @@ class OrchestratorTests(TestCase):
 
 
     def test_partial_retry_preserves_successful_delivery(self):
-        post = self._make_post(status='partial', media_type='image', media_urls=['https://x/img.jpg'])
+        post = self._make_post(status='partial', media_type='image', media_urls=['https://example.org/img.jpg'])
         PlatformPublishLog.objects.create(unified_post=post, platform='facebook', status='success',
                                          platform_post_id='already-sent')
         PlatformPublishLog.objects.create(unified_post=post, platform='instagram', status='failed')

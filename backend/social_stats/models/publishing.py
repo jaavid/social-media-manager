@@ -99,6 +99,7 @@ class MediaAsset(models.Model):
 class UnifiedPost(models.Model):
     """A post composed in Social Stats, fanned out to one or more platforms."""
     client            = models.ForeignKey(Client, verbose_name='فضای کاری', on_delete=models.CASCADE, related_name='unified_posts')
+    intent_key = models.UUIDField(verbose_name='کلید درخواست نگارش', null=True, blank=True, editable=False)
     publish_action = models.CharField(verbose_name='نوع درخواست انتشار', max_length=20, default='publish_posts', choices=[('publish_posts', 'انتشار'), ('schedule_posts', 'زمان‌بندی')])
     publish_requested_by = models.ForeignKey(User, verbose_name='درخواست‌کننده انتشار', on_delete=models.SET_NULL, null=True, blank=True, related_name='requested_post_publications')
     created_by        = models.ForeignKey(User, verbose_name='ایجادکننده', on_delete=models.SET_NULL, null=True, blank=True, related_name='created_unified_posts')
@@ -125,6 +126,7 @@ class UnifiedPost(models.Model):
         verbose_name_plural = 'پست‌های یکپارچه'
         verbose_name = 'پست یکپارچه'
         ordering = ['-created_at']
+        unique_together = ('client', 'created_by', 'intent_key')
         indexes = [
             models.Index(fields=['client', '-created_at']),
             models.Index(fields=['client', 'status']),
@@ -139,6 +141,7 @@ class PlatformPublishLog(models.Model):
     """One row per (UnifiedPost × target platform) — tracks per-platform outcome."""
     unified_post       = models.ForeignKey(UnifiedPost, verbose_name='پست یکپارچه', on_delete=models.CASCADE, related_name='publish_logs')
     platform           = models.CharField(verbose_name='پلتفرم', max_length=30, choices=PLATFORM_CHOICES)
+    account_target_id = models.PositiveBigIntegerField(verbose_name='شناسه حساب مقصد', default=0, editable=False)
     social_account     = models.ForeignKey(SocialAccount, verbose_name='حساب شبکه اجتماعی', on_delete=models.SET_NULL, related_name='publish_logs', null=True, blank=True)
     status             = models.CharField(verbose_name='وضعیت', max_length=20, choices=PUBLISH_LOG_STATUS_CHOICES, default='pending')
     platform_post_id   = models.CharField(verbose_name='شناسه پست در پلتفرم', max_length=300, blank=True, db_index=True)
@@ -153,7 +156,7 @@ class PlatformPublishLog(models.Model):
     class Meta:
         verbose_name_plural = 'گزارش‌های انتشار پلتفرم‌ها'
         verbose_name = 'گزارش انتشار پلتفرم'
-        unique_together = ('unified_post', 'platform')
+        unique_together = ('unified_post', 'platform', 'account_target_id')
         ordering = ['-attempted_at']
         indexes = [
             models.Index(fields=['platform', 'platform_post_id']),

@@ -8,6 +8,8 @@ Runtime provider implementations live in ``provider_registry``. ``get_provider``
 bridges canonical platform keys to their concrete output-service adapters.
 """
 
+from dataclasses import replace
+from .publishing_defaults import builtin_modes
 from .manifest import CAPABILITIES, PlatformManifest
 
 
@@ -225,7 +227,7 @@ PLATFORM_REGISTRY = (
         publisher='social_stats.publishers.telegram.TelegramPublisher',
         egress_service='telegram',
         connection_handler='social_stats.views.bot_channel.bot_channel_connection',
-        ui_extensions=('telegram_settings',),
+        ui_extensions=('telegram_settings', 'telegram_composer'),
         icon='telegram',
         brand_color='#229ED9',
         legacy_adapter=True,
@@ -433,3 +435,7 @@ PLATFORM_REGISTRY = (
         ),
     ),
 )
+
+
+# Enrich builtin compatibility contracts without a feature-level provider switch.
+PLATFORM_REGISTRY = tuple(replace(item, publishing_modes=builtin_modes(item)) for item in PLATFORM_REGISTRY)

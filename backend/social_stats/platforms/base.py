@@ -222,6 +222,9 @@ class BasePlatformProvider:
     def disconnected(self, account):
         """Provider-owned local extension cleanup."""
 
+    def validate_publish(self, media_type, content, options):
+        """Validate a declared provider extension before any transport call."""
+
     def prepare_publish(self, post, resolve_media):
         """Translate only this provider's optional extensions into adapter input."""
         return {}

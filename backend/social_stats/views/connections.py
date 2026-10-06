@@ -73,9 +73,16 @@ def connections(request, workspace_id):
                 'destination': {'id': public_identity(account.metadata.get('destination_id', account.external_id)),
                                 'kind': kind},
                 'health': asdict(health), 'sync': sync_health(provider, account),
+                'publishing_readiness': {mode: bool(health.ready and account.is_active
+                    and manifest.capability(descriptor.capability).enabled
+                    and set(descriptor.constraints.scopes) <= set(credential.scope.split() if credential else ())
+                    and kind in (descriptor.constraints.destination_types or manifest.destination_types))
+                    for mode, descriptor in manifest.publishing().items()},
                 'expires_at': credential.expires_at if credential else None,
                 'connected_at': credential.connected_at if credential else None,
                 'permissions': {
+                    'publish': evaluate(request.user, workspace, 'publish_posts', account=account).allowed,
+                    'schedule': evaluate(request.user, workspace, 'schedule_posts', account=account).allowed,
                     'reconnect': connect_enabled and permitted(request.user, workspace, 'connect_platforms', account),
                     'disconnect': manifest.capability('disconnect').enabled and permitted(request.user, workspace, 'disconnect_platforms', account),
                 },
