@@ -1,3 +1,4 @@
+import { mockComposerConnections } from './composer-fixture';
 import { test, expect } from '@playwright/test';
 
 async function session(page, { role = 'superadmin', language = 'en', theme = 'light', respond } = {}) {
@@ -23,12 +24,13 @@ async function session(page, { role = 'superadmin', language = 'en', theme = 'li
 
 for (const role of ['client', 'superadmin']) {
   test(`${role}: Save Draft and reload stay in the permitted composer`, async ({ page }) => {
-    const post = { id: 901, client: 7, content: 'Saved draft content', media_type: 'text', target_platforms: ['facebook'], media_urls: [], platform_overrides: {} };
+    const post = { title: '', status: 'draft', scheduled_at: null, id: 901, client: 7, content: 'Saved draft content', media_type: 'text', target_platforms: ['facebook'], media_urls: [], platform_overrides: {} };
     await session(page, { role, respond: (route, url) => {
       if (url.pathname.includes('/composer/posts/')) return route.fulfill({ json: post });
       if (url.pathname.includes('/oauth/status/') || url.pathname.includes('/bot-channels/')) return route.fulfill({ json: { facebook: { status: 'active', connected: true } } });
     } });
     const base = `/${role === 'client' ? 'dashboard' : 'admin'}/analytics/composer`;
+    await mockComposerConnections(page);
     await page.goto(base);
     await page.getByRole('button', { name: 'Facebook', exact: true }).first().click();
     await page.locator('textarea').first().fill(post.content);

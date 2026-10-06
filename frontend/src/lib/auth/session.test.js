@@ -22,3 +22,11 @@ test('account changes and logout synchronize tabs independently', () => {
   expect(invalidated).toHaveBeenCalledTimes(1);
   stopChanged(); stopInvalidated();
 });
+
+test('logout removes tab-private Composer recovery while preserving unrelated session storage', () => {
+  sessionStorage.setItem('composer-draft:1:7:new', 'private draft');
+  sessionStorage.setItem('unrelated', 'retained');
+  invalidateSession();
+  expect(sessionStorage.getItem('composer-draft:1:7:new')).toBeNull();
+  expect(sessionStorage.getItem('unrelated')).toBe('retained');
+});

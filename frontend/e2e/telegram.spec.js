@@ -1,7 +1,8 @@
+import { mockComposerConnections } from './composer-fixture';
 import { test, expect } from '@playwright/test';
 
 const rich = { is_rtl: true, blocks: [{ type: 'heading', text: 'عنوان خبر', size: 2 }, { type: 'paragraph', text: 'متن فارسی' }, { type: 'pullquote', text: 'نقل قول' }] };
-const post = { id: 1, client: 1, title: 'Telegram review', content: '', media_type: 'rich', target_platforms: ['telegram'], media_urls: [], platform_overrides: { telegram: { social_account_id: 1, rich_message: rich } } };
+const post = { status: 'draft', scheduled_at: null, id: 1, client: 1, title: 'Telegram review', content: '', media_type: 'rich', target_platforms: ['telegram'], media_urls: [], platform_overrides: { telegram: { social_account_id: 1, rich_message: rich } } };
 
 async function setup(page, onWrite) {
   await page.context().addCookies([{ name: 'socialstats.language', value: 'en', url: process.env.E2E_BASE_URL || 'http://127.0.0.1:3000' }, { name: 'csrftoken', value: 'e2e-csrf', url: process.env.E2E_BASE_URL || 'http://127.0.0.1:3000' }]);
@@ -23,6 +24,7 @@ async function setup(page, onWrite) {
     else if (/\/(workspaces|notifications|alerts|invitations|conversations|queues)\/$/.test(path)) json = [];
     return route.fulfill({ json });
   });
+  await mockComposerConnections(page, 1, 'telegram');
   await page.routeWebSocket('**/ws/**', socket => socket.close());
 }
 
@@ -47,7 +49,7 @@ test('Telegram poll composer saves ordered options', async ({ page }) => {
   let saved;
   await setup(page, payload => { saved = payload; });
   await page.goto('/admin/analytics/composer/1');
-  await page.getByRole('button', { name: 'Telegram Poll', exact: true }).click();
+  await page.getByLabel('Content mode').selectOption('poll');
   await page.getByLabel('Poll question', { exact: true }).fill('Which headline?');
   await page.getByLabel('Poll answers', { exact: true }).fill('First\nSecond');
   await page.getByRole('button', { name: 'Save Draft', exact: true }).click();

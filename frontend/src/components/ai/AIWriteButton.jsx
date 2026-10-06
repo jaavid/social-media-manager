@@ -56,6 +56,7 @@ const PLATFORM_OPTIONS = [
 export default function AIWriteButton({
   clientId,
   platform = 'instagram',
+  platformOptions = PLATFORM_OPTIONS,
   onInsert,
   label = 'Write with AI',
   size = 'sm',
@@ -207,7 +208,7 @@ export default function AIWriteButton({
                 <div>
                   <label style={fieldLabel}>Platform</label>
                   <select value={plat} onChange={(e) => setPlat(e.target.value)} style={selectStyle}>
-                    {PLATFORM_OPTIONS.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
+                    {platformOptions.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
                   </select>
                 </div>
                 <div>

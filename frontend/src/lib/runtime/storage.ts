@@ -36,3 +36,9 @@ export const transientStorage = {
     getSessionStorage()?.removeItem(key);
   },
 };
+
+export function clearTransientPrefix(prefix: string): void {
+  const storage = getSessionStorage();
+  if (!storage) return;
+  for (const key of Object.keys(storage)) if (key.startsWith(prefix)) storage.removeItem(key);
+}

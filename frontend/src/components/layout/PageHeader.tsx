@@ -19,6 +19,7 @@ interface PageHeaderProps {
   backHref?: string;
   meta?: ReactNode[];
   eyebrow?: ReactNode;
+  sticky?: boolean;
 }
 export default function PageHeader({
   title,
@@ -28,6 +29,7 @@ export default function PageHeader({
   backHref,
   meta = [],
   eyebrow,
+  sticky = true,
 }: PageHeaderProps) {
   const navigate = useAppNavigate();
   const { tr, isPersian } = useLanguage();
@@ -35,10 +37,11 @@ export default function PageHeader({
   return (
     <div
       className={cn(
-        'page-header-sticky flex min-w-0 flex-wrap items-start justify-between gap-4',
+        'flex min-w-0 flex-wrap items-start justify-between gap-4',
+        sticky ? 'page-header-sticky' : 'flex-col sm:flex-row',
       )}
     >
-      <div className="flex min-w-0 flex-1 items-start gap-3">
+      <div className={cn('flex min-w-0 flex-1 items-start gap-3', !sticky && 'w-full sm:w-auto')}>
         {backHref && (
           <button
             type="button"
