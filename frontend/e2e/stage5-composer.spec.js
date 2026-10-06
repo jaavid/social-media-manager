@@ -17,7 +17,7 @@ async function setup(page, { language = 'en', theme = 'light', scheduling = fals
     const req = route.request(); const url = new URL(req.url()); const path = url.pathname;
     if (path.endsWith('/auth/me/')) return route.fulfill({ json: { id: 1, role: 'client', account_type: 'legacy', workspace_id: 7, client_id: 7, email: 'fixture@example.test', permissions: {} } });
     if (path.endsWith('/auth/session/')) return route.fulfill({ json: { authenticated: true, csrfToken: 'e2e-csrf' } });
-    if (path.includes('/connections/')) return route.fulfill({ status: state.failRead ? 503 : 200, json: state.failRead ? { code: 'unavailable' } : state.wire });
+    if (path.includes('/connections/')) return route.fulfill({ status: state.failRead === 403 ? 403 : state.failRead ? 503 : 200, json: state.failRead ? { code: state.failRead === 403 ? 'permission_denied' : 'unavailable' } : state.wire });
     if (path === '/api/composer/queues/') return route.fulfill({ json: [{ id: 11, client: 7, name: 'Queue fixture', platforms: ['contract_example'], is_active: true }] });
     if (path.includes('/composer/posts/')) {
       if (req.method() !== 'GET') state.writes.push({ path, payload: req.postDataJSON(), key: req.headers()['idempotency-key'] });
@@ -48,6 +48,7 @@ async function compose(page, language = 'en') {
 for (const language of ['fa', 'en']) for (const theme of ['light', 'dark', 'system']) for (const width of [360, 768, 1440]) {
   test(`${language}/${theme}/${width}: editor keyboard, failure preservation and safe save retry`, async ({ page }) => {
     await page.setViewportSize({ width, height: 1000 });
+    await page.emulateMedia({ colorScheme: theme === 'system' ? 'dark' : theme });
     const errors = []; page.on('pageerror', e => errors.push(e.message));
     const state = await setup(page, { language, theme }); await compose(page, language);
     const heading = await page.getByRole('heading', { name: language === 'fa' ? 'نگارش پست' : 'Composer', exact: true }).boundingBox();
@@ -82,15 +83,15 @@ test('standard fixture publishes text; capability removal disables publishing wi
   await expect(page.getByText('No publish-capable providers available.')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Publish Now' })).toBeDisabled();
 });
-test('timeout remains ambiguous, preserves media/account/editor and never repeats publication', async ({ page }) => {
-  const state = await setup(page); await compose(page); state.failPublish = 'timeout';
+for (const failure of ['timeout', 503]) test(`publication ${failure} remains ambiguous, preserves editor/account and never repeats delivery`, async ({ page }) => {
+  const state = await setup(page); await compose(page); state.failPublish = failure;
   await page.getByRole('button', { name: 'Publish Now' }).click();
   await expect(page.getByText(/The outcome is unknown/)).toBeVisible();
   await expect(page.getByLabel('Content', { exact: true })).toHaveValue('Private editor content');
   await expect(page.getByRole('checkbox', { name: /First account/ })).toBeChecked();
   await expect(page.getByRole('button', { name: 'Publish Now' })).toBeDisabled();
   expect(state.writes.filter(w => w.path.endsWith('/publish_now/'))).toHaveLength(1);
-  await page.screenshot({ path: 'e2e/evidence/stage5/recovery-ambiguous.png', fullPage: true });
+  await page.screenshot({ path: `e2e/evidence/stage5/recovery-${failure === 'timeout' ? 'ambiguous' : 'gateway'}.png`, fullPage: true });
 });
 test('scheduling preserves the instant when switching locale in a non-UTC timezone', async ({ browser }) => {
   const context = await browser.newContext({ timezoneId: 'Asia/Tehran' }); const page = await context.newPage();
@@ -134,4 +135,19 @@ test('advanced draft media order, captions and destinations survive failed save 
   await page.getByRole('button', { name: 'Save Draft', exact: true }).click();
   await expect(page.getByText('Draft saved.', { exact: true })).toBeVisible();
   expect(state.writes[1].payload.platform_overrides.telegram).toEqual(options);
+});
+
+test('forbidden workspace refresh hides cached identities and recovered editor content', async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 1000 });
+  const state = await setup(page); await compose(page);
+  page.once('dialog', dialog => dialog.accept());
+  await page.getByRole('link', { name: 'Home', exact: true }).click();
+  await expect(page).toHaveURL(/analytics\/dashboard$/);
+  state.failRead = 403;
+  // Expire the shared query cache before remount so the denied refresh occurs.
+  await page.clock.setFixedTime(new Date(Date.now() + 10 * 60 * 1000));
+  await page.goBack();
+  await expect(page.getByText('You do not have permission for this account or operation.')).toBeVisible();
+  await expect(page.getByRole('checkbox', { name: /First account/ })).toHaveCount(0);
+  await expect(page.getByLabel('Content', { exact: true })).toHaveCount(0);
 });

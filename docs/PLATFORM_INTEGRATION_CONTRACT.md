@@ -203,7 +203,9 @@ The HTTP boundary, approval executors and delivery worker validate the intent
 before provider calls. Typed validation failures include `unsupported`,
 `text_limit`, `media_count`, `media_size`, `media_type`, `media_aspect`,
 `media_duration`, `media_dimensions`, `scope_denied`, and `permission_denied`.
-Asset constraints are checked against workspace-owned media. Remote HTTPS media
+Asset constraints are checked against workspace-owned media. Uploaded video
+duration and dimensions are inspected with the existing MoviePy/FFmpeg tooling;
+storage without a local path uses authorized upload bytes in a temporary file. Remote HTTPS media
 also passes SSRF checks and is inspected by adapters during upload; offline
 validation cannot establish remote byte dimensions or availability.
 

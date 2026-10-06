@@ -155,6 +155,10 @@ class ProviderExecution:
                     'Publication intent identifier required',
                     code='idempotency_required',
                 )
+            if request.media_type == 'text' and request.media_urls:
+                raise ProviderError('Text mode cannot discard attached media', code='media_invalid')
+            if request.media_type == 'text' and not request.content.strip():
+                raise ProviderError('Text publication requires content', code='invalid_request')
         if operation == 'ingest' and (
             not isinstance(request, InboundEvent)
             or not request.event_id

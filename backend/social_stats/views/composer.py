@@ -43,7 +43,7 @@ from social_stats.serializers.composer import (
     MediaAssetSerializer, PostQueueSerializer, QueuedItemSerializer,
 )
 from social_stats.models import (
-    UnifiedPost, MediaAsset, PostQueue, QueuedItem,
+    UnifiedPost, MediaAsset, PostQueue, QueuedItem, Client,
 )
 from social_stats.orchestrator import publish_unified_post
 from social_stats.platforms.registry import get_provider
@@ -536,6 +536,11 @@ class MediaAssetViewSet(TenantScopedMixin, viewsets.ModelViewSet):
         if not client_id:
             return Response({'detail': 'No client context'}, status=400)
 
+        from social_stats.authorization import evaluate
+        decision = evaluate(request.user, Client.objects.get(pk=client_id), 'draft_posts')
+        if not decision.allowed:
+            return deny_response(decision.reason)
+
         upload = request.FILES.get('file')
         if not upload:
             return Response({'detail': 'file is required (multipart "file")'}, status=400)
@@ -555,6 +560,10 @@ class MediaAssetViewSet(TenantScopedMixin, viewsets.ModelViewSet):
         client_id = self.resolved_client_id()
         if not client_id:
             return Response({'detail': 'No client context'}, status=400)
+        from social_stats.authorization import evaluate
+        decision = evaluate(request.user, Client.objects.get(pk=client_id), 'draft_posts')
+        if not decision.allowed:
+            return deny_response(decision.reason)
         files = request.FILES.getlist('files')
         if not files:
             return Response({'detail': 'files are required (multipart "files")'}, status=400)
@@ -566,9 +575,9 @@ class MediaAssetViewSet(TenantScopedMixin, viewsets.ModelViewSet):
                     f, client_id=client_id, uploaded_by_id=request.user.id, folder=folder,
                 )
                 out.append(MediaAssetSerializer(asset).data)
-            except Exception as e:
-                logger.exception('bulk_upload failed for %s', f.name)
-                errors.append({'file': f.name, 'error': str(e)})
+            except Exception:
+                logger.warning('Media upload failed')
+                errors.append({'file': f.name, 'error': 'Upload failed', 'code': 'upload_failed'})
         return Response({'created': out, 'errors': errors}, status=201 if out else 400)
 
 

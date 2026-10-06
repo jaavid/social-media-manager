@@ -18,7 +18,7 @@ for (const role of ['client', 'superadmin']) {
       const path = new URL(request.url()).pathname;
       if (['POST', 'PATCH', 'PUT'].includes(request.method()) && path.includes('/composer/posts/')) writes.push({ path, payload: request.postDataJSON() });
       if (path.endsWith('/auth/me/')) return route.fulfill({ json: { id: 1, role, account_type: 'legacy', client_id: 7, workspace_id: 7, email: 'queue@example.test', permissions: {} } });
-      if (path.endsWith('/add_to_queue/')) return route.fulfill({ status: failEnqueue ? 400 : 201, json: failEnqueue ? { detail: 'Queue temporarily unavailable' } : { id: 12 } });
+      if (path.endsWith('/add_to_queue/')) return route.fulfill({ status: failEnqueue ? 400 : 201, json: failEnqueue ? { code: 'invalid_request' } : { id: 12 } });
       if (path.includes('/composer/posts/')) return route.fulfill({ json: post });
       if (path.includes('/composer/queues/')) return route.fulfill({ json: [{ id: 11, client: 7, name: 'Evening Facebook', platforms: ['facebook'], is_active: true }] });
       if (path.includes('/oauth/status/') || path.includes('/bot-channels/')) return route.fulfill({ json: { facebook: { status: 'active', connected: true } } });
@@ -36,7 +36,7 @@ for (const role of ['client', 'superadmin']) {
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.screenshot({ path: testInfo.outputPath('composer-queue-selected.png'), fullPage: false });
     await action.click();
-    await expect(page.getByText('The operation could not be completed. Your input is preserved.', { exact: true })).toBeVisible();
+    await expect(page.getByText('Review content, media and destinations; the request is invalid.', { exact: true })).toBeVisible();
     await expect(page.locator('textarea').first()).toHaveValue(post.content);
     await expect(page.getByLabel('Destination queue')).toHaveValue('11');
     await expect(page.getByRole('button', { name: 'Publish Now', exact: true })).toHaveCount(0);

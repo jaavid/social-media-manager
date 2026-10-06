@@ -77,7 +77,7 @@ def upload_media(
     """
     Persist `file` and return a MediaAsset row. Generates a thumbnail when the
     file is an image; extracts image dimensions; for video, attempts to read
-    duration via moviepy (lazy-imported, optional).
+    duration and dimensions via moviepy (lazy-imported, optional).
     """
     if not file:
         raise ValueError('file is required')
@@ -114,13 +114,26 @@ def upload_media(
                     save=False,
                 )
         except Exception:
-            logger.exception('Failed to process image metadata for %s', name)
+            logger.warning('Image metadata could not be read')
 
     # Video duration via moviepy if available.
     elif mime.startswith('video/'):
-        duration = _probe_video_duration(asset.file.path if asset.file else None)
+        try:
+            metadata = _probe_video_metadata(asset.file.path if asset.file else None)
+        except NotImplementedError:
+            # Remote storage has no filesystem path. Inspect the authorized
+            # uploaded bytes locally rather than requesting a public media URL.
+            from tempfile import NamedTemporaryFile
+            with NamedTemporaryFile(suffix=os.path.splitext(name)[1]) as temporary:
+                file.seek(0)
+                for chunk in file.chunks():
+                    temporary.write(chunk)
+                temporary.flush()
+                metadata = _probe_video_metadata(temporary.name)
+        duration, width, height = metadata
         if duration:
             asset.duration_seconds = duration
+        asset.width, asset.height = width or 0, height or 0
 
     asset.save()
     return asset
@@ -283,16 +296,20 @@ def _safe_filename(original: str) -> str:
     return f'{base}_{short}{ext.lower()}'
 
 
-def _probe_video_duration(path: Optional[str]) -> float:
+def _probe_video_metadata(path: Optional[str]) -> tuple[float, int | None, int | None]:
     if not path:
-        return 0.0
+        return 0.0, None, None
     try:
         from moviepy.editor import VideoFileClip
     except ImportError:
-        return 0.0
+        return 0.0, None, None
     try:
         with VideoFileClip(path) as clip:
-            return float(clip.duration or 0)
+            return float(clip.duration or 0), int(clip.size[0]), int(clip.size[1])
     except Exception:
-        logger.exception('Failed to probe video duration for %s', path)
-        return 0.0
+        logger.warning('Video metadata could not be read')
+        return 0.0, None, None
+
+
+def _probe_video_duration(path: Optional[str]) -> float:
+    return _probe_video_metadata(path)[0]

@@ -88,6 +88,7 @@ test('double submit is synchronously locked and controls stay pending until the 
   expect(screen.queryByText('Published.')).not.toBeInTheDocument();
   await act(async () => finish({ status: 'pending_approval' }));
   await screen.findByText('Submitted for approval.');
+  expect(screen.getByRole('button', { name: 'Publish Now' })).toBeDisabled();
 });
 test('timeout is ambiguous and cannot automatically or manually replay publication', async () => {
   composer.command.mockRejectedValue({ isAxiosError: true, message: 'timeout' });
@@ -154,4 +155,41 @@ test('a persisted ambiguous delivery cannot enable publication on reopening the 
   mount(); await screen.findByText(/The outcome is unknown/);
   expect(screen.queryByText('Publication failed.')).not.toBeInTheDocument();
   expect(screen.getByRole('button', { name: 'Publish Now' })).toBeDisabled();
+});
+test('a forbidden refresh hides cached account identities and editor data', async () => {
+  const view = await compose();
+  connectionsAPI.get.mockRejectedValue({ isAxiosError: true, response: { status: 403, data: { code: 'permission_denied' } } });
+  await act(async () => view.client.invalidateQueries({ queryKey: ['connections', 7] }));
+  await screen.findByText('You do not have permission for this account or operation.');
+  expect(screen.queryByLabelText('Content')).not.toBeInTheDocument();
+  expect(screen.queryByText(/First account/)).not.toBeInTheDocument();
+});
+test('provider rejection and invalid request remain distinguishable', async () => {
+  composer.command.mockRejectedValueOnce({ isAxiosError: true, response: { status: 400, data: { code: 'invalid_request' } } });
+  await compose(); command(); await screen.findByText('Review content, media and destinations; the request is invalid.');
+  composer.command.mockRejectedValueOnce({ isAxiosError: true, response: { status: 400, data: { code: 'provider_error' } } });
+  command(); await screen.findByText('The provider rejected the request. Review account and content before retrying.');
+});
+test('an incomplete text draft may be saved but publication is disabled', async () => {
+  await compose(); fireEvent.change(screen.getByLabelText('Content'), { target: { value: '   ' } });
+  expect(screen.getByRole('button', { name: 'Publish Now' })).toBeDisabled();
+  expect(screen.getByRole('button', { name: 'Save Draft' })).toBeEnabled();
+  expect(composer.command).not.toHaveBeenCalled();
+});
+
+test('a gateway 503 body cannot disguise an uncertain command as definite failure', async () => {
+  composer.command.mockRejectedValue({ isAxiosError: true, response: { status: 503, data: { code: 'unavailable' } } });
+  await compose(); command(); await screen.findByText(/The outcome is unknown/);
+  expect(screen.getByRole('button', { name: 'Publish Now' })).toBeDisabled();
+  expect(composer.command).toHaveBeenCalledTimes(1);
+  expect(screen.getByLabelText('Content')).toHaveValue(stored.content);
+});
+test('stored provider content and mode control validation and remain editable without replacing the common payload', async () => {
+  mockId = '900'; composer.get.mockResolvedValue({ ...stored, content: 'x'.repeat(101), platform_overrides: { contract_example: { social_account_id: 10, content: 'Provider content', media_type: 'text' } } });
+  mount(); const input = await screen.findByLabelText('Contract example · Content');
+  expect(input).toHaveValue('Provider content');
+  expect(screen.getByRole('button', { name: 'Publish Now' })).toBeEnabled();
+  fireEvent.change(input, { target: { value: 'Edited provider content' } }); command();
+  await waitFor(() => expect(composer.save).toHaveBeenCalled());
+  expect(composer.save.mock.calls[0][2]).toEqual(expect.objectContaining({ content: 'x'.repeat(101), platform_overrides: { contract_example: { social_account_id: 10, content: 'Edited provider content', media_type: 'text' } } }));
 });

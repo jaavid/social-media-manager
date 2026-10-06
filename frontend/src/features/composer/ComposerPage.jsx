@@ -82,8 +82,13 @@ function ComposerEditor({ workspaceId, id, draftKey }) {
     const p = post.data;
     const media = p.media_urls.map((url, index) => ({ id: url.startsWith('asset:') ? Number(url.slice(6)) : `existing-${index}`, source_url: url, file_url: url.startsWith('asset:') ? '' : url }));
     const overrides = p.platform_overrides;
-    const extension = providers.flatMap(provider => Object.values(publishingModes(provider))).map(m => composerExtensions[m.ui_extension]).find(e => e?.recover);
-    const restoredMedia = extension && Object.values(overrides).map(options => extension.recover(options)).find(Boolean);
+    const restoredMedia = p.target_platforms.map(key => {
+      const provider = providers.find(item => item.key === key);
+      if (!provider) return null;
+      const options = overrides[key] || {};
+      const descriptor = publishingModes(provider)[options.media_type || p.media_type];
+      return composerExtensions[descriptor?.ui_extension]?.recover?.(options);
+    }).find(Boolean);
     const next = { ...empty, intentKey: draft.intentKey, title: p.title, content: p.content, mediaType: p.media_type,
       mediaAssets: restoredMedia || media, baseMediaUrls: p.media_urls, mediaDirty: false, platformOverrides: overrides, targetPlatforms: p.target_platforms,
       scheduleMode: p.scheduled_at ? 'schedule' : 'now', scheduledAt: p.scheduled_at ? localInput(p.scheduled_at) : '' };
@@ -110,15 +115,18 @@ function ComposerEditor({ workspaceId, id, draftKey }) {
   for (const key of draft.targetPlatforms) {
     const p = providers.find(provider => provider.key === key);
     if (!p) { issues.push({ key, code: 'not_connected' }); continue; }
-    const mode = publishingModes(p)[draft.mediaType];
-    if (!mode || (mode.ui_extension && !composerExtensions[mode.ui_extension])) { issues.push({ key, code: 'unsupported' }); continue; }
-    for (const code of incompatibilities(mode.constraints, draft.content, draft.mediaAssets)) issues.push({ key, code, limit: constraintDetail(mode.constraints, code) });
     const options = draft.platformOverrides[key] || {};
-    const targets = options.account_targets || (options.social_account_id ? [{ social_account_id: options.social_account_id }] : []);
+    const targets = Array.isArray(options.account_targets) ? options.account_targets : options.social_account_id ? [{ social_account_id: options.social_account_id }] : [];
     if (!targets.length) issues.push({ key, code: 'account_required' });
-    for (const target of targets) {
+    for (const target of targets.length ? targets : [{}]) {
+      const intent = effectiveIntent({ ...options, ...target }, draft);
+      const mode = publishingModes(p)[intent.mode];
+      if (!mode || (mode.ui_extension && !composerExtensions[mode.ui_extension])) { issues.push({ key, code: 'unsupported' }); continue; }
+      if (intent.mode === 'text' && !intent.content.trim()) issues.push({ key, code: 'invalid_request' });
+      if (intent.mode === 'text' && intent.assets.length) issues.push({ key, code: 'media_invalid' });
+      for (const code of incompatibilities(mode.constraints, intent.content, intent.assets)) issues.push({ key, code, limit: constraintDetail(mode.constraints, code) });
       const account = p.accounts.find(a => a.id === target.social_account_id);
-      if (!account?.health.ready || account.publishing_readiness?.[draft.mediaType] === false) issues.push({ key, code: 'not_connected' });
+      if (!account?.health.ready || account.publishing_readiness?.[intent.mode] === false) issues.push({ key, code: 'not_connected' });
       if (account?.permissions.publish !== true) issues.push({ key, code: 'permission_denied' });
       if (draft.scheduleMode !== 'now' && (account?.permissions.schedule !== true || !enabled(p.capabilities.scheduling))) issues.push({ key, code: 'schedule_unsupported' });
       if (mode.constraints.destination_types?.length && account && !mode.constraints.destination_types.includes(account.destination.kind)) issues.push({ key, code: 'invalid_destination' });
@@ -126,7 +134,7 @@ function ComposerEditor({ workspaceId, id, draftKey }) {
   }
   if (!draft.targetPlatforms.length) issues.push({ key: '', code: 'account_required' });
   const unresolvedDelivery = post.data?.publish_logs?.some(log => ['timeout', 'network_error', 'invalid_response'].includes(log.error_code));
-  const canPublish = !issues.length && !accounts.isError && !accounts.isPending && !ambiguous && !unresolvedDelivery && !retryDelay && !['queued', 'publishing', 'published'].includes(result || post.data?.status);
+  const canPublish = !issues.length && !accounts.isError && !accounts.isPending && !ambiguous && !unresolvedDelivery && !retryDelay && !['queued', 'publishing', 'published', 'pending_approval'].includes(result || post.data?.status);
   function toggleProvider(key) {
     const provider = providers.find(p => p.key === key);
     if (!draft.targetPlatforms.includes(key) && provider?.accounts.length === 1 && !draft.platformOverrides[key]?.account_targets) {
@@ -147,11 +155,12 @@ function ComposerEditor({ workspaceId, id, draftKey }) {
   function payload() {
     const overrides = structuredClone(draft.platformOverrides);
     for (const provider of selected) {
-      const mode = publishingModes(provider)[draft.mediaType];
+      const intent = effectiveIntent(overrides[provider.key] || {}, draft);
+      const mode = publishingModes(provider)[intent.mode];
       const extension = composerExtensions[mode?.ui_extension];
       if (extension) {
         const existingItems = overrides[provider.key]?.media_items;
-        overrides[provider.key] = extension.prepare(draft.mediaType, overrides[provider.key] || {}, draft.mediaAssets);
+        overrides[provider.key] = extension.prepare(intent.mode, overrides[provider.key] || {}, intent.assets);
         if (existingItems && !draft.mediaDirty) overrides[provider.key].media_items = existingItems;
       }
     }
@@ -195,7 +204,7 @@ function ComposerEditor({ workspaceId, id, draftKey }) {
       const uncertain = (commandStarted && (!parsed.status || parsed.status >= 500)) || parsed.status === 409;
       // Unsafe create/enqueue/publication cannot be replayed after an unknown response.
       if (uncertain) setAmbiguous(true);
-      setFailure({ code: parsed.code || (uncertain ? 'ambiguous' : parsed.kind === 'rate_limit' ? 'rate_limited' : parsed.kind === 'permission' ? 'permission_denied' : 'unavailable'), retryAfter: parsed.retryAfter });
+      setFailure({ code: uncertain ? 'ambiguous' : parsed.code || (parsed.kind === 'rate_limit' ? 'rate_limited' : parsed.kind === 'permission' ? 'permission_denied' : parsed.status === 400 ? 'invalid_request' : 'unavailable'), retryAfter: parsed.retryAfter });
     } finally { busy.current = false; if (mounted.current) setPending(null); }
   }
   async function upload(files) {
@@ -226,10 +235,12 @@ function ComposerEditor({ workspaceId, id, draftKey }) {
     finally { busy.current = false; if (mounted.current) setPending(null); }
   }
   const activeProvider = selected.find(p => p.key === preview) || selected[0];
-  const activeMode = activeProvider && publishingModes(activeProvider)[draft.mediaType];
+  const activeIntent = effectiveIntent(draft.platformOverrides[activeProvider?.key] || {}, draft);
+  const activeMode = activeProvider && publishingModes(activeProvider)[activeIntent.mode];
   const activeExtension = composerExtensions[activeMode?.ui_extension];
   const operation = draft.scheduleMode === 'schedule' ? 'schedule' : draft.scheduleMode === 'queue' ? 'add_to_queue' : 'publish_now';
   const label = operation === 'schedule' ? 'schedule' : operation === 'add_to_queue' ? 'queue' : 'publish';
+  if ([accounts, post].some(query => query.isError && ['permission', 'authentication'].includes(apiError(query.error).kind))) return <DataState state="forbidden" title={t('composer.editor.permission_denied')} />;
   if (!workspaceId) return <DataState state="forbidden" title={t('composer.editor.permission_denied')} />;
   if (id && (!post.data || !editorReady) && !recovered) return <DataState state={post.isError ? 'error' : 'loading'} title={t(post.isError ? 'composer.editor.unavailable' : 'composer.editor.loading')}
     action={post.isError && <Button onClick={() => post.refetch()}>{t('composer.editor.retry')}</Button>} />;
@@ -269,9 +280,23 @@ function ComposerEditor({ workspaceId, id, draftKey }) {
             <NativeSelect label={t('composer.editor.mode')} value={draft.mediaType} onChange={e => update('mediaType', e.target.value)}>
               {[...new Set([draft.mediaType, ...modes])].map(mode => <option key={mode} value={mode}>{t(modeKey(mode))}</option>)}
             </NativeSelect>
-            {selected.map(provider => { const extension = composerExtensions[publishingModes(provider)[draft.mediaType]?.ui_extension];
-              return extension && <extension.Editor key={provider.key} mode={draft.mediaType} value={draft.platformOverrides[provider.key] || {}} assets={draft.mediaAssets}
-                setAssets={value => update('mediaAssets', value)} onChange={value => update('platformOverrides', old => ({ ...old, [provider.key]: { ...old[provider.key], ...value } }))} />;
+            {selected.map(provider => {
+              const options = draft.platformOverrides[provider.key] || {};
+              const intent = effectiveIntent(options, draft);
+              const extension = composerExtensions[publishingModes(provider)[intent.mode]?.ui_extension];
+              const change = value => update('platformOverrides', old => ({ ...old, [provider.key]: { ...old[provider.key], ...value } }));
+              const name = provider.titles[language] || provider.titles.en;
+              return <div key={provider.key} className="space-y-3">
+                {typeof options.media_type === 'string' && <NativeSelect label={`${name} · ${t('composer.editor.mode')}`} value={options.media_type} onChange={event => change({ media_type: event.target.value })}>
+                  {[...new Set([options.media_type, ...Object.keys(publishingModes(provider))])].map(mode => <option key={mode} value={mode}>{t(modeKey(mode))}</option>)}
+                </NativeSelect>}
+                {typeof options.content === 'string' && <Textarea label={`${name} · ${t('composer.editor.content')}`} value={options.content} onChange={event => change({ content: event.target.value })} />}
+                {Array.isArray(options.media_urls) && <div><p>{t('composer.editor.storedMedia', undefined, { count: options.media_urls.length })}</p><Button variant="secondary" onClick={() => update('platformOverrides', old => {
+                  const next = { ...old[provider.key] }; delete next.media_urls; return { ...old, [provider.key]: next };
+                })}>{t('composer.editor.inheritMedia')}</Button></div>}
+                {extension && <extension.Editor mode={intent.mode} value={options} assets={intent.assets}
+                  setAssets={value => update('mediaAssets', value)} onChange={change} />}
+              </div>;
             })}
             <label className="ds-button ds-button-secondary my-3 inline-flex cursor-pointer items-center gap-2"><Upload size={16} />{t('composer.editor.upload')}
               <input className="sr-only" aria-label={t('composer.editor.upload')} type="file" multiple accept="image/*,video/*" disabled={!!pending} onChange={e => { upload([...e.target.files]); e.target.value = ''; }} />
@@ -295,15 +320,15 @@ function ComposerEditor({ workspaceId, id, draftKey }) {
       </div>
       <Card padding="md" className="min-w-0 self-start"><h2 className="mb-3 font-semibold">{t('composer.editor.preview')}</h2>
         <div className="mb-3 flex flex-wrap gap-2">{selected.map(p => <Button key={p.key} variant="secondary" onClick={() => setPreview(p.key)}>{p.titles[language] || p.titles.en}</Button>)}</div>
-        <div className="whitespace-pre-wrap break-words">{draft.content}</div>
-        {activeExtension && <activeExtension.Preview mode={draft.mediaType} value={draft.platformOverrides[activeProvider.key] || {}} />}
-        {draft.mediaAssets.map(a => a.file_url && <img key={a.id} className="mt-3 max-w-full rounded-xl" src={a.thumbnail_url || a.file_url} alt={a.caption || ''} />)}
+        <div className="whitespace-pre-wrap break-words">{activeIntent.content}</div>
+        {activeExtension && <activeExtension.Preview mode={activeIntent.mode} value={draft.platformOverrides[activeProvider.key] || {}} />}
+        {activeIntent.assets.map(a => a.file_url && <img key={a.id} className="mt-3 max-w-full rounded-xl" src={a.thumbnail_url || a.file_url} alt={a.caption || ''} />)}
       </Card>
     </div>
   </div></Page>;
 }
-const errorCodes = ['unsupported', 'text_limit', 'media_count', 'media_size', 'media_type', 'media_duration', 'media_dimensions', 'media_aspect', 'media_invalid', 'not_connected', 'permission_denied', 'account_required', 'invalid_destination', 'schedule_unsupported', 'schedule_invalid', 'rate_limited', 'ambiguous'];
-function errorKey(code) { return `composer.editor.${errorCodes.includes(code) ? code : code === 'timeout' || code === 'network_error' || code === 'invalid_response' ? 'ambiguous' : 'unavailable'}`; }
+const errorCodes = ['unsupported', 'text_limit', 'media_count', 'media_size', 'media_type', 'media_duration', 'media_dimensions', 'media_aspect', 'media_invalid', 'not_connected', 'permission_denied', 'account_required', 'invalid_destination', 'schedule_unsupported', 'schedule_invalid', 'rate_limited', 'ambiguous', 'invalid_request', 'provider_error'];
+function errorKey(code) { code = ({ scope_denied: 'permission_denied', token_expired: 'not_connected', media_too_large: 'media_size', graph_error: 'provider_error', publish_error: 'provider_error' })[code] || code; return `composer.editor.${errorCodes.includes(code) ? code : code === 'timeout' || code === 'network_error' || code === 'invalid_response' ? 'ambiguous' : 'unavailable'}`; }
 function resultKey(status) { if (status === 'draft') status = 'saved'; return `composer.editor.${['ambiguous', 'saved', 'pending_approval', 'queued', 'publishing', 'published', 'partial', 'failed', 'scheduled', 'success'].includes(status) ? status : 'publishing'}`; }
 function modeKey(mode) { return `composer.editor.mode_${['text', 'image', 'video', 'carousel', 'album', 'rich', 'poll', 'reel', 'story'].includes(mode) ? mode : 'custom'}`; }
 
@@ -311,4 +336,11 @@ function constraintDetail(policy, code) {
   const fields = { text_limit: ['max_characters'], media_count: ['min_items', 'max_items'], media_size: ['max_bytes'],
     media_duration: ['max_seconds'], media_aspect: ['aspect_min', 'aspect_max'], media_dimensions: ['min_width', 'max_width', 'min_height'], media_type: ['mime_types'] };
   return (fields[code] || []).map(key => policy[key]).filter(value => value != null).join(' / ');
+}
+
+function effectiveIntent(options, draft) {
+  return { mode: typeof options.media_type === 'string' ? options.media_type : draft.mediaType,
+    content: typeof options.content === 'string' ? options.content : draft.content,
+    assets: Array.isArray(options.media_urls) ? options.media_urls.map((url, index) => draft.mediaAssets.find(asset => (asset.source_url || `asset:${asset.id}`) === url)
+      || { id: `override-${index}`, source_url: url, file_url: typeof url === 'string' && url.startsWith('https://') ? url : '' }) : draft.mediaAssets };
 }

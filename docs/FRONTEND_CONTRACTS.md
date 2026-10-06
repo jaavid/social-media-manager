@@ -252,6 +252,7 @@ publication results without replacing editor input. Failed save/upload/commands
 retain text, ordered media, captions and account/destination choices in scoped
 tab recovery storage; session invalidation clears those entries. In-flight writes
 are locked and stale responses after scope changes cannot update the new editor.
+A denied workspace/post refresh hides cached identities and editor content.
 Draft save can retry the same local idempotency key. A command with a transport or
 5xx outcome becomes ambiguous and offers a status read, never automatic replay.
 Queued acceptance is explicitly distinguished from provider success. Account

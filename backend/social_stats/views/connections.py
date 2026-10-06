@@ -82,7 +82,8 @@ def connections(request, workspace_id):
                 'connected_at': credential.connected_at if credential else None,
                 'permissions': {
                     'publish': evaluate(request.user, workspace, 'publish_posts', account=account).allowed,
-                    'schedule': evaluate(request.user, workspace, 'schedule_posts', account=account).allowed,
+                    'schedule': evaluate(request.user, workspace, 'schedule_posts', account=account).allowed
+                        and set(manifest.capability('scheduling').scopes) <= set(credential.scope.split() if credential else ()),
                     'reconnect': connect_enabled and permitted(request.user, workspace, 'connect_platforms', account),
                     'disconnect': manifest.capability('disconnect').enabled and permitted(request.user, workspace, 'disconnect_platforms', account),
                 },

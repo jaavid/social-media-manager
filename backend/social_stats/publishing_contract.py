@@ -77,7 +77,7 @@ def validate_media(policy, content, urls, workspace, *, inspect_assets=True):
                 invalid('media_size', f'Media exceeds {policy.max_bytes} bytes')
             if policy.mime_types and asset.mime_type not in policy.mime_types:
                 invalid('media_type', 'Media format is incompatible')
-            if policy.max_seconds and (asset.duration_seconds is None or asset.duration_seconds > policy.max_seconds):
+            if policy.max_seconds and (asset.duration_seconds is None or asset.duration_seconds <= 0 or asset.duration_seconds > policy.max_seconds):
                 invalid('media_duration', f'Media duration must be known and at most {policy.max_seconds} seconds')
             if policy.max_width and (not asset.width or asset.width > policy.max_width):
                 invalid('media_dimensions', 'Media width exceeds the maximum')
@@ -128,6 +128,10 @@ def validate_intent(payload, workspace, user=None, *, action='draft_posts', read
             content = options.get('content', payload.get('content', ''))
             urls = options.get('media_urls', payload.get('media_urls', []))
             validate_media(descriptor.constraints, content, urls, workspace)
+            if mode == 'text' and urls:
+                invalid('media_invalid', 'Choose a media mode or remove attached media explicitly')
+            if ready and mode == 'text' and not content.strip():
+                invalid('invalid_request', 'Text publication requires content')
             if 'extensions' in options and (not isinstance(options['extensions'], dict) or set(options['extensions']) - set(manifest.extensions)):
                 invalid('invalid_request', 'Unknown provider extension')
             provider.validate_publish(mode, content, options)
@@ -160,6 +164,8 @@ def validate_intent(payload, workspace, user=None, *, action='draft_posts', read
                 policy = descriptor.constraints
                 if policy.scopes and not set(policy.scopes) <= set(credential.scope.split()):
                     invalid('permission_denied', 'Required provider scopes are missing')
+                if action == 'schedule_posts' and not set(manifest.capability('scheduling').scopes) <= set(credential.scope.split()):
+                    invalid('permission_denied', 'Required scheduling scopes are missing')
                 kind = (account.metadata if account else {}).get('destination_type', manifest.destination_types[0])
                 if kind not in (policy.destination_types or manifest.destination_types):
                     invalid('invalid_destination', 'Destination kind is incompatible')

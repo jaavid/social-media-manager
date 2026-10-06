@@ -276,7 +276,7 @@ class RBACPolicyTests(TestCase):
         self.policy(preset=self.editor)
         self.api.force_authenticate(self.actor)
         post = UnifiedPost.objects.create(
-            client=self.workspace, created_by=self.actor, target_platforms=["facebook"]
+            client=self.workspace, created_by=self.actor, content="Valid publishing intent", target_platforms=["facebook"]
         )
         res = self.api.post(f"/api/composer/posts/{post.pk}/publish_now/")
         self.assertEqual(res.status_code, 202)
@@ -297,7 +297,7 @@ class RBACPolicyTests(TestCase):
         self.policy(preset=self.editor)
         self.api.force_authenticate(self.actor)
         post = UnifiedPost.objects.create(
-            client=self.workspace, created_by=self.actor, target_platforms=["facebook"]
+            client=self.workspace, created_by=self.actor, content="Valid publishing intent", target_platforms=["facebook"]
         )
         when = (timezone.now() + timedelta(days=1)).isoformat()
         res = self.api.post(

@@ -74,6 +74,18 @@ class ComposerContractTests(FixtureRegistration, TestCase):
         self.assertEqual(response.data['code'], 'unsupported')
         self.assertFalse(self.provider.deliveries)
 
+    def test_scheduling_requires_declared_scope_before_dispatch(self):
+        self.scheduling()
+        cls = type(self.provider)
+        cls.manifest = replace(cls.manifest, constraints={**cls.manifest.constraints,
+            'scheduling': Capability('supported', scopes=('schedule',))})
+        post = self.post()
+        response = self.api.post(f'/api/composer/posts/{post.pk}/schedule/',
+            {'scheduled_at': (timezone.now() + timedelta(hours=1)).isoformat()}, format='json')
+        self.assertEqual(response.status_code, 403, response.data)
+        self.assertEqual(response.data['code'], 'permission_denied')
+        self.assertFalse(self.provider.deliveries)
+
     def test_account_destination_media_and_scope_isolation(self):
         other_cred, _ = ConnectionService().connect(self.other, self.provider.key, {'token': 'fake', 'destination_id': 'third'})
         for target in ({'social_account_id': other_cred.social_account_id},
@@ -157,7 +169,7 @@ class ComposerContractTests(FixtureRegistration, TestCase):
         payload = {**self.payload, 'media_type': 'image', 'media_urls': [f'asset:{asset.pk}']}
         validate_intent(payload, self.workspace, self.user, ready=True)
         for field, value, code in [('file_size', 101, 'media_size'), ('mime_type', 'image/png', 'media_type'),
-                                   ('width', 200, 'media_aspect'), ('duration_seconds', 11, 'media_duration')]:
+                                   ('width', 200, 'media_aspect'), ('duration_seconds', 11, 'media_duration'), ('duration_seconds', 0, 'media_duration')]:
             setattr(asset, field, value)
             asset.save()
             with self.assertRaises(ProviderError) as ctx:
@@ -286,3 +298,51 @@ class ComposerContractTests(FixtureRegistration, TestCase):
                     self.assertEqual(send.call_count, 2)
                 self.assertFalse(post.publish_logs.filter(status='success').exists())
                 self.assertEqual(set(post.publish_logs.values_list('error_code', flat=True)), {'invalid_response'})
+
+    def test_uploaded_video_dimensions_and_duration_support_valid_aspect_validation(self):
+        from pathlib import Path
+        from tempfile import TemporaryDirectory
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from django.test import override_settings
+        from social_stats.media_service import upload_media
+        with TemporaryDirectory() as root, override_settings(MEDIA_ROOT=root):
+            video = SimpleUploadedFile('sample.mp4', (Path(__file__).parent / 'fixtures/composer-video.mp4').read_bytes(), content_type='video/mp4')
+            asset = upload_media(video, self.workspace.pk)
+            self.assertEqual((asset.width, asset.height), (18, 32))
+            self.assertAlmostEqual(asset.duration_seconds, 1, places=1)
+            cls = type(self.provider)
+            before = cls.manifest
+            self.addCleanup(setattr, cls, 'manifest', before)
+            cls.manifest = replace(before, support={**before.support, 'publish_video': 'supported'}, publishing_modes={
+                'video': PublishingMode('publish_video', Capability('supported', min_items=1, max_seconds=2, aspect_min=0.5, aspect_max=0.6))})
+            validate_intent({**self.payload, 'media_type': 'video', 'media_urls': [f'asset:{asset.pk}']}, self.workspace, self.user, ready=True)
+            self.assertFalse(self.provider.deliveries)
+
+    def test_remote_storage_video_metadata_uses_uploaded_bytes(self):
+        from pathlib import Path
+        from tempfile import TemporaryDirectory
+        from unittest.mock import PropertyMock
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from django.db.models.fields.files import FieldFile
+        from django.test import override_settings
+        from social_stats.media_service import upload_media
+        with TemporaryDirectory() as root, override_settings(MEDIA_ROOT=root), patch.object(FieldFile, 'path', new_callable=PropertyMock, side_effect=NotImplementedError):
+            video = SimpleUploadedFile('remote.mp4', (Path(__file__).parent / 'fixtures/composer-video.mp4').read_bytes(), content_type='video/mp4')
+            asset = upload_media(video, self.workspace.pk)
+            self.assertEqual((asset.width, asset.height), (18, 32))
+            self.assertAlmostEqual(asset.duration_seconds, 1, places=1)
+
+    def test_incomplete_text_draft_can_save_but_cannot_call_provider(self):
+        saved = self.save({**self.payload, 'content': '   '})
+        self.assertEqual(saved.status_code, 201, saved.data)
+        response = self.api.post(f"/api/composer/posts/{saved.data['id']}/publish_now/")
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['code'], 'invalid_request')
+        self.assertFalse(self.provider.deliveries)
+
+    def test_text_mode_cannot_silently_drop_attached_media(self):
+        asset = MediaAsset.objects.create(client=self.workspace, mime_type='image/jpeg', file_size=10, width=100, height=100)
+        response = self.save({**self.payload, 'media_urls': [f'asset:{asset.pk}']})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['code'], 'media_invalid')
+        self.assertFalse(self.provider.deliveries)
