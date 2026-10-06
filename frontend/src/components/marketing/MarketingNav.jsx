@@ -12,7 +12,6 @@ import Link from './MarketingLink';
 import { usePathname } from 'next/navigation';
 import {
   Menu, X, ChevronDown,
-  Github, Linkedin, Twitter, Youtube,
   BarChart3, PenSquare, Inbox, MessageCircle, Bot, Sparkles, FileText,
   Zap, Building2, Users, Star, Calendar, MessagesSquare,
   Briefcase, Stethoscope, UtensilsCrossed, Palette, ShoppingBag, GraduationCap,
