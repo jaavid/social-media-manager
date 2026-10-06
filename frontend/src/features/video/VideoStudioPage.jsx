@@ -8,10 +8,11 @@
  * ========================================================================== */
 import { useEffect, useRef, useState } from 'react';
 import {
-  Upload, Scissors, Crop, Camera, Captions, Youtube,
+  Upload, Scissors, Crop, Camera, Captions,
   Loader2, Play, X, Link as LinkIcon, FileVideo, Wand2,
 } from 'lucide-react';
 import toast from '../../components/ui/toast';
+import { YoutubeBrandIcon } from '../../components/ui/BrandIcon';
 
 import PageHeader from '../../components/layout/PageHeader';
 import Card from '../../components/ui/Card';
@@ -32,7 +33,7 @@ const TABS = [
   { id: 'resize',   label: 'Resize',     icon: Crop },
   { id: 'thumb',    label: 'Thumbnail',  icon: Camera },
   { id: 'captions', label: 'Captions',   icon: Captions },
-  { id: 'publish',  label: 'Publish',    icon: Youtube },
+  { id: 'publish',  label: 'Publish',    icon: YoutubeBrandIcon },
 ];
 
 export default function VideoStudioPage() {
@@ -496,7 +497,7 @@ function PublishTool({ asset }) {
           <option value="private">Private</option>
         </select>
       </Field>
-      <Button onClick={run} loading={busy} icon={Youtube} fullWidth>
+      <Button onClick={run} loading={busy} icon={YoutubeBrandIcon} fullWidth>
         Upload to YouTube
       </Button>
       {result?.platform_url && (

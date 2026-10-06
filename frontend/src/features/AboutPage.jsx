@@ -8,12 +8,13 @@
  * ========================================================================== */
 import Link from '../components/marketing/MarketingLink';
 import { MotionDiv } from '../components/marketing/Motion';
-import { ArrowRight, Heart, Compass, Layers, Globe, Linkedin, Twitter } from 'lucide-react';
+import { ArrowRight, Heart, Compass, Layers, Globe } from 'lucide-react';
 
 import MarketingLayout from '../components/marketing/MarketingLayout';
 import Button from '../components/marketing/MarketingButton';
 import Badge from '../components/ui/Badge';
 import Avatar from '../components/ui/Avatar';
+import BrandIcon from '../components/ui/BrandIcon';
 import Meta from '../components/Meta';
 
 const VALUES = [
@@ -222,8 +223,8 @@ export default function AboutPage() {
                     <div style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>{m.bio}</div>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                    <SocialChip icon={Linkedin} label={`${m.name} در لینکدین`} />
-                    <SocialChip icon={Twitter}  label={`${m.name} در توییتر`} />
+                    <SocialChip brand="linkedin" label={`${m.name} در لینکدین`} />
+                    <SocialChip brand="x" label={`${m.name} در توییتر`} />
                   </div>
                 </MotionDiv>
               ))}
@@ -329,7 +330,7 @@ export default function AboutPage() {
   );
 }
 
-function SocialChip({ icon: Icon, label }) {
+function SocialChip({ brand, label }) {
   return (
     <span
       aria-label={label}
@@ -342,7 +343,7 @@ function SocialChip({ icon: Icon, label }) {
         color: 'var(--text-tertiary)',
       }}
     >
-      <Icon size={11} strokeWidth={2} />
+      <BrandIcon brand={brand} size={11} />
     </span>
   );
 }
