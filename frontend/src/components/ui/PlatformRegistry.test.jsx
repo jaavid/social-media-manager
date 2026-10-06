@@ -1,5 +1,5 @@
-import { render, screen } from '@testing-library/react';
-import { PlatformChoices } from '../../features/composer/ComposerPage';
+import { publishingModes } from '@/lib/composer';
+import { connectionFixture } from '@/services/__fixtures__/connections';
 import { connectedPlatforms, getPlatformRegistry, registerPlatform } from '../../services/platforms';
 
 jest.mock('../../services/botChannels', () => ({
@@ -34,8 +34,11 @@ describe('metadata-driven platform UI', () => {
         { __connectionState: 'ready', fixture_network: { status: 'active' } },
         'image'
       );
-      render(<PlatformChoices platforms={options} />);
-      expect(screen.getByRole('button', { name: 'Fixture Network' })).toBeInTheDocument();
+      expect(options.some(p => p.key === 'fixture_network')).toBe(true);
+      const provider = connectionFixture().providers[0];
+      expect(publishingModes(provider).text.capability).toBe('publish_text');
+      provider.capabilities.publish_text = 'not_available';
+      expect(publishingModes(provider)).toEqual({});
     } finally {
       unregister();
     }

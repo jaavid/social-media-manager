@@ -87,6 +87,31 @@
         "destination_types": [
           "profile"
         ],
+        "publishing_modes": {
+          "text": {
+            "capability": "publish_text",
+            "constraints": {
+              "status": "supported",
+              "media_types": [],
+              "destination_types": [],
+              "scopes": [
+                "publish"
+              ],
+              "min_items": null,
+              "max_items": null,
+              "max_bytes": null,
+              "max_characters": 100,
+              "mime_types": [],
+              "aspect_min": null,
+              "aspect_max": null,
+              "max_seconds": null,
+              "max_width": null,
+              "min_width": null,
+              "min_height": null
+            },
+            "ui_extension": ""
+          }
+        },
         "constraints": {
           "publish_text": {
             "status": "supported",
@@ -95,9 +120,17 @@
             "scopes": [
               "publish"
             ],
+            "min_items": null,
             "max_items": null,
             "max_bytes": null,
-            "max_characters": 100
+            "max_characters": 100,
+            "mime_types": [],
+            "aspect_min": null,
+            "aspect_max": null,
+            "max_seconds": null,
+            "max_width": null,
+            "min_width": null,
+            "min_height": null
           }
         },
         "brand": {

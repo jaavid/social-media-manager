@@ -178,3 +178,48 @@ See [Connected Accounts](CONNECT_ACCOUNTS.md) for readiness, sync staleness,
 authorization and recovery policies. Connection additions and reconnects share the
 `connect_platforms` action; the persistence boundary also authorizes an existing
 identity when a caller submits it through “Add account”.
+
+### Composer publishing intents (stage 5)
+
+`contract.publishing_modes` maps each mode to an enabled publish capability,
+validated constraints, and an optional declared `ui_extension`. A provider with
+only `publish_text` automatically exposes text mode; feature code needs no
+platform registration list. Provider-specific editors live behind named slots
+(currently `telegram_composer`). Additional modes must declare their capability,
+constraints and extension in the provider manifest. Connected Accounts exposes
+per-account publish/schedule permissions and `publishing_readiness[mode]`,
+including granted scopes and destination compatibility, without exposing tokens.
+
+The shared post payload is `content`, `media_type`, ordered `media_urls`,
+`target_platforms`, and `platform_overrides`. Provider options may contain ordered
+`account_targets: [{social_account_id, destination_id}]`. Legacy single-account
+options remain readable. Each account must belong to the authorized workspace;
+destination IDs must belong to that account. Provider-owned payloads (rich
+messages, polls, media captions and destination context) remain intact in draft,
+edit, duplicate, approval, scheduling and queue snapshots. Queue platforms must
+match the selected platforms exactly. No automatic conversion drops content.
+
+The HTTP boundary, approval executors and delivery worker validate the intent
+before provider calls. Typed validation failures include `unsupported`,
+`text_limit`, `media_count`, `media_size`, `media_type`, `media_aspect`,
+`media_duration`, `media_dimensions`, `scope_denied`, and `permission_denied`.
+Asset constraints are checked against workspace-owned media. Uploaded video
+duration and dimensions are inspected with the existing MoviePy/FFmpeg tooling;
+storage without a local path uses authorized upload bytes in a temporary file. Remote HTTPS media
+also passes SSRF checks and is inspected by adapters during upload; offline
+validation cannot establish remote byte dimensions or availability.
+
+Draft creation accepts a UUID `Idempotency-Key`, scoped to actor and workspace.
+Repeating the same payload returns the saved intent; a changed payload returns
+409. `resolve_intent` retrieves only the actor's intent in that workspace. This
+policy applies to local draft creation, not provider publication. Delivery logs
+identify each account target, retain completed legacy deliveries, atomically
+claim pending work, and preserve ambiguous outcomes for reconciliation. Network,
+timeout and invalid-response outcomes must not automatically replay. Existing
+bounded rate-limit retry policy remains. No remote exactly-once guarantee is
+introduced. Scheduling accepts future timezone-aware instants; locale only
+changes display. Editing a scheduled/queued intent invalidates its approval and
+returns it to draft, and stale approval revisions cannot execute.
+
+Apply migrations 0078–0079 before serving this API/UI version. They add local
+intent deduplication and per-account delivery keys without deleting existing logs.

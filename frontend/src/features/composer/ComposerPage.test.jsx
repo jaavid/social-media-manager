@@ -1,161 +1,195 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, act } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import ComposerPage from './ComposerPage';
-import { composerAPI } from '../../services/api';
-import { usePostQueues } from '../../hooks/useComposer';
-import { setLanguage } from '../../i18n';
-import toast from '../../components/ui/toast';
+import { composer } from '@/services/domains/composer';
+import { connectionsAPI } from '@/services/domains/connections';
+import { connectionFixture, connectionAccount } from '@/services/__fixtures__/connections';
+import { setLanguage } from '@/i18n';
 
 const mockNavigate = jest.fn();
 let mockId;
-let mockUser = { id: 1, client_id: 7 };
-jest.mock('../../core/navigation', () => ({
-  useAppNavigate: () => mockNavigate,
-  useAppParams: () => ({ id: mockId }),
-  useAppLocation: () => ({ pathname: globalThis.window.location.pathname }),
-}));
-jest.mock('../../core/session', () => ({ useSession: () => ({ user: mockUser }) }));
-jest.mock('../../hooks/usePlatformConnections', () => ({ __esModule: true, default: () => ({ status: {} }) }));
-jest.mock('../../hooks/useComposer', () => ({
-  useComposerPost: () => ({ data: null, loading: false }),
-  usePostQueues: jest.fn(),
-}));
-jest.mock('../../services/platforms', () => {
-  const platforms = [{ key: 'facebook', labels: { default: 'Facebook' }, maxText: 5000, color: 'blue', authType: 'oauth' }];
-  return { getPlatformRegistry: () => platforms, connectedPlatforms: () => platforms };
-});
-jest.mock('../../services/api', () => ({
-  composerAPI: { posts: { create: jest.fn(), update: jest.fn(), publishNow: jest.fn(), schedule: jest.fn(), addToQueue: jest.fn() } },
-  socialAccountsAPI: { list: jest.fn(async () => ({ data: [] })) },
-}));
-jest.mock('../../components/ui/toast', () => ({ success: jest.fn(), error: jest.fn() }));
-jest.mock('../../components/ai/AIWriteButton', () => () => null);
-
-const queue = { id: 11, client: 7, name: 'Evening Facebook', platforms: ['facebook'], is_active: true };
-function compose() {
-  render(<ComposerPage />);
-  fireEvent.click(screen.getByRole('button', { name: 'Facebook', pressed: false }));
-  fireEvent.change(screen.getAllByRole('textbox').find(input => input.tagName === 'TEXTAREA'), { target: { value: 'Keep this content' } });
+let mockUser;
+let fixture;
+const stored = { id: 900, client: 7, title: '', content: 'Keep this content', media_type: 'text', media_urls: [],
+  target_platforms: ['contract_example'], platform_overrides: {}, status: 'draft', scheduled_at: null };
+jest.mock('@/core/navigation', () => ({ useAppNavigate: () => mockNavigate, useAppParams: () => ({ id: mockId }), useAppLocation: () => ({ pathname: globalThis.window.location.pathname }) }));
+jest.mock('@/core/session', () => ({ useSession: () => ({ user: mockUser }) }));
+jest.mock('@/services/domains/composer', () => ({ composer: { get: jest.fn(), save: jest.fn(), command: jest.fn(), queues: jest.fn(), resolve: jest.fn() } }));
+jest.mock('@/services/domains/connections', () => ({ connectionsAPI: { get: jest.fn() } }));
+jest.mock('@/components/ai/AIWriteButton', () => () => null);
+jest.mock('@/components/connections/composerExtensions', () => ({ composerExtensions: {} }));
+function mount() {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
+  const view = render(<QueryClientProvider client={client}><ComposerPage /></QueryClientProvider>);
+  return { ...view, client };
 }
-function chooseQueue() {
-  fireEvent.click(screen.getByRole('button', { name: 'Add to Queue' }));
-  fireEvent.change(screen.getByLabelText('Destination queue'), { target: { value: '11' } });
+async function compose() {
+  const view = mount();
+  await screen.findByRole('button', { name: 'Contract example', pressed: false });
+  fireEvent.click(screen.getByRole('button', { name: 'Contract example', pressed: false }));
+  fireEvent.click(screen.getByRole('checkbox', { name: /First account/ }));
+  fireEvent.change(screen.getByLabelText('Content'), { target: { value: 'Keep this content' } });
+  return view;
 }
-function submitQueue() {
-  fireEvent.click(screen.getAllByRole('button', { name: 'Add to Queue' })[0]);
-}
+function command(label = 'Publish Now') { fireEvent.click(screen.getAllByRole('button', { name: label, exact: true })[0]); }
 beforeEach(() => {
-  jest.clearAllMocks();
-  window.sessionStorage.clear();
-  mockId = undefined;
-  mockUser = { id: 1, client_id: 7 };
-  window.history.replaceState({}, '', '/dashboard/analytics/composer');
-  setLanguage('en');
-  usePostQueues.mockReturnValue({ data: [queue], loading: false, error: null });
-  composerAPI.posts.create.mockResolvedValue({ data: { id: 900 } });
-  composerAPI.posts.update.mockResolvedValue({ data: { id: 900 } });
-  composerAPI.posts.addToQueue.mockResolvedValue({ data: { id: 1 } });
-  composerAPI.posts.publishNow.mockResolvedValue({ data: { status: 'queued' } });
+  globalThis.crypto.randomUUID = () => '11111111-1111-4111-8111-111111111111';
+  globalThis.structuredClone = value => JSON.parse(JSON.stringify(value));
+  jest.clearAllMocks(); window.sessionStorage.clear(); mockId = undefined; mockUser = { id: 1, workspace_id: 7 };
+  window.history.replaceState({}, '', '/dashboard/analytics/composer'); setLanguage('en');
+  fixture = connectionFixture(); fixture.providers[0].accounts = [connectionAccount(), connectionAccount(11)];
+  connectionsAPI.get.mockImplementation(async () => fixture);
+  composer.queues.mockResolvedValue([{ id: 11, client: 7, name: 'Evening', platforms: ['contract_example'], is_active: true }]);
+  composer.save.mockResolvedValue({ post: stored }); composer.command.mockResolvedValue({ status: 'queued' }); composer.get.mockResolvedValue(stored);
+});
+test('the unmodified reference fixture publishes text with explicit account and no false delivered success', async () => {
+  await compose(); command();
+  await screen.findByText('Accepted into the queue. Publication is not confirmed.');
+  expect(composer.save).toHaveBeenCalledWith(7, null, expect.objectContaining({ content: stored.content,
+    platform_overrides: { contract_example: { account_targets: [{ social_account_id: 10, destination_id: 'destination-10' }] } } }), expect.any(String));
+  expect(composer.command).toHaveBeenCalledWith(7, 900, 'publish_now', {});
+  expect(screen.queryByText('Published.')).not.toBeInTheDocument();
+});
+test('removing capability removes the fixture publish surface', async () => {
+  fixture.providers[0].capabilities.publish_text = 'not_available'; mount();
+  await screen.findByText('No publish-capable providers available.');
+  expect(screen.queryByRole('button', { name: 'Contract example' })).not.toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Publish Now' })).toBeDisabled();
+});
+test('multiple accounts preserve both explicit destinations', async () => {
+  await compose(); fireEvent.click(screen.getByRole('checkbox', { name: /Second account/ })); command();
+  await waitFor(() => expect(composer.save).toHaveBeenCalled());
+  expect(composer.save.mock.calls[0][2].platform_overrides.contract_example.account_targets).toHaveLength(2);
+});
+test('capability, media constraints and readiness block without deleting selections', async () => {
+  fixture.providers[0].accounts[1].health = { ready: false, state: 'expired', code: '' };
+  await compose(); fireEvent.click(screen.getByRole('checkbox', { name: /Second account/ }));
+  expect(screen.getByRole('button', { name: 'Publish Now' })).toBeDisabled();
+  expect(screen.getByRole('checkbox', { name: /Second account/ })).toBeChecked();
+  fireEvent.click(screen.getByRole('checkbox', { name: /Second account/ }));
+  fireEvent.change(screen.getByLabelText('Content'), { target: { value: 'x'.repeat(101) } });
+  expect(screen.getByRole('button', { name: 'Publish Now' })).toBeDisabled();
+  expect(screen.getByRole('button', { name: 'Contract example', pressed: true })).toBeVisible();
+});
+test('save failure preserves input and safe manual retry reuses intent key', async () => {
+  composer.save.mockRejectedValueOnce({ isAxiosError: true, response: { status: 503, data: {} }, message: 'outage' });
+  await compose(); command('Save Draft'); await screen.findByRole('alert');
+  expect(screen.getByLabelText('Content')).toHaveValue(stored.content);
+  expect(screen.queryByText('Draft saved.')).not.toBeInTheDocument();
+  const key = composer.save.mock.calls[0][3]; command('Save Draft');
+  await waitFor(() => expect(composer.save).toHaveBeenCalledTimes(2));
+  expect(composer.save.mock.calls[1][3]).toBe(key);
+});
+test('double submit is synchronously locked and controls stay pending until the result', async () => {
+  let finish; composer.command.mockImplementation(() => new Promise(resolve => { finish = resolve; }));
+  await compose(); const publish = screen.getByRole('button', { name: 'Publish Now' }); fireEvent.click(publish); fireEvent.click(publish);
+  await waitFor(() => expect(composer.command).toHaveBeenCalledTimes(1));
+  expect(screen.getByLabelText('Content')).toBeDisabled();
+  expect(screen.queryByText('Published.')).not.toBeInTheDocument();
+  await act(async () => finish({ status: 'pending_approval' }));
+  await screen.findByText('Submitted for approval.');
+  expect(screen.getByRole('button', { name: 'Publish Now' })).toBeDisabled();
+});
+test('timeout is ambiguous and cannot automatically or manually replay publication', async () => {
+  composer.command.mockRejectedValue({ isAxiosError: true, message: 'timeout' });
+  await compose(); command(); await screen.findByRole('alert');
+  expect(screen.getByLabelText('Content')).toHaveValue(stored.content);
+  expect(screen.getByRole('button', { name: 'Publish Now' })).toBeDisabled();
+  expect(composer.command).toHaveBeenCalledTimes(1);
+  expect(screen.getByRole('checkbox', { name: /First account/ })).toBeChecked();
+});
+test('rate limit remains a distinguishable error and preserves selections', async () => {
+  composer.command.mockRejectedValue({ isAxiosError: true, response: { status: 429, data: {}, headers: { 'retry-after': '60' } } });
+  await compose(); command(); await screen.findByText('Rate limit reached. Wait before trying again.');
+  expect(screen.getByRole('checkbox', { name: /First account/ })).toBeChecked(); expect(composer.command).toHaveBeenCalledTimes(1);
+});
+test('fixture without scheduling never schedules; switching modes preserves text', async () => {
+  await compose(); command('Schedule');
+  expect(screen.getAllByRole('button', { name: 'Schedule' })[0]).toBeDisabled();
+  expect(screen.getByLabelText('Content')).toHaveValue(stored.content);
+  expect(composer.command).not.toHaveBeenCalled();
+});
+test('queue failure stays in the editor and safe retry reuses the saved draft', async () => {
+  fixture.providers[0].capabilities.scheduling = 'supported';
+  composer.command.mockRejectedValueOnce({ isAxiosError: true, response: { status: 400, data: { code: 'invalid_request' } } });
+  await compose(); command('Add to Queue'); fireEvent.change(screen.getByLabelText('Destination queue'), { target: { value: '11' } });
+  command('Add to Queue'); await screen.findByRole('alert');
+  expect(screen.getByLabelText('Content')).toHaveValue(stored.content); expect(screen.getByLabelText('Destination queue')).toHaveValue('11');
+  command('Add to Queue'); await waitFor(() => expect(composer.command).toHaveBeenCalledTimes(2));
+  expect(composer.save.mock.calls[1][1]).toBe(900);
+  expect(composer.command).toHaveBeenLastCalledWith(7, 900, 'add_to_queue', { queue_id: 11 });
+});
+test('background refresh does not overwrite an edited draft', async () => {
+  mockId = '900'; const view = mount(); await waitFor(() => expect(screen.getByLabelText('Content')).toHaveValue(stored.content));
+  fireEvent.change(screen.getByLabelText('Content'), { target: { value: 'local edit' } });
+  act(() => view.client.setQueryData(['composer.post', 7, '900'], { ...stored, content: 'stale server' }));
+  expect(screen.getByLabelText('Content')).toHaveValue('local edit');
+});
+test('recovery is private to workspace and account identity', async () => {
+  const view = await compose(); view.unmount(); const restored = mount(); await screen.findByLabelText('Content');
+  expect(screen.getByLabelText('Content')).toHaveValue(stored.content); restored.unmount();
+  mockUser = { id: 2, workspace_id: 8 }; fixture = connectionFixture(8); mount();
+  expect(screen.getByLabelText('Content')).toHaveValue('');
+});
+test('multiple providers keep incompatible targets selected until explicit content correction', async () => {
+  const second = structuredClone(fixture.providers[0]);
+  second.key = 'another_provider'; second.titles.en = 'Another provider';
+  second.accounts = [{ ...connectionAccount(20), name: 'Another account' }];
+  second.contract.publishing_modes.text.constraints.max_characters = 5;
+  fixture.providers.push(second);
+  await compose(); fireEvent.click(screen.getByRole('button', { name: 'Another provider', pressed: false }));
+  expect(screen.getByRole('button', { name: 'Publish Now' })).toBeDisabled();
+  expect(screen.getByRole('button', { name: 'Another provider', pressed: true })).toBeVisible();
+  expect(screen.getByRole('button', { name: 'Contract example', pressed: true })).toBeVisible();
+  fireEvent.change(screen.getByLabelText('Content'), { target: { value: 'short' } }); command();
+  await waitFor(() => expect(composer.save).toHaveBeenCalled());
+  expect(composer.save.mock.calls[0][2].target_platforms).toEqual(['contract_example', 'another_provider']);
+});
+test('known missing provider scopes disable the selected operation despite connected health', async () => {
+  fixture.providers[0].accounts[0].publishing_readiness = { text: false };
+  await compose(); expect(screen.getByRole('button', { name: 'Publish Now' })).toBeDisabled();
+  expect(screen.getByRole('checkbox', { name: /First account/ })).toBeChecked();
+});
+test('a persisted ambiguous delivery cannot enable publication on reopening the post', async () => {
+  mockId = '900'; composer.get.mockResolvedValue({ ...stored, status: 'failed', publish_logs: [{ platform: 'contract_example', social_account: 10, status: 'failed', error_code: 'timeout' }] });
+  mount(); await screen.findByText(/The outcome is unknown/);
+  expect(screen.queryByText('Publication failed.')).not.toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Publish Now' })).toBeDisabled();
+});
+test('a forbidden refresh hides cached account identities and editor data', async () => {
+  const view = await compose();
+  connectionsAPI.get.mockRejectedValue({ isAxiosError: true, response: { status: 403, data: { code: 'permission_denied' } } });
+  await act(async () => view.client.invalidateQueries({ queryKey: ['connections', 7] }));
+  await screen.findByText('You do not have permission for this account or operation.');
+  expect(screen.queryByLabelText('Content')).not.toBeInTheDocument();
+  expect(screen.queryByText(/First account/)).not.toBeInTheDocument();
+});
+test('provider rejection and invalid request remain distinguishable', async () => {
+  composer.command.mockRejectedValueOnce({ isAxiosError: true, response: { status: 400, data: { code: 'invalid_request' } } });
+  await compose(); command(); await screen.findByText('Review content, media and destinations; the request is invalid.');
+  composer.command.mockRejectedValueOnce({ isAxiosError: true, response: { status: 400, data: { code: 'provider_error' } } });
+  command(); await screen.findByText('The provider rejected the request. Review account and content before retrying.');
+});
+test('an incomplete text draft may be saved but publication is disabled', async () => {
+  await compose(); fireEvent.change(screen.getByLabelText('Content'), { target: { value: '   ' } });
+  expect(screen.getByRole('button', { name: 'Publish Now' })).toBeDisabled();
+  expect(screen.getByRole('button', { name: 'Save Draft' })).toBeEnabled();
+  expect(composer.command).not.toHaveBeenCalled();
 });
 
-test('queue requires explicit selection and only enqueues after the draft is saved', async () => {
-  let complete;
-  composerAPI.posts.addToQueue.mockImplementationOnce(() => new Promise(resolve => { complete = resolve; }));
-  compose();
-  fireEvent.click(screen.getByRole('button', { name: 'Add to Queue' }));
-  expect(screen.queryByRole('button', { name: 'Publish Now' })).not.toBeInTheDocument();
-  expect(screen.getAllByRole('button', { name: 'Add to Queue' })[0]).toBeDisabled();
-  fireEvent.change(screen.getByLabelText('Destination queue'), { target: { value: '11' } });
-  submitQueue();
-  await waitFor(() => expect(composerAPI.posts.addToQueue).toHaveBeenCalledWith(900, 11));
-  expect(toast.success).not.toHaveBeenCalled();
-  expect(mockNavigate).not.toHaveBeenCalled();
-  complete({ data: { id: 1 } });
-  await waitFor(() => expect(toast.success).toHaveBeenCalledWith('Added to queue'));
-  expect(composerAPI.posts.create).toHaveBeenCalledWith(expect.objectContaining({ content: 'Keep this content', target_platforms: ['facebook'] }));
-  expect(composerAPI.posts.publishNow).not.toHaveBeenCalled();
-  expect(composerAPI.posts.schedule).not.toHaveBeenCalled();
+test('a gateway 503 body cannot disguise an uncertain command as definite failure', async () => {
+  composer.command.mockRejectedValue({ isAxiosError: true, response: { status: 503, data: { code: 'unavailable' } } });
+  await compose(); command(); await screen.findByText(/The outcome is unknown/);
+  expect(screen.getByRole('button', { name: 'Publish Now' })).toBeDisabled();
+  expect(composer.command).toHaveBeenCalledTimes(1);
+  expect(screen.getByLabelText('Content')).toHaveValue(stored.content);
 });
-
-test('enqueue failure preserves content, mode, selection and reuses the saved draft on retry', async () => {
-  composerAPI.posts.addToQueue.mockRejectedValueOnce(new Error('offline'));
-  compose();
-  chooseQueue();
-  submitQueue();
-  await waitFor(() => expect(toast.error).toHaveBeenCalled());
-  expect(screen.getByDisplayValue('Keep this content')).toBeVisible();
-  expect(screen.getByLabelText('Destination queue')).toHaveValue('11');
-  expect(mockNavigate).not.toHaveBeenCalled();
-  expect(toast.success).not.toHaveBeenCalled();
-  submitQueue();
-  await waitFor(() => expect(toast.success).toHaveBeenCalledWith('Added to queue'));
-  expect(composerAPI.posts.create).toHaveBeenCalledTimes(1);
-  expect(composerAPI.posts.update).toHaveBeenCalledWith(900, expect.objectContaining({ content: 'Keep this content' }));
-  expect(composerAPI.posts.publishNow).not.toHaveBeenCalled();
-  expect(composerAPI.posts.schedule).not.toHaveBeenCalled();
-});
-
-test.each([
-  { data: [], loading: false, error: null },
-  { data: [queue], loading: true, error: null },
-  { data: [queue], loading: false, error: new Error('forbidden') },
-  { data: [{ ...queue, client: 8 }], loading: false, error: null },
-  { data: [{ ...queue, platforms: ['instagram'] }], loading: false, error: null },
-])('unavailable queues cannot trigger any post action: %j', async state => {
-  usePostQueues.mockReturnValue(state);
-  compose();
-  fireEvent.click(screen.getByRole('button', { name: 'Add to Queue' }));
-  expect(screen.getAllByRole('button', { name: 'Add to Queue' })[0]).toBeDisabled();
-  submitQueue();
-  expect(composerAPI.posts.create).not.toHaveBeenCalled();
-  expect(composerAPI.posts.publishNow).not.toHaveBeenCalled();
-  expect(composerAPI.posts.schedule).not.toHaveBeenCalled();
-});
-
-test('existing posts enqueue via update', async () => {
-  mockId = '900';
-  compose();
-  chooseQueue();
-  submitQueue();
-  await waitFor(() => expect(composerAPI.posts.addToQueue).toHaveBeenCalledWith(900, 11));
-  expect(composerAPI.posts.create).not.toHaveBeenCalled();
-  expect(composerAPI.posts.update).toHaveBeenCalledWith('900', expect.any(Object));
-});
-
-test('switching back to Now retains the independent publish action', async () => {
-  compose();
-  chooseQueue();
-  fireEvent.click(screen.getByRole('button', { name: 'Now' }));
-  fireEvent.click(screen.getByRole('button', { name: 'Publish Now' }));
-  await waitFor(() => expect(composerAPI.posts.publishNow).toHaveBeenCalledWith(900));
-  expect(composerAPI.posts.addToQueue).not.toHaveBeenCalled();
-});
-
-test.each(['dashboard', 'admin'])('saving a new draft keeps the %s composer route', async prefix => {
-  window.history.replaceState({}, '', `/${prefix}/analytics/composer`);
-  compose();
-  fireEvent.click(screen.getByRole('button', { name: 'Save Draft' }));
-  await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith(`/${prefix}/analytics/composer/900`, { replace: true }));
-});
-
-test('unsaved draft survives unmount and reload while another workspace stays empty', async () => {
-  const view = render(<ComposerPage />);
-  const textarea = screen.getAllByRole('textbox').find(input => input.tagName === 'TEXTAREA');
-  fireEvent.change(textarea, { target: { value: 'Unsaved recoverable draft' } });
-  view.unmount();
-  const restored = render(<ComposerPage />);
-  expect(screen.getAllByRole('textbox').find(input => input.tagName === 'TEXTAREA')).toHaveValue('Unsaved recoverable draft');
-  restored.unmount();
-  mockUser = { id: 1, client_id: 8 };
-  render(<ComposerPage />);
-  expect(screen.getAllByRole('textbox').find(input => input.tagName === 'TEXTAREA')).toHaveValue('');
-});
-
-test('successful save clears recovery and no longer warns on unload', async () => {
-  compose();
-  fireEvent.click(screen.getByRole('button', { name: 'Save Draft' }));
-  await waitFor(() => expect(composerAPI.posts.create).toHaveBeenCalledTimes(1));
-  await waitFor(() => expect(window.sessionStorage.length).toBe(0));
-  const event = new Event('beforeunload', { cancelable: true });
-  window.dispatchEvent(event);
-  expect(event.defaultPrevented).toBe(false);
+test('stored provider content and mode control validation and remain editable without replacing the common payload', async () => {
+  mockId = '900'; composer.get.mockResolvedValue({ ...stored, content: 'x'.repeat(101), platform_overrides: { contract_example: { social_account_id: 10, content: 'Provider content', media_type: 'text' } } });
+  mount(); const input = await screen.findByLabelText('Contract example · Content');
+  expect(input).toHaveValue('Provider content');
+  expect(screen.getByRole('button', { name: 'Publish Now' })).toBeEnabled();
+  fireEvent.change(input, { target: { value: 'Edited provider content' } }); command();
+  await waitFor(() => expect(composer.save).toHaveBeenCalled());
+  expect(composer.save.mock.calls[0][2]).toEqual(expect.objectContaining({ content: 'x'.repeat(101), platform_overrides: { contract_example: { social_account_id: 10, content: 'Edited provider content', media_type: 'text' } } }));
 });

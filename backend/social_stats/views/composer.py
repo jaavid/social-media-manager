@@ -26,7 +26,6 @@ from __future__ import annotations
 from social_stats.publishers.base import PublishError
 
 import logging
-from typing import Optional
 
 from django.db import transaction
 from django.utils import timezone
@@ -44,8 +43,7 @@ from social_stats.serializers.composer import (
     MediaAssetSerializer, PostQueueSerializer, QueuedItemSerializer,
 )
 from social_stats.models import (
-    UnifiedPost, MediaAsset, PostQueue, QueuedItem,
-    PlatformCredential,
+    UnifiedPost, MediaAsset, PostQueue, QueuedItem, Client,
 )
 from social_stats.orchestrator import publish_unified_post
 from social_stats.platforms.registry import get_provider
@@ -61,6 +59,22 @@ logger = logging.getLogger(__name__)
 
 # ── Unified posts ─────────────────────────────────────────────────────────────
 class UnifiedPostViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    def _validate_serializer(self, serializer):
+        if serializer.is_valid():
+            return None
+        errors = serializer.errors
+        if 'code' in errors:
+            return Response({'code': str(errors['code'][0]), 'detail': str(errors.get('detail', ['Invalid publication intent'])[0])}, status=400)
+        return Response(errors, status=400)
+
+    def _validate_intent(self, post, action_key):
+        from social_stats.publishing_contract import validate_intent, post_payload
+        try:
+            return validate_intent(post_payload(post), post.client, self.request.user, action=action_key, ready=True), None
+        except PublishError as exc:
+            return False, Response({'code': exc.code, 'detail': str(exc)},
+                                   status=403 if exc.code in ('scope_denied', 'permission_denied') else 400)
+
     queryset = UnifiedPost.objects.prefetch_related('publish_logs').all()
 
     def get_serializer_class(self):
@@ -70,6 +84,8 @@ class UnifiedPostViewSet(TenantScopedMixin, viewsets.ModelViewSet):
 
     def get_queryset(self):
         qs = super().get_queryset()
+        if self.request.method not in ('GET', 'HEAD', 'OPTIONS') and transaction.get_connection().in_atomic_block:
+            qs = qs.select_for_update()
         params = self.request.query_params
         if params.get('status'):
             qs = qs.filter(status=params['status'])
@@ -102,6 +118,21 @@ class UnifiedPostViewSet(TenantScopedMixin, viewsets.ModelViewSet):
         client = Client.objects.filter(id=client_id).first()
         if not client:
             return None
+        intent_key = (payload or {}).get('intent_key')
+        if intent_key:
+            from social_stats.models import ApprovalRequest
+            existing = ApprovalRequest.objects.filter(client=client, requested_by=self.request.user,
+                action_type=action_type, status='pending', payload__intent_key=intent_key).first()
+            if existing:
+                from social_stats.authorization import evaluate
+                current = evaluate(self.request.user, client, action_key)
+                if not current.allowed:
+                    return deny_response(current.reason)
+                stored_payload = dict(existing.payload or {})
+                stored_payload.pop('_permission_action', None)
+                if stored_payload != payload:
+                    return Response({'code': 'conflict'}, status=409)
+                return approval_pending_response(existing)
         verdict, ctx = check_action(
             self.request, client, action_key,
             action_type=action_type,
@@ -129,9 +160,36 @@ class UnifiedPostViewSet(TenantScopedMixin, viewsets.ModelViewSet):
     def _review_payload(self, request):
         fields = ('title', 'content', 'media_urls', 'media_type', 'target_platforms',
                   'platform_overrides', 'is_recurring', 'recurrence_rule', 'ai_generated', 'ai_prompt')
-        return {key: request.data[key] for key in fields if key in request.data}
+        payload = {key: request.data[key] for key in fields if key in request.data}
+        if request.headers.get('Idempotency-Key'):
+            payload['intent_key'] = request.headers['Idempotency-Key']
+        return payload
 
+    @transaction.atomic
     def create(self, request, *args, **kwargs):
+        from social_stats.models import Client
+        paused = self._processing_paused_response(Client.objects.filter(pk=self.resolved_client_id()).first())
+        if paused is not None:
+            return paused
+        serializer = self.get_serializer(data=request.data)
+        error = self._validate_serializer(serializer)
+        if error is not None:
+            return error
+        key = request.headers.get('Idempotency-Key')
+        if key:
+            from uuid import UUID
+            try:
+                key = UUID(key)
+            except (ValueError, TypeError):
+                return Response({'code': 'invalid_request'}, status=400)
+            client_id = self.resolved_client_id()
+            if not client_id or not Client.objects.select_for_update().filter(pk=client_id).first():
+                return deny_response('No authorized workspace context')
+            existing = UnifiedPost.objects.filter(client_id=self.resolved_client_id(), created_by=request.user, intent_key=key).first()
+            if existing:
+                if any(getattr(existing, field) != value for field, value in serializer.validated_data.items() if field != 'client'):
+                    return Response({'code': 'conflict'}, status=409)
+                return Response(UnifiedPostSerializer(existing).data)
         denial = self._gate_or_pending(
             'draft_posts',
             action_type='draft_post',
@@ -146,12 +204,31 @@ class UnifiedPostViewSet(TenantScopedMixin, viewsets.ModelViewSet):
             paused = self._processing_paused_response(Client.objects.filter(id=client_id).first())
             if paused is not None:
                 return paused
-        return super().create(request, *args, **kwargs)
+        key = request.headers.get('Idempotency-Key')
+        if not key:
+            return super().create(request, *args, **kwargs)
+        from uuid import UUID
+        try:
+            key = UUID(key)
+        except (ValueError, TypeError):
+            return Response({'code': 'invalid_request'}, status=400)
+        post, created = UnifiedPost.objects.get_or_create(
+            client_id=client_id, created_by=request.user, intent_key=key,
+            defaults={field: value for field, value in serializer.validated_data.items() if field != 'client'},
+        )
+        if not created and any(getattr(post, field) != value for field, value in serializer.validated_data.items() if field != 'client'):
+            return Response({'code': 'conflict', 'detail': 'Saved intent differs; retrieve it before editing'}, status=409)
+        return Response(UnifiedPostSerializer(post).data, status=201 if created else 200)
 
+    @transaction.atomic
     def update(self, request, *args, **kwargs):
         post = self.get_object()
+        if post.status == 'publishing':
+            return Response({'code': 'conflict', 'detail': 'Publishing is in progress'}, status=409)
         serializer = self.get_serializer(post, data=request.data, partial=kwargs.get('partial', False))
-        serializer.is_valid(raise_exception=True)
+        error = self._validate_serializer(serializer)
+        if error is not None:
+            return error
         denial = self._gate_or_pending(
             'edit_published' if post.status == 'published' else 'draft_posts',
             action_type='edit_post', target_object_id=post.pk,
@@ -188,8 +265,21 @@ class UnifiedPostViewSet(TenantScopedMixin, viewsets.ModelViewSet):
             return approval_pending_response(ctx['approval'])
         return super().destroy(request, *args, **kwargs)
 
+    @action(detail=False, methods=['get'])
+    def resolve_intent(self, request):
+        from uuid import UUID
+        try:
+            key = UUID(request.query_params.get('intent_key', ''))
+        except (ValueError, TypeError):
+            return Response({'code': 'invalid_request'}, status=400)
+        post = self.get_queryset().filter(intent_key=key, created_by=request.user).first()
+        if post is None:
+            return Response({'code': 'not_found'}, status=404)
+        return Response(UnifiedPostSerializer(post).data)
+
     # ── Custom actions ───────────────────────────────────────────────────
     @action(detail=True, methods=['post'])
+    @transaction.atomic
     def publish_now(self, request, pk=None):
         post = self.get_object()
         paused = self._processing_paused_response(post.client)
@@ -201,6 +291,10 @@ class UnifiedPostViewSet(TenantScopedMixin, viewsets.ModelViewSet):
                 status=400,
             )
 
+        account_approval, error = self._validate_intent(post, 'publish_posts')
+        if error is not None:
+            return error
+
         # Marketplace gate (): if the actor is agency-side, must hold
         # the publish_posts permission; if it's flagged for approval, intercept.
         verdict, ctx = check_action(
@@ -208,6 +302,7 @@ class UnifiedPostViewSet(TenantScopedMixin, viewsets.ModelViewSet):
             action_type='publish_post',
             payload={
                 'post_id':    post.id,
+                'revision': post.updated_at.isoformat(),
                 'platforms':  list(post.target_platforms or []),
                 'scheduled':  False,
             },
@@ -227,7 +322,7 @@ class UnifiedPostViewSet(TenantScopedMixin, viewsets.ModelViewSet):
             notify_approver_for_post.delay(post.id)
             return approval_pending_response(ctx['approval'])
 
-        if post.client.requires_approval and not post.approved_by_id:
+        if (post.client.requires_approval or account_approval) and not post.approved_by_id:
             post.status = 'pending_approval'
             post.save(update_fields=['status'])
             from social_stats.notification_watchers import notify_approver_for_post
@@ -239,12 +334,12 @@ class UnifiedPostViewSet(TenantScopedMixin, viewsets.ModelViewSet):
         post.status = 'queued'
         post.scheduled_at = timezone.now()
         post.save(update_fields=['status', 'scheduled_at'])
-        publish_unified_post.delay(post.id)
+        transaction.on_commit(lambda: publish_unified_post.delay(post.id))
 
         log_activity_for_request(
             request, post.client,
             action_type='post_published',
-            description=f'Published post to {", ".join(post.target_platforms or [])}',
+            description=f'Requested publication to {", ".join(post.target_platforms or [])}',
             severity='notice',
             target_object_type='UnifiedPost',
             target_object_id=post.id,
@@ -254,11 +349,17 @@ class UnifiedPostViewSet(TenantScopedMixin, viewsets.ModelViewSet):
         return Response(UnifiedPostSerializer(post).data)
 
     @action(detail=True, methods=['post'])
+    @transaction.atomic
     def schedule(self, request, pk=None):
         post = self.get_object()
         paused = self._processing_paused_response(post.client)
         if paused is not None:
             return paused
+        if post.status not in ('draft', 'scheduled', 'failed', 'partial', 'pending_approval'):
+            return Response({'code': 'conflict'}, status=409)
+        account_approval, error = self._validate_intent(post, 'schedule_posts')
+        if error is not None:
+            return error
         when = request.data.get('scheduled_at')
         if not when:
             return Response({'detail': 'scheduled_at is required (ISO 8601)'}, status=400)
@@ -269,20 +370,29 @@ class UnifiedPostViewSet(TenantScopedMixin, viewsets.ModelViewSet):
                 raise ValueError
         except ValueError:
             return Response({'detail': 'Invalid scheduled_at — expected ISO 8601 datetime'}, status=400)
+        if timezone.is_naive(dt):
+            return Response({'code': 'invalid_request', 'detail': 'scheduled_at requires a timezone offset'}, status=400)
         if dt < timezone.now():
             return Response({'detail': 'scheduled_at must be in the future'}, status=400)
         verdict, ctx = check_action(
             request, post.client, 'schedule_posts', action_type='schedule_post',
-            payload={'post_id': post.pk, 'scheduled_at': dt.isoformat(), 'platforms': list(post.target_platforms or [])},
+            payload={'post_id': post.pk, 'revision': post.updated_at.isoformat(), 'scheduled_at': dt.isoformat(), 'platforms': list(post.target_platforms or [])},
             target_object_type='UnifiedPost', target_object_id=post.pk,
         )
         if verdict == 'denied':
             return deny_response(ctx['reason'])
         post.publish_requested_by = request.user
         post.publish_action = 'schedule_posts'
-        post.save(update_fields=['publish_requested_by', 'publish_action'])
+        post.scheduled_at = dt
+        post.save(update_fields=['publish_requested_by', 'publish_action', 'scheduled_at'])
         if verdict == 'approval_required':
+            post.status = 'pending_approval'
+            post.save(update_fields=['status'])
             return approval_pending_response(ctx['approval'])
+        if account_approval and not post.approved_by_id:
+            post.status = 'pending_approval'
+            post.save(update_fields=['status'])
+            return Response({'status': 'pending_approval'}, status=202)
         post.scheduled_at = dt
         post.status = 'scheduled'
         post.save(update_fields=['scheduled_at', 'status'])
@@ -298,6 +408,7 @@ class UnifiedPostViewSet(TenantScopedMixin, viewsets.ModelViewSet):
         return Response(UnifiedPostSerializer(post).data)
 
     @action(detail=True, methods=['post'])
+    @transaction.atomic
     def duplicate(self, request, pk=None):
         original = self.get_object()
         with transaction.atomic():
@@ -316,6 +427,7 @@ class UnifiedPostViewSet(TenantScopedMixin, viewsets.ModelViewSet):
         return Response(UnifiedPostSerializer(copy).data, status=201)
 
     @action(detail=True, methods=['post'])
+    @transaction.atomic
     def approve(self, request, pk=None):
         post = self.get_object()
         from social_stats.authorization import evaluate
@@ -333,15 +445,20 @@ class UnifiedPostViewSet(TenantScopedMixin, viewsets.ModelViewSet):
             return deny_response('Agency requests require workspace owner approval')
         if post.status != 'pending_approval':
             return Response({'detail': f'Post is not pending approval (status={post.status})'}, status=400)
+        _, error = self._validate_intent(post, post.publish_action)
+        if error is not None:
+            return error
         post.approved_by = request.user
         post.approved_at = timezone.now()
-        post.status = 'queued'
+        post.status = 'scheduled' if post.scheduled_at and post.scheduled_at > timezone.now() else 'queued'
         post.scheduled_at = post.scheduled_at or timezone.now()
         post.save(update_fields=['approved_by', 'approved_at', 'status', 'scheduled_at'])
-        publish_unified_post.delay(post.id)
+        if post.status == 'queued':
+            transaction.on_commit(lambda: publish_unified_post.delay(post.id))
         return Response(UnifiedPostSerializer(post).data)
 
     @action(detail=True, methods=['post'])
+    @transaction.atomic
     def add_to_queue(self, request, pk=None):
         """Snapshot this post into a QueuedItem inside the named queue."""
         post = self.get_object()
@@ -354,8 +471,18 @@ class UnifiedPostViewSet(TenantScopedMixin, viewsets.ModelViewSet):
         from social_stats.authorization import evaluate
         if not evaluate(request.user, post.client, 'schedule_posts').allowed:
             return deny_response('Permission denied: schedule_posts')
+        if set(queue.platforms or []) != set(post.target_platforms or []):
+            return Response({'code': 'invalid_destination', 'detail': 'Queue providers must match the post'}, status=400)
+        _, error = self._validate_intent(post, 'schedule_posts')
+        if error is not None:
+            return error
+        existing_item = queue.items.filter(unified_post=post, status='waiting').first()
+        if existing_item:
+            if any(getattr(existing_item, field) != getattr(post, field) for field in ('content', 'media_urls', 'media_type', 'platform_overrides')):
+                return Response({'code': 'conflict', 'detail': 'Queue snapshot already exists; review it before replacing'}, status=409)
+            return Response(QueuedItemSerializer(existing_item).data)
         item = QueuedItem.objects.create(
-            queue=queue, requested_by=request.user,
+            unified_post=post, queue=queue, requested_by=request.user,
             content=post.content,
             media_urls=list(post.media_urls or []),
             media_type=post.media_type, platform_overrides=post.platform_overrides or {},
@@ -413,6 +540,11 @@ class MediaAssetViewSet(TenantScopedMixin, viewsets.ModelViewSet):
         if not client_id:
             return Response({'detail': 'No client context'}, status=400)
 
+        from social_stats.authorization import evaluate
+        decision = evaluate(request.user, Client.objects.get(pk=client_id), 'draft_posts')
+        if not decision.allowed:
+            return deny_response(decision.reason)
+
         upload = request.FILES.get('file')
         if not upload:
             return Response({'detail': 'file is required (multipart "file")'}, status=400)
@@ -432,6 +564,10 @@ class MediaAssetViewSet(TenantScopedMixin, viewsets.ModelViewSet):
         client_id = self.resolved_client_id()
         if not client_id:
             return Response({'detail': 'No client context'}, status=400)
+        from social_stats.authorization import evaluate
+        decision = evaluate(request.user, Client.objects.get(pk=client_id), 'draft_posts')
+        if not decision.allowed:
+            return deny_response(decision.reason)
         files = request.FILES.getlist('files')
         if not files:
             return Response({'detail': 'files are required (multipart "files")'}, status=400)
@@ -443,9 +579,9 @@ class MediaAssetViewSet(TenantScopedMixin, viewsets.ModelViewSet):
                     f, client_id=client_id, uploaded_by_id=request.user.id, folder=folder,
                 )
                 out.append(MediaAssetSerializer(asset).data)
-            except Exception as e:
-                logger.exception('bulk_upload failed for %s', f.name)
-                errors.append({'file': f.name, 'error': str(e)})
+            except Exception:
+                logger.warning('Media upload failed')
+                errors.append({'file': f.name, 'error': 'Upload failed', 'code': 'upload_failed'})
         return Response({'created': out, 'errors': errors}, status=201 if out else 400)
 
 
@@ -525,93 +661,24 @@ class PreflightCheckView(APIView):
           media_urls, media_assets, platform_overrides). No DB writes.
     """
     def post(self, request):
+        from social_stats.publishing_contract import validate_intent
+        from social_stats.authorization import accessible_workspaces
+        from social_stats.models import Client
         data = request.data or {}
-        content = (data.get('content') or '')
-        media_type = (data.get('media_type') or 'text').lower()
-        media_asset_ids = data.get('media_assets') or []
-        targets = [str(p).lower() for p in (data.get('target_platforms') or [])]
-        overrides = data.get('platform_overrides') or {}
-
-        # Resolve referenced MediaAssets within this tenant for size/format checks
-        client_id = self._resolve_client_id(request, data)
-        assets = []
-        if media_asset_ids and client_id:
-            assets = list(MediaAsset.objects.filter(
-                id__in=media_asset_ids, client_id=client_id,
-            ))
-
+        scope = TenantScopedMixin()
+        scope.request = request
+        workspace = Client.objects.filter(pk=scope.resolved_client_id()).first()
+        if not workspace or not accessible_workspaces(request.user).filter(pk=workspace.pk).exists():
+            return Response({'code': 'permission_denied'}, status=403)
+        targets = data.get('target_platforms')
+        if not isinstance(targets, list) or not targets:
+            return Response({'code': 'invalid_request'}, status=400)
         results = {}
-        any_block = False
         for platform in targets:
-            o = overrides.get(platform, {}) or {}
-            p_content    = o.get('content', content)
-            p_media_type = o.get('media_type', media_type)
-
-            errors, warnings = [], []
-
-            # Capability + text length
             try:
-                provider = get_provider(platform)
-                publisher = provider.publisher
-                max_text  = getattr(publisher, 'MAX_TEXT_LENGTH', 0) or 0
-                if not provider.capabilities.supports_media(p_media_type):
-                    errors.append(f'{platform} does not support media_type={p_media_type}')
-                if max_text and p_content and len(p_content) > max_text:
-                    errors.append(f'Text exceeds {platform} max ({len(p_content)}/{max_text})')
-            except NotImplementedError:
-                errors.append(f'No publisher available for {platform}')
-                results[platform] = {'ok': False, 'errors': errors, 'warnings': warnings}
-                any_block = True
-                continue
-
-            if platform == 'telegram':
-                from social_stats.publishers.telegram_content import validate_post
-                try:
-                    validate_post(p_media_type, p_content, o, assets=True)
-                except PublishError as exc:
-                    errors.append(str(exc))
-
-            # Per-asset platform validation
-            for asset in assets:
-                vr = media_service.validate_for_platform(asset, platform, p_media_type)
-                if vr.errors:
-                    errors.extend([f'asset#{asset.id}: {e}' for e in vr.errors])
-                if vr.warnings:
-                    warnings.extend([f'asset#{asset.id}: {w}' for w in vr.warnings])
-
-            # Active credential check
-            if client_id:
-                has_cred = PlatformCredential.objects.filter(
-                    client_id=client_id, platform=platform, is_active=True,
-                ).exists()
-                if not has_cred:
-                    errors.append(f'No active {platform} credential — connect first')
-
-            ok = not errors
-            if not ok:
-                any_block = True
-            results[platform] = {'ok': ok, 'errors': errors, 'warnings': warnings}
-
-        return Response({'ok': not any_block, 'platforms': results})
-
-    def _resolve_client_id(self, request, data) -> Optional[int]:
-        try:
-            profile = request.user.profile
-        except Exception:
-            return None
-        if profile.role == 'superadmin':
-            cid = request.query_params.get('client_id') or data.get('client')
-            try:
-                return int(cid) if cid else None
-            except (TypeError, ValueError):
-                return None
-        if profile.role == 'staff':
-            cid = request.query_params.get('client_id') or data.get('client')
-            try:
-                cid = int(cid) if cid else None
-            except (TypeError, ValueError):
-                return None
-            if cid and profile.assigned_clients.filter(id=cid).exists():
-                return cid
-            return None
-        return profile.client_id
+                validate_intent({**data, 'target_platforms': [platform]}, workspace, request.user,
+                                action='schedule_posts' if data.get('operation') == 'schedule' else 'publish_posts', ready=True)
+                results[platform] = {'ok': True, 'errors': [], 'warnings': []}
+            except PublishError as exc:
+                results[str(platform)] = {'ok': False, 'code': exc.code, 'errors': [str(exc)], 'warnings': []}
+        return Response({'ok': all(item['ok'] for item in results.values()), 'platforms': results})

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+from collections.abc import Mapping
 
 from .base import (
     ProviderError,
@@ -89,7 +90,15 @@ class ProviderExecution:
                 raise ProviderError(
                     'Typed publish request required', code='invalid_request'
                 )
-            capability = f'publish_{request.media_type}'
+            if (not isinstance(request.content, str) or not isinstance(request.media_type, str)
+                or not isinstance(request.media_urls, (tuple, list))
+                or any(not isinstance(url, str) for url in request.media_urls)
+                or not isinstance(request.extensions, Mapping)):
+                raise ProviderError('Invalid publication payload', code='invalid_request')
+            descriptor = provider.manifest.publishing().get(request.media_type)
+            if not descriptor:
+                provider._unsupported(operation)
+            capability = descriptor.capability
         elif operation == 'reply':
             if not isinstance(request, ReplyRequest) or request.kind not in {
                 'inbox',
@@ -105,7 +114,7 @@ class ProviderExecution:
         if operation not in {'health', 'disconnect'} and self.credential.is_expired:
             raise ProviderError('Provider account token expired', code='token_expired')
         if operation == 'publish':
-            policy = provider.manifest.capability(capability)
+            policy = descriptor.constraints
             if (
                 policy.destination_types
                 and self.destination.kind not in policy.destination_types
@@ -113,6 +122,8 @@ class ProviderExecution:
                 raise ProviderError(
                     'Destination type is unsupported', code='invalid_destination'
                 )
+            if policy.min_items and len(request.media_urls) < policy.min_items:
+                raise ProviderError('Select media for this content mode', code='media_invalid')
             if policy.max_items and len(request.media_urls) > policy.max_items:
                 raise ProviderError('Too many media items', code='media_invalid')
             if policy.max_characters and len(request.content) > policy.max_characters:
@@ -144,6 +155,10 @@ class ProviderExecution:
                     'Publication intent identifier required',
                     code='idempotency_required',
                 )
+            if request.media_type == 'text' and request.media_urls:
+                raise ProviderError('Text mode cannot discard attached media', code='media_invalid')
+            if request.media_type == 'text' and not request.content.strip():
+                raise ProviderError('Text publication requires content', code='invalid_request')
         if operation == 'ingest' and (
             not isinstance(request, InboundEvent)
             or not request.event_id
@@ -192,8 +207,8 @@ class ProviderExecution:
                 )
             if (
                 isinstance(result, PublishResult)
-                and result.success
-                and not result.platform_post_id
+                and (type(result.success) is not bool or not isinstance(result.platform_post_id, str)
+                     or (result.success and not result.platform_post_id))
             ):
                 raise ProviderError(
                     'Provider returned no publication identifier',
@@ -212,5 +227,5 @@ class ProviderExecution:
             raise safe_provider_error(exc) from None
         except Exception:
             raise ProviderError(
-                'Provider operation failed', code='provider_error'
+                'Provider operation failed', code='invalid_response' if operation == 'publish' else 'provider_error'
             ) from None

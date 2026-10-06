@@ -1,4 +1,4 @@
-import { persistentStorage } from '../runtime/storage';
+import { persistentStorage, clearTransientPrefix } from '../runtime/storage';
 const INVALIDATION_KEY = 'social-stats.session-invalidated';
 const CHANGED_KEY = 'social-stats.session-changed';
 const invalidationListeners = new Set();
@@ -16,6 +16,7 @@ export function notifySessionChanged() {
   persistentStorage.setItem(CHANGED_KEY, `${Date.now()}:${Math.random()}`);
 }
 export function invalidateSession({ broadcast = true } = {}) {
+  clearTransientPrefix('composer-draft:');
   persistentStorage.removeItem('access_token');
   persistentStorage.removeItem('refresh_token');
   if (broadcast) persistentStorage.setItem(INVALIDATION_KEY, `${Date.now()}:${Math.random()}`);

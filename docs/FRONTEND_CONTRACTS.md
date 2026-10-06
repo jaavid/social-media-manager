@@ -237,3 +237,31 @@ missing monitoring history and incidents are explicitly unavailable.
 Queue detail includes `items_list`, ordered by `sort_order` and ID, within the
 existing tenant-scoped authorization. The queue UI displays waiting items and
 persists keyboard-accessible up/down changes through the existing reorder API.
+
+### Composer editor and recovery
+
+Composer consumes Connected Accounts registry metadata and the publishing-mode
+contract; provider colors have no effect on capability or readiness. Selection
+is explicit, supports multiple accounts, and incompatibilities stay visible
+without removing accounts or transforming content. The existing Page, PageHeader,
+Editor primitives, query client, HTTP client and DataState contracts are reused.
+Composer disables sticky PageHeader behavior so mobile controls remain reachable.
+
+Editor hydration occurs once per user/workspace/post. Background refresh updates
+publication results without replacing editor input. Failed save/upload/commands
+retain text, ordered media, captions and account/destination choices in scoped
+tab recovery storage; session invalidation clears those entries. In-flight writes
+are locked and stale responses after scope changes cannot update the new editor.
+A denied workspace/post refresh hides cached identities and editor content.
+Draft save can retry the same local idempotency key. A command with a transport or
+5xx outcome becomes ambiguous and offers a status read, never automatic replay.
+Queued acceptance is explicitly distinguished from provider success. Account
+permissions and known constraints disable incompatible delivery; the backend
+always remains authoritative. Datetime input uses the browser timezone and sends
+an ISO instant; changing Persian/English display does not reinterpret that instant.
+
+Stage-5 evidence lives in `frontend/e2e/evidence/stage5/`. Browser fixtures cover
+Persian/English, RTL/LTR, light/dark/system and mobile/tablet/desktop, keyboard
+submission, error focus and preservation, safe save retry, ambiguous publication,
+and non-UTC scheduling. Providers use mocked transports; these checks do not
+certify live credentials, permissions or provider behavior.

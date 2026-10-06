@@ -1,3 +1,4 @@
+import type { PublishingContract } from '@/lib/composer';
 import { api } from '@/services/http/client';
 
 export type ConnectionState = 'ready' | 'expired' | 'revoked' | 'not_connected' | 'unknown' | 'error';
@@ -10,12 +11,13 @@ export interface ConnectedAccount {
   health: { ready: boolean; state: ConnectionState; code: string };
   sync: { state: SyncState; last_success_at: string | null; last_failure_at: string | null; last_attempt_at: string | null; stale_after_seconds: number };
   expires_at: string | null; connected_at: string | null;
-  permissions: { reconnect: boolean; disconnect: boolean };
+  publishing_readiness?: Record<string, boolean>;
+  permissions: { reconnect: boolean; disconnect: boolean; publish?: boolean; schedule?: boolean };
 }
 export interface ConnectionProvider {
   key: string; titles: { en: string; fa: string }; category: string; auth_type: string; rollout_status: string;
   capabilities: Record<string, CapabilityStatus>;
-  contract: { brand: { icon: string; color: string }; auth: { strategy: string; fields: ConnectionField[]; start_path: string }; destination_types: string[]; ui_extensions: string[] };
+  contract: PublishingContract & { brand: { icon: string; color: string }; auth: { strategy: string; fields: ConnectionField[]; start_path: string }; destination_types: string[]; ui_extensions: string[] };
   readiness: { configured: boolean; missing: string[] } | null;
   permissions: { connect: boolean }; accounts: ConnectedAccount[];
 }
@@ -43,7 +45,21 @@ function account(v: unknown): boolean {
     && date(v.sync.last_success_at) && date(v.sync.last_failure_at) && date(v.sync.last_attempt_at)
     && typeof v.sync.stale_after_seconds === 'number' && v.sync.stale_after_seconds >= 60
     && date(v.expires_at) && date(v.connected_at)
-    && object(v.permissions) && bool(v.permissions.reconnect) && bool(v.permissions.disconnect);
+    && (v.publishing_readiness === undefined || (object(v.publishing_readiness) && Object.values(v.publishing_readiness).every(bool)))
+    && object(v.permissions) && bool(v.permissions.reconnect) && bool(v.permissions.disconnect)
+    && (v.permissions.publish === undefined || bool(v.permissions.publish))
+    && (v.permissions.schedule === undefined || bool(v.permissions.schedule));
+}
+function publishing(v: unknown): boolean {
+  if (v === undefined) return true; // Older metadata disables Composer rather than inventing modes.
+  return object(v) && Object.entries(v).every(([mode, descriptor]) => key(mode) && object(descriptor)
+    && str(descriptor.capability) && object(descriptor.constraints)
+    && (descriptor.ui_extension === undefined || str(descriptor.ui_extension))
+    && Object.entries(descriptor.constraints).every(([name, value]) => {
+      if (['min_items', 'max_width', 'max_characters', 'max_items', 'max_bytes', 'max_seconds', 'aspect_min', 'aspect_max', 'min_width', 'min_height'].includes(name)) return value === null || (typeof value === 'number' && Number.isFinite(value) && value > 0);
+      if (['media_types', 'mime_types', 'scopes', 'destination_types'].includes(name)) return strings(value);
+      return name === 'status' && oneOf(value, ['supported', 'beta', 'planned', 'not_available']);
+    }));
 }
 function provider(v: unknown): boolean {
   if (!object(v) || !key(v.key) || !object(v.titles) || !str(v.titles.en) || !str(v.titles.fa)
@@ -51,7 +67,7 @@ function provider(v: unknown): boolean {
     || !oneOf(v.rollout_status, ['discovery', 'planned', 'experimental', 'beta', 'active', 'blocked', 'deprecated'])
     || !object(v.capabilities) || !Object.values(v.capabilities).every(s => oneOf(s, ['supported', 'beta', 'planned', 'not_available']))
     || !['connection', 'disconnect', 'analytics'].every(k => str((v.capabilities as Record<string, unknown>)[k]))
-    || !object(v.contract) || !object(v.contract.brand) || !str(v.contract.brand.icon) || !str(v.contract.brand.color)
+    || !object(v.contract) || !publishing(v.contract.publishing_modes) || !object(v.contract.brand) || !str(v.contract.brand.icon) || !str(v.contract.brand.color)
     || !object(v.contract.auth) || v.contract.auth.strategy !== v.auth_type || !str(v.contract.auth.start_path)
     || !Array.isArray(v.contract.auth.fields) || !strings(v.contract.destination_types) || !strings(v.contract.ui_extensions)
     || !object(v.permissions) || !bool(v.permissions.connect) || !Array.isArray(v.accounts) || !v.accounts.every(account)) return false;

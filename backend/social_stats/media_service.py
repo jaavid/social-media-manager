@@ -32,7 +32,7 @@ import mimetypes
 import os
 import uuid
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Optional
 
 from django.conf import settings
 from django.core.files.base import ContentFile
@@ -40,6 +40,7 @@ from django.core.files.uploadedfile import UploadedFile
 from django.utils.text import slugify
 from PIL import Image, ImageOps
 
+from .platforms.publishing_defaults import PLATFORM_LIMITS
 from .models import MediaAsset
 
 logger = logging.getLogger(__name__)
@@ -47,39 +48,7 @@ logger = logging.getLogger(__name__)
 
 # ── Per-platform limits ───────────────────────────────────────────────────────
 # Conservative limits — under official caps to leave headroom for re-encoding.
-PLATFORM_LIMITS: dict[str, dict] = {
-    'facebook': {
-        'image': {'max_bytes': 10 * 1024 * 1024,        'allowed_mime': {'image/jpeg', 'image/png', 'image/gif'}},
-        'video': {'max_bytes': 4 * 1024 * 1024 * 1024,  'max_seconds': 240 * 60, 'allowed_mime': {'video/mp4', 'video/quicktime'}},
-    },
-    'instagram': {
-        # IG Feed
-        'image': {'max_bytes': 8 * 1024 * 1024, 'allowed_mime': {'image/jpeg'},
-                  'aspect_min': 4 / 5, 'aspect_max': 1.91, 'min_width': 320, 'max_width': 1440},
-        'video': {'max_bytes': 1024 * 1024 * 1024, 'max_seconds': 60, 'allowed_mime': {'video/mp4', 'video/quicktime'},
-                  'aspect_min': 4 / 5, 'aspect_max': 16 / 9},
-        'reel':  {'max_bytes': 1024 * 1024 * 1024, 'max_seconds': 90, 'allowed_mime': {'video/mp4'},
-                  'aspect_target': 9 / 16},
-        'story': {'max_bytes': 100 * 1024 * 1024, 'max_seconds': 60, 'allowed_mime': {'video/mp4', 'image/jpeg'},
-                  'aspect_target': 9 / 16},
-    },
-    'youtube': {
-        'video': {'max_bytes': 256 * 1024 * 1024 * 1024, 'max_seconds': 12 * 3600,
-                  'allowed_mime': {'video/mp4', 'video/quicktime', 'video/x-matroska', 'video/webm'}},
-        'reel':  {'max_bytes': 256 * 1024 * 1024, 'max_seconds': 60, 'allowed_mime': {'video/mp4'},
-                  'aspect_target': 9 / 16},
-    },
-    'linkedin': {
-        'image': {'max_bytes': 5 * 1024 * 1024, 'allowed_mime': {'image/jpeg', 'image/png'}},
-        'video': {'max_bytes': 5 * 1024 * 1024 * 1024, 'max_seconds': 10 * 60,
-                  'allowed_mime': {'video/mp4', 'video/quicktime'}},
-    },
-    'google_my_business': {
-        'image': {'max_bytes': 5 * 1024 * 1024, 'allowed_mime': {'image/jpeg', 'image/png'},
-                  'min_width': 250, 'min_height': 250},
-        'video': {'max_bytes': 100 * 1024 * 1024, 'max_seconds': 30, 'allowed_mime': {'video/mp4'}},
-    },
-}
+
 
 
 # ── Result dataclasses ────────────────────────────────────────────────────────
@@ -89,7 +58,9 @@ class ValidationResult:
     errors: list
     warnings: list
 
-    def add_error(self, msg):    self.errors.append(msg);   self.ok = False
+    def add_error(self, msg):
+        self.errors.append(msg)
+        self.ok = False
     def add_warning(self, msg):  self.warnings.append(msg)
 
 
@@ -106,7 +77,7 @@ def upload_media(
     """
     Persist `file` and return a MediaAsset row. Generates a thumbnail when the
     file is an image; extracts image dimensions; for video, attempts to read
-    duration via moviepy (lazy-imported, optional).
+    duration and dimensions via moviepy (lazy-imported, optional).
     """
     if not file:
         raise ValueError('file is required')
@@ -143,13 +114,26 @@ def upload_media(
                     save=False,
                 )
         except Exception:
-            logger.exception('Failed to process image metadata for %s', name)
+            logger.warning('Image metadata could not be read')
 
     # Video duration via moviepy if available.
     elif mime.startswith('video/'):
-        duration = _probe_video_duration(asset.file.path if asset.file else None)
+        try:
+            metadata = _probe_video_metadata(asset.file.path if asset.file else None)
+        except NotImplementedError:
+            # Remote storage has no filesystem path. Inspect the authorized
+            # uploaded bytes locally rather than requesting a public media URL.
+            from tempfile import NamedTemporaryFile
+            with NamedTemporaryFile(suffix=os.path.splitext(name)[1]) as temporary:
+                file.seek(0)
+                for chunk in file.chunks():
+                    temporary.write(chunk)
+                temporary.flush()
+                metadata = _probe_video_metadata(temporary.name)
+        duration, width, height = metadata
         if duration:
             asset.duration_seconds = duration
+        asset.width, asset.height = width or 0, height or 0
 
     asset.save()
     return asset
@@ -235,7 +219,8 @@ def transcode_for_platform(asset: MediaAsset, platform: str, post_type: str) -> 
                 quality = 90
                 buf = io.BytesIO()
                 while quality >= 40:
-                    buf.seek(0); buf.truncate(0)
+                    buf.seek(0)
+                    buf.truncate(0)
                     img.save(buf, format='JPEG', quality=quality, optimize=True)
                     if buf.tell() <= max_bytes:
                         break
@@ -249,8 +234,10 @@ def transcode_for_platform(asset: MediaAsset, platform: str, post_type: str) -> 
         except Exception:
             logger.exception('Image transcode failed for asset %s', asset.id)
         finally:
-            try: asset.file.close()
-            except Exception: pass
+            try:
+                asset.file.close()
+            except Exception:
+                pass
         return asset
 
     # Video: lazy moviepy. A later iteration will expand this with smart-crop / resize.
@@ -309,16 +296,20 @@ def _safe_filename(original: str) -> str:
     return f'{base}_{short}{ext.lower()}'
 
 
-def _probe_video_duration(path: Optional[str]) -> float:
+def _probe_video_metadata(path: Optional[str]) -> tuple[float, int | None, int | None]:
     if not path:
-        return 0.0
+        return 0.0, None, None
     try:
         from moviepy.editor import VideoFileClip
     except ImportError:
-        return 0.0
+        return 0.0, None, None
     try:
         with VideoFileClip(path) as clip:
-            return float(clip.duration or 0)
+            return float(clip.duration or 0), int(clip.size[0]), int(clip.size[1])
     except Exception:
-        logger.exception('Failed to probe video duration for %s', path)
-        return 0.0
+        logger.warning('Video metadata could not be read')
+        return 0.0, None, None
+
+
+def _probe_video_duration(path: Optional[str]) -> float:
+    return _probe_video_metadata(path)[0]

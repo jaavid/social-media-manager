@@ -35,6 +35,10 @@ class TelegramProvider(BotPlatformProvider):
             webhook_enabled=False, assistant_enabled=False,
         )
 
+    def validate_publish(self, media_type, content, options):
+        from social_stats.publishers.telegram_content import validate_post
+        validate_post(media_type, content, options, assets=True)
+
     def prepare_publish(self, post, resolve_media):
         from copy import deepcopy
         from social_stats.publishers.base import PublishError

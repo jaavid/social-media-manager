@@ -29,6 +29,8 @@ from __future__ import annotations
 import logging
 
 from celery import shared_task
+from django.db import transaction
+from django.db.models import Q
 from django.utils import timezone
 
 from .models import (
@@ -39,12 +41,54 @@ from .publishers import (
     PublishError, TokenExpiredError, RateLimitError,
     PermissionDeniedError, MediaTooLargeError,
 )
+from .publishers.base import PublishResult
 from .platforms.registry import get_provider
 from . import media_service
 from .realtime import push_event
 from .audit import log_action
 
 logger = logging.getLogger(__name__)
+
+
+def _delivery_account_id(post, platform, options):
+    """Resolve delivery identity independently of the target's JSON representation."""
+    account_id = options.get('social_account_id')
+    if type(account_id) is int and account_id > 0:
+        return account_id
+    candidates = list(PlatformCredential.objects.filter(
+        client=post.client, platform=platform, is_active=True,
+    ).values_list('social_account_id', flat=True)[:2])
+    return (candidates[0] or 0) if len(candidates) == 1 else 0
+
+
+@transaction.atomic
+def _delivery_log(post, platform, account_id):
+    """Keep completed/uncertain legacy outcomes authoritative across target changes."""
+    logs = list(PlatformPublishLog.objects.select_for_update().filter(
+        unified_post=post, platform=platform,
+    ).filter(Q(account_target_id=account_id) | Q(account_target_id=0, social_account_id=account_id)
+             | Q(account_target_id=0, social_account__isnull=True)))
+    existing = _retained_delivery_log(logs, account_id)
+    if existing:
+        # An old outcome without an account cannot safely be attributed to a
+        # different target. Preserve it until reconciliation instead of replay.
+        if account_id and existing.account_target_id == 0 and existing.social_account_id == account_id:
+            if not any(log.account_target_id == account_id for log in logs):
+                existing.account_target_id = account_id
+                existing.save(update_fields=['account_target_id'])
+        elif account_id and existing.account_target_id == 0 and existing.status == 'pending':
+            existing.account_target_id = account_id
+            existing.save(update_fields=['account_target_id'])
+        return existing, False
+    return PlatformPublishLog.objects.get_or_create(unified_post=post, platform=platform,
+        account_target_id=account_id, defaults={'status': 'pending'})
+
+
+def _retained_delivery_log(logs, account_id):
+    """Use the same preserved outcome for dispatch and parent status aggregation."""
+    protected = next((log for log in logs if log.status in ('success', 'publishing')
+        or log.error_code in ('timeout', 'network_error', 'invalid_response')), None)
+    return protected or next((log for log in logs if log.account_target_id == account_id), None) or next(iter(logs), None)
 
 
 # ── Public entry points ───────────────────────────────────────────────────────
@@ -60,6 +104,9 @@ def publish_unified_post(self, unified_post_id: int):
     if post.status not in ('scheduled', 'queued', 'pending_approval', 'partial', 'failed'):
         logger.info('publish_unified_post: post %s already in status %s — skipping',
                     unified_post_id, post.status)
+        return
+
+    if post.status == 'scheduled' and post.scheduled_at and post.scheduled_at > timezone.now():
         return
 
     from .authorization import post_decision
@@ -83,15 +130,16 @@ def publish_unified_post(self, unified_post_id: int):
         logger.warning('publish_unified_post: no target_platforms on post %s', unified_post_id)
         return
 
+    # Compare-and-set prevents a queued task from reviving an edited/cancelled intent.
+    if not UnifiedPost.objects.filter(pk=post.pk, status=post.status, updated_at=post.updated_at).update(status='publishing'):
+        return
     post.status = 'publishing'
-    post.save(update_fields=['status'])
 
-    for platform in targets:
-        log, created = PlatformPublishLog.objects.get_or_create(
-            unified_post=post, platform=platform,
-            defaults={'status': 'pending', 'attempted_at': None,
-                      'error_code': '', 'error_message': ''},
-        )
+    from .publishing_contract import delivery_options, post_payload
+    deliveries = [(platform, _delivery_account_id(post, platform, options)) for platform in targets
+                  for options in delivery_options(post_payload(post), platform)]
+    for platform, account_id in deliveries:
+        log, created = _delivery_log(post, platform, account_id)
         # Preserve completed deliveries during a partial-post retry. A worker
         # that crashed after sending remains ambiguous and needs reconciliation.
         if not created and (log.status in ('success', 'publishing') or
@@ -101,12 +149,12 @@ def publish_unified_post(self, unified_post_id: int):
             PlatformPublishLog.objects.filter(pk=log.pk, status='failed').update(
                 status='pending', error_code='', error_message='',
             )
-        publish_to_platform.delay(post.id, platform)
+        publish_to_platform.delay(post.id, platform, account_id)
     update_unified_post_status(post.id)
 
 
 @shared_task(bind=True, max_retries=3, default_retry_delay=120, acks_late=True)
-def publish_to_platform(self, unified_post_id: int, platform: str):
+def publish_to_platform(self, unified_post_id: int, platform: str, account_id: int = 0):
     """Publish one UnifiedPost to one platform. Retries on transient errors."""
     try:
         post = UnifiedPost.objects.select_related('client').get(id=unified_post_id)
@@ -115,12 +163,16 @@ def publish_to_platform(self, unified_post_id: int, platform: str):
 
     if post.status in ('draft', 'scheduled', 'queued', 'pending_approval', 'cancelled', 'published'):
         if post.status != 'published':
-            stale_log = PlatformPublishLog.objects.filter(unified_post=post, platform=platform, status__in=['pending', 'publishing']).first()
+            stale_log = PlatformPublishLog.objects.filter(unified_post=post, platform=platform, account_target_id=account_id, status__in=['pending', 'publishing']).first()
             if stale_log:
                 _mark_failed(stale_log, code='publication_invalidated', message='Publication intent is no longer active')
         return
 
-    log, _ = PlatformPublishLog.objects.get_or_create(unified_post=post, platform=platform, defaults={'status': 'pending'})
+    from .publishing_contract import delivery_options, post_payload
+    options = delivery_options(post_payload(post), platform)
+    if account_id == 0 and len(options) == 1 and 'account_targets' not in options[0]:
+        account_id = _delivery_account_id(post, platform, options[0])
+    log, _ = _delivery_log(post, platform, account_id)
     if log.status != 'pending':
         return
     from .authorization import post_decision
@@ -141,14 +193,21 @@ def publish_to_platform(self, unified_post_id: int, platform: str):
         return
     log.refresh_from_db()
 
-    overrides = (post.platform_overrides or {}).get(platform, {}) or {}
+    from .publishing_contract import delivery_options, post_payload
+    options = delivery_options(post_payload(post), platform)
+    overrides = next((item for item in options if _delivery_account_id(post, platform, item) == account_id), None)
+    if overrides is None:
+        _mark_failed(log, code='publication_invalidated', message='Account target was removed')
+        update_unified_post_status(post.id)
+        return
     credential_query = PlatformCredential.objects.filter(
         client=post.client, platform=platform, is_active=True,
     )
     social_account_id = overrides.get('social_account_id')
     if social_account_id:
         credential_query = credential_query.filter(social_account_id=social_account_id)
-    cred = credential_query.first()
+    candidates = list(credential_query[:2])
+    cred = candidates[0] if len(candidates) == 1 else None
     if not cred:
         _mark_failed(log, code='no_credential',
                      message=f'No active {platform} credential — connect first')
@@ -173,17 +232,24 @@ def publish_to_platform(self, unified_post_id: int, platform: str):
         return
 
     try:
+        from .publishing_contract import validate_intent
+        validate_intent({**post_payload(post), 'target_platforms': [platform],
+                         'platform_overrides': {platform: {k: v for k, v in overrides.items() if k != 'account_targets'}}},
+                        post.client, post.publish_requested_by or post.created_by, ready=True)
+        from copy import copy
+        delivery_post = copy(post)
+        delivery_post.platform_overrides = {**(post.platform_overrides or {}), platform: overrides}
         result = _dispatch_publish(
             provider,
             cred,
             content,
             media_urls,
             media_type,
-            post=post,
+            post=delivery_post,
             destination_id=destination_id,
         )
-    except TokenExpiredError as e:
-        _mark_failed(log, code='token_expired', message=str(e))
+    except TokenExpiredError:
+        _mark_failed(log, code='token_expired', message='Reconnect the expired account')
         cred.mark_auth_failure('token_expired')
         Alert.objects.create(
             client=post.client, platform=platform, alert_type='token_expired',
@@ -211,10 +277,10 @@ def publish_to_platform(self, unified_post_id: int, platform: str):
             return
         log.status = 'pending'
         log.error_code = 'rate_limited'
-        log.error_message = str(e)[:500]
+        log.error_message = 'Provider rate limit reached'
         log.save(update_fields=['status', 'error_code', 'error_message'])
         try:
-            raise self.retry(exc=e, countdown=wait)
+            raise self.retry(exc=RateLimitError('Provider rate limit reached', retry_after=wait), countdown=wait)
         except self.MaxRetriesExceededError:
             _mark_failed(log, code='rate_limited',
                          message=f'Rate limit exceeded after {self.max_retries} retries')
@@ -223,19 +289,26 @@ def publish_to_platform(self, unified_post_id: int, platform: str):
 
     except (PermissionDeniedError, MediaTooLargeError, PublishError) as e:
         _mark_failed(log, code=getattr(e, 'code', 'publish_error') or 'publish_error',
-                     message=str(e)[:500])
+                     message='Provider rejected the operation')
         update_unified_post_status(post.id)
         return
 
-    except Exception as e:
-        logger.exception('publish_to_platform unexpected error post=%s platform=%s', post.id, platform)
-        _mark_failed(log, code='unexpected', message=str(e)[:500])
+    except Exception:
+        logger.error('publish_to_platform unexpected error post=%s platform=%s', post.id, platform)
+        _mark_failed(log, code='invalid_response', message='Provider outcome requires review')
         update_unified_post_status(post.id)
         return
 
+    if (not isinstance(result, PublishResult) or type(result.success) is not bool
+        or not result.success or not isinstance(result.platform_post_id, str) or not result.platform_post_id):
+        _mark_failed(log, code='invalid_response', message='Provider outcome requires review')
+        update_unified_post_status(post.id)
+        return
     log.status = 'success'
-    log.platform_post_id = result.platform_post_id or ''
-    log.platform_url = result.platform_url or ''
+    from .platforms.base import public_provider_data
+    secrets = (cred.access_token, cred.refresh_token)
+    log.platform_post_id = public_provider_data(result.platform_post_id or '', secrets)
+    log.platform_url = public_provider_data(result.platform_url or '', secrets)
     log.completed_at = timezone.now()
     log.error_code = ''
     log.error_message = ''
@@ -264,8 +337,11 @@ def _dispatch_publish(
 ):
     """Publish through a capability-aware provider/publisher entry point."""
     media_type = (media_type or 'text').lower()
-    publish_kwargs = {'destination_id': destination_id} if destination_id else {}
-    from .platforms.base import BasePlatformProvider
+    options = (getattr(post, 'platform_overrides', None) or {}).get(getattr(publisher, 'key', None) or getattr(publisher, 'platform', None), {})
+    publish_kwargs = dict(options.get('extensions') or {})
+    if destination_id:
+        publish_kwargs['destination_id'] = destination_id
+    from .platforms.base import BasePlatformProvider, ProviderError
     platform = getattr(publisher, 'key', None) or getattr(publisher, 'platform', None)
     try:
         extension_provider = publisher if isinstance(publisher, BasePlatformProvider) else (
@@ -286,6 +362,8 @@ def _dispatch_publish(
         from .platforms.contracts import DestinationContext, PublishRequest
         from .platforms.execution import ProviderExecution
         account = credential.social_account
+        if account is None:
+            raise ProviderError('Provider account scope denied', code='scope_denied')
         destination = DestinationContext(
             account_id=account.pk if account else 0, workspace_id=post.client_id,
             kind=(getattr(account, 'metadata', None) or {}).get('destination_type', 'profile'),
@@ -293,7 +371,7 @@ def _dispatch_publish(
         )
         return ProviderExecution(publisher, credential, destination).call(
             'publish', PublishRequest(media_type=media_type, content=content,
-                                      media_urls=tuple(media_urls), idempotency_key=f'post:{post.pk}',
+                                      media_urls=tuple(media_urls), idempotency_key=f'post:{post.pk}:account:{account.pk}',
                                       extensions={k: v for k, v in publish_kwargs.items() if k != 'destination_id'}),
         )
     return publisher.publish(
@@ -340,8 +418,17 @@ def update_unified_post_status(unified_post_id: int):
     except UnifiedPost.DoesNotExist:
         return
 
-    statuses = list(post.publish_logs.values_list('status', flat=True))
-    targets = post.target_platforms or []
+    from .publishing_contract import delivery_options, post_payload
+    deliveries = [(platform, _delivery_account_id(post, platform, options)) for platform in post.target_platforms or []
+                  for options in delivery_options(post_payload(post), platform)]
+    logs = list(post.publish_logs.all())
+    statuses = []
+    for platform, account_id in deliveries:
+        matching = [log for log in logs if log.platform == platform and (log.account_target_id == account_id
+            or (log.account_target_id == 0 and log.social_account_id in (account_id, None)))]
+        retained = _retained_delivery_log(matching, account_id)
+        statuses.append(retained.status if retained else 'pending')
+    targets = deliveries
     if not statuses or len(statuses) < len(targets):
         if post.status not in ('publishing',):
             return
@@ -354,14 +441,14 @@ def update_unified_post_status(unified_post_id: int):
         post.save(update_fields=['status', 'published_at'])
         push_event('composer.post_published', post.client_id, {
             'unified_post_id': post.id,
-            'title': post.title or post.content[:60],
+            'title': post.title,
             'platforms': post.target_platforms or [],
         })
         log_action(post.created_by, post.client, 'composer.published',
                    object_type='UnifiedPost', object_id=post.id,
                    result='success',
                    details={'platforms': post.target_platforms,
-                            'title': post.title or post.content[:120]})
+                            'post_id': post.pk})
         try:
             from .events.publisher import EventPublisher
             EventPublisher.publish(
@@ -382,13 +469,13 @@ def update_unified_post_status(unified_post_id: int):
         post.save(update_fields=['status'])
         push_event('composer.post_failed', post.client_id, {
             'unified_post_id': post.id,
-            'title': post.title or post.content[:60],
+            'title': post.title,
         })
         log_action(post.created_by, post.client, 'composer.published',
                    object_type='UnifiedPost', object_id=post.id,
                    result='failed',
                    details={'platforms': post.target_platforms,
-                            'title': post.title or post.content[:120]})
+                            'post_id': post.pk})
         try:
             from .events.publisher import EventPublisher
             failed_log = post.publish_logs.filter(status='failed').first()

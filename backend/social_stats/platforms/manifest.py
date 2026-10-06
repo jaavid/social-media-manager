@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import math
 from dataclasses import dataclass, field
 from types import MappingProxyType
 from typing import Mapping
@@ -30,21 +31,43 @@ class Capability:
     media_types: tuple[str, ...] = ()
     destination_types: tuple[str, ...] = ()
     scopes: tuple[str, ...] = ()
+    min_items: int | None = None
     max_items: int | None = None
     max_bytes: int | None = None
     max_characters: int | None = None
+    mime_types: tuple[str, ...] = ()
+    aspect_min: float | None = None
+    aspect_max: float | None = None
+    max_seconds: float | None = None
+    max_width: int | None = None
+    min_width: int | None = None
+    min_height: int | None = None
 
     def __post_init__(self):
         if self.status not in CAPABILITY_STATUSES:
             raise ValueError('capability.status: invalid status')
-        for name in ('max_items', 'max_bytes', 'max_characters'):
+        for name in ('min_items', 'max_items', 'max_bytes', 'max_characters', 'max_width'):
             value = getattr(self, name)
             if value is not None and (type(value) is not int or value <= 0):
                 raise ValueError(f'capability.{name}: must be a positive integer')
 
+        for name in ('aspect_min', 'aspect_max', 'max_seconds', 'min_width', 'min_height'):
+            value = getattr(self, name)
+            if value is not None and (type(value) not in (int, float) or not math.isfinite(value) or value <= 0):
+                raise ValueError(f'capability.{name}: must be positive and finite')
+        if self.aspect_min and self.aspect_max and self.aspect_min > self.aspect_max:
+            raise ValueError('capability.aspect: inconsistent range')
+
     @property
     def enabled(self):
         return self.status in ENABLED_STATUSES
+
+
+@dataclass(frozen=True)
+class PublishingMode:
+    capability: str
+    constraints: Capability
+    ui_extension: str = ''
 
 
 @dataclass(frozen=True)
@@ -96,6 +119,7 @@ class PlatformManifest:
     status: str
     support: Mapping[str, str] = field(default_factory=dict)
     constraints: Mapping[str, Capability] = field(default_factory=dict)
+    publishing_modes: Mapping[str, PublishingMode] = field(default_factory=dict)
     publisher: str | None = None
     egress_service: str | None = None
     connection_handler: str | None = None
@@ -163,6 +187,14 @@ class PlatformManifest:
                 raise ValueError(f'manifest.constraints.{key}: inconsistent status')
         if any(not isinstance(item, str) or not re.fullmatch(r'[a-z][a-z0-9_]{1,49}', item) for item in self.ui_extensions):
             raise ValueError('manifest.ui_extensions: invalid extension key')
+        for mode, descriptor in self.publishing_modes.items():
+            if (not isinstance(mode, str) or not re.fullmatch(r'[a-z][a-z0-9_]{1,49}', mode)
+                or not isinstance(descriptor, PublishingMode)
+                or descriptor.capability not in ('publish_text', 'publish_image', 'publish_video')
+                or not isinstance(descriptor.constraints, Capability)
+                or (descriptor.ui_extension and descriptor.ui_extension not in self.ui_extensions)):
+                raise ValueError('manifest.publishing_modes: invalid descriptor')
+        object.__setattr__(self, 'publishing_modes', MappingProxyType(dict(self.publishing_modes)))
         if any(not isinstance(item, AuthField) for item in self.auth_fields):
             raise ValueError('manifest.auth_fields: invalid field')
         if len({item.key for item in self.auth_fields}) != len(self.auth_fields):
@@ -185,6 +217,17 @@ class PlatformManifest:
             name, Capability(self.support.get(name, 'not_available'))
         )
 
+    def publishing(self):
+        if self.publishing_modes:
+            return self.publishing_modes
+        from dataclasses import replace
+        return {
+            mode: PublishingMode(name, replace(self.capability(name), min_items=1 if name != 'publish_text' else None))
+            for name in ('publish_text', 'publish_image', 'publish_video')
+            for mode in (self.capability(name).media_types or (name.removeprefix('publish_'),))
+            if self.capability(name).enabled
+        }
+
     def connection_fields(self):
         if self.auth_fields:
             return self.auth_fields
@@ -198,7 +241,8 @@ class PlatformManifest:
     def public_contract(self):
         from dataclasses import asdict
 
-        return {
+        import json
+        return json.loads(json.dumps({
             'version': 1,
             'auth': {
                 'strategy': self.auth_type,
@@ -206,6 +250,7 @@ class PlatformManifest:
                 'start_path': self.oauth_start,
             },
             'destination_types': list(self.destination_types),
+            'publishing_modes': {name: asdict(mode) for name, mode in self.publishing().items()},
             'constraints': {
                 name: asdict(policy) for name, policy in self.constraints.items()
             },
@@ -214,4 +259,4 @@ class PlatformManifest:
             'extensions': list(self.extensions),
             'ui_extensions': list(self.ui_extensions),
             'resilience': asdict(self.resilience),
-        }
+        }))

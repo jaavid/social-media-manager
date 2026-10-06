@@ -232,33 +232,29 @@ def post_accounts(post):
     """Resolve exactly the accounts the publisher will use, including explicit targets."""
     from .models import PlatformCredential, SocialAccount
 
+    from .publishing_contract import delivery_options, post_payload
     accounts = []
-    for platform in post.target_platforms or []:
-        account_id = ((post.platform_overrides or {}).get(platform) or {}).get(
-            "social_account_id"
-        )
-        if account_id:
-            account = SocialAccount.objects.filter(
-                pk=account_id, client=post.client, platform=platform
-            ).first()
-            if not account:
-                return None
-        else:
-            credential = (
-                PlatformCredential.objects.filter(
-                    client=post.client, platform=platform, is_active=True
-                )
-                .select_related("social_account")
-                .first()
-            )
-            account = credential.social_account if credential else None
-            # Without a credential yet, evaluate the available account boundaries.
-            if credential is None:
-                accounts.extend(
-                    SocialAccount.objects.filter(client=post.client, platform=platform)
-                )
-        if account is not None:
-            accounts.append(account)
+    try:
+        for platform in post.target_platforms or []:
+            for options in delivery_options(post_payload(post), platform):
+                account_id = options.get('social_account_id')
+                if account_id:
+                    account = SocialAccount.objects.filter(pk=account_id, client=post.client, platform=platform).first()
+                    if not account:
+                        return None
+                else:
+                    credentials = list(PlatformCredential.objects.filter(client=post.client, platform=platform,
+                                       is_active=True).select_related('social_account')[:2])
+                    if len(credentials) > 1:
+                        return None
+                    account = credentials[0].social_account if credentials else None
+                    if not credentials:
+                        accounts.extend(SocialAccount.objects.filter(client=post.client, platform=platform))
+                if account is not None:
+                    accounts.append(account)
+    except Exception:
+        return None
+
     return accounts
 
 

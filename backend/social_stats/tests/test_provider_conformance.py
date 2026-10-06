@@ -424,7 +424,7 @@ class ReferenceFixtureTests(FixtureRegistration, SimpleTestCase):
             self.provider, self.credential, 'approved content', [], 'text', post=post
         )
         self.assertTrue(result.success)
-        self.assertIn((2, 7, 'post:99'), self.provider.deliveries)
+        self.assertIn((2, 7, 'post:99:account:7'), self.provider.deliveries)
 
     def test_metrics_must_be_normalized_finite_numbers(self):
         for metrics in ({'views': 'one'}, {'views': float('nan')}, {'views': True}):

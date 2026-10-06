@@ -22,6 +22,7 @@ from social_stats.models import (
     SocialAccountPermissionOverride,
     ActionLog,
     UnifiedPost,
+    PlatformCredential,
     ApprovalRequest,
 )
 from social_stats.authorization import evaluate, accessible_workspaces
@@ -58,6 +59,7 @@ class RBACPolicyTests(TestCase):
         self.sibling = SocialAccount.objects.create(
             client=self.workspace, platform="facebook", external_id="two"
         )
+        PlatformCredential.objects.create(client=self.workspace, platform='facebook', social_account=self.account, access_token='test-only', is_active=True)
         self.editor = RolePreset.objects.get(key="editor")
         self.api = APIClient()
         self.api.force_authenticate(self.owner)
@@ -274,7 +276,7 @@ class RBACPolicyTests(TestCase):
         self.policy(preset=self.editor)
         self.api.force_authenticate(self.actor)
         post = UnifiedPost.objects.create(
-            client=self.workspace, created_by=self.actor, target_platforms=["facebook"]
+            client=self.workspace, created_by=self.actor, content="Valid publishing intent", target_platforms=["facebook"]
         )
         res = self.api.post(f"/api/composer/posts/{post.pk}/publish_now/")
         self.assertEqual(res.status_code, 202)
@@ -295,7 +297,7 @@ class RBACPolicyTests(TestCase):
         self.policy(preset=self.editor)
         self.api.force_authenticate(self.actor)
         post = UnifiedPost.objects.create(
-            client=self.workspace, created_by=self.actor, target_platforms=["facebook"]
+            client=self.workspace, created_by=self.actor, content="Valid publishing intent", target_platforms=["facebook"]
         )
         when = (timezone.now() + timedelta(days=1)).isoformat()
         res = self.api.post(
@@ -457,7 +459,8 @@ class RBACPolicyTests(TestCase):
             target_platforms=["facebook"],
         )
         self.assertFalse(post_decision(post).allowed)
-        response = self.api.post(f"/api/composer/posts/{post.pk}/publish_now/")
+        with self.captureOnCommitCallbacks(execute=True):
+            response = self.api.post(f"/api/composer/posts/{post.pk}/publish_now/")
         self.assertEqual(response.status_code, 200)
         post.refresh_from_db()
         self.assertEqual(post.publish_requested_by, self.owner)

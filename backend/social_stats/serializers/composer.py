@@ -64,7 +64,7 @@ class PlatformPublishLogSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlatformPublishLog
         fields = [
-            'id', 'unified_post', 'platform', 'status',
+            'id', 'unified_post', 'platform', 'social_account', 'status',
             'platform_post_id', 'platform_url',
             'error_code', 'error_message',
             'attempted_at', 'completed_at', 'engagement_synced_at',
@@ -75,11 +75,14 @@ class PlatformPublishLogSerializer(serializers.ModelSerializer):
 
 # ── Unified post ──────────────────────────────────────────────────────────────
 class UnifiedPostSerializer(serializers.ModelSerializer):
+    media_type = serializers.CharField(max_length=20, required=False, default='text')
     publish_logs = PlatformPublishLogSerializer(many=True, read_only=True)
     created_by_name = serializers.CharField(source='created_by.get_full_name', read_only=True)
 
     class Meta:
         model = UnifiedPost
+        validators = []  # Optional intent keys are claimed by the scoped create boundary.
+        extra_kwargs = {'client': {'required': False}}
         fields = [
             'id', 'client',
             'title', 'content', 'media_urls', 'media_type',
@@ -106,28 +109,21 @@ class UnifiedPostSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         if self.instance and 'client' in attrs and attrs['client'].pk != self.instance.client_id:
             raise serializers.ValidationError({'client': 'Workspace cannot be changed'})
-        media_type = attrs.get('media_type', getattr(self.instance, 'media_type', 'text'))
-        media_urls = attrs.get('media_urls', getattr(self.instance, 'media_urls', [])) or []
-        targets = attrs.get('target_platforms', getattr(self.instance, 'target_platforms', []))
-        overrides = attrs.get('platform_overrides', getattr(self.instance, 'platform_overrides', {})) or {}
-        if not isinstance(overrides, dict):
-            raise serializers.ValidationError({'platform_overrides': 'Must be an object'})
-        for platform in targets:
-            options = overrides.get(platform, {})
-            kind = options.get('media_type', media_type) if isinstance(options, dict) else media_type
-            if kind in ('album', 'rich', 'poll') and platform != 'telegram':
-                raise serializers.ValidationError('This publishing mode requires Telegram')
-            if platform == 'telegram':
-                from social_stats.publishers.telegram_content import validate_post
-                from social_stats.publishers.base import PublishError
-                try:
-                    validate_post(kind, options.get('content', attrs.get('content', getattr(self.instance, 'content', ''))), options, assets=True)
-                except PublishError as exc:
-                    raise serializers.ValidationError({'platform_overrides': str(exc)}) from None
-        if media_type not in ('text', 'album', 'rich', 'poll') and not media_urls:
-            raise serializers.ValidationError(
-                {'media_urls': 'At least one media URL is required for non-text posts'}
-            )
+        from social_stats.publishing_contract import validate_intent
+        from social_stats.models import Client
+        from social_stats.publishers.base import PublishError
+        request = self.context.get('request')
+        view = self.context.get('view')
+        workspace_id = self.instance.client_id if self.instance else (view.resolved_client_id() if view else getattr(attrs.get('client'), 'pk', None))
+        workspace = Client.objects.filter(pk=workspace_id).first()
+        if workspace:
+            fields = ('content', 'media_type', 'media_urls', 'target_platforms', 'platform_overrides')
+            payload = {key: attrs.get(key, getattr(self.instance, key, {'content': '', 'media_type': 'text',
+                       'media_urls': [], 'target_platforms': [], 'platform_overrides': {}}[key])) for key in fields}
+            try:
+                validate_intent(payload, workspace, request.user if request else None)
+            except PublishError as exc:
+                raise serializers.ValidationError({'code': exc.code, 'detail': str(exc)}) from None
         return attrs
 
 
