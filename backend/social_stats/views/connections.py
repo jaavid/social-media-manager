@@ -78,9 +78,16 @@ def connections(request, workspace_id):
                     and set(descriptor.constraints.scopes) <= set(credential.scope.split() if credential else ())
                     and kind in (descriptor.constraints.destination_types or manifest.destination_types))
                     for mode, descriptor in manifest.publishing().items()},
+                'engagement_readiness': {name: bool(health.ready and account.is_active
+                    and manifest.capability(name).enabled
+                    and set(manifest.capability(name).scopes) <= set(credential.scope.split() if credential else ())
+                    and kind in (manifest.capability(name).destination_types or manifest.destination_types))
+                    for name in ('inbox', 'comments', 'reviews')},
                 'expires_at': credential.expires_at if credential else None,
                 'connected_at': credential.connected_at if credential else None,
                 'permissions': {
+                    **{action: evaluate(request.user, workspace, action, account=account).allowed
+                       for action in ('view_inbox', 'reply_messages', 'reply_comments', 'reply_reviews', 'view_analytics')},
                     'publish': evaluate(request.user, workspace, 'publish_posts', account=account).allowed,
                     'schedule': evaluate(request.user, workspace, 'schedule_posts', account=account).allowed
                         and set(manifest.capability('scheduling').scopes) <= set(credential.scope.split() if credential else ()),

@@ -35,6 +35,7 @@ class ReplyRequest:
     thread_id: str
     content: str
     kind: str = 'inbox'
+    recipient_id: str = ''
 
 
 HEALTH_STATES = frozenset({'ready', 'expired', 'revoked', 'not_connected', 'unknown', 'error'})

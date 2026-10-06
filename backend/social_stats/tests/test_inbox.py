@@ -313,6 +313,27 @@ class ReplyActionTests(TestCase):
         cred = PlatformCredential.objects.get(client=self.client_obj, platform='facebook')
         self.assertFalse(cred.is_active)
 
+    def test_false_success_or_malformed_provider_result_never_persists_message(self):
+        for result in (PublishResult(success=False), None, {'success': True}):
+            with self.subTest(result=result), patch(
+                'social_stats.publishers.facebook.FacebookPublisher.reply_to_comment', return_value=result
+            ):
+                response = self.api.post(f'/api/inbox/conversations/{self.conv.pk}/reply/',
+                                         {'text': 'keep my input'}, format='json')
+                self.assertEqual(response.status_code, 502)
+                self.assertEqual(response.data['code'], 'invalid_response')
+                self.assertFalse(Message.objects.filter(conversation=self.conv, direction='outbound').exists())
+
+    def test_provider_failure_does_not_expose_secret_or_delete_credential(self):
+        from social_stats.publishers.base import PublishError
+        with patch('social_stats.publishers.facebook.FacebookPublisher.reply_to_comment',
+                   side_effect=PublishError('private token=tok', code='network_error')):
+            response = self.api.post(f'/api/inbox/conversations/{self.conv.pk}/reply/',
+                                     {'text': 'retry later'}, format='json')
+        self.assertEqual(response.status_code, 502)
+        self.assertNotIn('token=tok', str(response.data))
+        self.assertTrue(PlatformCredential.objects.get(client=self.client_obj).is_active)
+
     def test_reply_text_required(self):
         res = self.api.post(f'/api/inbox/conversations/{self.conv.id}/reply/',
                              {'text': '   '}, format='json')

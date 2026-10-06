@@ -29,8 +29,7 @@ from typing import Callable
 from django.utils import timezone
 
 from .models import (
-    Conversation, Message, PlatformCredential,
-    UnifiedPost, WhatsAppCampaign,
+    Conversation, PlatformCredential, UnifiedPost, WhatsAppCampaign,
 )
 
 
@@ -110,74 +109,23 @@ def _exec_send_campaign(approval) -> tuple[bool, str, dict]:
 # Replies (DM / comment / review)
 # ─────────────────────────────────────────────────────────────────────────────
 def _exec_reply(approval) -> tuple[bool, str, dict]:
-    from .publishers import (
-        get_publisher, PublishError, TokenExpiredError, RateLimitError,
-    )
-
+    from .models import UnifiedReview
+    from .platforms.engagement import deliver_reply
+    from .publishers.base import PublishError
     payload = _payload(approval)
-    conv_id = payload.get('conversation_id')
-    text = (payload.get('text') or '').strip()
-    if not conv_id or not text:
-        return (False, 'missing conversation_id or text', {})
-
+    model = UnifiedReview if payload.get('review_id') else Conversation
+    target_id = payload.get('review_id') or payload.get('conversation_id')
+    text = payload.get('text')
+    if not target_id or not isinstance(text, str) or not text.strip():
+        return (False, 'invalid reply intent', {})
+    target = model.objects.filter(pk=target_id, client=approval.client).first()
+    if target is None:
+        return (False, 'reply target is unavailable', {})
     try:
-        conv = Conversation.objects.get(pk=conv_id, client=approval.client)
-    except Conversation.DoesNotExist:
-        return (False, 'conversation no longer exists', {})
-
-    cred = PlatformCredential.objects.filter(
-        client_id=conv.client_id, platform=conv.platform, social_account_id=conv.social_account_id, is_active=True,
-    ).first()
-    if not cred:
-        return (False, f'no active {conv.platform} credential', {})
-
-    publisher = get_publisher(conv.platform)
-    last_inbound = (Message.objects
-                    .filter(conversation=conv, direction='inbound')
-                    .order_by('-created_at').first())
-
-    try:
-        if conv.type == 'comment':
-            if not last_inbound or not last_inbound.platform_message_id:
-                return (False, 'no inbound comment to reply to', {})
-            result = publisher.reply_to_comment(cred, last_inbound.platform_message_id, text)
-        elif conv.type == 'dm':
-            psid = (last_inbound.author_handle if last_inbound else conv.contact_handle)
-            if not psid:
-                return (False, 'no recipient ID on this thread', {})
-            result = publisher.reply_to_dm(cred, conv.platform_thread_id, text, psid=psid, recipient_id=psid)
-        elif conv.type == 'review':
-            if not last_inbound or not last_inbound.platform_message_id:
-                return (False, 'no review to reply to', {})
-            result = publisher.reply_to_review(cred, last_inbound.platform_message_id, text)
-        else:
-            return (False, f'reply not supported for type={conv.type}', {})
-    except TokenExpiredError as e:
-        cred.mark_auth_failure('token_expired')
-        return (False, str(e), {'code': 'token_expired'})
-    except RateLimitError as e:
-        return (False, str(e), {'code': 'rate_limited'})
-    except PublishError as e:
-        return (False, str(e), {'code': e.code or 'publish_error'})
-
-    msg = Message.objects.create(
-        conversation=conv,
-        platform_message_id=getattr(result, 'platform_post_id', '') or '',
-        direction='outbound',
-        author_name=approval.requested_by.get_full_name() or approval.requested_by.email or 'Social Stats',
-        author_handle=approval.requested_by.email or '',
-        content=text,
-        sent_at=timezone.now(),
-        replied_at=timezone.now(),
-        sentiment=last_inbound.sentiment if last_inbound else 'unknown',
-        sent_by=approval.requested_by,
-    )
-    conv.last_message_preview = text[:500]
-    conv.last_message_at = msg.sent_at
-    conv.save(update_fields=['last_message_preview', 'last_message_at'])
-
-    return (True, f'replied via {conv.platform}', {'message_id': msg.id, 'conversation_id': conv.id})
-
+        result = deliver_reply(target, text.strip(), approval.requested_by)
+        return (True, 'reply sent', {'message_id': result.pk, 'conversation_id': target.pk} if model is Conversation else {'review_id': result.pk})
+    except PublishError as exc:
+        return (False, 'reply failed', {'code': exc.code})
 
 # ─────────────────────────────────────────────────────────────────────────────
 # disconnect_platform

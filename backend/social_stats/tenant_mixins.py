@@ -91,7 +91,7 @@ class TenantScopedMixin:
             except (TypeError, ValueError):
                 return qs.none()
         qs = qs.filter(**{f'{self.client_field_name}__in': workspaces})
-        read_action = {'Conversation': 'view_inbox', 'PlatformReview': 'view_inbox',
+        read_action = {'Conversation': 'view_inbox', 'PlatformReview': 'view_inbox', 'UnifiedReview': 'view_inbox',
                        'DailyMetric': 'view_analytics', 'PostMetric': 'view_posts'}.get(qs.model.__name__)
         if read_action and self.client_field_name == 'client':
             from .authorization import scope_account_queryset
