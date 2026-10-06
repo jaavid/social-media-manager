@@ -12,7 +12,7 @@ let mockUser;
 let fixture;
 const stored = { id: 900, client: 7, title: '', content: 'Keep this content', media_type: 'text', media_urls: [],
   target_platforms: ['contract_example'], platform_overrides: {}, status: 'draft', scheduled_at: null };
-jest.mock('@/core/navigation', () => ({ useAppNavigate: () => mockNavigate, useAppParams: () => ({ id: mockId }), useAppLocation: () => ({ pathname: globalThis.window.location.pathname }) }));
+jest.mock('@/core/navigation', () => ({ useAppNavigate: () => mockNavigate, useAppSearchParams: () => [new URLSearchParams()], useAppParams: () => ({ id: mockId }), useAppLocation: () => ({ pathname: globalThis.window.location.pathname }) }));
 jest.mock('@/core/session', () => ({ useSession: () => ({ user: mockUser }) }));
 jest.mock('@/services/domains/composer', () => ({ composer: { get: jest.fn(), save: jest.fn(), command: jest.fn(), queues: jest.fn(), resolve: jest.fn() } }));
 jest.mock('@/services/domains/connections', () => ({ connectionsAPI: { get: jest.fn() } }));

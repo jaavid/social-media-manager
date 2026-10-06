@@ -12,14 +12,23 @@ import {
   Loader2, Play, X, Link as LinkIcon, FileVideo, Wand2,
 } from 'lucide-react';
 import toast from '../../components/ui/toast';
-import { YoutubeBrandIcon } from '../../components/ui/BrandIcon';
+import { useMutation } from '@tanstack/react-query';
+import { useSession } from '@/core/session';
+import { useLanguage } from '@/i18n';
+import { useWorkspaces } from '@/hooks/useData';
+import { useAppNavigate } from '@/core/navigation';
+import Page from '@/components/ui/Page';
+import NativeSelect from '@/components/ui/NativeSelect';
+import DataState from '@/components/ui/DataState';
+import { apiError } from '@/services/http/errors';
+import { composer, parseMedia } from '@/services/domains/composer';
 
 import PageHeader from '../../components/layout/PageHeader';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 import EmptyState from '../../components/ui/EmptyState';
-import { videoAPI, composerAPI } from '../../services/api';
+import { videoAPI } from '../../services/api';
 
 const ASPECTS = [
   { id: '16:9', label: '16:9 · Landscape',  hint: 'YouTube, Facebook, LinkedIn feed' },
@@ -33,10 +42,21 @@ const TABS = [
   { id: 'resize',   label: 'Resize',     icon: Crop },
   { id: 'thumb',    label: 'Thumbnail',  icon: Camera },
   { id: 'captions', label: 'Captions',   icon: Captions },
-  { id: 'publish',  label: 'Publish',    icon: YoutubeBrandIcon },
+  { id: 'publish',  label: 'Publish',    icon: Wand2 },
 ];
 
 export default function VideoStudioPage() {
+  const { user } = useSession(); const { t } = useLanguage(); const [chosen, setChosen] = useState('');
+  const { workspaces, error, refetch } = useWorkspaces();
+  const workspace = Number(user?.workspace_id || user?.client_id || chosen) || null;
+  return <Page maxWidth="full">
+    {!user?.workspace_id && !user?.client_id && <NativeSelect label={t('analytics.report.workspace')} value={chosen} onChange={e => setChosen(e.target.value)}><option value="">{t('analytics.report.workspace')}</option>{workspaces.map(w => <option key={w.id} value={w.id}>{w.company || w.name}</option>)}</NativeSelect>}
+    {error && <DataState state="error" title={t('analytics.report.error')} action={<Button onClick={refetch}>{t('analytics.report.retry')}</Button>} />}
+    {workspace && <WorkspaceVideo key={`${user?.id}:${workspace}`} workspace={workspace} />}
+  </Page>;
+}
+function WorkspaceVideo({ workspace }) {
+  const { t } = useLanguage();
   const [active, setActive] = useState(null);   // currently-loaded MediaAsset (video)
   const [derived, setDerived] = useState([]);   // list of derived assets (trims/resizes/thumbs)
   const [tab, setTab] = useState('trim');
@@ -45,7 +65,7 @@ export default function VideoStudioPage() {
     <div style={{ paddingBottom: 32 }}>
       <PageHeader
         title="Video Studio"
-        subtitle="Trim, resize, capture thumbnails, and publish to YouTube"
+        subtitle={t('editor.videoDescription')}
       />
 
       <div className="vs-grid" style={{
@@ -56,7 +76,7 @@ export default function VideoStudioPage() {
       }}>
         {/* ── Player + derived assets ─────────────────────────────── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {!active && <UploadCard onUploaded={(a) => setActive(a)} />}
+          {!active && <UploadCard workspace={workspace} onUploaded={(a) => setActive(a)} />}
           {active && (
             <PlayerCard
               asset={active}
@@ -128,11 +148,11 @@ export default function VideoStudioPage() {
               />
             ) : (
               <>
-                {tab === 'trim'     && <TrimTool     asset={active} onResult={(a) => { setActive(a); setDerived((d) => [a, ...d]); }} />}
-                {tab === 'resize'   && <ResizeTool   asset={active} onResult={(a) => { setActive(a); setDerived((d) => [a, ...d]); }} />}
-                {tab === 'thumb'    && <ThumbnailTool asset={active} onResult={(a) => setDerived((d) => [a, ...d])} />}
-                {tab === 'captions' && <CaptionsTool asset={active} />}
-                {tab === 'publish'  && <PublishTool  asset={active} />}
+                {tab === 'trim'     && <TrimTool key={`${active.id}:${tab}`} workspace={workspace}     asset={active} onResult={(a) => { setActive(a); setDerived((d) => [a, ...d]); }} />}
+                {tab === 'resize'   && <ResizeTool key={`${active.id}:${tab}`} workspace={workspace}   asset={active} onResult={(a) => { setActive(a); setDerived((d) => [a, ...d]); }} />}
+                {tab === 'thumb'    && <ThumbnailTool key={`${active.id}:${tab}`} workspace={workspace} asset={active} onResult={(a) => setDerived((d) => [a, ...d])} />}
+                {tab === 'captions' && <CaptionsTool key={`${active.id}:${tab}`} workspace={workspace} asset={active} />}
+                {tab === 'publish'  && <PublishTool key={`${active.id}:${tab}`} workspace={workspace}  asset={active} />}
               </>
             )}
           </div>
@@ -150,41 +170,26 @@ export default function VideoStudioPage() {
 }
 
 /* ── Upload ────────────────────────────────────────────────────────────── */
-function UploadCard({ onUploaded }) {
+function UploadCard({ onUploaded, workspace }) {
   const fileRef = useRef();
   const [url, setUrl] = useState('');
-  const [busy, setBusy] = useState(false);
+  const operation = useMediaOperation(workspace);
+  const busy = operation.pending;
   const [drag, setDrag] = useState(false);
 
   async function uploadFile(file) {
     if (!file) return;
-    setBusy(true);
-    try {
-      const fd = new FormData();
-      fd.append('file', file);
-      const res = await videoAPI.upload(fd);
-      onUploaded(res.data);
-      toast.success('Video uploaded');
-    } catch (e) {
-      toast.error(e.response?.data?.error || 'Upload failed');
-    } finally { setBusy(false); }
+    const fd = new FormData(); fd.append('file', file); fd.append('workspace_id', String(workspace));
+    await operation.run(() => videoAPI.upload(fd), onUploaded);
   }
-
   async function importUrl() {
     if (!url.trim()) return;
-    setBusy(true);
-    try {
-      const res = await videoAPI.importFromUrl({ url: url.trim() });
-      onUploaded(res.data);
-      toast.success('Video imported');
-      setUrl('');
-    } catch (e) {
-      toast.error(e.response?.data?.error || 'Import failed');
-    } finally { setBusy(false); }
+    await operation.run(() => videoAPI.importFromUrl({ workspace_id: workspace, url: url.trim() }), asset => { onUploaded(asset); setUrl(''); });
   }
 
   return (
     <Card padding="none" style={{ overflow: 'hidden' }}>
+      {operation.notice}
       <div
         onDragOver={(e) => { e.preventDefault(); setDrag(true); }}
         onDragLeave={() => setDrag(false)}
@@ -291,28 +296,21 @@ function PlayerCard({ asset, onClear }) {
 }
 
 /* ── Tools ─────────────────────────────────────────────────────────────── */
-function TrimTool({ asset, onResult }) {
+function TrimTool({ asset, onResult, workspace }) {
   const max = Math.max(0.1, asset.duration_seconds || 60);
   const [start, setStart] = useState(0);
   const [end, setEnd] = useState(Math.min(10, max));
-  const [busy, setBusy] = useState(false);
+  const operation = useMediaOperation(workspace);
+  const busy = operation.pending;
 
   async function run() {
-    if (end <= start) { toast.error('End must be after start'); return; }
-    setBusy(true);
-    try {
-      const res = await videoAPI.trim({
-        asset_id: asset.id, start_seconds: start, end_seconds: end,
-      });
-      onResult(res.data);
-      toast.success('Trim complete');
-    } catch (e) {
-      toast.error(e.response?.data?.error || 'Trim failed');
-    } finally { setBusy(false); }
+    if (end <= start) return;
+    await operation.run(() => videoAPI.trim({ workspace_id: workspace, asset_id: asset.id, start_seconds: start, end_seconds: end }), onResult);
   }
 
   return (
     <>
+      {operation.notice}
       <ToolHeader title="Trim" desc="Cut a section from this video" />
       <Field label={`Start (${fmtDuration(start)})`}>
         <input type="range" min={0} max={max} step={0.1}
@@ -336,23 +334,18 @@ function TrimTool({ asset, onResult }) {
   );
 }
 
-function ResizeTool({ asset, onResult }) {
+function ResizeTool({ asset, onResult, workspace }) {
   const [aspect, setAspect] = useState('9:16');
-  const [busy, setBusy] = useState(false);
+  const operation = useMediaOperation(workspace);
+  const busy = operation.pending;
 
   async function run() {
-    setBusy(true);
-    try {
-      const res = await videoAPI.resize({ asset_id: asset.id, target_aspect: aspect });
-      onResult(res.data);
-      toast.success(`Resized to ${aspect}`);
-    } catch (e) {
-      toast.error(e.response?.data?.error || 'Resize failed');
-    } finally { setBusy(false); }
+    await operation.run(() => videoAPI.resize({ workspace_id: workspace, asset_id: asset.id, target_aspect: aspect }), onResult);
   }
 
   return (
     <>
+      {operation.notice}
       <ToolHeader title="Resize" desc="Center-crop into a different aspect ratio" />
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
         {ASPECTS.map((a) => {
@@ -384,24 +377,19 @@ function ResizeTool({ asset, onResult }) {
   );
 }
 
-function ThumbnailTool({ asset, onResult }) {
+function ThumbnailTool({ asset, onResult, workspace }) {
   const max = Math.max(0.5, (asset.duration_seconds || 1) - 0.1);
   const [t, setT] = useState(Math.min(2, max));
-  const [busy, setBusy] = useState(false);
+  const operation = useMediaOperation(workspace, true, 'image');
+  const busy = operation.pending;
 
   async function run() {
-    setBusy(true);
-    try {
-      const res = await videoAPI.extractThumbnail({ asset_id: asset.id, time_seconds: t });
-      onResult(res.data);
-      toast.success('Thumbnail saved');
-    } catch (e) {
-      toast.error(e.response?.data?.error || 'Thumbnail failed');
-    } finally { setBusy(false); }
+    await operation.run(() => videoAPI.extractThumbnail({ workspace_id: workspace, asset_id: asset.id, time_seconds: t }), onResult);
   }
 
   return (
     <>
+      {operation.notice}
       <ToolHeader title="Extract thumbnail" desc="Capture a still frame as an image asset" />
       <Field label={`Time: ${fmtDuration(t)}`}>
         <input type="range" min={0} max={max} step={0.1}
@@ -415,102 +403,41 @@ function ThumbnailTool({ asset, onResult }) {
   );
 }
 
-function CaptionsTool({ asset }) {
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState(null);
-
-  async function run() {
-    setBusy(true); setError(null);
-    try {
-      await videoAPI.addCaptions({ asset_id: asset.id });
-      toast.success('Captions queued');
-    } catch (e) {
-      const detail = e.response?.data?.detail || e.response?.data?.error;
-      if (e.response?.status === 501) setError(detail || 'Captions service not configured.');
-      else toast.error('Captions failed');
-    } finally { setBusy(false); }
-  }
-
-  return (
-    <>
-      <ToolHeader title="Auto captions" desc="Transcribe the audio and burn captions in" />
-      {error && (
-        <div style={{
-          padding: '10px 12px', marginBottom: 12,
-          background: 'var(--warning-bg)', color: 'var(--warning)',
-          border: '1px solid var(--border-subtle)',
-          borderRadius: 'var(--radius-md)',
-          fontSize: 12, lineHeight: 'var(--line-height-body)',
-        }}>
-          <strong>Not configured.</strong> {error}
-        </div>
-      )}
-      <Button onClick={run} loading={busy} icon={Captions} fullWidth>
-        Generate captions
-      </Button>
-      <div style={{ marginTop: 8, fontSize: 11, color: 'var(--text-tertiary)' }}>
-        Requires <code style={code}>WHISPER_API_KEY</code> on the server.
-      </div>
-    </>
-  );
+function CaptionsTool() {
+  const { t } = useLanguage();
+  // The current backend returns 501 even with configuration; never claim a queued job.
+  return <DataState state="unavailable" title={t('editor.captionsUnavailable')} />;
 }
-
-function PublishTool({ asset }) {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [privacy, setPrivacy] = useState('unlisted');
-  const [busy, setBusy] = useState(false);
-  const [result, setResult] = useState(null);
-
-  async function run() {
-    if (!title.trim()) { toast.error('Title is required'); return; }
-    setBusy(true); setResult(null);
-    try {
-      const res = await videoAPI.youtubeUpload({
-        asset_id: asset.id, title, description, privacy,
-      });
-      setResult(res.data);
-      toast.success('Uploaded to YouTube');
-    } catch (e) {
-      const code = e.response?.data?.code;
-      if (code === 'token_expired') toast.error('YouTube token expired — please reconnect.');
-      else toast.error(e.response?.data?.error || 'Upload failed');
-    } finally { setBusy(false); }
+function PublishTool({ asset, workspace }) {
+  const { user } = useSession(); const { t } = useLanguage(); const navigate = useAppNavigate();
+  const [intent] = useState(() => globalThis.crypto.randomUUID()); const operation = useMediaOperation(workspace, false);
+  async function openComposer() {
+    await operation.run(() => composer.save(workspace, null, { title: '', content: '', media_type: 'video',
+      media_urls: [`asset:${asset.id}`], target_platforms: [], platform_overrides: {} }, intent), result => {
+      navigate(`${user?.role === 'client' ? '/dashboard/analytics' : '/admin/analytics'}/composer/${result.post.id}?workspace=${workspace}`);
+    });
   }
-
-  return (
-    <>
-      <ToolHeader title="Publish to YouTube" desc="Direct upload via the connected channel" />
-      <Field label="Title">
-        <input value={title} onChange={(e) => setTitle(e.target.value)}
-                placeholder="My new video" style={inputStyle} />
-      </Field>
-      <Field label="Description">
-        <textarea value={description} onChange={(e) => setDescription(e.target.value)}
-                   rows={4} placeholder="Tell viewers what it's about…"
-                   style={{ ...inputStyle, height: 'auto', resize: 'vertical' }} />
-      </Field>
-      <Field label="Privacy">
-        <select value={privacy} onChange={(e) => setPrivacy(e.target.value)} style={inputStyle}>
-          <option value="public">Public</option>
-          <option value="unlisted">Unlisted</option>
-          <option value="private">Private</option>
-        </select>
-      </Field>
-      <Button onClick={run} loading={busy} icon={YoutubeBrandIcon} fullWidth>
-        Upload to YouTube
-      </Button>
-      {result?.platform_url && (
-        <a href={result.platform_url} target="_blank" rel="noreferrer"
-           style={{
-             display: 'block', marginTop: 10, fontSize: 12, fontWeight: 600,
-             color: 'var(--brand-primary-hover)', textDecoration: 'none',
-           }}>
-          View on YouTube ↗
-        </a>
-      )}
-    </>
-  );
+  return <>{operation.notice}<p className="my-3">{t('editor.composerHandoff')}</p><Button disabled={operation.pending} onClick={openComposer}>{t('editor.openComposer')}</Button></>;
+}
+function useMediaOperation(workspace, media = true, kind = 'video') {
+  const { user } = useSession(); const { t } = useLanguage(); const busy = useRef(false); const current = useRef(true); const focus = useRef(null);
+  const mutation = useMutation({ mutationKey: ['video.operation', user?.id, workspace], mutationFn: operation => operation(), retry: 0, networkMode: 'always' });
+  useEffect(() => { current.current = true; return () => { current.current = false; }; }, []);
+  useEffect(() => { if (mutation.error) focus.current?.focus(); }, [mutation.error]);
+  async function run(operation, success) {
+    if (busy.current) return; busy.current = true;
+    try {
+      await mutation.mutateAsync(async () => {
+        const response = await operation();
+        if (media && response.status !== 201) throw new Error('Invalid media operation response');
+        const data = media ? parseMedia(response.data, workspace) : response;
+        if (media && !data.mime_type.startsWith(`${kind}/`)) throw new Error('Invalid media kind');
+        if (current.current) success(data);
+      });
+    } catch { /* Inline recovery retains all editor inputs and selected assets. */ }
+    finally { busy.current = false; }
+  }
+  return { run, pending: mutation.isPending, notice: mutation.error && <DataState focusRef={focus} state="error" compact title={t('editor.mediaFailed')} referenceId={apiError(mutation.error).referenceId} /> };
 }
 
 /* ── Derived tile ──────────────────────────────────────────────────────── */

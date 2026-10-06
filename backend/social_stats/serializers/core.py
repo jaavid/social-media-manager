@@ -148,6 +148,7 @@ class WeeklyTopPostSerializer(serializers.ModelSerializer):
 
 
 class SharedReportSerializer(serializers.ModelSerializer):
+    social_account_ids = serializers.ListField(child=serializers.IntegerField(min_value=1), required=False, allow_empty=False)
     client_name = serializers.CharField(source='client.company', read_only=True)
     share_url   = serializers.SerializerMethodField()
     is_expired  = serializers.BooleanField(read_only=True)
@@ -157,11 +158,38 @@ class SharedReportSerializer(serializers.ModelSerializer):
         model  = SharedReport
         fields = [
             'id', 'client', 'client_name', 'token', 'date_from', 'date_until',
-            'platforms', 'is_password_protected', 'expires_at',
+            'platforms', 'social_account_ids', 'is_password_protected', 'expires_at',
             'view_count', 'last_viewed_at', 'is_active', 'created_at',
             'share_url', 'is_expired', 'password',
         ]
         read_only_fields = ['token', 'view_count', 'last_viewed_at', 'created_at', 'is_expired']
+
+    def validate(self, attrs):
+        from social_stats.models import SocialAccount
+        from social_stats.authorization import evaluate, acting_context
+        from social_stats.platforms.registry import get_provider
+        actor = self.context['request'].user
+        client = attrs.get('client', getattr(self.instance, 'client', None))
+        platforms = attrs.get('platforms', getattr(self.instance, 'platforms', []))
+        ids = attrs.get('social_account_ids', getattr(self.instance, 'social_account_ids', None))
+        since = attrs.get('date_from', getattr(self.instance, 'date_from', None))
+        until = attrs.get('date_until', getattr(self.instance, 'date_until', None))
+        if not client or not since or not until or since > until or not isinstance(platforms, list) or any(not isinstance(p, str) for p in platforms):
+            raise serializers.ValidationError({'code': 'invalid_request'})
+        if acting_context(actor, client)[0] == 'forbidden' or not all(evaluate(actor, client, action).allowed for action in ('view_analytics','generate_reports')):
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied('Report access denied')
+        accounts = SocialAccount.objects.filter(client=client)
+        if platforms: accounts = accounts.filter(platform__in=platforms)
+        if ids is not None: accounts = accounts.filter(pk__in=ids)
+        authorized = [account.pk for account in accounts if evaluate(actor, client, 'view_analytics', account=account).allowed
+            and evaluate(actor, client, 'generate_reports', account=account).allowed
+            and get_provider(account.platform).manifest.capability('analytics').enabled
+            and get_provider(account.platform).manifest.analytics_metrics]
+        if not authorized or (ids is not None and set(ids) != set(authorized)):
+            raise serializers.ValidationError({'code': 'account_scope_required'})
+        attrs['social_account_ids'] = authorized
+        return attrs
 
     def get_share_url(self, obj):
         from django.conf import settings

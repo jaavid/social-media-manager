@@ -15,6 +15,14 @@
  * - Connect nodes by dragging from a source handle to a target handle.
  * - Auto-save: every 5 seconds while dirty, plus on explicit Save click.
  */
+import { onlineManager } from '@tanstack/react-query';
+import { useSession } from '@/core/session';
+import { useLanguage } from '@/i18n';
+import DataState from '@/components/ui/DataState';
+import Button from '@/components/ui/Button';
+import Modal from '@/components/ui/Modal';
+import Drawer from '@/components/ui/Drawer';
+import { apiError } from '@/services/http/errors';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAppNavigate as useNavigate, useAppParams as useParams } from '../../core/navigation';
 import ReactFlow, {
@@ -63,9 +71,11 @@ function autoLayout(nodes, edges, direction = 'LR') {
 const nodeTypes = { custom: CanvasNode };
 
 export default function BotFlowEditorPage() {
+  const { id } = useParams();
+  const { user } = useSession();
   return (
     <ReactFlowProvider>
-      <Editor />
+      <Editor key={`${user?.id}:${user?.workspace_id || user?.client_id}:${id}`} />
     </ReactFlowProvider>
   );
 }
@@ -74,8 +84,25 @@ function Editor() {
   const { id } = useParams();
   const navigate = useNavigate();
   const reactFlow = useReactFlow();
+  const { t } = useLanguage();
+  const [loadError, setLoadError] = useState(null);
+  const [loadAttempt, setLoadAttempt] = useState(0);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [panel, setPanel] = useState(null);
+  const cancelDelete = useRef(null);
+  const [saveError, setSaveError] = useState(null);
+  const [actionError, setActionError] = useState(null); const actionBusy = useRef(false);
+  const revision = useRef(0);
+  const busy = useRef(false);
+  const alive = useRef(true);
+  const errorRef = useRef(null);
+  useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
+  useEffect(() => { if (saveError || actionError) errorRef.current?.focus(); }, [saveError, actionError]);
+  function markDirty() { revision.current++; setDirty(true); }
 
   const [flow, setFlow] = useState(null);
+  const [online, setOnline] = useState(() => onlineManager.isOnline());
+  useEffect(() => onlineManager.subscribe(value => { setOnline(value); if (value && !flow) setLoadAttempt(n => n + 1); }), [flow]);
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
@@ -109,7 +136,7 @@ function Editor() {
     skipNextSnapshot.current = true;
     setNodes(prev.nodes);
     setEdges(prev.edges);
-    setDirty(true);
+    markDirty();
   }
   function redo() {
     const future = historyRef.current.future;
@@ -119,7 +146,7 @@ function Editor() {
     skipNextSnapshot.current = true;
     setNodes(next.nodes);
     setEdges(next.edges);
-    setDirty(true);
+    markDirty();
   }
 
   // Keyboard shortcuts — Cmd/Ctrl-Z + Cmd/Ctrl-Shift-Z
@@ -144,6 +171,8 @@ function Editor() {
     botAPI.get(id).then((r) => {
       if (cancelled) return;
       const f = r.data;
+      if (!f || String(f.id) !== String(id) || !Array.isArray(f.nodes) || !Array.isArray(f.edges)) throw new Error('Invalid flow');
+      setLoadError(null);
       setFlow(f);
       setNodes((f.nodes || []).map((n) => ({
         id: n.id,
@@ -159,20 +188,21 @@ function Editor() {
         label: e.label,
         markerEnd: { type: MarkerType.ArrowClosed },
       })));
-    }).catch(() => toast.error('Could not load flow'));
+    }).catch(error => { if (!cancelled) setLoadError(error); });
     return () => { cancelled = true; };
-  }, [id]);
+  }, [id, loadAttempt]);
 
   // ── Autosave loop ────────────────────────────────────
   useEffect(() => {
-    if (!flow || !dirty) return;
+    if (!flow || !dirty || saveError || saving || !online) return;
     const t = setTimeout(save, 5000);
     return () => clearTimeout(t);
-  }, [dirty, nodes, edges, flow]); // eslint-disable-line
+  }, [dirty, nodes, edges, flow, saveError, saving, online]); // eslint-disable-line
 
-  function save() {
-    if (!flow || saving) return;
-    setSaving(true);
+  async function save() {
+    if (!flow || busy.current) return false;
+    const savedRevision = revision.current;
+    busy.current = true; setSaving(true); setSaveError(null);
     const payload = {
       ...flow,
       nodes: nodes.map((n) => ({
@@ -184,14 +214,17 @@ function Editor() {
       })),
       starting_node_id: flow.starting_node_id || (nodes.find((n) => n.data.type === 'start')?.id || ''),
     };
-    botAPI.update(id, payload)
-      .then((r) => {
-        setFlow(r.data);
-        setSavedAt(new Date());
-        setDirty(false);
-      })
-      .catch(() => toast.error('Auto-save failed'))
-      .finally(() => setSaving(false));
+    try {
+      const response = await botAPI.update(id, payload);
+      if (!response.data || String(response.data.id) !== String(id) || !Array.isArray(response.data.nodes) || !Array.isArray(response.data.edges)) throw new Error('Invalid save response');
+      if (!alive.current) return false;
+      setSavedAt(new Date());
+      if (revision.current === savedRevision) { setFlow(response.data); setDirty(false); }
+      return revision.current === savedRevision;
+    } catch (error) {
+      if (alive.current) setSaveError(error);
+      return false;
+    } finally { busy.current = false; if (alive.current) setSaving(false); }
   }
 
   // ── Mutations ────────────────────────────────────────
@@ -201,16 +234,17 @@ function Editor() {
     setNodes((ns) => ns.map((n) => n.id === selectedId
       ? { ...n, data: { ...n.data, data: nextDataPayload } }
       : n));
-    setDirty(true);
+    markDirty();
   }
-  function deleteSelected() {
+  function deleteSelected() { if (selectedId) setDeleteOpen(true); }
+  function deleteConfirmed() {
     if (!selectedId) return;
-    if (!window.confirm('Delete this node?')) return;
+    setDeleteOpen(false);
     snapshot();
     setNodes((ns) => ns.filter((n) => n.id !== selectedId));
     setEdges((es) => es.filter((e) => e.source !== selectedId && e.target !== selectedId));
     setSelectedId(null);
-    setDirty(true);
+    markDirty();
   }
 
   const onNodesChange = useCallback((c) => {
@@ -219,36 +253,39 @@ function Editor() {
     if (significant && !skipNextSnapshot.current) snapshot();
     skipNextSnapshot.current = false;
     setNodes((ns) => applyNodeChanges(c, ns));
-    setDirty(true);
+    markDirty();
   }, [nodes, edges]); // eslint-disable-line
   const onEdgesChange = useCallback((c) => {
     if (c.some((ch) => ch.type === 'remove') && !skipNextSnapshot.current) snapshot();
     skipNextSnapshot.current = false;
     setEdges((es) => applyEdgeChanges(c, es));
-    setDirty(true);
+    markDirty();
   }, [nodes, edges]); // eslint-disable-line
   const onConnect = useCallback((c) => {
     snapshot();
     setEdges((es) => addEdge({ ...c, id: nanoid(8), markerEnd: { type: MarkerType.ArrowClosed } }, es));
-    setDirty(true);
+    markDirty();
   }, [nodes, edges]); // eslint-disable-line
 
   function applyAutoLayout() {
     if (nodes.length === 0) return;
     snapshot();
     setNodes(autoLayout(nodes, edges, 'LR'));
-    setDirty(true);
-    setTimeout(() => reactFlow.fitView({ duration: 250 }), 50);
+    markDirty();
+    setTimeout(() => reactFlow.fitView({ duration: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 250 }), 50);
   }
 
   // ── Drag from palette → drop on canvas ───────────────
   const onDragOver = useCallback((e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }, []);
-  const onDrop = useCallback((e) => {
+  function onDrop(e) {
     e.preventDefault();
     const type = e.dataTransfer.getData('application/x-bot-node');
-    if (!type || !NODE_CATALOG[type]) return;
     const bounds = wrapperRef.current.getBoundingClientRect();
-    const position = reactFlow.project({ x: e.clientX - bounds.left, y: e.clientY - bounds.top });
+    addNode(type, reactFlow.project({ x: e.clientX - bounds.left, y: e.clientY - bounds.top }));
+  }
+  function addNode(type, position = { x: 100, y: 100 }) {
+    if (!NODE_CATALOG[type]) return;
+    snapshot();
     const meta = NODE_CATALOG[type];
     const newNode = {
       id: type === 'start' ? 'start' : `n_${nanoid(6)}`,
@@ -262,30 +299,35 @@ function Editor() {
     }
     setNodes((ns) => [...ns, newNode]);
     setSelectedId(newNode.id);
-    setDirty(true);
-  }, [nodes, reactFlow]);
+    markDirty();
+  }
 
   // ── Validation + publish ─────────────────────────────
   async function validateNow() {
-    if (dirty) await save();
+    if (actionBusy.current) return;
+    actionBusy.current = true; setActionError(null);
     try {
+      if (dirty && !await save()) return;
       const r = await botAPI.validate(id);
-      setValidation(r.data);
-    } catch { toast.error('Validation failed'); }
+      if (!r.data || typeof r.data.ok !== 'boolean' || !Array.isArray(r.data.issues)) throw new Error('Invalid validation');
+      if (alive.current) setValidation(r.data);
+    } catch (error) { if (alive.current) setActionError(error); }
+    finally { actionBusy.current = false; }
   }
   async function openPublishModal() {
-    if (dirty) await save();
+    if (dirty && !await save()) return;
     setPublishOpen(true);
   }
   async function unpublish() {
-    if (!flow) return;
+    if (!flow || actionBusy.current) return;
+    actionBusy.current = true; setActionError(null);
     try {
       const r = await botAPI.unpublish(id);
-      setFlow(r.data);
-      toast.success('Flow unpublished');
-    } catch {
-      toast.error('Could not unpublish');
-    }
+      if (r.status === 202 && r.data?.requires_approval === true) { if (alive.current) toast.info(t('editor.approvalQueued')); return; }
+      if (!r.data || r.data.id !== flow.id || r.data.is_active !== false) throw new Error('Invalid unpublished flow');
+      if (alive.current) { setFlow(previous => ({...previous, is_active:false})); toast.success('Flow unpublished'); }
+    } catch (error) { if (alive.current) setActionError(error); }
+    finally { actionBusy.current = false; }
   }
 
   // ── Variable list (for inserter) ─────────────────────
@@ -300,12 +342,20 @@ function Editor() {
   }, [nodes]);
 
   const selected = nodes.find((n) => n.id === selectedId);
+  if (!online && !flow) return <DataState state="offline" title={t('catalog.state.offline.title')} />;
+  if (loadError) return <DataState state={apiError(loadError).status === 404 ? 'not-found' : apiError(loadError).status === 403 ? 'forbidden' : 'error'} title={t('analytics.report.error')} referenceId={apiError(loadError).referenceId} action={<Button onClick={() => setLoadAttempt(n => n + 1)}>{t('analytics.report.retry')}</Button>} />;
+  if (!flow) return <DataState state="loading" title={t('engagement.loading')} />;
+
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: 'var(--surface-page)' }}>
+    <div className="flex min-w-0 flex-col bg-background" style={{ height: 'calc(100dvh - var(--topbar-height, 64px))' }}>
+      <Modal open={deleteOpen} role="alertdialog" initialFocusRef={cancelDelete} title={t('editor.deleteNode')} description={t('editor.deleteConfirm')} onClose={() => setDeleteOpen(false)} footer={<><Button ref={cancelDelete} onClick={() => setDeleteOpen(false)}>{t('reports.cancel')}</Button><Button variant="danger" onClick={deleteConfirmed}>{t('editor.deleteNode')}</Button></>} />
+      {!online && <DataState state="offline" compact title={t('catalog.state.offline.title')} />}
+      {actionError && <DataState focusRef={errorRef} state="error" compact title={t('editor.actionFailed')} referenceId={apiError(actionError).referenceId} />}
+      {saveError && <DataState focusRef={errorRef} state="error" compact title={t('editor.saveFailed')} referenceId={apiError(saveError).referenceId} action={<Button onClick={save}>{t('analytics.report.retry')}</Button>} />}
       {/* Top bar */}
       <header style={{
-        display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px',
+        display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10, padding: '10px 14px',
         background: 'var(--surface-card)', borderBottom: '1px solid var(--border-subtle)',
       }}>
         <button type="button" onClick={() => navigate('/admin/bot-flows')} aria-label="Back" style={iconBtn}>
@@ -313,10 +363,11 @@ function Editor() {
         </button>
         {flow && (
           <input
+            aria-label={t('editor.flowName')}
             value={flow.name || ''}
-            onChange={(e) => { setFlow({ ...flow, name: e.target.value }); setDirty(true); }}
+            onChange={(e) => { setFlow({ ...flow, name: e.target.value }); markDirty(); }}
             style={{
-              flex: 1, padding: '6px 10px', maxWidth: 360,
+              flex: 1, minWidth: 0, padding: '6px 10px', maxWidth: 360,
               fontSize: 14, fontWeight: 600,
               background: 'transparent', color: 'var(--text-primary)',
               border: '1px solid transparent', borderRadius: 'var(--radius-sm)',
@@ -327,7 +378,7 @@ function Editor() {
           />
         )}
 
-        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div className="ms-auto flex min-w-0 flex-wrap items-center gap-2">
           <button type="button" onClick={undo} aria-label="Undo (Cmd+Z)"
                   disabled={historyRef.current.past.length === 0}
                   style={iconBtn} title="Undo (Cmd/Ctrl+Z)">
@@ -367,13 +418,18 @@ function Editor() {
         <ValidationBanner result={validation} onClose={() => setValidation(null)} />
       )}
 
-      {/* 3-column body */}
-      <div style={{ flex: 1, display: 'flex', minHeight: 0 }}>
-        <Palette />
+      <div className="flex gap-2 p-2 xl:hidden"><Button onClick={() => setPanel('palette')}>{t('editor.nodes')}</Button><Button onClick={() => setPanel('inspector')}>{t('editor.inspector')}</Button></div>
+      <Drawer open={panel !== null} onClose={() => setPanel(null)} title={t(panel === 'palette' ? 'editor.nodes' : 'editor.inspector')} width={320}>
+        {panel === 'palette' ? <Palette compact onAdd={(...args) => { addNode(...args); setPanel(null); }} /> : <NodeInspector node={selected} onChange={patchSelected} onDelete={deleteSelected} variables={variables} />}
+      </Drawer>
+      {/* Desktop panels use the same components as the narrow-screen drawer. */}
+      <div className="flex min-h-0 min-w-0 flex-1 overflow-auto">
+        <div className="hidden shrink-0 xl:block"><Palette onAdd={addNode} /></div>
 
         <div ref={wrapperRef} onDragOver={onDragOver} onDrop={onDrop}
-             style={{ flex: 1, position: 'relative' }}>
+             style={{ flex: 1, minWidth: 0, position: 'relative' }}>
           <ReactFlow
+              deleteKeyCode={null}
             nodes={nodes} edges={edges}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
@@ -393,7 +449,7 @@ function Editor() {
           </ReactFlow>
         </div>
 
-        <aside style={{
+        <aside className="hidden shrink-0 xl:block" style={{
           width: 320, borderLeft: '1px solid var(--border-subtle)',
           background: 'var(--surface-card)',
         }}>
@@ -430,19 +486,20 @@ function Editor() {
 // ─────────────────────────────────────────────────────────
 // Palette
 // ─────────────────────────────────────────────────────────
-function Palette() {
+function Palette({ onAdd, compact = false }) {
+  const { t, tr } = useLanguage();
   function onDragStart(e, type) {
     e.dataTransfer.setData('application/x-bot-node', type);
     e.dataTransfer.effectAllowed = 'move';
   }
   return (
     <aside style={{
-      width: 220, borderRight: '1px solid var(--border-subtle)',
+      width: compact ? '100%' : 220, borderRight: '1px solid var(--border-subtle)',
       background: 'var(--surface-card)',
       overflowY: 'auto', padding: 12,
     }}>
       <h3 style={{ margin: '0 0 12px', fontSize: 12, color: 'var(--text-tertiary)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-        Drag onto canvas
+        {t('editor.palette')}
       </h3>
       {CATEGORIES.map((cat) => (
         <div key={cat} style={{ marginBottom: 12 }}>
@@ -457,7 +514,10 @@ function Palette() {
               .map(([type, m]) => {
                 const Icon = m.icon;
                 return (
-                  <div
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => onAdd(type)}
                     key={type}
                     draggable
                     onDragStart={(e) => onDragStart(e, type)}
@@ -469,7 +529,7 @@ function Palette() {
                       borderRadius: 'var(--radius-sm)',
                       fontSize: 12, color: 'var(--text-primary)',
                     }}
-                    title={`Drag to add ${m.label}`}
+                    title={t('editor.addNode', undefined, { name: tr(m.label) })}
                   >
                     <span style={{
                       width: 22, height: 22, borderRadius: 'var(--radius-sm)',
@@ -478,8 +538,8 @@ function Palette() {
                     }}>
                       <Icon size={12} strokeWidth={2.2} />
                     </span>
-                    {m.label}
-                  </div>
+                    {tr(m.label)}
+                  </Button>
                 );
               })}
           </div>

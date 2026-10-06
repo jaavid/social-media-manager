@@ -144,3 +144,123 @@ Legacy owner: provider maintainers own `analytics_defaults.py`/sync task adapter
 adapter only after its provider supplies typed metric descriptors and conformance-tested
 `sync` execution. Existing historical rows need a genuine provider resync to establish metric
 presence; inventing/backfilling values is forbidden. Live provider credentials are unavailable.
+
+## Final criterion reconciliation (after A/B/C implementation)
+
+The baseline tables above are historical and unchanged. **done** below is supported by the cited implementation and tests; **remaining** means the whole checkbox is broader than the certified surfaces, with its exact next action stated. Real dependencies are listed separately. Do not use a Closes directive for these issues.
+
+### #103
+
+| Original criterion | Final status | Implementation / validation or next action |
+| --- | --- | --- |
+| `components.json` برای Next App Router + RSC/TSX/aliases واقعی اصلاح شود و CLI overwrite ایمن آزمایش شود. | done | components.json; STAGE6_SURFACE_CONTRACTS isolated CLI overwrite evidence |
+| یک primitive معتبر و مستند برای Button/Input/Textarea/Select/Combobox/Checkbox/Radio/Switch/Dialog/Sheet/AlertDialog/Tabs/Menu/Tooltip/Table/Toast/Skeleton/Empty/Error. | done | canonical components/ui API table; Primitives.test.jsx; frontend-contracts.spec.js |
+| adapterهای legacy فقط با owner و معیار حذف مشخص باقی بمانند؛ wrapper جدید موازی ممنوع. | done | STAGE6_SURFACE_CONTRACTS legacy owner/removal table; ErrorState now DataState adapter |
+| form contract مشترک: label/help/error/pending/disabled/autofocus/submit/validation. | remaining | Input/Textarea/Select tests and migrated forms satisfy the contract; older form families still have raw fields and need feature-owner migration |
+| destructive actionها از AlertDialog/confirmation contract مشترک استفاده کنند. | remaining | Reports/BotFlow destructive confirmations use shared Modal alertdialog with Cancel focus; audit remaining older destructive actions before whole-issue closure |
+| keyboard/focus/restore/Escape/nested overlay/RTL/accessibility behavior browser-tested باشد. | remaining | frontend-contracts, stage6 Inbox/Analytics/state/editor tests cover migrated overlays and keyboard; remaining legacy nested overlays need route-specific evidence |
+| shell + auth | done | AppShell/EndUserShell inner ErrorBoundary; RouteFailure.test.jsx; frontend-contracts session tests |
+| dashboard + collection/list surfaces | done | AdminOverview/ClientDashboard/ReportsPage; stage6-state-contracts.spec.js screenshots/status matrix |
+| settings + Connected Accounts | remaining | ConnectedAccounts/MyConnections done in #161 with connected-accounts.spec.js; unrelated older settings forms still require migration/evidence |
+| composer + scheduling | done | Composer #162; stage5-composer.spec.js; ComposerPage.test.jsx including stage6 scope handoff |
+| inbox/engagement | done | UnifiedInboxPage/ReviewsPage/useInboxResource; stage6-inbox.spec.js and inbox-races tests |
+| analytics/reporting | done | AnalyticsSurface/ReportsPage/PublicReportPage; analytics parser/backend reports tests and stage6 browser suites |
+| fullscreen/complex editors | remaining | BotFlow/VideoStudio migrated scope/recovery and narrow drawer; TestMode/TriggerConfig now use shared Drawer/Modal with failure preservation and ambiguity guards; legacy NodeInspector/trigger widget controls, MetaAdsPicker read/error scope and other complex editor internals still need field/read migration |
+| marketing surfaces در حدی که product brand مشترک لازم دارد | remaining | Existing MarketingLayout/tokens preserved; no broad marketing migration in stage6; typography/first-paint tests certify existing common brand only |
+| API مستند برای primitiveها و پنج page pattern. | done | STAGE6_SURFACE_CONTRACTS API and five existing pattern tables, including documented extensions |
+| هیچ visual token جدید page-local بدون دلیل ثبت‌شده اضافه نشود. | done | Migrated collections use canonical utilities/tokens; editor geometry is documented; no new palette/theme or unregistered visual token |
+| viewportهای 360/768/1440 بدون overflow ناخواسته برای route familyهای اصلی. | done | stage6 Inbox/Analytics/state/Video suites at 360/768/1440; frontend-contracts/connected-accounts/stage5 existing coverage |
+| RTL/LTR، keyboard، contrast و reduced motion در browser coverage. | remaining | RTL/LTR and reduced-motion/browser keyboard covered for migrated families; no exhaustive contrast audit of every legacy editor/control |
+| platform brand metadata با semantic product colors تفکیک شده باشد و #112 بتواند provider جدید را بدون CSS ویژه feature نمایش دهد. | done | BrandIcon tests; provider metadata used for presentation only in new surfaces; no provider-specific feature CSS |
+| بدهی inline/shared legacy با baseline قبل/بعد گزارش شود؛ هدف ممنوع‌کردن dynamic styleهای معتبر نیست. | done | Stage6 before/after inventory below, global baselines unchanged; genuine canvas/media/dynamic geometry retained |
+| lint/typecheck/check:next/build/Jest/Playwright و design-system tests سبز بمانند. | done | Required local gates and full GitHub Tests workflow; final validation record/PR links |
+| migration پالت کامل، hover/active/soft/focus/semantic/chart و aliases در canonical frontend/src/styles/tokens.css؛ نه theme موازی یا import مستقیم palette.json. | done | Existing canonical tokens.css and frontend-contracts.spec.js; no palette.json imports introduced |
+| Noto Sans Arabic برای فارسی/عربی و Noto Sans برای لاتین؛ reuse loader محلی موجود و وزن واقعی 400/500/600/700/800. | done | Existing local loaders/fonts; typography.spec.js; no font/theme replacement |
+| کنتراست، first paint و explicit/system dark بعد از migration دوباره بررسی شوند. | remaining | Visual light/dark/system matrix and existing first-paint coverage pass; exhaustive contrast certification for all older controls remains open |
+
+### #106
+
+| Original criterion | Final status | Implementation / validation or next action |
+| --- | --- | --- |
+| قرارداد native `loading`, `error`, `global-error`, `not-found` و Suspense در route groupهای واقعی. | done | Existing native group loading/not-found and new app/global-error; app/error uses provider-independent RouteFailure; next route/build checks |
+| failure موضعی feature کل ProductShell را بی‌دلیل از بین نبرد. | done | Shell inner ErrorBoundary plus RouteFailure.test.jsx confirms chrome survives local render failure |
+| root/global fallback بدون وابستگی به provider خراب قابل رندر باشد. | done | RouteFailure imports only React and pure messages; provider-free rendering test; global-error owns html/body |
+| public/server-safe data از Server Components/fetch با cache/revalidation صریح استفاده کند. | done | Existing server-safe auth/session fetch and FRONTEND_CONTRACTS; public interactive report keyed by token intentionally uses Query |
+| private interactive/realtime data از TanStack Query یا abstraction معادل featureمحور استفاده کند. | remaining | Inbox feature-owned resource, Analytics/Reports/Dashboard/Video Query mutations migrated; unrelated old useData hooks retain legacy ownership table |
+| keyها identity/workspace/filter را کامل encode کنند و logout/account switch cache را invalidate کنند. | remaining | Changed keys include identity/workspace/account/thread/date/page; session logout/revocation invalidates; unrelated legacy QK detail keys require owner migration |
+| AbortSignal/race prevention برای navigation/filter/workspace changes. | done | Changed resources use AbortSignal and scope/generation/mounted guards; inbox races, Composer/editor late-save tests, slow browser changes |
+| transport/auth/permission/validation/not-found/rate-limit/provider error envelope قابل تشخیص باشد. | done | apiError and authoritative provider errors; status matrices; safe references; malformed DTOs rejected |
+| 401/revocation با browser-session contract #110 هماهنگ باشد؛ outage/5xx credential معتبر را پاک نکند. | done | Browser-session #110 retained; tests prove transient failure preserves session/valid credentials and 401 invalidates |
+| retry بر اساس status/idempotency باشد؛ mutation غیر idempotent خودکار replay نشود. | done | Query read retry is status-aware; mutation retry=0 and networkMode=always prevents offline queue/replay; queryClient.test.js |
+| inline error برای actionable state، toast برای notification؛ double-toast/false-success ممنوع. | remaining | All changed flows use actionable inline recovery and validated success; unrelated legacy fetchers still toast/log raw errors and need owner migration |
+| skeleton با layout واقعی و `aria-busy/status`. | remaining | DataState loading/refreshing aria-busy/status covered; not every legacy route has a layout-matched skeleton |
+| EmptyState فقط برای پاسخ موفقِ بدون داده؛ network/5xx هرگز empty نمایش داده نشود. | done | Changed collection/report parsers reject malformed/5xx; browser initial failures never empty; EmptyState/DataState semantic contract |
+| no-results از empty dataset متمایز باشد. | done | Inbox filters and Analytics dataset_count distinguish empty/no-results; Reports local month filtering; no-results tests/parser cases |
+| background refresh دادهٔ موجود را بی‌دلیل پاک نکند. | done | Scoped same-key refresh retains data with stale/offline; browser matrices for Inbox, Analytics, Reports and Dashboard |
+| form/editor input هنگام recoverable failure حفظ شود. | done | Reply, share/password, Composer, BotFlow, Video failures preserve drafts; actual mutation failure and late-result tests |
+| offline/reconnect behavior مشخص و test-covered باشد. | done | Query paused/offline and safe reconnect reads; editor onlineManager pauses autosave; browser offline/reconnect plus no unsafe replay default |
+| correlation/reference id امن در error surface/log integration قابل استفاده باشد؛ هماهنگ با #66. | done | apiError UUID/hex x-request-id and DataState referenceId filtering; errors.test.ts; RouteFailure safe generated incident callback |
+| credential/private content در UI/log نشت نکند. | remaining | Changed errors/workers/public reports sanitized; no credential exposure in metadata/URLs; broad repository legacy logging still requires security/feature-owner follow-up |
+| slow network، initial failure، background error، malformed response، offline/reconnect و 401/403/404/429/5xx برای route familyهای اصلی تست شوند. | remaining | Changed families have status/network/slow/background/malformed/offline evidence and existing session 401 tests; exhaustive matrix for every older route/editor is not certified |
+| network/5xx هیچ‌وقت EmptyState یا success تولید نکند. | done | Validated response/status on every changed write; real backend/provider failed-result cases and browser transport failures |
+| تغییر سریع workspace/account/filter stale result نشان ندهد. | done | Changed keys/scope remount and AbortSignal/mounted guards; account/thread/workspace/editor race tests |
+| retry همان operation را با policy درست تکرار کند و mutation unsafe replay نشود. | done | Explicit read recovery; safe save intent reuses existing Composer key; unsafe reply/publication locks ambiguous outcomes; no offline queued writes |
+| focus recovery، reduced motion و screen-reader status برای stateهای اصلی پوشش داشته باشند. | done | DataState SR status/busy, focused reply/editor/password error; shared overlay restore/Escape; reduced-motion browser matrix |
+| shell و form input در failureهای recoverable حفظ شوند. | done | Shell local boundary and recoverable draft retention; shared report destructive failure retains table and modal |
+| lint/typecheck/check:next/build/Jest/Playwright سبز بمانند. | done | Required checks and final GitHub Tests workflow; no thresholds relaxed |
+
+### #112
+
+| Original criterion | Final status | Implementation / validation or next action |
+| --- | --- | --- |
+| کارت/گروه platformها از registry ساخته شود؛ نام، icon/brand metadata، status، auth strategy و readiness hard-code نشوند. | done | Existing registry connections contract and connected-accounts tests #161 |
+| فرم اتصال generic بر اساس auth schema/strategy ساخته شود؛ OAuth redirect، API key، bot token و custom extension boundary مشخص باشد. | done | Existing generic auth schema/extension boundary #161; provider-conformance and standard fixture |
+| multiple `SocialAccount`ها و destinationهای provider به یک قرارداد UI مشترک متصل شوند. | done | Connections metadata + Inbox destination/account contracts; multiple account/backend regressions |
+| media/content modeها از capability و constraints استخراج شوند. | done | Existing Composer publishing descriptor/constraint contract #162 and stage5 tests |
+| validation generic برای max length، media count/type/size/aspect/duration و destination constraints قابل بیان باشد. | done | Existing publishing_contract.py and Composer validation tests; no duplicate model |
+| provider-specific editor modeها extension slot داشته باشند، نه switch سراسری. | done | Existing composerExtensions/provider-owned extension registry; stage5 tests |
+| انتخاب چند platform intersection/compatibility را بر اساس capabilities محاسبه کند و incompatibility را واضح نشان دهد. | done | Existing lib/composer capability intersection tests #162 |
+| inbox/comments/reviews/replies بر اساس capability ظاهر شوند. | done | Inbox/Reviews derive capability+permission+readiness, no provider-name branch; standard fixture tests |
+| conversation/destination metadata generic باشد و شناسه‌های خاص provider در adapter بمانند. | done | Shared conversation/thread account/destination metadata; scoped backend/query/list/detail/cursor/realtime tests |
+| metric availability از provider metadata/contract بیاید؛ UI metric غیرقابل پشتیبانی را fake نکند. | done | Manifest.analytics_metrics and provider_metrics presence; unavailable/null/zero/partial/unknown parser and backend tests |
+| sync/readiness/error states یک contract مشترک داشته باشند. | done | Existing health/sync policy reused; safe generic worker, readiness, freshness and failure/recovery tests |
+| brand color/icon هر platform فقط presentation metadata باشد و semantic product colors را override نکند. | done | BrandIcon and provider presentation metadata separated from action/state colors in migrated surfaces |
+| fallback امن برای provider بدون asset اختصاصی وجود داشته باشد. | done | Existing BrandIcon fallback + registry fixture; no custom feature CSS needed |
+| provider fixture از #111 بدون تغییر در source کد Connected Accounts قابل نمایش/اتصال آزمایشی باشد. | done | Standard independently registered fixture and connected-accounts browser/backend tests |
+| همان fixture با capability `publish_text` در Composer ظاهر شود و با حذف آن capability کنترل publish ناپدید شود. | done | Existing standard fixture Composer positive/negative capability tests #162 |
+| provider فاقد inbox/analytics هیچ UI دروغینی برای این قابلیت‌ها نگیرد. | done | stage6 Inbox/Analytics positive/negative capability fixtures; no active unsupported control or fake chart |
+| هیچ فهرست duplicated از platform keys در featureهای اصلی باقی نماند؛ موارد استثنا مستند شوند. | remaining | Changed primary surfaces removed named provider inventories; services/platforms.js and legacy consumers still own static catalogue compatibility, remove only after remaining consumer contract migrations |
+| RTL/LTR، light/dark، mobile/desktop و accessibility روی generic provider components تست شوند. | done | stage6 generic component fa/en light/dark/system 360/768/1440 matrices plus keyboard/focus tests |
+| platform statusهای planned/experimental/beta/active به‌صورت یکدست و غیرگمراه‌کننده نمایش داده شوند. | done | Connections registry status and capability support/beta checks; planned/unsupported actions never become active in migrated features |
+
+### Real dependencies / limits
+
+- No stages 0–5 merge prerequisite is missing. A → B → C is the implementation dependency; retarget dependent PRs only after their parent merges.
+- Provider credentials/remote services are not configured. Real Telegram paid delivery, provider transport, rate limits, remote duplicate reconciliation and live analytics sync have not been exercised. Fixtures/conformance are not evidence of remote exactly-once behavior.
+- Historical DailyMetric presence and SharedReport account scope cannot be recovered by guessing. Genuine provider resync / explicit new shared link is the recovery path.
+- Captions backend is not implemented; the editor exposes unavailable rather than an active unsupported action.
+- #103 was already closed on origin/main. Its broad legacy form/editor/contrast debt above still prevents a truthful whole-issue completion certificate. #106/#112 remain open; this series does not close them.
+
+### Static debt inventory
+
+Counts below are a diagnostic inventory, not an acceptance score. Scope is JSX `style={` sites and literal token references in the listed files, comparing origin/main 3fad664 to this series. Dynamic canvas positions, drag targets, media geometry and provider presentation styles remain valid.
+
+| Source | Inline JSX style sites before → after | Literal `var(--...)` occurrences before → after |
+| --- | --- | --- |
+| `features/AdminOverview.jsx` | 194 → 0 | 52 → 0 |
+| `features/ClientDashboard.jsx` | 133 → 0 | 93 → 0 |
+| `features/ReportsPage.jsx` | 52 → 0 | 32 → 0 |
+| `features/PublicReportPage.jsx` | 60 → 0 | 39 → 0 |
+| `components/ui/ShareReportModal.jsx` | 51 → 0 | 24 → 0 |
+| `components/ui/ErrorBoundary.jsx` | 13 → 0 | 17 → 0 |
+| `components/ui/ErrorState.jsx` | 5 → 1 | 7 → 0 |
+| `features/bots/BotFlowEditorPage.jsx` | 27 → 25 | 36 → 36 |
+| `components/bot/TestModeDrawer.jsx` | 30 → 21 | 47 → 32 |
+| `components/bot/TriggerConfigModal.jsx` | 41 → 28 | 44 → 29 |
+| `features/video/VideoStudioPage.jsx` | 52 → 45 | 53 → 46 |
+
+Global lint/i18n/architecture baseline files and dependencies were not edited. The actual visible finding count may fall as old source is migrated; valid dynamic styles were not removed to improve counts. See STAGE6_SURFACE_CONTRACTS.md for each adapter owner and removal condition.
+
+### Final batch C local validation
+
+112 Playwright cases passed against the final production build: status/slow/offline/reconnect matrices, publication approval, ambiguous test-run locking, password/report recovery and 72 locale/theme/viewport combinations. Actual baseline/after screenshots and failure evidence are in `frontend/e2e/evidence/stage6/`. Relevant Django suites passed 151 cases, including real SessionAuthentication CSRF verification and bot DTO scope. Lint, check:next, architecture, i18n, typecheck and production build passed without changing debt baselines. GitHub CI is recorded in PR #168 after final-head verification.

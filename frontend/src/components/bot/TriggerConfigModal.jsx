@@ -14,11 +14,15 @@
  * botAPI.patch, then calls botAPI.publish. The editor uses the returned
  * is_active flag to flip its UI.
  */
-import { useState } from 'react';
-import { X, Plus, Sparkles, ArrowRight, AlertTriangle } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { X, Plus, ArrowRight, AlertTriangle } from 'lucide-react';
 
 import { botAPI } from '../../services/api';
-import toast from '../ui/toast';
+import Modal from '../ui/Modal';
+import Button from '../ui/Button';
+import DataState from '../ui/DataState';
+import { useLanguage } from '@/i18n';
+import { apiError } from '@/services/http/errors';
 import MetaAdsPicker from './MetaAdsPicker';
 
 const TRIGGER_TYPES = [
@@ -31,50 +35,45 @@ const TRIGGER_TYPES = [
 ];
 
 export default function TriggerConfigModal({ flow, onClose, onPublished }) {
+  const { t } = useLanguage();
+  const pending = useRef(false); const alive = useRef(true); const errorRef = useRef(null);
+  const [failure, setFailure] = useState(null); const [ambiguous, setAmbiguous] = useState(false); const [approval, setApproval] = useState(false);
+  useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
+  useEffect(() => { if (failure) errorRef.current?.focus(); }, [failure]);
   const [triggerType, setTriggerType]   = useState(flow.trigger_type || 'ctwa_ad');
   const [config,      setConfig]        = useState(flow.trigger_config || {});
   const [busy,        setBusy]          = useState(false);
   const [validation,  setValidation]    = useState(null);
 
   async function go() {
-    setBusy(true); setValidation(null);
+    if (pending.current || ambiguous || approval) return;
+    pending.current = true; setBusy(true); setValidation(null); setFailure(null);
+    let publishing = false;
     try {
-      // 1. Save trigger config
-      await botAPI.patch(flow.id, {
-        trigger_type: triggerType,
-        trigger_config: config,
-      });
-      // 2. Publish (server validates, returns 400 with issues on failure)
+      const saved = await botAPI.patch(flow.id, { trigger_type: triggerType, trigger_config: config });
+      if (saved.status === 202 && saved.data?.requires_approval === true) { if (alive.current) setApproval(true); return; }
+      if (!saved.data || saved.data.id !== flow.id) throw new Error('Invalid trigger save');
+      if (!alive.current) return;
+      publishing = true;
       const r = await botAPI.publish(flow.id);
-      toast.success('Flow published');
-      onPublished?.(r.data);
+      if (r.status === 202 && r.data?.requires_approval === true) { if (alive.current) setApproval(true); return; }
+      if (!r.data || r.data.id !== flow.id || r.data.is_active !== true) throw new Error('Invalid published flow');
+      if (alive.current) onPublished?.(r.data);
     } catch (e) {
-      const data = e?.response?.data || {};
-      if (data.issues) {
-        setValidation({ ok: false, issues: data.issues });
-      } else {
-        toast.error(data.error || 'Could not publish');
-      }
-    } finally {
-      setBusy(false);
-    }
+      if (!alive.current) return;
+      const normalized = apiError(e);
+      if (publishing && (!normalized.status || normalized.status >= 500)) setAmbiguous(true);
+      if (normalized.status === 400 && Array.isArray(e.response?.data?.issues)
+          && e.response.data.issues.every(issue => typeof issue === 'string')) setValidation({ok:false,issues:e.response.data.issues});
+      setFailure(e);
+    } finally { pending.current = false; if (alive.current) setBusy(false); }
   }
 
   return (
-    <div style={backdrop} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div style={modal}>
-        <header style={headerStyle}>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--brand-primary-hover)' }}>
-              Publish flow
-            </div>
-            <h2 style={{ margin: '2px 0 0', fontSize: 16, fontWeight: 700 }}>
-              {flow.name}
-            </h2>
-          </div>
-          <button type="button" onClick={onClose} aria-label="Close" style={iconBtn}><X size={14} /></button>
-        </header>
-
+    <Modal open title={flow.name} description={t('editor.publishConfirm')} onClose={() => { if (!busy) onClose(); }}
+      footer={<><Button disabled={busy} onClick={onClose}>{t('reports.cancel')}</Button><Button disabled={busy || ambiguous || approval} onClick={go}>{t('editor.publishAction')} <ArrowRight size={13} /></Button></>}>
+      {approval && <DataState state="partial" compact title={t('editor.approvalQueued')} />}
+      {failure && <DataState focusRef={errorRef} state="error" compact title={t(ambiguous ? 'editor.publishUnknown' : 'editor.publishFailed')} referenceId={apiError(failure).referenceId} />}
         <div style={{ padding: '0 20px 18px', flex: 1, overflowY: 'auto' }}>
           {/* Trigger type picker */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8, marginBottom: 18 }}>
@@ -138,20 +137,7 @@ export default function TriggerConfigModal({ flow, onClose, onPublished }) {
           )}
         </div>
 
-        <footer style={footerStyle}>
-          <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
-            <Sparkles size={11} style={{ verticalAlign: '-1px', marginRight: 4 }} />
-            We'll re-validate before going live.
-          </span>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button type="button" onClick={onClose} style={btnGhost}>Cancel</button>
-            <button type="button" onClick={go} disabled={busy} style={btnPrimary}>
-              {busy ? 'Publishing…' : <>Publish <ArrowRight size={13} /></>}
-            </button>
-          </div>
-        </footer>
-      </div>
-    </div>
+    </Modal>
   );
 }
 
@@ -303,36 +289,6 @@ function Hint({ children }) {
   );
 }
 
-const backdrop = {
-  position: 'fixed', inset: 0, zIndex: 1200,
-  background: 'rgba(10,14,20,0.50)',
-  backdropFilter: 'blur(2px)',
-  display: 'flex', alignItems: 'center', justifyContent: 'center',
-  padding: 20,
-};
-
-const modal = {
-  width: '100%', maxWidth: 640, maxHeight: '90vh',
-  display: 'flex', flexDirection: 'column',
-  background: 'var(--surface-elevated)',
-  border: '1px solid var(--border-default)',
-  borderRadius: 'var(--radius-lg)',
-  boxShadow: 'var(--shadow-xl)',
-  overflow: 'hidden',
-};
-
-const headerStyle = {
-  display: 'flex', alignItems: 'center', gap: 10,
-  padding: '14px 20px 8px',
-};
-
-const footerStyle = {
-  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-  padding: '14px 20px',
-  background: 'var(--surface-card)',
-  borderTop: '1px solid var(--border-subtle)',
-};
-
 const inputStyle = {
   width: '100%', padding: '8px 10px',
   background: 'var(--surface-sunken)',
@@ -340,28 +296,6 @@ const inputStyle = {
   borderRadius: 'var(--radius-sm)',
   fontSize: 13, color: 'var(--text-primary)',
   outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box',
-};
-
-const btnPrimary = {
-  display: 'inline-flex', alignItems: 'center', gap: 6,
-  padding: '8px 14px',
-  background: 'var(--brand-primary)', color: '#fff',
-  border: 'none', borderRadius: 'var(--radius-md)',
-  fontSize: 13, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer',
-};
-const btnGhost = {
-  display: 'inline-flex', alignItems: 'center', gap: 6,
-  padding: '8px 12px',
-  background: 'transparent', color: 'var(--text-secondary)',
-  border: '1px solid var(--border-default)', borderRadius: 'var(--radius-md)',
-  fontSize: 13, fontWeight: 500, fontFamily: 'inherit', cursor: 'pointer',
-};
-const iconBtn = {
-  width: 28, height: 28, padding: 0,
-  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-  background: 'transparent', color: 'var(--text-tertiary)',
-  border: 'none', borderRadius: 'var(--radius-sm)',
-  cursor: 'pointer',
 };
 
 const addBtn = {

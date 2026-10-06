@@ -4,6 +4,7 @@ export interface ApiError {
   status?: number;
   code?: string;
   retryAfter?: string;
+  referenceId?: string;
   detail: string;
 }
 export function apiError(error: unknown): ApiError {
@@ -12,7 +13,9 @@ export function apiError(error: unknown): ApiError {
   const status = error.response?.status;
   const data: unknown = error.response?.data;
   const envelope = data && typeof data === 'object' ? data as Record<string, unknown> : {};
+  const reference = error.response?.headers?.['x-request-id'];
   return {
+    referenceId: typeof reference === 'string' && /^(?:[a-f0-9]{32}|[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})$/i.test(reference) ? reference : undefined,
     kind: status === 401 ? 'authentication' : status === 403 ? 'permission' : status === 429 ? 'rate_limit'
       : !status || status >= 500 ? 'unavailable' : 'request',
     status, code: typeof envelope.code === 'string' ? envelope.code : undefined,

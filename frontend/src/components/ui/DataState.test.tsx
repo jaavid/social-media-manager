@@ -39,3 +39,11 @@ it('does not retain stale content for a terminal empty state', () => {
 
   expect(screen.queryByText('Stale result')).not.toBeInTheDocument();
 });
+it('shows a safe backend reference without displaying untrusted metadata',()=>{
+  const view=render(<DataState state="not-found" title="Resource missing" referenceId="0123456789abcdef0123456789abcdef" />);
+  expect(screen.getByRole('alert')).toHaveAttribute('data-data-state','not-found');
+  expect(screen.getByText('0123456789abcdef0123456789abcdef')).toBeVisible();
+  view.rerender(<DataState state="unavailable" title="Unsupported capability" referenceId="https://secret/token" />);
+  expect(screen.queryByText('https://secret/token')).not.toBeInTheDocument();
+  expect(screen.getByRole('status')).toHaveAttribute('data-data-state','unavailable');
+});

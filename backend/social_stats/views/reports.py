@@ -6,7 +6,6 @@
 #  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
 #  Released under the MIT License — see LICENSE. Keep this notice.
 # ============================================================================
-from django.db.models import Sum
 from rest_framework import viewsets, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
@@ -15,7 +14,7 @@ from rest_framework.permissions import AllowAny
 from django.db.models import F
 from django.utils import timezone
 
-from social_stats.models import DailyMetric, PostMetric, SharedReport
+from social_stats.models import SharedReport
 from social_stats.serializers.core import (
     SharedReportSerializer,
 )
@@ -33,7 +32,20 @@ class SharedReportViewSet(viewsets.ModelViewSet):
         client_id = self.request.query_params.get('client')
         if client_id:
             qs = qs.filter(client_id=client_id)
-        return qs.order_by('-created_at')
+        from social_stats.authorization import evaluate, acting_context
+        from social_stats.models import SocialAccount
+        visible = []
+        for shared in qs:
+            ids = shared.social_account_ids
+            if not ids:
+                if (shared.created_by_id == self.request.user.pk or acting_context(self.request.user, shared.client)[0] == 'superadmin') and evaluate(self.request.user, shared.client, 'generate_reports').allowed:
+                    visible.append(shared.pk)
+                continue
+            accounts = list(SocialAccount.objects.filter(client=shared.client, pk__in=ids))
+            if len(accounts) == len(set(ids)) and all(evaluate(self.request.user, shared.client, action, account=account).allowed
+                for account in accounts for action in ('view_analytics', 'generate_reports')):
+                visible.append(shared.pk)
+        return qs.filter(pk__in=visible).order_by('-created_at')
 
     def perform_create(self, serializer):
         client = serializer.validated_data.get('client')
@@ -54,62 +66,34 @@ class SharedReportViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-def _build_report_data(report):
-    """Aggregate metrics for the shared report date range and platforms."""
-    date_range = (report.date_from, report.date_until)
-    qs = DailyMetric.objects.filter(
-        client=report.client,
-        date__range=date_range,
-    )
-    if report.platforms:
-        qs = qs.filter(platform__in=report.platforms)
-
-    by_platform = list(qs.values('platform').annotate(
-        impressions=Sum('impressions'),
-        reach=Sum('reach'),
-        clicks=Sum('clicks'),
-        likes=Sum('likes'),
-        followers=Sum('followers'),
-        video_views=Sum('video_views'),
-    ))
-
-    timeseries = list(
-        qs.values('date', 'platform')
-          .annotate(
-              impressions=Sum('impressions'),
-              reach=Sum('reach'),
-              clicks=Sum('clicks'),
-              likes=Sum('likes'),
-          )
-          .order_by('date')
-    )
-
-    totals = qs.aggregate(
-        impressions=Sum('impressions'),
-        reach=Sum('reach'),
-        clicks=Sum('clicks'),
-        likes=Sum('likes'),
-        followers=Sum('followers'),
-        video_views=Sum('video_views'),
-    )
-
-    top_posts = list(
-        PostMetric.objects.filter(
-            client=report.client,
-            published_at__date__range=date_range,
-        ).order_by('-likes', '-video_views')[:5]
-        .values('platform', 'caption', 'post_url', 'thumbnail_url',
-                'likes', 'comments', 'shares', 'video_views', 'published_at')
-    )
-
-    return {
-        'client': {'name': report.client.company, 'industry': getattr(report.client, 'industry', '')},
-        'period': {'from': report.date_from.isoformat(), 'until': report.date_until.isoformat()},
-        'totals': totals,
-        'by_platform': by_platform,
-        'timeseries': timeseries,
-        'top_posts': top_posts,
-    }
+def _build_report_data(shared):
+    """A share freezes account scope; metric meanings remain provider-owned."""
+    from social_stats.models import SocialAccount
+    from social_stats.authorization import evaluate
+    from social_stats.platforms.analytics import report
+    from social_stats.platforms.base import ProviderError
+    actor = shared.created_by
+    reports = []
+    available = bool(shared.social_account_ids) and actor is not None and actor.is_active
+    accounts = SocialAccount.objects.filter(client=shared.client, pk__in=shared.social_account_ids or [])
+    if available and accounts.count() != len(set(shared.social_account_ids)):
+        available = False
+    for account in accounts if available else []:
+        if not evaluate(actor, shared.client, 'view_analytics', account=account).allowed or not evaluate(actor, shared.client, 'generate_reports', account=account).allowed:
+            available = False; reports = []; break
+        try:
+            data = report(account, shared.date_from, shared.date_until)
+            data = report(account, shared.date_from, shared.date_until, 1, max(1, data['pagination']['count']))
+            reports.append(data)
+        except ProviderError:
+            from rest_framework.exceptions import APIException
+            error = APIException('Report data could not be loaded', code='invalid_response')
+            error.status_code = 502
+            raise error from None
+    return {'version': 2, 'availability': 'available' if available else 'unavailable',
+        'client': {'name': shared.client.company},
+        'period': {'from': shared.date_from.isoformat(), 'until': shared.date_until.isoformat()},
+        'reports': reports}
 
 
 @api_view(['GET'])

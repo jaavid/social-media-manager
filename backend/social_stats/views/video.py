@@ -52,30 +52,23 @@ logger = logging.getLogger(__name__)
 
 # ── Tenant guard ─────────────────────────────────────────────────────────────
 def _resolved_client(request):
+    from social_stats.authorization import accessible_workspaces, evaluate
+    profile = getattr(request.user, 'profile', None)
+    raw = (request.data.get('client_id') or request.data.get('workspace_id')
+           or request.query_params.get('workspace_id') or request.query_params.get('client_id')
+           or getattr(profile, 'client_id', None))
     try:
-        profile = request.user.profile
-    except Exception:
-        return None, Response({'error': 'No profile'}, status=403)
-
-    raw = request.data.get('client_id') or request.query_params.get('client_id')
-    if profile.role == 'superadmin':
-        cid = raw or profile.client_id
-    elif profile.role == 'staff':
-        try:
-            cid = int(raw) if raw else None
-        except (TypeError, ValueError):
-            cid = None
-        if cid is None or not profile.assigned_clients.filter(id=cid).exists():
-            return None, Response({'error': 'client_id required'}, status=400)
-    else:
-        cid = profile.client_id
-
-    if not cid:
-        return None, Response({'error': 'client_id required'}, status=400)
-    try:
-        return Client.objects.get(id=cid), None
-    except Client.DoesNotExist:
-        return None, Response({'error': 'Client not found'}, status=404)
+        cid = int(raw)
+        if cid <= 0: raise ValueError
+    except (TypeError, ValueError):
+        return None, Response({'error': 'workspace_id required'}, status=400)
+    client = accessible_workspaces(request.user).filter(pk=cid).first()
+    if client is None:
+        return None, Response({'error': 'Workspace unavailable'}, status=404)
+    decision = evaluate(request.user, client, 'draft_posts')
+    if not decision.allowed:
+        return None, Response({'error': 'Permission denied'}, status=403)
+    return client, None
 
 
 def _resolved_asset(request, asset_id, client):
@@ -84,7 +77,7 @@ def _resolved_asset(request, asset_id, client):
         return None, Response({'error': 'asset_id is required'}, status=400)
     try:
         asset = MediaAsset.objects.get(id=int(asset_id), client=client)
-    except (MediaAsset.DoesNotExist, ValueError):
+    except (MediaAsset.DoesNotExist, ValueError, TypeError):
         return None, Response({'error': 'Asset not found in your tenant'}, status=404)
     return asset, None
 
@@ -132,8 +125,13 @@ def upload_video(request):
 
 def _import_from_url(client, user, url: str, folder: str, alt: str):
     """Stream-download a remote video into a MediaAsset."""
+    from social_stats.security.ssrf import check_url, UnsafeURLError
     try:
-        with requests.get(url, stream=True, timeout=(10, 120)) as src:
+        check_url(url, allowed_schemes=('https',))
+    except (UnsafeURLError, ValueError):
+        return Response({'error': 'Media URL is not allowed'}, status=400)
+    try:
+        with requests.get(url, stream=True, timeout=(10, 120), allow_redirects=False) as src:
             if src.status_code != 200:
                 return Response({'error': f'Failed to fetch URL ({src.status_code})'},
                                 status=400)
@@ -143,13 +141,13 @@ def _import_from_url(client, user, url: str, folder: str, alt: str):
                     data.write(chunk)
             data.seek(0)
             mime = src.headers.get('Content-Type', 'video/mp4').split(';')[0]
-    except requests.RequestException as e:
-        return Response({'error': f'Network error: {e}'}, status=502)
+    except requests.RequestException:
+        return Response({'error': 'Media import failed'}, status=502)
 
     name = (url.split('/')[-1] or 'imported.mp4').split('?')[0]
     pseudo_file = ContentFile(data.getvalue(), name=name or 'imported.mp4')
     pseudo_file.content_type = mime
-    pseudo_file.size = data.tell()
+    pseudo_file.size = len(data.getvalue())
     asset = media_service.upload_media(
         pseudo_file, client_id=client.id,
         uploaded_by_id=user.id, folder=folder, alt_text=alt,
@@ -209,9 +207,9 @@ def trim_video(request):
                 return Response(MediaAssetSerializer(new_asset).data, status=201)
             finally:
                 _safe_unlink(out_path)
-    except Exception as e:
-        logger.exception('trim_video failed')
-        return Response({'error': f'Trim failed: {e}'}, status=500)
+    except Exception:
+        logger.warning('trim_video failed')
+        return Response({'error': 'Trim failed'}, status=500)
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -277,9 +275,9 @@ def resize_video(request):
                 return Response(MediaAssetSerializer(new_asset).data, status=201)
             finally:
                 _safe_unlink(out_path)
-    except Exception as e:
-        logger.exception('resize_video failed')
-        return Response({'error': f'Resize failed: {e}'}, status=500)
+    except Exception:
+        logger.warning('resize_video failed')
+        return Response({'error': 'Resize failed'}, status=500)
 
 
 def _target_dimensions(orig: Tuple[int, int], aspect: Tuple[int, int]) -> Tuple[int, int]:
@@ -339,9 +337,9 @@ def extract_thumbnail(request):
             new_asset.width, new_asset.height = img.size
             new_asset.save(update_fields=['width', 'height'])
             return Response(MediaAssetSerializer(new_asset).data, status=201)
-    except Exception as e:
-        logger.exception('extract_thumbnail failed')
-        return Response({'error': f'Thumbnail failed: {e}'}, status=500)
+    except Exception:
+        logger.warning('extract_thumbnail failed')
+        return Response({'error': 'Thumbnail failed'}, status=500)
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -354,15 +352,9 @@ def add_captions(request):
     Auto-generate + burn captions. Requires Whisper or equivalent — not
     wired in this build. Returns 501 with config hint.
     """
-    if not getattr(settings, 'WHISPER_API_KEY', ''):
-        return Response(
-            {'error': 'captions_not_configured',
-             'detail': 'Set WHISPER_API_KEY (OpenAI Whisper) to enable auto-captions.',
-             'docs':   'Once configured, this endpoint will transcribe the audio '
-                       'track and burn the captions in via moviepy.'},
-            status=501,
-        )
-    return Response({'error': 'Not implemented yet'}, status=501)
+    client, err = _resolved_client(request)
+    if err: return err
+    return Response({'error': 'captions_not_configured'}, status=501)
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -384,8 +376,20 @@ def youtube_upload(request):
     if not (asset.mime_type or '').startswith('video/'):
         return Response({'error': 'Asset is not a video'}, status=400)
 
+    from social_stats.authorization import evaluate
+    from social_stats.models import SocialAccount
+    try:
+        account = SocialAccount.objects.get(pk=int(request.data.get('social_account')),
+                                            client=client, platform='youtube', is_active=True)
+    except (SocialAccount.DoesNotExist, TypeError, ValueError):
+        return Response({'error': 'Select a connected YouTube account'}, status=400)
+    decision = evaluate(request.user, client, 'publish_posts', account=account)
+    if not decision.allowed:
+        return Response({'error': 'Permission denied'}, status=403)
+    if decision.requires_approval:
+        return Response({'error': 'Use Composer for approval', 'code': 'composer_required'}, status=409)
     cred = PlatformCredential.objects.filter(
-        client=client, platform='youtube', is_active=True,
+        client=client, social_account=account, platform='youtube', is_active=True,
     ).first()
     if not cred:
         return Response({'error': 'No active YouTube credential — connect first'}, status=400)
@@ -397,7 +401,7 @@ def youtube_upload(request):
         return Response({'error': 'Cannot resolve a public URL for this asset — S3 or MEDIA serving required'},
                         status=400)
 
-    from social_stats.publishers import get_publisher, PublishError, TokenExpiredError, RateLimitError
+    from social_stats.publishers import get_publisher, PublishError, PublishResult, TokenExpiredError, RateLimitError
     publisher = get_publisher('youtube')
 
     kwargs = {}
@@ -411,16 +415,19 @@ def youtube_upload(request):
 
     try:
         result = publisher.publish_video(cred, description, video_url, title=title, **kwargs)
-    except TokenExpiredError as e:
+    except TokenExpiredError:
         cred.mark_auth_failure('token_expired')
-        return Response({'error': str(e), 'code': 'token_expired'}, status=400)
-    except RateLimitError as e:
-        return Response({'error': str(e), 'code': 'rate_limited'}, status=429)
-    except PublishError as e:
-        return Response({'error': str(e), 'code': e.code or 'publish_error'}, status=400)
-    except Exception as e:
-        logger.exception('youtube_upload failed')
-        return Response({'error': str(e)}, status=500)
+        return Response({'error': 'Account needs reconnection', 'code': 'token_expired'}, status=400)
+    except RateLimitError:
+        return Response({'error': 'Try again later', 'code': 'rate_limited'}, status=429)
+    except PublishError:
+        return Response({'error': 'Publication failed', 'code': 'publish_error'}, status=400)
+    except Exception:
+        logger.warning('youtube_upload failed')
+        return Response({'error': 'Publication outcome unknown'}, status=502)
+
+    if not isinstance(result, PublishResult) or result.success is not True or not result.platform_post_id:
+        return Response({'error': 'Publication outcome unknown'}, status=502)
 
     return Response({
         'success':           True,
@@ -454,7 +461,7 @@ def _local_path(asset: MediaAsset) -> Optional[str]:
                 tmp.flush(); tmp.close()
                 return tmp.name
         except Exception:
-            logger.exception('_local_path: failed to download asset %s', asset.id)
+            logger.warning('_local_path: media download failed')
             return None
 
 

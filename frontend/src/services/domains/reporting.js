@@ -7,6 +7,7 @@
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
 import { api, publicApi } from '../http/client';
+import { ensureCsrf } from '@/lib/auth/browser';
 
 export const overviewAPI = {
   get: (params) => api.get('/overview/', { params }),
@@ -51,7 +52,7 @@ export const roiAPI = {
   saveSettings: (clientId, data)  => api.put(`/roi/settings/${clientId}/`, data),
   calculate:    (data)            => api.post('/roi/calculate/', data),
   getLive:      (params)          => api.get('/roi/live/', { params }),
-  getReports:   (params)          => api.get('/roi/reports/', { params }),
+  getReports:   (params, signal)  => api.get('/roi/reports/', { params, signal }),
 };
 
 export const gmbAPI = {
@@ -65,15 +66,15 @@ export const onboardingAPI = {
 };
 
 export const sharedReportsAPI = {
-  list:   (params) => api.get('/shared-reports/', { params }),
+  list:   (params, signal) => api.get('/shared-reports/', { params, signal }),
   create: (data)   => api.post('/shared-reports/', data),
   delete: (id)     => api.delete(`/shared-reports/${id}/`),
   update: (id, data) => api.patch(`/shared-reports/${id}/`, data),
 };
 
 export const publicReportAPI = {
-  get:    (token)          => publicApi.get(`/public/report/${token}/`),
-  verify: (token, password) => publicApi.post(`/public/report/${token}/verify/`, { password }),
+  get:    (token, signal)  => publicApi.get(`/public/report/${token}/`, { signal }),
+  verify: async (token, password) => publicApi.post(`/public/report/${token}/verify/`, { password }, { headers: { 'X-CSRFToken': await ensureCsrf() } }),
 };
 
 export const lookupsAPI = {

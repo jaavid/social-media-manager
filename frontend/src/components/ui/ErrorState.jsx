@@ -9,6 +9,8 @@
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 
 import Button from './Button';
+import DataState from './DataState';
+import { useLanguage } from '@/i18n';
 
 /**
  * ErrorState — companion to EmptyState for failed loads.
@@ -25,7 +27,7 @@ import Button from './Button';
 export default function ErrorState({
   icon: Icon = AlertTriangle,
   title = 'Something went wrong',
-  description = 'We couldn\'t load this just now. Please try again.',
+  description = "We couldn't load this just now. Please try again.",
   onRetry,
   retryLabel = 'Try again',
   action,
@@ -33,62 +35,24 @@ export default function ErrorState({
   style,
   ...rest
 }) {
+  const { tr } = useLanguage();
   return (
-    <div
-      role="alert"
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        textAlign: 'center',
-        gap: 12,
-        padding: compact ? '24px 16px' : '48px 24px',
-        color: 'var(--text-secondary)',
-        ...style,
-      }}
-      {...rest}
-    >
-      {Icon && (
-        <div
-          aria-hidden
-          style={{
-            width: 48, height: 48,
-            borderRadius: 'var(--radius-lg)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: 'var(--danger-bg)',
-            color: 'var(--danger)',
-            marginBottom: 4,
-          }}
-        >
-          <Icon size={22} strokeWidth={1.8} />
-        </div>
-      )}
-      <div style={{
-        fontSize: 16,
-        fontWeight: 500,
-        color: 'var(--text-primary)',
-        letterSpacing: '-0.01em',
-      }}>
-        {title}
-      </div>
-      {description && (
-        <div style={{
-          fontSize: 13,
-          color: 'var(--text-secondary)',
-          maxWidth: 380,
-          lineHeight: 'var(--line-height-body)',
-        }}>
-          {description}
-        </div>
-      )}
-      <div style={{ marginTop: 4 }}>
-        {action || (onRetry && (
-          <Button variant="secondary" icon={RefreshCw} onClick={onRetry}>
-            {retryLabel}
-          </Button>
-        ))}
-      </div>
+    <div style={style} {...rest}>
+      <DataState
+        state="error"
+        icon={Icon}
+        title={tr(title)}
+        description={tr(description)}
+        compact={compact}
+        action={
+          action ||
+          (onRetry && (
+            <Button variant="secondary" icon={RefreshCw} onClick={onRetry}>
+              {tr(retryLabel)}
+            </Button>
+          ))
+        }
+      />
     </div>
   );
 }

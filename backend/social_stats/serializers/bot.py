@@ -80,6 +80,7 @@ class BotConversationStepSerializer(serializers.ModelSerializer):
 
 
 class BotConversationListSerializer(serializers.ModelSerializer):
+    client = serializers.PrimaryKeyRelatedField(read_only=True)
     contact_name = serializers.CharField(source='contact.name', read_only=True)
     contact_phone = serializers.CharField(source='contact.phone', read_only=True)
     flow_name = serializers.CharField(source='flow.name', read_only=True, default='')
@@ -87,7 +88,7 @@ class BotConversationListSerializer(serializers.ModelSerializer):
     class Meta:
         model = BotConversation
         fields = [
-            'id', 'flow', 'flow_name', 'contact', 'contact_name', 'contact_phone',
+            'id', 'client', 'flow', 'flow_name', 'contact', 'contact_name', 'contact_phone',
             'triggered_via', 'status',
             'lead_captured', 'lead', 'ai_takeover_active',
             'started_at', 'last_activity_at', 'ended_at',
