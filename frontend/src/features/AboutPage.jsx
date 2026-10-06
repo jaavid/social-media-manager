@@ -343,7 +343,7 @@ function SocialChip({ brand, label }) {
         color: 'var(--text-tertiary)',
       }}
     >
-      <Icon size={11} strokeWidth={2} />
+      <BrandIcon brand={brand} size={11} />
     </span>
   );
 }
