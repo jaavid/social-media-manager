@@ -14,6 +14,7 @@ Endpoints (all under /api/privacy/):
   GET  /export-request/             — list this user's exports + statuses
   GET  /download/<token>/           — public-link download of the assembled ZIP
 
+  GET  /delete-account/             — latest account-owned deletion request or null
   POST /delete-account/             — request account deletion (30d grace)
   POST /delete-account/cancel/      — cancel before grace ends
 
@@ -127,11 +128,17 @@ def data_export_download(request, token: str):
 GRACE_DAYS = 30
 
 
-@api_view(['POST'])
+@api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
 def delete_account_request(request):
-    """Schedule the calling user's account for deletion in 30 days. Idempotent —
-    re-calling returns the existing request."""
+    """Read the latest request or schedule deletion in 30 days.
+
+    POST is idempotent while queued: re-calling returns the existing request.
+    """
+    if request.method == 'GET':
+        latest = AccountDeletionRequest.objects.filter(user=request.user).order_by('-requested_at', '-id').first()
+        return Response({'request': _deletion_summary(latest) if latest else None})
+
     existing = AccountDeletionRequest.objects.filter(
         user=request.user, status='queued',
     ).first()
