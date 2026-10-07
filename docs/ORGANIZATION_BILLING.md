@@ -56,6 +56,9 @@ AI provider requests reserve capacity atomically before the call in text, stream
 and vision paths, legacy endpoints, chat tool loops and background jobs, across
 every workspace in the tenant. Cache hits consume no quota.
 Failed provider attempts retain the reservation to avoid retry-based quota bypasses.
+Chat returns HTTP 429 for monthly quota exhaustion and HTTP 403 for an unavailable
+capability. Both paths finalize the conversation; quota responses preserve completed
+tool results and pending confirmations without executing unconfirmed tools.
 The AI window is the UTC calendar month and resets by period key; it is independent
 of provider billing periods. Platform-only AI tools without a workspace retain global
 budgets. Existing daily/per-workspace and global AI safety budgets still apply.

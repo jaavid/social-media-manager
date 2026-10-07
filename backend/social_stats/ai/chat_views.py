@@ -317,125 +317,12 @@ def chat(request):
     iterations = 0
     final_blocks = []
 
-    while iterations < MAX_TOOL_ITERATIONS:
-        iterations += 1
-        t0 = time.monotonic()
-        from social_stats.entitlements import reserve_ai
-        if client is not None:
-            reserve_ai(client)
+    from social_stats.entitlements import EntitlementDenied
 
-        try:
-            response = sdk.messages.create(
-                model=model_id,
-                max_tokens=sys_cfg.get('max_tokens', 2048),
-                temperature=sys_cfg.get('temperature', 0.6),
-                system=sys_cfg['system'],
-                tools=TOOL_SCHEMA,
-                messages=history,
-            )
-        except Exception as e:
-            logger.exception('chat call failed (iter=%d)', iterations)
-            cost_tracker.record_cost(
-                client=client, user=user, feature='chat',
-                model=model_id, input_tokens=0, output_tokens=0,
-                duration_ms=int((time.monotonic() - t0) * 1000),
-                request_id='', prompt_hash='', cached=False,
-                request_payload={'iter': iterations}, response_summary=str(e)[:200],
-                status='error', error_message=str(e)[:1000],
-            )
-            return Response({'error': f'AI call failed: {e}'}, status=503)
-
-        usage = getattr(response, 'usage', None)
-        usage_in  += int(getattr(usage, 'input_tokens',  0) or 0)
-        usage_out += int(getattr(usage, 'output_tokens', 0) or 0)
-        request_id = getattr(response, 'id', '') or ''
-        blocks = _normalise_blocks_to_dicts(getattr(response, 'content', []) or [])
-
-        # Cost record per-turn
-        cost_tracker.estimate_cost(
-            int(getattr(usage, 'input_tokens', 0) or 0),
-            int(getattr(usage, 'output_tokens', 0) or 0),
-            model_id,
-        )
-        cost_tracker.record_cost(
-            client=client, user=user, feature='chat',
-            model=model_id,
-            input_tokens=int(getattr(usage, 'input_tokens', 0) or 0),
-            output_tokens=int(getattr(usage, 'output_tokens', 0) or 0),
-            duration_ms=int((time.monotonic() - t0) * 1000),
-            request_id=request_id, prompt_hash='', cached=False,
-            request_payload={'iter': iterations},
-            response_summary=' '.join(b.get('text', '') for b in blocks if b.get('type') == 'text')[:200],
-            status='success',
-        )
-
-        # Identify tool calls in this turn
-        tool_calls = [b for b in blocks if b.get('type') == 'tool_use']
-
-        if not tool_calls:
-            # Final response — persist + return
-            _persist_assistant_turn(conversation, blocks, model_id,
-                                                    (usage_in, usage_out),
-                                                    cost_tracker.estimate_cost(usage_in, usage_out, model_id))
-            final_blocks = blocks
-            break
-
-        # Need to execute tools. Persist this assistant turn (with tool_use blocks),
-        # then run the tools, then loop with tool_results in the next user message.
-        _persist_assistant_turn(conversation, blocks, model_id,
-                                                 (0, 0), Decimal('0'))
-        final_blocks = blocks
-
-        tool_result_blocks = []
-        halt_for_confirmation = False
-        for tc in tool_calls:
-            result = execute_tool(
-                name=tc.get('name'),
-                tool_input=tc.get('input') or {},
-                client=client, user=user, confirmed=False,
-            )
-
-            run_summary = {
-                'name': tc.get('name'),
-                'ok':   bool(result.get('ok')),
-                'data': result.get('data'),
-                'error': result.get('error'),
-            }
-            tool_runs.append(run_summary)
-
-            if result.get('confirmation_required'):
-                # Surface as a pending confirmation card
-                pending_confirmations.append({
-                    'tool_use_id': tc.get('id', ''),
-                    'tool_name':   tc.get('name'),
-                    'tool_input':  tc.get('input') or {},
-                    'summary':     result.get('summary') or '',
-                })
-                # Tell Claude this needs user confirmation; it should respond conversationally.
-                tool_result_blocks.append({
-                    'type':        'tool_result',
-                    'tool_use_id': tc.get('id', ''),
-                    'content':     'AWAITING_USER_CONFIRMATION: ' + (result.get('summary') or ''),
-                })
-                halt_for_confirmation = True
-            else:
-                tool_result_blocks.append({
-                    'type':        'tool_result',
-                    'tool_use_id': tc.get('id', ''),
-                    'content':     str(result),
-                })
-
-        # Append the tool-result message to history + persist a tool-result user message
-        history.append({'role': 'assistant', 'content': blocks})
-        history.append({'role': 'user',      'content': tool_result_blocks})
-        _persist_user_turn(conversation, content='', tool_results=[
-            {'tool_use_id': trb.get('tool_use_id', ''), 'content': trb.get('content', '')}
-            for trb in tool_result_blocks
-        ])
-
-        if halt_for_confirmation:
-            # Don't iterate further until the user confirms; let Claude take ONE more
-            # turn to summarise + ask the user, then break.
+    try:
+        while iterations < MAX_TOOL_ITERATIONS:
+            iterations += 1
+            t0 = time.monotonic()
             from social_stats.entitlements import reserve_ai
             if client is not None:
                 reserve_ai(client)
@@ -443,26 +330,158 @@ def chat(request):
             try:
                 response = sdk.messages.create(
                     model=model_id,
-                    max_tokens=1024,
+                    max_tokens=sys_cfg.get('max_tokens', 2048),
                     temperature=sys_cfg.get('temperature', 0.6),
                     system=sys_cfg['system'],
                     tools=TOOL_SCHEMA,
                     messages=history,
                 )
-                blocks = _normalise_blocks_to_dicts(getattr(response, 'content', []) or [])
-                _persist_assistant_turn(conversation, blocks, model_id,
-                                         (0, 0), Decimal('0'))
-                final_blocks = blocks
-            except Exception:
-                logger.exception('confirmation summary turn failed')
-            break
+            except Exception as e:
+                logger.exception('chat call failed (iter=%d)', iterations)
+                cost_tracker.record_cost(
+                    client=client, user=user, feature='chat',
+                    model=model_id, input_tokens=0, output_tokens=0,
+                    duration_ms=int((time.monotonic() - t0) * 1000),
+                    request_id='', prompt_hash='', cached=False,
+                    request_payload={'iter': iterations}, response_summary=str(e)[:200],
+                    status='error', error_message=str(e)[:1000],
+                )
+                return Response({'error': f'AI call failed: {e}'}, status=503)
 
-    # Bump conversation timestamp + auto-title for new convos
-    if not conversation.title or conversation.title == 'New chat':
-        # Try to set a better title from the first user message
-        if message_text:
-            conversation.title = message_text[:60]
-    conversation.save(update_fields=['title', 'updated_at'])
+            usage = getattr(response, 'usage', None)
+            usage_in  += int(getattr(usage, 'input_tokens',  0) or 0)
+            usage_out += int(getattr(usage, 'output_tokens', 0) or 0)
+            request_id = getattr(response, 'id', '') or ''
+            blocks = _normalise_blocks_to_dicts(getattr(response, 'content', []) or [])
+
+            # Cost record per-turn
+            cost_tracker.estimate_cost(
+                int(getattr(usage, 'input_tokens', 0) or 0),
+                int(getattr(usage, 'output_tokens', 0) or 0),
+                model_id,
+            )
+            cost_tracker.record_cost(
+                client=client, user=user, feature='chat',
+                model=model_id,
+                input_tokens=int(getattr(usage, 'input_tokens', 0) or 0),
+                output_tokens=int(getattr(usage, 'output_tokens', 0) or 0),
+                duration_ms=int((time.monotonic() - t0) * 1000),
+                request_id=request_id, prompt_hash='', cached=False,
+                request_payload={'iter': iterations},
+                response_summary=' '.join(b.get('text', '') for b in blocks if b.get('type') == 'text')[:200],
+                status='success',
+            )
+
+            # Identify tool calls in this turn
+            tool_calls = [b for b in blocks if b.get('type') == 'tool_use']
+
+            if not tool_calls:
+                # Final response — persist + return
+                _persist_assistant_turn(conversation, blocks, model_id,
+                                                        (usage_in, usage_out),
+                                                        cost_tracker.estimate_cost(usage_in, usage_out, model_id))
+                final_blocks = blocks
+                break
+
+            # Need to execute tools. Persist this assistant turn (with tool_use blocks),
+            # then run the tools, then loop with tool_results in the next user message.
+            _persist_assistant_turn(conversation, blocks, model_id,
+                                                     (0, 0), Decimal('0'))
+            final_blocks = blocks
+
+            tool_result_blocks = []
+            halt_for_confirmation = False
+            for tc in tool_calls:
+                result = execute_tool(
+                    name=tc.get('name'),
+                    tool_input=tc.get('input') or {},
+                    client=client, user=user, confirmed=False,
+                )
+
+                run_summary = {
+                    'name': tc.get('name'),
+                    'ok':   bool(result.get('ok')) and not result.get('confirmation_required', False),
+                    'data': result.get('data'),
+                    'error': result.get('error'),
+                    'confirmation_required': bool(result.get('confirmation_required')),
+                }
+                tool_runs.append(run_summary)
+
+                if result.get('confirmation_required'):
+                    # Surface as a pending confirmation card
+                    pending_confirmations.append({
+                        'tool_use_id': tc.get('id', ''),
+                        'tool_name':   tc.get('name'),
+                        'tool_input':  tc.get('input') or {},
+                        'summary':     result.get('summary') or '',
+                    })
+                    # Tell Claude this needs user confirmation; it should respond conversationally.
+                    tool_result_blocks.append({
+                        'type':        'tool_result',
+                        'tool_use_id': tc.get('id', ''),
+                        'content':     'AWAITING_USER_CONFIRMATION: ' + (result.get('summary') or ''),
+                    })
+                    halt_for_confirmation = True
+                else:
+                    tool_result_blocks.append({
+                        'type':        'tool_result',
+                        'tool_use_id': tc.get('id', ''),
+                        'content':     str(result),
+                    })
+
+            # Append the tool-result message to history + persist a tool-result user message
+            history.append({'role': 'assistant', 'content': blocks})
+            history.append({'role': 'user',      'content': tool_result_blocks})
+            _persist_user_turn(conversation, content='', tool_results=[
+                {'tool_use_id': trb.get('tool_use_id', ''), 'content': trb.get('content', '')}
+                for trb in tool_result_blocks
+            ])
+
+            if halt_for_confirmation:
+                # Don't iterate further until the user confirms; let Claude take ONE more
+                # turn to summarise + ask the user, then break.
+                from social_stats.entitlements import reserve_ai
+                if client is not None:
+                    reserve_ai(client)
+
+                try:
+                    response = sdk.messages.create(
+                        model=model_id,
+                        max_tokens=1024,
+                        temperature=sys_cfg.get('temperature', 0.6),
+                        system=sys_cfg['system'],
+                        tools=TOOL_SCHEMA,
+                        messages=history,
+                    )
+                    blocks = _normalise_blocks_to_dicts(getattr(response, 'content', []) or [])
+                    _persist_assistant_turn(conversation, blocks, model_id,
+                                             (0, 0), Decimal('0'))
+                    final_blocks = blocks
+                except Exception:
+                    logger.exception('confirmation summary turn failed')
+                break
+
+    except EntitlementDenied as exc:
+        detail = exc.detail
+        if not isinstance(detail, dict) or detail.get('code') != 'entitlement_limit_exceeded':
+            raise
+        return Response({
+            'error': 'Monthly AI quota exhausted.',
+            'code': detail['code'],
+            'scope': detail.get('resource'),
+            'limit': detail.get('limit'),
+            'used': detail.get('current'),
+            'conversation_id': conversation.pk,
+            'tool_runs': tool_runs,
+            'pending_confirmations': pending_confirmations,
+        }, status=429)
+    finally:
+        # Bump conversation timestamp + auto-title for new convos
+        if not conversation.title or conversation.title == 'New chat':
+            # Try to set a better title from the first user message
+            if message_text:
+                conversation.title = message_text[:60]
+        conversation.save(update_fields=['title', 'updated_at'])
 
     # Final assistant text (concat of any text blocks in the final turn)
     final_text = ' '.join(b.get('text', '') for b in (final_blocks or []) if b.get('type') == 'text').strip()

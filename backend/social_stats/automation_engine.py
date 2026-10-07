@@ -78,8 +78,8 @@ def evaluate_automation_rules(self, event_type: str, object_id: int, client_id: 
     from .entitlements import capability_allowed
     from .models import Client
 
-    workspace = Client.objects.get(pk=client_id)
-    if not capability_allowed(workspace.organization, 'automations'):
+    workspace = Client.objects.filter(pk=client_id).select_related('organization').first()
+    if workspace is None or not capability_allowed(workspace.organization, 'automations'):
         return 0
     rules = list(AutomationRule.objects.filter(client_id=client_id, is_active=True))
 
