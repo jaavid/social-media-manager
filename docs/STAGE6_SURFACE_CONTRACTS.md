@@ -174,3 +174,19 @@ legacy behavior per surface after canonical field/overlay and localized
 keyboard/contrast/failure evidence exists. Canvas coordinates, ReactFlow geometry,
 node metadata color and WhatsApp-specific preview presentation are valid extension
 styles; deleting them to lower a static count is not a removal criterion.
+
+## Stage 6E account profile owner and removal criteria
+
+Frontend identity/settings maintainers own ProfileSettings and its GET/PATCH wire
+validation; backend identity maintainers own the existing session-derived target
+user. `/profile/` is account-owned, not a workspace-edit endpoint. Workspace is a
+frontend context/draft boundary; never send a different user ID to change the
+backend target. The domain SDK's optional AbortSignal preserves older callers.
+
+The old ProfileTab is now a composition adapter. Remove it after the separately
+owned DeleteAccountSection migrates with its complete reason/typed confirmation,
+server deletion and logout contract. Do not treat staged photo removal as an
+account-deletion migration. SecurityTab/AgencyTab and their raw controls/errors
+remain owned by settings maintainers and require their own failure/focus evidence.
+The services/api compatibility export remains until those consumers migrate.
+Existing shell, theme, session QueryClient and Modal primitives are reused.

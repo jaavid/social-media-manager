@@ -10,7 +10,7 @@ import { api } from '../http/client';
 import { apiBaseUrl } from '../../lib/runtime/config';
 
 export const profileAPI = {
-  get:               ()       => api.get('/profile/'),
+  get:               (signal) => api.get('/profile/', { signal }),
   update:            (data)   => api.patch('/profile/', data, data instanceof FormData ? { headers: { 'Content-Type': 'multipart/form-data' } } : undefined),
   changePassword:    (data)   => api.post('/profile/change-password/', data),
   agencyInfo:        ()       => api.get('/profile/agency/'),

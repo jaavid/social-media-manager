@@ -145,7 +145,7 @@ adapter only after its provider supplies typed metric descriptors and conformanc
 `sync` execution. Existing historical rows need a genuine provider resync to establish metric
 presence; inventing/backfilling values is forbidden. Live provider credentials are unavailable.
 
-## Final criterion reconciliation (after A/B/C and bounded 6D implementation)
+## Final criterion reconciliation (after A/B/C and bounded 6D/6E implementation)
 
 The baseline tables above are historical and unchanged. **done** below is supported by the cited implementation and tests; **remaining** means the whole checkbox is broader than the certified surfaces, with its exact next action stated. Real dependencies are listed separately. Do not use a Closes directive for these issues.
 
@@ -161,7 +161,7 @@ The baseline tables above are historical and unchanged. **done** below is suppor
 | keyboard/focus/restore/Escape/nested overlay/RTL/accessibility behavior browser-tested باشد. | remaining | frontend-contracts, stage6 Inbox/Analytics/state/editor tests cover migrated overlays and keyboard; remaining legacy nested overlays need route-specific evidence |
 | shell + auth | done | AppShell/EndUserShell inner ErrorBoundary; RouteFailure.test.jsx; frontend-contracts session tests |
 | dashboard + collection/list surfaces | done | AdminOverview/ClientDashboard/ReportsPage; stage6-state-contracts.spec.js screenshots/status matrix |
-| settings + Connected Accounts | remaining | ConnectedAccounts/MyConnections done in #161 with connected-accounts.spec.js; unrelated older settings forms still require migration/evidence |
+| settings + Connected Accounts | remaining | ConnectedAccounts/MyConnections done in #161; Stage 6E migrates account profile/name/photo with scoped reads, safe save recovery and staged photo-removal confirmation; Security/Agency, account deletion, workspace business settings and other older settings forms remain |
 | composer + scheduling | done | Composer #162; stage5-composer.spec.js; ComposerPage.test.jsx including stage6 scope handoff |
 | inbox/engagement | done | UnifiedInboxPage/ReviewsPage/useInboxResource; stage6-inbox.spec.js and inbox-races tests |
 | analytics/reporting | done | AnalyticsSurface/ReportsPage/PublicReportPage; analytics parser/backend reports tests and stage6 browser suites |
@@ -324,3 +324,45 @@ copy, old useData/key/aggregate/static catalogue consumers, layout-specific rout
 skeletons, raw logging and exhaustive legacy overlay/contrast/failure matrices.
 #106/#112 stay open; #103 stays closed without a whole-issue completion claim.
 Stage 7/#116, upgrades and real Meta connection certification are out of scope.
+
+### Stage 6E — Account profile form and photo recovery
+
+Started from origin/main `f781fbc` after #171/#172 merged; main Tests and Security
+passed. #106/#112 remain open and #103 remains closed. Historical baseline tables
+are unchanged. This bounded family is UserSettingsPage's Profile Information form,
+not the entire Settings route or workspace business profile.
+
+ProfileSettings consumes the existing account-owned `/profile/` GET/PATCH API and
+existing canonical Input/Button/Modal/DataState. Keys and draft remounts include
+user, role, account type and workspace context. The backend intentionally derives
+the target user from SessionAuthentication, not a submitted user/workspace ID;
+no backend or migration change is needed. GET validates the user ID, names, email
+and safe photo URL; PATCH validates its distinct returned name/photo shape.
+Obsolete reads abort, late writes after context changes cannot update the new
+form/cache, recoverable refresh keeps edits, and authorization/not-found hides
+cached private data. Initial read failure never becomes a guessed editable profile.
+
+Photo removal uses the existing alertdialog with Cancel initial focus and trigger
+restoration. Confirmation stages removal in the local draft; only Save applies
+it. A failed save retains names, selected File and removal intent. Writes have a
+synchronous pending guard, are not replayed automatically and show safe inline
+failure. Uncertain save copy calls for server verification before manual retry;
+no remote atomic/exactly-once guarantee is claimed. Blob previews are revoked on
+replacement/unmount. Discarding an unsaved upload clears only its File/input/preview,
+restores the saved photo and focuses the upload control; it never emits remove_avatar
+or stages persisted-photo deletion. File selection has image/5 MB checks and clears after a
+verified success. Technical email direction uses existing LTR styling.
+
+Evidence: ProfileSettings Jest tests and stage6e-profile.spec.js cover malformed
+responses, initial/background failures, 403/404/429/503, slow reads, offline/reconnect,
+identity/workspace late responses, validation, file recovery and confirmation.
+The browser matrix covers fa/en, RTL/LTR, light/dark/system, 360/768/1440,
+keyboard/focus and reduced motion. Before/after failure screenshots are in
+frontend/e2e/evidence/stage6e. The baseline uses the pre-batch 6D production build;
+its UserSettingsPage source blob matches origin/main `f781fbc` exactly.
+
+Remaining: account deletion, Security/Agency, developer/privacy settings,
+workspace business-profile forms and their destructive actions; other complex
+editor controls/VariableInserter, legacy data hooks/keys/static catalogues,
+route-specific skeletons, raw logging/copy and exhaustive legacy contrast/failure
+coverage. No Stage 7/#116, provider work, adapter-wide removal or dependency change.
