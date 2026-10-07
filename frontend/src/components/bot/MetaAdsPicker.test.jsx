@@ -302,3 +302,30 @@ test('unverified saved ads survive editing another campaign until its read recov
   await waitFor(() => expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled());
   expect(screen.getByLabelText(/Ad Two/)).toBeChecked();
 });
+
+
+test.each(['campaigns', 'ads'])('partial %s cannot silently discard an unverified saved selection', async kind => {
+  const secondCampaign = { id: '12', name: 'Campaign Two', account_id: '10' };
+  const secondAd = { id: '121', name: 'Ad Two', campaign_id: '12', is_ctwa: true };
+  metaAdsAPI.campaigns.mockResolvedValue(wire('campaigns', kind === 'campaigns' ? [campaign] : [campaign, secondCampaign], { ad_account_id: 'act_10', partial: kind === 'campaigns' }));
+  metaAdsAPI.ads.mockImplementation((w, a, c) => Promise.resolve(wire('ads', c === '11' ? [ad] : [], { ad_account_id: a, campaign_id: c, partial: kind === 'ads' && c === '12' })));
+  setup({ ...selection, campaign_ids: ['11', '12'], ad_ids: kind === 'campaigns' ? [] : ['111', '121'] });
+  await screen.findByLabelText(/Ad A/);
+  await screen.findByText(mockMessages['meta.partial']);
+  expect(screen.getByLabelText('Campaign A')).toBeDisabled();
+  expect(screen.getByLabelText(/Ad A/)).toBeDisabled();
+  const before = screen.getByTestId('selection').textContent;
+  fireEvent.click(screen.getByLabelText(/Ad A/));
+  expect(screen.getByTestId('selection').textContent).toBe(before);
+  expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
+  const refresh = screen.getAllByRole('button', { name: 'Refresh' })[kind === 'campaigns' ? 1 : 3];
+  expect(refresh).toBeEnabled();
+  metaAdsAPI.campaigns.mockResolvedValue(wire('campaigns', [campaign, secondCampaign], { ad_account_id: 'act_10' }));
+  metaAdsAPI.ads.mockImplementation((w, a, c) => Promise.resolve(wire('ads', c === '12' ? [secondAd] : [ad], { ad_account_id: a, campaign_id: c })));
+  fireEvent.click(refresh);
+  await screen.findByLabelText(/Ad Two/);
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled());
+  expect(screen.getByLabelText('Campaign Two')).toBeChecked();
+  if (kind === 'ads') expect(screen.getByLabelText(/Ad Two/)).toBeChecked();
+  expect(screen.getByTestId('selection').textContent).toBe(before);
+});

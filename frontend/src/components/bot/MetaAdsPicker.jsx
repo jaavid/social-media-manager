@@ -152,8 +152,10 @@ function ScopedPicker({ identity, workspace, value, onChange, onValidityChange, 
     return () => onValidityChange?.(false);
   }, [valid, onValidityChange]);
 
-  // A saved ad without a verified parent cannot be silently discarded by another edit.
-  const selectionPending = selectedAds.length > 0 && (verifiedCampaigns.length !== selectedCampaigns.length || ads.some(query => !visible(query)));
+  // Saved choices outside a failed/partial read cannot be silently discarded by another edit.
+  const selectionPending = verifiedCampaigns.length !== selectedCampaigns.length ||
+    (selectedAds.length > 0 && (ads.some(query => !visible(query)) ||
+      selectedAds.some(id => !adRows.some(row => row.id === id))));
   function emit(nextCampaigns, nextAds) {
     if (!accountValid || selectionPending || disabled) return;
     onChange({

@@ -13,7 +13,7 @@ async function prepare(page, language = 'en', theme = 'light') {
     ),
   );
   await page.routeWebSocket('**/ws/**', (socket) => socket.close());
-  const state = { failure: null, kind: 'accounts', delay: false, writes: [] };
+  const state = { failure: null, kind: 'accounts', delay: false, partial: false, writes: [] };
   const flow = {
     id: 1,
     client: 7,
@@ -24,6 +24,7 @@ async function prepare(page, language = 'en', theme = 'light') {
     trigger_config: { ad_account_id: 'act_10', campaign_ids: ['11'], ad_ids: ['111'] },
     is_active: false,
   };
+  state.config = flow.trigger_config;
   await page.route('**/api/**', async (route) => {
     const request = route.request(),
       url = new URL(request.url()),
@@ -77,20 +78,22 @@ async function prepare(page, language = 'en', theme = 'light') {
               ]
             : [
                 {
-                  id: campaign === '11' ? '111' : '222',
-                  name: campaign === '11' ? 'Ad A' : 'Ad B',
+                  id: campaign === '11' ? '111' : campaign === '12' ? '121' : '222',
+                  name: campaign === '11' ? 'Ad A' : campaign === '12' ? 'Ad Two' : 'Ad B',
                   campaign_id: campaign,
                   is_ctwa: true,
                 },
               ];
+      if (kind === 'campaigns' && account === 'act_10' && flow.trigger_config.campaign_ids.includes('12') && !(state.partial && state.kind === kind)) rows.push({ id: '12', name: 'Campaign Two', account_id: '10' });
+      const partial = state.partial && state.kind === kind && (kind === 'campaigns' || campaign === '12');
       return route.fulfill({
         json: {
           connected: true,
           workspace_id: 7,
           ad_account_id: account,
           campaign_id: campaign,
-          partial: false,
-          [kind]: rows,
+          partial,
+          [kind]: partial && kind === 'ads' ? [] : rows,
         },
       });
     }
@@ -212,4 +215,25 @@ test('meta slow scope switch and offline recovery', async ({ page }) => {
   await page.context().setOffline(false);
   await expect(dialog.locator('[data-data-state="offline"]')).toHaveCount(0);
   await expect(dialog.getByLabel(/Ad B/)).toBeVisible();
+});
+
+
+for (const kind of ['campaigns', 'ads']) test(`partial ${kind} keeps unverified saved choices through recovery`, async ({ page }) => {
+  const state = await prepare(page);
+  state.config.campaign_ids.push('12');
+  state.config.ad_ids = kind === 'ads' ? ['111', '121'] : [];
+  state.kind = kind; state.partial = true;
+  const dialog = await open(page);
+  await expect(dialog.getByText(enMessages['meta.partial'])).toBeVisible();
+  await expect(dialog.getByLabel('Campaign A')).toBeDisabled();
+  await expect(dialog.getByLabel(/Ad A/)).toBeDisabled();
+  await expect(dialog.getByRole('button', { name: 'Publish flow', exact: true })).toBeDisabled();
+  expect(state.writes).toHaveLength(0);
+  state.partial = false;
+  await dialog.getByRole('button', { name: 'Refresh', exact: true }).nth(kind === 'campaigns' ? 1 : 3).click();
+  await expect(dialog.getByLabel('Campaign Two')).toBeChecked();
+  await expect(dialog.getByLabel(/Ad Two/)).toBeVisible();
+  if (kind === 'ads') await expect(dialog.getByLabel(/Ad Two/)).toBeChecked();
+  await expect(dialog.getByRole('button', { name: 'Publish flow', exact: true })).toBeEnabled();
+  expect(state.writes).toHaveLength(0);
 });
