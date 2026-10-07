@@ -11,6 +11,7 @@ import { useSession } from '@/core/session';
 import { apiError } from '@/services/http/errors';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { workspacesAPI, oauthAPI, overviewAPI, syncLogsAPI, goalsAPI, alertsAPI, lookupsAPI } from '../services/api';
+import { parseSyncLogs } from '@/lib/recoveryCollections';
 import { PLATFORM_LIST } from '../services/platforms';
 import { format, subDays } from 'date-fns';
 
@@ -116,21 +117,16 @@ export function useOverview(range) {
 }
 
 export function useSyncLogs(clientId) {
-  const [logs, setLogs]       = useState([]);
-  const [loading, setLoading] = useState(false);
-
-  const fetch = useCallback(async () => {
-    try {
-      setLoading(true);
-      const params = clientId ? { client: clientId } : {};
-      const res = await syncLogsAPI.list(params);
-      setLogs(res.data.results || res.data);
-    } catch (e) { console.error(e); }
-    finally { setLoading(false); }
-  }, [clientId]);
-
-  useEffect(() => { fetch(); }, [fetch]);
-  return { logs, loading, refetch: fetch };
+  const { user, status } = useSession();
+  const identity = [user?.id, user?.role, user?.account_type, user?.workspace_id, user?.client_id];
+  const query = useQuery({
+    queryKey: ['sync-logs', identity, clientId], enabled: status === 'authenticated',
+    queryFn: async ({ signal }) => parseSyncLogs((await syncLogsAPI.list(clientId ? { client: clientId } : {}, signal)).data),
+  });
+  const data = privateSnapshot(query);
+  return { logs: data || [], hasData: data !== undefined, loading: query.isPending,
+    refreshing: query.isFetching && data !== undefined, error: query.error,
+    offline: query.fetchStatus === 'paused', refetch: query.refetch };
 }
 
 export function useGoalProgress(clientId, month, year) {

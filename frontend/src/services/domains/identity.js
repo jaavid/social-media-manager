@@ -48,7 +48,7 @@ export const soloAPI = {
 };
 
 export const sessionsAPI = {
-  list:      ()        => api.get  ('/auth/sessions/'),
+  list:      (signal)  => api.get  ('/auth/sessions/', { signal }),
   revoke:    (id)      => api.post (`/auth/sessions/${id}/revoke/`, {}),
   revokeAll: (keepJti) => api.post ('/auth/sessions/revoke-all/',  { keep_jti: keepJti || '' }),
 };

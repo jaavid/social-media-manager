@@ -21,22 +21,18 @@ import {
   Shield,
   ShieldCheck,
   ShieldOff,
-  Smartphone,
   Key,
   RefreshCw,
   AlertTriangle,
   X,
   Copy,
-  LogOut,
-  Monitor,
   Wand2,
 } from 'lucide-react';
-import { mfaAPI, sessionsAPI } from '../../../services/api';
+import { mfaAPI } from '../../../services/api';
 import toast from '../../../components/ui/toast';
 import Button from '../../../components/ui/Button';
 import Card from '../../../components/ui/Card';
 import Badge from '../../../components/ui/Badge';
-import EmptyState from '../../../components/ui/EmptyState';
 
 // ─────────────────────────────────────────────────────────────────────────
 // MFA Manager
@@ -521,154 +517,4 @@ function DisableMfaModal({ busy, onClose, onConfirm }) {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────
-// Active sessions
-// ─────────────────────────────────────────────────────────────────────────
-export function ActiveSessionsList() {
-  const [sessions, setSessions] = useState([]);
-  const [loading, setLoading] = useState(true);
-  function load() {
-    setLoading(true);
-    sessionsAPI
-      .list()
-      .then((r) => setSessions(r.data?.sessions || []))
-      .catch(() => toast.error('Could not load sessions'))
-      .finally(() => setLoading(false));
-  }
-  useEffect(() => {
-    load();
-  }, []);
-  async function revoke(id) {
-    if (
-      !window.confirm(
-        'Revoke this session? The device will be signed out immediately.',
-      )
-    )
-      return;
-    try {
-      await sessionsAPI.revoke(id);
-      toast.success('Session revoked');
-      load();
-    } catch {
-      toast.error('Could not revoke');
-    }
-  }
-  async function revokeAll() {
-    if (
-      !window.confirm('Sign out of every other device? This cannot be undone.')
-    )
-      return;
-    try {
-      const r = await sessionsAPI.revokeAll();
-      toast.success(`${r.data.revoked} session(s) revoked`);
-      load();
-    } catch {
-      toast.error('Could not sign out everywhere');
-    }
-  }
-  if (loading)
-    return (
-      <Card padding="md">
-        <div className={cn('[color:var(--text-tertiary)]')}>
-          Loading sessions…
-        </div>
-      </Card>
-    );
-  const active = sessions.filter((s) => s.is_active);
-  return (
-    <Card padding="none">
-      <div
-        className={cn(
-          '[padding:14px_18px]',
-          '[border-bottom:1px_solid_var(--border-subtle)]',
-          '[display:flex]',
-          '[align-items:center]',
-          '[gap:8px]',
-        )}
-      >
-        <Monitor size={16} />
-        <div className={cn('[flex:1]')}>
-          <div className={cn('[font-size:14px]', '[font-weight:700]')}>
-            Active sessions
-          </div>
-          <div
-            className={cn('[font-size:12px]', '[color:var(--text-tertiary)]')}
-          >
-            {active.length} active · {sessions.length - active.length} revoked
-            (last 90 days)
-          </div>
-        </div>
-        {active.length > 1 && (
-          <Button size="sm" variant="ghost" icon={LogOut} onClick={revokeAll}>
-            Sign out everywhere
-          </Button>
-        )}
-      </div>
-
-      {sessions.length === 0 ? (
-        <EmptyState
-          icon={Smartphone}
-          title="No sessions yet"
-          description="Your active sessions will appear here."
-          compact
-        />
-      ) : (
-        sessions.map((s, i) => (
-          <div
-            key={s.id}
-            className={cn(
-              '[display:grid]',
-              '[grid-template-columns:1fr_auto]',
-              '[gap:12px]',
-              '[padding:12px_18px]',
-              i > 0
-                ? '[border-top:1px_solid_var(--border-subtle)]'
-                : '[border-top:none]',
-              s.is_active ? '[opacity:1]' : '[opacity:0.55]',
-              '[align-items:center]',
-            )}
-          >
-            <div>
-              <div className={cn('[font-size:13px]', '[font-weight:600]')}>
-                {s.browser || 'Unknown browser'} on {s.os || 'unknown OS'}{' '}
-                <span
-                  className={cn(
-                    '[font-size:11px]',
-                    '[color:var(--text-tertiary)]',
-                  )}
-                >
-                  · {s.device || 'device'}
-                </span>
-                {!s.is_active && (
-                  <Badge className={cn('[margin-inline-start:6px]')}>
-                    Revoked
-                  </Badge>
-                )}
-              </div>
-              <div
-                className={cn(
-                  '[font-size:11px]',
-                  '[color:var(--text-tertiary)]',
-                  '[margin-top:2px]',
-                )}
-              >
-                {s.ip || 'unknown IP'} · last used{' '}
-                {new Date(s.last_used_at).toLocaleString()}
-              </div>
-            </div>
-            {s.is_active && (
-              <Button
-                size="sm"
-                variant="ghost"
-                iconOnly
-                icon={X}
-                aria-label="Revoke session"
-                onClick={() => revoke(s.id)}
-              />
-            )}
-          </div>
-        ))
-      )}
-    </Card>
-  );
-}
+export { default as ActiveSessionsList } from './ActiveSessionsList';

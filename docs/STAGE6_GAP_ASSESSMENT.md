@@ -366,3 +366,89 @@ workspace business-profile forms and their destructive actions; other complex
 editor controls/VariableInserter, legacy data hooks/keys/static catalogues,
 route-specific skeletons, raw logging/copy and exhaustive legacy contrast/failure
 coverage. No Stage 7/#116, provider work, adapter-wide removal or dependency change.
+
+### Remaining recovery rollout — latest main after #174
+
+Reconciled against main `db9020528e31fd035ad89efd036329e6022c1c60` on
+2026-10-07. #166–#168, #171–#173 and #174 are merged. The issue comment describing
+an unmerged Stage 6 stack is historical. MetaAdsPicker, NodeInspector,
+TriggerConfigModal, BotFlowEditor and ProfileSettings retain their existing
+contracts and tests; these implementations are not repeated. #70/#67 are complete.
+
+Two active legacy surfaces are migrated here:
+
+- Sync Logs: `useSyncLogs` uses Query ownership including user/role/account type,
+  workspace and requested client, passes AbortSignal and validates the collection.
+  Same-key refresh failures retain rows and local filters; 401/403/404 hide private
+  rows. Empty is possible only after a verified success. No-results clears filters.
+  This endpoint returns the latest 100 records; filters explicitly apply to loaded
+  records, not a claim of exhaustive history. Provider keys come from returned
+  records, including unknown providers. Raw provider exception text is excluded
+  from the display DTO rather than exposed in an expandable error cell.
+- Active sessions: the existing account-owned GET and POST contracts are unchanged.
+  Keys and draft remount include resolved identity/workspace. Validated reads,
+  status-aware retry, offline/reconnect, local errors and retained background data
+  replace guessed empty lists. Revoke uses the canonical alertdialog with Cancel
+  initial focus and trigger/heading restoration. Pending writes lock dismissal and
+  submission. A malformed or uncertain result never announces success; a verified
+  read is required before manually retrying an uncertain operation. Late writes
+  after context changes cannot update the new screen. No mutation is automatically
+  retried or queued. Sign-out-everywhere copy accurately includes the current
+  browser session: the existing API receives no browser-readable JWT/keep_jti.
+  Changing which sessions the backend revokes is outside this migration.
+
+Acceptance is assessed at whole-issue scope below. Previous "done" rows describing
+changed families are evidence for those families, not a certificate for every
+legacy route. **#106 remains open.**
+
+| Original #106 criterion | Current whole-issue assessment / evidence |
+| --- | --- |
+| Native loading/error/global-error/not-found/Suspense | Implemented: native route fallbacks, `RouteFailure`, account Suspense; existing RouteFailure/frontend-contracts tests. Legacy layout-specific skeleton coverage remains below. |
+| Local failures retain ProductShell | Implemented in migrated families, including these two; `ErrorBoundary`, browser shell assertions. Remaining legacy raw-response render paths require family coverage. |
+| Root/global fallback independent of providers | Complete: `app/global-error.jsx` and provider-free `RouteFailure`; existing Jest/browser evidence retained. |
+| Public/server-safe cache/revalidation | Complete for current server DAL: no-store request-owned auth; public report intentionally uses token-scoped Query. No new server fetch introduced. |
+| Private feature-owned data abstraction | Remaining: old useData OAuth/overview/goals/alerts/lookups and NotificationBell's separate notification reader; Sync Logs is now migrated. |
+| Identity/workspace/filter keys and cache invalidation | Resolved provider replacement/clear on identity/logout is implemented in AppProviders. Remaining legacy local readers do not encode all ownership and must be migrated; these two queries and their race tests are complete. |
+| Abort/race prevention | Complete for migrated families; new hook/component and browser tests cover delayed reads and writes on account/workspace switch. Remaining old readers lack the same guarantee. |
+| Distinguishable error envelope | Shared apiError/status/reference contract implemented. These two validate malformed collections/writes and never expose raw errors. Remaining legacy consumers still flatten errors. |
+| 401/revocation; 5xx preserves credentials | Complete shared #110 contract; new browser 401 cases use real client invalidation and redirect, 503 cases preserve the shell and permit recovery. |
+| Retry by status/idempotency | Shared Query policy complete (429/auth/malformed not auto-retried; transport/5xx reads retry once). New revocations do not auto-retry and uncertain outcomes require verification. Audit remaining manual mutation paths separately. |
+| Inline actionable errors; no double-toast/false-success | Complete in migrated families. Remaining MFA/APIKeys/privacy, NotificationBell actions and other legacy mutations still need checked success and inline recovery. |
+| Layout skeleton; busy/status | These collections use canonical skeletons and busy/status. Remaining legacy route loaders are not all matched to page layout. |
+| Empty only after success | Complete in migrated families including these two. Remaining `DataPrivacySection.loadAll` synthesizes empty/default responses on errors; MFA status failure still falls through to disabled UI. |
+| No-results differs from empty | Complete in migrated collections; Sync Logs browser/Jest covers both. Remaining legacy collection consumers need individual verification. |
+| Refresh retains loaded data | Complete in migrated families and these two; new malformed/background/offline browser cases. Remaining old state hooks need race/refresh coverage. |
+| Recoverable failure retains form/editor input | Existing Profile/Composer/Bot/Video/reply recovery retained. New session confirmation preserves captured target. Remaining account deletion/password/agency, developer/privacy and workspace business-profile drafts need their own guarantees. |
+| Offline/reconnect | Shared safe Query reconnect and no queued writes retained; these two browser flows and revocation replay tests pass. Remaining local polling/mutation families need migration. |
+| Safe correlation/reference integration | Implemented shared contract and validated x-request-id surfaces; new browser references are asserted. Remaining legacy surfaces do not all use it. |
+| No credential/private-content leak | Changed surfaces use checked DTOs and semantic failures, omitting provider diagnostics. Remaining raw error/log consumers require owner migration; no repository-wide certification. |
+| Slow/initial/background/malformed/offline/status browser matrix | Covered for previously migrated main families and these two. Remaining settings, notification/action and legacy editor families prevent whole-issue completion. |
+| Network/5xx never empty/success | These two are covered by parser, Jest and browser regressions. Known privacy/MFA/notification gaps above remain. |
+| Rapid scope/filter changes never stale results | These two now have hook/component and browser identity/workspace races; Sync Logs filters are synchronous local views. Remaining old local readers need equivalent guards. |
+| Retry repeats same operation safely | New read retry preserves scope; revocation retains target, verifies ambiguous outcome and does not replay on reconnect. Remaining manually implemented mutations need status/idempotency review. |
+| Focus/reduced motion/screen-reader | These two use DataState/canonical controls and browser keyboard, Cancel/Escape, focus restoration, busy/status and reduced-motion checks in fa/en light/dark at 360/1440. Remaining family matrices are incomplete. |
+| Shell and inputs retained | These two browser/unit regressions plus existing Stage 5/6 editor/profile evidence. Remaining legacy forms and sibling-section partial failures still need coverage. |
+| Required checks stay green | Validation belongs to the final PR/CI result. Existing lint/i18n/architecture thresholds and dependencies are unchanged. All-files pre-commit has existing repository hygiene/Ruff debt; unrelated autofixes must be restored. |
+
+Implementation/test references: `lib/recoveryCollections`, `useData.useSyncLogs`,
+`SyncLogsPage`, `settings/components/ActiveSessionsList`, their Jest regressions
+and `e2e/state-recovery-remaining.spec.js`. Before images in
+`e2e/evidence/state-recovery` are from detached main `db90205` with initial 503;
+after images demonstrate initial failure recovery and failed background refresh with retained rows. Browser
+transport fixtures do not certify live provider availability or remote exactly-once
+delivery. No backend/session/provider schema or dependency is changed.
+
+Next priority by user impact: MFA and privacy/deletion (false disabled/default
+state and destructive actions), API keys/password/agency/workspace forms, then
+notification/alert polling and actions plus other live legacy data-hook consumers.
+GoalTracker and useOverview/useGoals currently have no active route consumer;
+do not prioritize unused abstractions ahead of live failures. Finish the remaining
+editor controls and route skeleton/failure/accessibility matrices afterward.
+
+**#112 coordination:** neither migrated flow depends on new provider capabilities.
+Sync Logs displays returned provider identifiers without a duplicated platform
+inventory. Actual remaining catalogue coupling is `services/platforms.js`,
+`useLookups`' PLATFORM_LIST filtering, and its Settings/Onboarding/PostIdeas/MyPosts
+consumers. Their registry metadata/unknown-provider semantics must be reconciled
+with #112 before retiring the static compatibility catalogue. Recovery migration
+of those reads does not require waiting for a new provider or changing #111/#110.
