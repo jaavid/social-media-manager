@@ -96,7 +96,7 @@ export const auditAPI = {
 };
 
 export const notificationsAPI = {
-  getPreferences: ()       => api.get('/notifications/preferences/'),
+  getPreferences: (signal) => api.get('/notifications/preferences/', { signal }),
   putPreferences: (matrix) => api.put('/notifications/preferences/', { matrix }),
   approvalQueue:  (params) => api.get('/composer/approvals/', { params }),
 };

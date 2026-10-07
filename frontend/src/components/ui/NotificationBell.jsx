@@ -20,11 +20,15 @@ import {
   Building2, CheckCircle, XCircle, Info, Loader2,
 } from 'lucide-react';
 import { useAlerts } from '../../hooks/useData';
-import { notificationAPI, invitationAPI } from '../../services/api';
+import { invitationAPI } from '../../services/api';
 import { useSession as useAuth } from '../../core/session';
+import useNotificationFeed from '@/hooks/useNotificationFeed';
+import FeedState from './FeedState';
+import { useCheckedAction, WriteState } from './accountRecovery';
+import { useLanguage } from '@/i18n';
 import { formatTimeAgo } from '../../services/formatters';
 
-const CYAN = '#00d7ff';
+const CYAN = 'var(--brand-primary)';
 const DROPDOWN_WIDTH = 576;
 const VIEWPORT_GUTTER = 12;
 
@@ -56,7 +60,14 @@ function timeAgo(dateStr) {
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
-export default function NotificationBell({ clientId, variant = 'default' }) {
+export default function NotificationBell(props) {
+  const { user, status } = useAuth();
+  return <BellContent key={JSON.stringify([status, user?.id, user?.role, user?.workspace_id, user?.client_id, props.clientId])} {...props} />;
+}
+function BellContent({ clientId, variant = 'default' }) {
+  const { t } = useLanguage();
+  const inviteAction = useCheckedAction();
+  const [sessionRefreshFailed, setSessionRefreshFailed] = useState(false);
   const { refreshAuth, status, user } = useAuth();
   const navigate        = useNavigate();
   const dropRef         = useRef(null);
@@ -69,43 +80,17 @@ export default function NotificationBell({ clientId, variant = 'default' }) {
   // ── Alerts ──────────────────────────────────────────────────────────────────
   const hasAlertScope = !!user && (user.role !== 'client' || !!user.client_id);
   const pollingEnabled = status === 'authenticated' && hasAlertScope;
-  const { alerts, unreadCount: alertUnread, markRead: markAlertRead, markAllRead: markAllAlerts } = useAlerts(clientId, {
+  const alertFeed = useAlerts(clientId, {
     enabled: pollingEnabled,
     scopeKey: user?.id,
   });
 
+  const { alerts, unreadCount: alertUnread, markRead: markAlertRead, markAllRead: markAllAlerts } = alertFeed;
+
   // ── Notifications ────────────────────────────────────────────────────────────
-  const [notifs, setNotifs]         = useState([]);
-  const [responding, setResponding] = useState(null);
-  const notifRequestRef = useRef(null);
-
-  const fetchNotifs = useCallback(async () => {
-    if (!pollingEnabled) return;
-    notifRequestRef.current?.abort();
-    const controller = new AbortController();
-    notifRequestRef.current = controller;
-    try {
-      const res = await notificationAPI.list({ signal: controller.signal });
-      setNotifs(res.data);
-    } catch { /* ignore */ }
-  }, [pollingEnabled]);
-
-  useEffect(() => {
-    if (!pollingEnabled) {
-      setNotifs([]);
-      notifRequestRef.current?.abort();
-      return undefined;
-    }
-    fetchNotifs();
-    const id = setInterval(fetchNotifs, 30000);
-    return () => {
-      clearInterval(id);
-      notifRequestRef.current?.abort();
-    };
-  }, [fetchNotifs, pollingEnabled, user?.id]);
-
-  const notifUnread  = notifs.filter(n => !n.is_read).length;
-  const totalUnread  = alertUnread + notifUnread;
+  const notifFeed = useNotificationFeed('notifications', clientId, { enabled: pollingEnabled });
+  const { rows: notifs, unreadCount: notifUnread, markRead: markNotifRead, markAllRead: markAllNotifs, refetch: fetchNotifs } = notifFeed;
+  const totalUnread = alertUnread + notifUnread;
 
   // ── Close on outside click ───────────────────────────────────────────────────
   useEffect(() => {
@@ -113,38 +98,35 @@ export default function NotificationBell({ clientId, variant = 'default' }) {
     function handle(e) {
       const inBtn  = btnRef.current  && btnRef.current.contains(e.target);
       const inDrop = dropRef.current && dropRef.current.contains(e.target);
-      if (!inBtn && !inDrop) setOpen(false);
+      if (!inBtn && !inDrop && !inviteAction.busy) setOpen(false);
     }
+    const keyboard = event => { if (event.key === 'Escape' && !inviteAction.busy) { setOpen(false); btnRef.current?.focus(); } };
     document.addEventListener('mousedown', handle);
-    return () => document.removeEventListener('mousedown', handle);
+    document.addEventListener('keydown', keyboard);
+    return () => { document.removeEventListener('mousedown', handle); document.removeEventListener('keydown', keyboard); };
+  }, [open, inviteAction.busy]);
+
+  useEffect(() => {
+    if (!open) return;
+    const frame = requestAnimationFrame(() => dropRef.current?.querySelector('[role="dialog"] button')?.focus());
+    return () => cancelAnimationFrame(frame);
   }, [open]);
 
   // ── Notification actions ─────────────────────────────────────────────────────
-  const markNotifRead = async (id) => {
-    await notificationAPI.markRead(id);
-    setNotifs(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
-  };
-
-  const markAllNotifs = async () => {
-    await notificationAPI.markAll();
-    setNotifs(prev => prev.map(n => ({ ...n, is_read: true })));
-  };
-
-  const handleRespond = async (notif, action) => {
+  const handleRespond = (notif, action) => {
     const token = notif.data?.token;
-    if (!token) return;
-    setResponding(notif.id + action);
-    try {
+    if (typeof token !== 'string' || !token || notifFeed.denied) return;
+    inviteAction.run(async () => {
       const res = await invitationAPI.respond(token, action);
-      if (action === 'accept') {
-        await refreshAuth(res.data.access, res.data.refresh);
-        setOpen(false);
-        navigate('/dashboard', { replace: true });
-      }
-      markNotifRead(notif.id);
-      fetchNotifs();
-    } catch { /* ignore */ }
-    finally { setResponding(null); }
+      if (!res.data || res.data.status !== (action === 'accept' ? 'accepted' : 'rejected') || (action === 'accept' && res.data.session !== true)) throw new Error('Invalid invitation acknowledgment');
+      return action;
+    }, async confirmed => {
+      // A lost session refresh does not justify another invitation response.
+      await markNotifRead(notif.id);
+      if (!inviteAction.alive.current) return;
+      if (confirmed === 'accept') { try { await refreshAuth(); if (inviteAction.alive.current) { setOpen(false); navigate('/dashboard', { replace: true }); } } catch { if (inviteAction.alive.current) setSessionRefreshFailed(true); } }
+      else await fetchNotifs();
+    });
   };
 
   const recentAlerts = alerts.slice(0, 20);
@@ -181,7 +163,7 @@ export default function NotificationBell({ clientId, variant = 'default' }) {
 
   return (
     <div ref={dropRef} style={s.wrap}>
-      <button ref={btnRef} onClick={handleToggle} style={{ ...s.btn, ...(variant === 'ghost' ? s.ghostBtn : {}) }} title="Notifications & Alerts">
+      <button ref={btnRef} onClick={handleToggle} style={{ ...s.btn, ...(variant === 'ghost' ? s.ghostBtn : {}) }} title="Notifications & Alerts" aria-expanded={open} aria-haspopup="dialog">
         <Bell size={20} />
         {totalUnread > 0 && (
           <span style={{ ...s.badge, ...(variant === 'ghost' ? s.ghostBadge : {}) }}>{totalUnread > 99 ? '99+' : totalUnread}</span>
@@ -189,22 +171,22 @@ export default function NotificationBell({ clientId, variant = 'default' }) {
       </button>
 
       {open && (
-        <div className="notif-dropdown" style={{ ...s.dropdown, position: 'fixed', top: dropPos.top, left: dropPos.left, width: dropPos.width }}>
+        <div role="dialog" aria-label={t('preferences.title')} className="notif-dropdown" style={{ ...s.dropdown, position: 'fixed', top: dropPos.top, left: dropPos.left, width: dropPos.width }}>
           {/* Header */}
           <div style={s.dropHead}>
             <span style={s.dropTitle}>Notifications</span>
             <div style={{ display: 'flex', gap: 4 }}>
               {tab === 'alerts' && alertUnread > 0 && (
-                <button onClick={markAllAlerts} style={s.iconBtn} title="Mark all read">
+                <button disabled={alertFeed.busy || alertFeed.write?.uncertain} onClick={markAllAlerts} style={s.iconBtn} title="Mark all read">
                   <CheckCheck size={15} />
                 </button>
               )}
               {tab === 'notifs' && notifUnread > 0 && (
-                <button onClick={markAllNotifs} style={s.iconBtn} title="Mark all read">
+                <button disabled={notifFeed.busy || notifFeed.write?.uncertain} onClick={markAllNotifs} style={s.iconBtn} title="Mark all read">
                   <CheckCheck size={15} />
                 </button>
               )}
-              <button onClick={() => setOpen(false)} style={s.iconBtn}>
+              <button aria-label={t('recovery.cancel')} onClick={() => { setOpen(false); btnRef.current?.focus(); }} style={s.iconBtn}>
                 <X size={15} />
               </button>
             </div>
@@ -230,9 +212,12 @@ export default function NotificationBell({ clientId, variant = 'default' }) {
 
           {/* Content */}
           <div style={s.list}>
+            <FeedState feed={tab === 'alerts' ? alertFeed : notifFeed} />
+            <WriteState action={inviteAction} uncertainKey="invitation.unknown" />
+            {sessionRefreshFailed && <p role="alert">{t('agency.sessionFailed')}</p>}
             {tab === 'alerts' && (
               recentAlerts.length === 0
-                ? <div style={s.empty}>No alerts yet.</div>
+                ? (alertFeed.data && !alertFeed.query.isError && !alertFeed.offline ? <div role="status" style={s.empty}>{t('feed.emptyAlerts')}</div> : null)
                 : recentAlerts.map(alert => {
                     const cfg  = ALERT_ICONS[alert.alert_type] || ALERT_ICONS.sync_failed;
                     const Icon = cfg.icon;
@@ -240,7 +225,7 @@ export default function NotificationBell({ clientId, variant = 'default' }) {
                   <div
                         key={alert.id}
                         style={{ ...s.item, ...(alert.is_read ? {} : s.itemUnread) }}
-                        onClick={() => !alert.is_read && markAlertRead(alert.id)}
+                        role="button" tabIndex={0} aria-disabled={alertFeed.busy || alertFeed.write?.uncertain} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (!alert.is_read) markAlertRead(alert.id); } }} onClick={() => !alert.is_read && markAlertRead(alert.id)}
                       >
                         <div style={{ ...s.iconWrap, background: cfg.color + '20' }}>
                           <Icon size={14} style={{ color: cfg.color }} />
@@ -262,7 +247,7 @@ export default function NotificationBell({ clientId, variant = 'default' }) {
 
             {tab === 'notifs' && (
               recentNotifs.length === 0
-                ? <div style={s.empty}>No notifications yet.</div>
+                ? (notifFeed.data && !notifFeed.query.isError && !notifFeed.offline ? <div role="status" style={s.empty}>{t('feed.emptyNotifications')}</div> : null)
                 : recentNotifs.map(n => {
                     const cfg  = NOTIF_ICONS[n.notif_type] || NOTIF_ICONS.system;
                     const Icon = cfg.icon;
@@ -277,7 +262,7 @@ export default function NotificationBell({ clientId, variant = 'default' }) {
                           <Icon size={14} style={{ color: cfg.color }} />
                         </div>
                         <div style={s.itemBody}>
-                          <div style={s.itemTitle}>{n.title}</div>
+                          <button type="button" disabled={notifFeed.busy || notifFeed.write?.uncertain} onClick={e => { e.stopPropagation(); if (!n.is_read) markNotifRead(n.id); }} style={s.itemTitle}>{n.title}</button>
                           {n.body && <div style={s.itemBodyText}>{n.body}</div>}
                           <div style={s.itemMeta}>
                             <span style={s.time}>{timeAgo(n.created_at)}</span>
@@ -286,10 +271,10 @@ export default function NotificationBell({ clientId, variant = 'default' }) {
                             <div style={s.invActions}>
                               <button
                                 style={s.acceptBtn}
-                                disabled={!!responding}
+                                disabled={inviteAction.locked || notifFeed.busy}
                                 onClick={e => { e.stopPropagation(); handleRespond(n, 'accept'); }}
                               >
-                                {responding === n.id + 'accept'
+                                {inviteAction.busy
                                   ? <Loader2 size={11} style={{ animation: 'spin .8s linear infinite' }} />
                                   : <CheckCircle size={11} />
                                 }
@@ -297,10 +282,10 @@ export default function NotificationBell({ clientId, variant = 'default' }) {
                               </button>
                               <button
                                 style={s.rejectBtn}
-                                disabled={!!responding}
+                                disabled={inviteAction.locked || notifFeed.busy}
                                 onClick={e => { e.stopPropagation(); handleRespond(n, 'reject'); }}
                               >
-                                {responding === n.id + 'reject'
+                                {inviteAction.busy
                                   ? <Loader2 size={11} style={{ animation: 'spin .8s linear infinite' }} />
                                   : <XCircle size={11} />
                                 }

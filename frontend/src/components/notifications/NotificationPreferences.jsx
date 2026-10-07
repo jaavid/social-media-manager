@@ -6,159 +6,49 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
-import { useEffect, useState } from 'react';
-import { Bell, Loader2, Save } from 'lucide-react';
-import toast from '../ui/toast';
-
-import PageHeader from '../layout/PageHeader';
-import Card from '../ui/Card';
-import Button from '../ui/Button';
-import { useLanguage } from '../../i18n';
-import { notificationsAPI } from '../../services/api';
-
+import { useRef, useState } from 'react';
+import { useLanguage } from '@/i18n';
+import { notificationsAPI } from '@/services/domains/reporting';
+import { parsePreferences, parsePreferenceWrite } from '@/lib/settingsRecovery';
+import { AccountScope, useAccountRead, useCheckedAction, ReadState, WriteState } from '@/components/ui/accountRecovery';
+import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
 export default function NotificationPreferencesPage() {
-  const { tr } = useLanguage();
-  const [error, setError] = useState(false);
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    notificationsAPI.getPreferences()
-      .then((r) => setData(r.data))
-      .catch(() => { setError(true); toast.error(tr('Could not load preferences')); })
-      .finally(() => setLoading(false));
-  }, [tr]);
-
-  function toggle(eventId, channelId) {
-    setData((d) => {
-      const matrix = d.matrix.map((row) => row.event_type === eventId
-        ? { ...row, [channelId]: !row[channelId] }
-        : row);
-      return { ...d, matrix };
-    });
-  }
-
-  async function save() {
-    if (!data) return;
-    setSaving(true);
-    try {
-      const flat = [];
-      for (const row of data.matrix) {
-        for (const ch of data.channels) {
-          flat.push({ event_type: row.event_type, channel: ch.id, enabled: !!row[ch.id] });
-        }
-      }
-      await notificationsAPI.putPreferences(flat);
-      toast.success(tr("Preferences saved"));
-    } catch {
-      toast.error(tr("Save failed"));
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  if (loading) {
-    return <div style={{ padding: 32, textAlign: 'center' }}>
-      <Loader2 size={20} className="ds-spin" color="var(--text-tertiary)" />
-      <style>{`.ds-spin { animation: ds-spin 0.9s linear infinite; } @keyframes ds-spin { to { transform: rotate(360deg); } }`}</style>
-    </div>;
-  }
-
-  if (error || !data) return <div role="alert">
-    <p>{tr('Could not load preferences')}</p>
-    <Button onClick={() => { setError(false); setLoading(true); notificationsAPI.getPreferences().then(r => setData(r.data)).catch(() => setError(true)).finally(() => setLoading(false)); }}>{tr('Retry')}</Button>
+  return <AccountScope>{(identity, enabled, key) => <Preferences key={`${key}:${enabled}`} identity={identity} enabled={enabled} />}</AccountScope>;
+}
+function Preferences({ identity, enabled }) {
+  const { t } = useLanguage();
+  const resource = useAccountRead('notification-preferences', identity, enabled, notificationsAPI.getPreferences, parsePreferences);
+  const heading = useRef(null);
+  return <Card padding="md"><section aria-label={t('preferences.title')} className="space-y-4">
+    <h3 ref={heading} tabIndex={-1}>{t('preferences.title')}</h3>
+    <ReadState resource={resource} refresh={() => resource.query.refetch()} returnFocusRef={heading} />
+    {resource.data && <Draft resource={resource} heading={heading} />}
+  </section></Card>;
+}
+function Draft({ resource, heading }) {
+  const { t, tr } = useLanguage();
+  const [draft, setDraft] = useState(resource.data), [observed, setObserved] = useState(false);
+  const action = useCheckedAction();
+  const flat = () => draft.matrix.flatMap(row => draft.channels.map(c => ({ event_type: row.event_type, channel: c.id, enabled: row[c.id] })));
+  const refresh = async () => {
+    const result = await resource.query.refetch();
+    if (action.alive.current && result.isSuccess && action.uncertain) { action.verified(); setObserved(true); }
+    return result;
+  };
+  const save = () => {
+    if (action.denied || resource.denied) return;
+    const rows = flat(); setObserved(false);
+    action.run(async () => parsePreferenceWrite((await notificationsAPI.putPreferences(rows)).data, rows.length), async () => { await resource.commit(draft); heading.current?.focus(); });
+  };
+  return <div className="space-y-4">
+    {!action.denied && <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr><th className="p-2 text-start">{t('preferences.event')}</th>{draft.channels.map(c => <th className="p-2" key={c.id}>{tr(c.label)}</th>)}</tr></thead>
+      <tbody>{draft.matrix.map(row => { const label = draft.events.find(e => e.id === row.event_type).label;
+        return <tr key={row.event_type}><th scope="row" className="p-2 text-start">{tr(label)}</th>{draft.channels.map(c => <td className="p-2 text-center" key={c.id}><input type="checkbox" aria-label={`${tr(label)} · ${tr(c.label)}`} checked={row[c.id]} disabled={action.busy} onChange={() => setDraft(old => ({ ...old, matrix: old.matrix.map(r => r.event_type === row.event_type ? { ...r, [c.id]: !r[c.id] } : r) }))} /></td>)}</tr>;
+      })}</tbody></table></div>}
+    <WriteState action={action} recover={refresh} />
+    {observed && <p role="status">{t('preferences.observed')}</p>}{action.success && <p role="status">{t('account.saved')}</p>}
+    <Button onClick={save} disabled={action.locked || action.denied || resource.query.isFetching}>{t('preferences.save')}</Button>
+    <Button variant="ghost" onClick={refresh} disabled={action.busy || resource.query.isFetching}>{t('recovery.refresh')}</Button>
   </div>;
-
-  return (
-    <div style={{ paddingBottom: 32 }}>
-      <PageHeader
-        title={tr("Notification preferences")}
-        subtitle={tr("Pick the channels for each event type")}
-        action={<Button icon={Save} onClick={save} loading={saving}>{tr("Save")}</Button>}
-      />
-
-      <div style={{ padding: '0 24px' }}>
-        <Card padding="none" style={{ overflow: 'hidden' }}>
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-              <thead>
-                <tr>
-                  <th style={th}>{tr("Event")}</th>
-                  {data.channels.map((c) => (
-                    <th key={c.id} style={{ ...th, textAlign: 'center', minWidth: 90 }}>
-                      {tr(c.label)}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {data.matrix.map((row) => {
-                  const meta = data.events.find((e) => e.id === row.event_type) || { label: row.event_type };
-                  return (
-                    <tr key={row.event_type}>
-                      <td style={td}>
-                        <Bell size={12} color="var(--text-tertiary)"
-                              style={{ marginRight: 8, verticalAlign: 'middle' }} />
-                        {tr(meta.label)}
-                      </td>
-                      {data.channels.map((c) => (
-                        <td key={c.id} style={{ ...td, textAlign: 'center' }}>
-                          <Toggle
-                            label={`${tr(meta.label)} · ${tr(c.label)}`}
-                            value={!!row[c.id]}
-                            onChange={() => toggle(row.event_type, c.id)}
-                          />
-                        </td>
-                      ))}
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </Card>
-      </div>
-    </div>
-  );
 }
-
-function Toggle({ value, onChange, label }) {
-  return (
-    <button
-      type="button"
-      onClick={onChange}
-      role="switch"
-      aria-label={label}
-      aria-checked={value}
-      style={{
-        width: 40, height: 22, borderRadius: 999,
-        background: value ? 'var(--brand-primary)' : 'var(--surface-sunken)',
-        border: `1px solid ${value ? 'transparent' : 'var(--border-default)'}`,
-        cursor: 'pointer', padding: 2,
-        position: 'relative', display: 'inline-block',
-        minHeight: 'unset', minWidth: 'unset',
-        transition: 'var(--transition-fast)',
-      }}
-    >
-      <span style={{
-        position: 'absolute', top: 2,
-        left: value ? 20 : 2,
-        width: 16, height: 16, borderRadius: 999,
-        background: 'var(--surface-card)',
-        transition: 'left var(--transition-fast)',
-        boxShadow: '0 1px 2px rgba(0,0,0,0.2)',
-      }} />
-    </button>
-  );
-}
-
-const th = {
-  textAlign: 'left', padding: '12px 14px', fontSize: 11,
-  fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.4,
-  color: 'var(--text-tertiary)',
-  borderBottom: '1px solid var(--border-subtle)',
-  background: 'var(--surface-sunken)',
-};
-const td = { padding: '10px 14px', borderBottom: '1px solid var(--border-subtle)',
-              color: 'var(--text-primary)' };

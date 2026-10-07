@@ -6,8 +6,11 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
-import { useState, useEffect, useCallback } from 'react';
-import { alertsAPI } from '../services/api';
+import { useState } from 'react';
+import { useAlerts } from '@/hooks/useData';
+import { useLanguage } from '@/i18n';
+import FeedState from '@/components/ui/FeedState';
+import DataState from '@/components/ui/DataState';
 import { formatTimeAgo } from '../services/formatters';
 import { AlertCircle, CheckCircle, RefreshCw, Bell, BellOff, ChevronDown } from 'lucide-react';
 import SocialPlatformIcon from '../components/ui/SocialPlatformIcon';
@@ -24,42 +27,15 @@ const ALERT_TYPE_META = {
 };
 
 export default function AlertsPage() {
-  const [alerts, setAlerts]         = useState([]);
-  const [loading, setLoading]       = useState(true);
+  const { t } = useLanguage();
   const [filterType, setFilterType] = useState('all');
   const [filterRead, setFilterRead] = useState('unread');
-  const [marking, setMarking]       = useState(false);
-
-  const fetchAlerts = useCallback(() => {
-    setLoading(true);
-    const params = {};
-    if (filterRead === 'unread') params.is_read = false;
-    if (filterRead === 'read')   params.is_read = true;
-    alertsAPI.list(params)
-      .then(res => setAlerts(res.data?.results || res.data || []))
-      .catch(() => setAlerts([]))
-      .finally(() => setLoading(false));
-  }, [filterRead]);
-
-  useEffect(() => { fetchAlerts(); }, [fetchAlerts]);
+  const feed = useAlerts(null, { filters: filterRead === 'all' ? {} : { is_read: filterRead === 'read' } });
+  const { alerts, refetch: fetchAlerts, markRead: handleMarkRead, markAllRead: handleMarkAllRead, busy: marking, unreadCount } = feed;
 
   const filtered = filterType === 'all'
     ? alerts
     : alerts.filter(a => a.alert_type === filterType);
-
-  const unreadCount = alerts.filter(a => !a.is_read).length;
-
-  async function handleMarkRead(id) {
-    await alertsAPI.markRead(id);
-    setAlerts(prev => prev.map(a => a.id === id ? { ...a, is_read: true } : a));
-  }
-
-  async function handleMarkAllRead() {
-    setMarking(true);
-    await alertsAPI.markAllRead({});
-    setAlerts(prev => prev.map(a => ({ ...a, is_read: true })));
-    setMarking(false);
-  }
 
   const typeCounts = alerts.reduce((acc, a) => {
     acc[a.alert_type] = (acc[a.alert_type] || 0) + 1;
@@ -70,7 +46,7 @@ export default function AlertsPage() {
     <div className="app-page app-page--md">
       <PageHeader
         title="Alerts"
-        subtitle={unreadCount > 0
+        subtitle={!feed.data || feed.denied ? undefined : unreadCount > 0
           ? `${unreadCount} unread alert${unreadCount > 1 ? 's' : ''} across all users`
           : 'All caught up — no unread alerts'}
         actions={(
@@ -80,7 +56,7 @@ export default function AlertsPage() {
               Refresh
             </button>
             {unreadCount > 0 && (
-              <button onClick={handleMarkAllRead} disabled={marking} style={btnPrimary}>
+              <button onClick={handleMarkAllRead} disabled={marking || feed.write?.uncertain} style={btnPrimary}>
                 <CheckCircle size={14} />
                 {marking ? 'Marking…' : 'Mark All Read'}
               </button>
@@ -133,21 +109,9 @@ export default function AlertsPage() {
       />
 
       {/* Alert list */}
-      {loading ? (
-        <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-tertiary)', fontSize: 15 }}>
-          Loading alerts…
-        </div>
-      ) : filtered.length === 0 ? (
-        <div style={{
-          textAlign: 'center', padding: '60px 0', background: 'var(--surface-card)',
-          borderRadius: 16, border: '1px solid var(--border-default)',
-        }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>🎉</div>
-          <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: 16 }}>No alerts here</div>
-          <div style={{ color: 'var(--text-secondary)', fontSize: 13, marginTop: 6 }}>
-            {filterRead === 'unread' ? 'All alerts have been read.' : 'Nothing to show.'}
-          </div>
-        </div>
+      <FeedState feed={feed} />
+      {!feed.data ? null : filtered.length === 0 ? (
+        !feed.query.isError && !feed.offline && <DataState state={filterType === 'all' && filterRead === 'all' ? 'empty' : 'no-results'} title={t('feed.emptyAlerts')} />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {filtered.map(alert => {
@@ -211,7 +175,7 @@ export default function AlertsPage() {
                 {!alert.is_read && (
                   <button
                     onClick={() => handleMarkRead(alert.id)}
-                    title="Mark as read"
+                    title="Mark as read" disabled={marking || feed.write?.uncertain}
                     style={{
                       flexShrink: 0, background: 'none', border: '1.5px solid var(--border-default)',
                       borderRadius: 8, padding: '5px 12px', cursor: 'pointer',

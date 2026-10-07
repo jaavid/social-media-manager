@@ -28,7 +28,7 @@ export const metaAdsAPI = {
 };
 
 export const notificationPrefsAPI = {
-  get:    ()       => api.get ('/notifications/preferences/'),
+  get:    (signal) => api.get('/notifications/preferences/', { signal }),
   update: (rows)   => api.put ('/notifications/preferences/', { matrix: rows }),
 };
 
@@ -88,7 +88,7 @@ export const reviewAPI = {
 
 export const workspacesAPI = {
   list:        (params, signal) => api.get('/workspaces/', { params, signal }),
-  get:         (id)         => api.get(`/workspaces/${id}/`),
+  get:         (id, signal) => api.get(`/workspaces/${id}/`, { signal }),
   create:      (data)       => api.post('/workspaces/', data),
   update:      (id, data)   => api.patch(
     `/workspaces/${id}/`,

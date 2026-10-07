@@ -21,6 +21,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { QK } from '@/services/queryClient';
 import { useLanguage } from '@/i18n';
 import DataState from '@/components/ui/DataState';
+import { AccountScope, useAccountRead, useCheckedAction, ReadState, WriteState } from './components/accountRecovery';
+import { parseBusiness } from '@/lib/settingsRecovery';
 import Badge from '@/components/ui/Badge';
 import { useLookups } from '../../hooks/useData';
 import { workspacesAPI } from '../../services/api';
@@ -132,10 +134,17 @@ const GENDERS = [
   },
 ];
 export default function SettingsPage({ clientId: propClientId }) {
+  return <AccountScope>{(identity, enabled, key) => <SettingsBody key={`${key}:${propClientId}:${enabled}`} clientId={propClientId} identity={identity} enabled={enabled} />}</AccountScope>;
+}
+function SettingsBody({ clientId: propClientId, identity, enabled }) {
   const { user } = useAuth();
   const clientId = propClientId || user?.client_id;
   const queryClient = useQueryClient();
   const { t } = useLanguage();
+  const resource = useAccountRead('business-profile', [...identity, clientId], enabled && !!clientId, signal => workspacesAPI.get(clientId, signal), v => parseBusiness(v, clientId));
+  const action = useCheckedAction();
+  const initialized = useRef(false);
+  const heading = useRef(null);
   const { lookups, loading: lookupsLoading } = useLookups();
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
@@ -143,8 +152,8 @@ export default function SettingsPage({ clientId: propClientId }) {
   const [oauthMsg, setOauthMsg] = useState(null); // { type: 'success'|'error', text }
 
   // Business Profile State
-  const [profileLoading, setProfileLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const profileLoading = resource.query.isPending;
+  const saving = action.busy;
   const [activeTab, setActiveTab] = useState('accounts');
   const [formData, setFormData] = useState({
     // Business Basics
@@ -173,13 +182,14 @@ export default function SettingsPage({ clientId: propClientId }) {
     competitors: [],
   });
 
-  // Load client data
+  // Initialize once per captured context. Refreshes never overwrite an editable draft.
   useEffect(() => {
-    const loadClientData = async () => {
-      try {
-        const response = await workspacesAPI.get(clientId);
-        const client = response.data;
-        setFormData({
+    if (!resource.data || initialized.current) return;
+    initialized.current = true;
+    const client = resource.data;
+    queueMicrotask(() => {
+      if (!action.alive.current) return;
+      setFormData({
           name: client.name || '',
           company: client.company || '',
           email: client.email || '',
@@ -212,16 +222,8 @@ export default function SettingsPage({ clientId: propClientId }) {
                 ),
           })),
         });
-      } catch (error) {
-        console.error('Failed to load workspace data:', error);
-      } finally {
-        setProfileLoading(false);
-      }
-    };
-    if (clientId) {
-      loadClientData();
-    }
-  }, [clientId]);
+    });
+  }, [resource.data, action.alive]);
 
   // Handle OAuth result — wait until clientId is available before refetching
   useEffect(() => {
@@ -732,8 +734,9 @@ export default function SettingsPage({ clientId: propClientId }) {
     return fallback[category] || [];
   };
   const handleSave = async () => {
-    setSaving(true);
-    try {
+    if (action.locked || resource.denied || action.denied || !resource.data) return;
+    const captured = formData;
+    action.run(async () => {
       const submitData = new FormData();
       const normalizedData = {
         ...formData,
@@ -751,10 +754,9 @@ export default function SettingsPage({ clientId: propClientId }) {
         }
         if (key === 'profile_image' && formData[key]) {
           submitData.append(key, formData[key]);
-        } else if (key === 'product_images') {
-          formData[key].forEach((file, index) => {
-            submitData.append(`product_images[${index}]`, file);
-          });
+        } else if (key === 'product_images' || key === 'competitors') {
+          // These uploads/nested writes are not supported by ClientSerializer.
+          return;
         } else if (
           Array.isArray(formData[key]) ||
           typeof formData[key] === 'object'
@@ -764,14 +766,16 @@ export default function SettingsPage({ clientId: propClientId }) {
           submitData.append(key, formData[key]);
         }
       });
-      await workspacesAPI.update(clientId, submitData);
-      alert('Profile updated successfully!');
-    } catch (error) {
-      console.error('Failed to update profile:', error);
-      alert('Failed to update profile. Please try again.');
-    } finally {
-      setSaving(false);
-    }
+      const result = parseBusiness((await workspacesAPI.update(clientId, submitData)).data, clientId);
+      for (const field of ['name', 'company', 'email', 'phone', 'whatsapp_number', 'website', 'gmb_url', 'business_category', 'brand_description', 'usp', 'brand_tone', 'target_audience', 'gender', 'business_location']) {
+        if (result[field] !== captured[field]) throw new Error('Invalid business acknowledgment');
+      }
+      for (const field of ['business_subcategories', 'target_locations', 'brand_assets']) {
+        if (JSON.stringify(result[field]) !== JSON.stringify(captured[field])) throw new Error('Invalid business acknowledgment');
+      }
+      if (captured.profile_image && (!result.profile_image || result.profile_image === resource.data.profile_image)) throw new Error('Invalid photo acknowledgment');
+      return result;
+    }, async result => { await resource.commit(result); if (action.alive.current) setFormData(previous => ({ ...previous, profile_image: null })); });
   };
   return (
     <div className="app-page app-page--content app-page--lg">
@@ -918,6 +922,10 @@ export default function SettingsPage({ clientId: propClientId }) {
 
       {activeTab === 'profile' && (
         <div>
+          <h3 ref={heading} tabIndex={-1}>{t('business.title')}</h3>
+          <ReadState resource={resource} refresh={() => resource.query.refetch()} busy={saving} returnFocusRef={heading} />
+          <WriteState action={action} recover={async () => { const result = await resource.query.refetch(); if (action.alive.current && result.isSuccess) action.verified(); }} />
+          {action.success && <p role="status">{t('account.saved')}</p>}
           {profileLoading ? (
             <div
               className={cn(
@@ -939,8 +947,8 @@ export default function SettingsPage({ clientId: propClientId }) {
                 Loading profile...
               </div>
             </div>
-          ) : (
-            <div className={cn('[display:grid]', '[gap:24px]')}>
+          ) : resource.data && !action.denied ? (
+            <fieldset disabled={saving} className={cn('[display:grid]', '[gap:24px]', '[border:0]', '[padding:0]', '[min-width:0]')}>
               {/* Business Basics */}
               <div
                 className={cn(
@@ -1684,6 +1692,7 @@ export default function SettingsPage({ clientId: propClientId }) {
                       Keep a few product or service visuals handy for creative
                       generation later.
                     </div>
+<p id="business-upload-limit" className="text-sm">{t('business.uploadLimit')}</p>
                     <div className={cn('[display:grid]', '[gap:12px]')}>
                       <input
                         type="file"
@@ -1692,7 +1701,7 @@ export default function SettingsPage({ clientId: propClientId }) {
                         onChange={(e) =>
                           handleFileUpload('product_images', e.target.files)
                         }
-                        id="settings-product-images"
+                        disabled aria-describedby="business-upload-limit" id="settings-product-images"
                         className={cn('[display:none]')}
                       />
 
@@ -1782,7 +1791,8 @@ export default function SettingsPage({ clientId: propClientId }) {
                   '[box-shadow:0_2px_12px_rgba(0,0,0,.05)]',
                 )}
               >
-                <CompetitorSection
+                <p className="text-sm">{t('business.competitorLimit')}</p>
+                <fieldset disabled className="min-w-0 border-0 p-0"><CompetitorSection
                   competitors={formData.competitors}
                   socialPlatforms={socialPlatformOptions}
                   onAddCompetitor={addCompetitor}
@@ -1794,7 +1804,7 @@ export default function SettingsPage({ clientId: propClientId }) {
                   maxCompetitors={3}
                   title="Competitors"
                   subtitle="Keep your competitive set tidy and current so reports, ideas, and onboarding stay grounded in the right market context."
-                />
+                /></fieldset>
               </div>
 
               {/* Save Button */}
@@ -1824,7 +1834,7 @@ export default function SettingsPage({ clientId: propClientId }) {
                 </div>
                 <button
                   onClick={handleSave}
-                  disabled={saving}
+                  disabled={action.locked || resource.query.isFetching}
                   className={cn(
                     '[display:inline-flex]',
                     '[align-items:center]',
@@ -1868,8 +1878,8 @@ export default function SettingsPage({ clientId: propClientId }) {
                   )}
                 </button>
               </div>
-            </div>
-          )}
+            </fieldset>
+          ) : null}
         </div>
       )}
     </div>
