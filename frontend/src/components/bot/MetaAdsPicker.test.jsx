@@ -296,6 +296,7 @@ test('unverified saved ads survive editing another campaign until its read recov
   fireEvent.click(screen.getByLabelText(/Ad A/));
   expect(screen.getByTestId('selection')).toHaveTextContent('121');
   metaAdsAPI.ads.mockImplementation((w, a, c) => Promise.resolve(wire('ads', c === '12' ? [second] : [ad], { ad_account_id: a, campaign_id: c })));
+  expect(screen.getByRole('button', { name: 'Retry' })).toBeEnabled();
   fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
   await screen.findByLabelText(/Ad Two/);
   await waitFor(() => expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled());

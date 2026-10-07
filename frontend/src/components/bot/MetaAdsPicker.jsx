@@ -191,12 +191,13 @@ function ScopedPicker({ identity, workspace, value, onChange, onValidityChange, 
         </NativeSelect>
       )}
       {accountValid && (
-        <fieldset className="min-w-0 space-y-2" disabled={disabled || selectionPending}>
+        <fieldset className="min-w-0 space-y-2" disabled={disabled}>
           <legend className="ds-field-label">{t('meta.campaigns')}</legend>
           <ReadState query={campaigns} title={t('meta.campaigns')} />
           <div className="max-h-52 space-y-2 overflow-y-auto">
             {campaignData?.rows.map((row) => (
               <Checkbox
+                disabled={selectionPending}
                 className="flex w-full rounded border border-border p-2"
                 key={row.id}
                 label={row.name}
@@ -213,7 +214,7 @@ function ScopedPicker({ identity, workspace, value, onChange, onValidityChange, 
         </fieldset>
       )}
       {verifiedCampaigns.length > 0 && (
-        <fieldset className="min-w-0 space-y-2" disabled={disabled || selectionPending}>
+        <fieldset className="min-w-0 space-y-2" disabled={disabled}>
           <legend className="ds-field-label">{t('meta.ads')}</legend>
           {ads.map((query, i) => (
             <ReadState
@@ -234,6 +235,7 @@ function ScopedPicker({ identity, workspace, value, onChange, onValidityChange, 
           <div className="max-h-52 space-y-2 overflow-y-auto">
             {filtered.map((row) => (
               <Checkbox
+                disabled={selectionPending}
                 className="flex w-full rounded border border-border p-2"
                 key={row.id}
                 label={
