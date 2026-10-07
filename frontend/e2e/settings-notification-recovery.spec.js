@@ -16,6 +16,7 @@ async function fixture(page, family, language = 'en', theme = 'light') {
     const req = route.request(), path = new URL(req.url()).pathname;
     if (path === '/api/auth/session/') return route.fulfill({ json: { authenticated: true, csrfToken: 'fixture' } });
     if (path === '/api/auth/me/') return route.fulfill({ json: { id: state.user, role: family === 'agency' ? 'client' : 'superadmin', account_type: 'legacy', client_id: state.workspace, workspace_id: state.workspace, email: 'fixture@example.test', permissions: {} } });
+    if (path === '/api/public/lookups/') return route.fulfill({ json: {} });
     if (path === '/api/profile/') return route.fulfill({ json: { id: state.user, first_name: 'Fixture', last_name: 'User', email: 'fixture@example.test', avatar: null } });
     if (req.method() !== 'GET' && (path === paths[family] || path === '/api/profile/disconnect-agency/' || /\/alerts\/.*mark.*\/$/.test(path))) {
       state.writes++; if (state.delay) await new Promise(resolve => setTimeout(resolve, state.delay));
