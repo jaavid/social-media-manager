@@ -452,3 +452,109 @@ inventory. Actual remaining catalogue coupling is `services/platforms.js`,
 consumers. Their registry metadata/unknown-provider semantics must be reconciled
 with #112 before retiring the static compatibility catalogue. Recovery migration
 of those reads does not require waiting for a new provider or changing #111/#110.
+
+### Account security and privacy recovery — main after #175
+
+Started from `3e5751f894f174f31386751504dccf96398a5974`, the merge of #175.
+Read root/frontend AGENTS, CONTRIBUTING, complete #106/#112 bodies/comments,
+recent merged PRs #171–#175, the assessment above and current APIs/components.
+The historical unmerged-stack comments are superseded by current main ancestry.
+#70/#67, Sync Logs, Active Sessions, profile, bot controls and Meta Ads work is
+retained. No provider/session/API-client defaults or debt thresholds are changed.
+
+The pre-implementation reconciliation above still applies at whole-product scope.
+Native route/root boundaries, the shared #110 session/error/read-retry contract,
+scoped provider cache replacement and migrated collection/editor families are
+implemented and retain their evidence. This batch resolves the known MFA
+false-disabled and privacy fabricated-default gaps, plus the two distinct account
+deletion paths. It does **not** certify all legacy features or close #106.
+
+| #106 criterion group | This batch's implementation / evidence | Whole-product remainder |
+| --- | --- | --- |
+| Feature ownership, identity/workspace keys, abort/race protection | `accountRecovery` uses account-owned Query keys including role/account type/workspace, AbortSignal and keyed draft remounts. Late writes cannot apply to a replacement context. Parser/component/browser race regressions. | Other legacy local readers and polling paths still need ownership migration. |
+| Error envelope; 401 vs outage; retry/idempotency | Existing `apiError`, safe references, cookie session and Query read retry are reused. Writes have synchronous guards and no queue, retry or reconnect replay. Auth/permission/not-found hide affected data. | Legacy raw failures and manually written mutations outside this family remain. |
+| Initial/loading/refresh/empty/offline/forbidden/not-found/error | Checked DTOs; initial failure cannot imply disabled MFA, no consent, running processing or absent deletion. Each privacy card has its own read/state/retry. Valid empty collections/null request are explicit; MFA has enabled/disabled/pending states, not collection empty. Skeleton/busy/status reuse existing primitives. | Route-specific skeletons and exhaustive legacy family matrices remain. |
+| Data/draft preservation, local partial failure | Valid same-scope data, enrollment/code input, newly issued codes and deletion reason/typed confirmation survive recoverable failures. Valid mutation DTOs update only their resource; failed subsequent GET retains the acknowledged result. | Password/agency/business and other legacy drafts remain. |
+| Valid mutation outcome; no false success | Setup, verify, rotate, disable, export, consent, processing, scheduled deletion/cancel and immediate DELETE each validate their distinct response. Clipboard success waits for the actual Promise. Processing is per owned workspace and requires one affected row; no guessed aggregate pause boolean. | API-key create/revoke/copy and notification/alert actions remain. |
+| Focus, keyboard, pending, reduced motion | Existing Modal/alertdialog uses Cancel initial focus and trigger/heading restoration; pending prevents dismissal and duplicate submission. Inline failure receives focus; successful read recovery restores the heading. Technical codes use LTR. fa/en narrow/wide evidence and browser keyboard/reduced-motion tests. | Other old overlays/controls need family-level evidence. |
+| Secret/privacy safety and observability | MFA secret/QR/backup codes stay in component memory only; status DTO/cache excludes them. Error surfaces use semantic copy and validated reference IDs, not backend text. Export diagnostics are excluded and download URLs are checked against the existing token-download route. Synthetic fixtures only; sensitive browser tests disable trace/screenshot/video. | Repository-wide raw error/log/copy consumers are not certified. |
+| Required regression/browser/build checks | `accountRecovery.test.ts`, `AccountRecovery.test.jsx`, `account-recovery.spec.js` and `test_privacy_recovery.py`; final validation reported in PR. Baselines unchanged. | Existing all-files hygiene/Ruff debt remains distinct from changed-file checks. |
+
+#### Distinct wire contracts and recovery limits
+
+- MFA `/auth/mfa/status/` is the authority for enabled/pending/count. Setup actually
+  **rotates** the secret before verification; despite the backend's historical
+  "idempotent" wording, it is never automatically retried. Verify enables MFA and
+  returns ten one-time codes; regenerate replaces all previous codes; disable
+  returns `{ok:true}`. Malformed/lost writes are uncertain, require a verified
+  status read and never emit success. Status cannot retrieve a lost seed/codes or
+  prove which code generation is active. Restart/another rotation is an explicit
+  new confirmation, with the replacement/invalidation consequence explained.
+- Export GET is `{requests:[...]}` and POST is a single export DTO, subject to
+  in-flight conflict/cooldown. An uncertain POST requires reading the list; active
+  queued/processing exports prevent another request. No claim of exactly-once
+  dispatch, delivery email or automatic replay is introduced.
+- Consent GET returns a latest-decision map plus server-owned `available` types;
+  an omitted decision is explicitly "not recorded" rather than a network-derived
+  false. POST is append-only and must acknowledge the same type/value/date.
+- Processing GET is owned workspace rows. POST targets one captured workspace
+  (existing client/workspace vocabulary adapter retained) and must acknowledge the
+  requested boolean and exactly one affected workspace. Zero affected is failure.
+- Privacy deletion uses the existing 30-day POST request and POST cancellation.
+  A backward-compatible authenticated GET on `/privacy/delete-account/` now
+  returns `{request: latestAccountOwnedRequestOrNull}`. This was the missing
+  reconciliation reader; it never queues deletion and ignores supplied user IDs.
+  GET includes cancelled/processing/completed/failed states instead of fabricating
+  "no deletion" from exports. POST's existing queued-request idempotency and
+  cancellation behavior are retained. Unknown request/cancel outcomes require
+  verified GET before any new confirmation; cancellation 404 is not success.
+- The separate client profile DELETE is **immediate**, has no grace/cancel/status
+  endpoint and returns the existing exact `detail` acknowledgment. Unknown
+  completion locks further deletion and calls for checking account access/support;
+  it cannot safely be inferred from an unrelated failed profile GET. Verified
+  deletion followed by failed logout retries **only** the existing logout operation.
+  These tests use mocked transport or isolated Django test users, never live deletion.
+
+#### Actual #112 dependency and next batch
+
+MFA/privacy/deletion need no registry, provider capability or catalogue change.
+The remaining #112 dependency is still the static catalogue/`useLookups` coupling
+and Settings/Onboarding/PostIdeas/MyPosts consumers identified after #175. Those
+metadata/unknown-provider semantics must be reconciled before removing the adapter;
+independent recovery work can proceed now.
+
+Next priorities, verified against active source rather than redoing merged work:
+
+1. `SettingsSections.APIKeysSection`: unchecked list/create/revoke DTOs, ambiguous
+   one-time key issuance, unawaited clipboard, legacy destructive confirmation and
+   missing context/refresh preservation. Treat newly issued keys like MFA codes.
+2. `UserSettingsPage.SecurityTab` password and `AgencyTab`, then workspace business
+   forms in `SettingsPage`: checked outcomes, pending guards, retained input,
+   scoped/abortable reads and accessible confirmation/recovery. Password change
+   and agency disconnect must keep their actual session/role-specific semantics.
+3. `NotificationPreferences`, `AlertBell`/notification reader and `useAlerts`/AlertsPage:
+   scoped polling, malformed DTOs, local failures, permission/reconnect and checked
+   action outcomes. Preserve the fixes already made to session/operations paths.
+4. Remaining live legacy data hooks/keys, editor helpers, catalogue consumers and
+   route skeleton/accessibility/failure matrices. Unused overview/goals abstractions
+   still follow live user-impacting failures.
+
+Before/after evidence lives in `frontend/e2e/evidence/account-recovery/`; before
+uses detached main `3e5751f`, and after uses actual failed reads/retained state in
+fa/en, RTL/LTR, dark/light at 360/1440. No secrets, QR or backup codes are captured.
+Fixture evidence does not certify remote exactly-once behavior or real accounts.
+
+
+Final local validation (Node 20.20.2 / Python 3.12): 65 Jest suites / 328 tests,
+694 Django tests (3 existing skips), production build, typecheck, lint (zero
+errors/regressions), i18n (747 semantic keys), check:next, architecture and both
+production/mismatched-runtime proxy checks passed. Browser validation covered
+141 distinct changed/adjacent cases: the 135-case MFA/privacy/profile/session/log
+run plus six added initial-offline/initial-failure evidence cases; thirteen final
+context/keyboard/evidence cases were rerun successfully with normalized fixtures.
+Six baseline captures used the detached main production build. Changed-file
+pre-commit passed; all-files Gitleaks and Bandit passed. Mandatory all-files
+pre-commit still reports the pre-existing hygiene/Ruff debt (271 findings before
+fixes). Unrelated autofixes and regenerated historical evidence were restored;
+no gate or debt baseline was weakened. Full Docker/ingress and full browser CI
+results belong to the PR's Tests workflow, not a local certification.

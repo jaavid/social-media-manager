@@ -54,7 +54,7 @@ export const sessionsAPI = {
 };
 
 export const mfaAPI = {
-  status:               ()       => api.get  ('/auth/mfa/status/'),
+  status:               (signal) => api.get  ('/auth/mfa/status/', { signal }),
   setup:                ()       => api.post ('/auth/mfa/setup/', {}),
   verifySetup:          (code)   => api.post ('/auth/mfa/verify-setup/', { code }),
   login:                (data)   => api.post ('/auth/mfa/login/', data),
@@ -69,19 +69,20 @@ export const apiKeysAPI = {
 };
 
 export const privacyAPI = {
-  exportList:    ()       => api.get  ('/privacy/export-request/'),
+  exportList:    (signal) => api.get  ('/privacy/export-request/', { signal }),
   exportRequest: ()       => api.post ('/privacy/export-request/', {}),
   // download is a direct file URL — no JSON wrapper
 
+  deletionStatus:      (signal) => api.get ('/privacy/delete-account/', { signal }),
   deleteAccount:       (reason) => api.post ('/privacy/delete-account/',         { reason: reason || '' }),
   cancelDeleteAccount: ()       => api.post ('/privacy/delete-account/cancel/',  {}),
 
-  processingStatus:    ()                     => api.get  ('/privacy/processing-status/'),
+  processingStatus:    (signal)               => api.get  ('/privacy/processing-status/', { signal }),
   setProcessingPaused: (paused, clientId)     => api.post ('/privacy/processing-status/', {
     paused: !!paused, ...(clientId ? { client_id: clientId } : {}),
   }),
 
-  consents:    ()                          => api.get ('/privacy/consents/'),
+  consents:    (signal)                    => api.get ('/privacy/consents/', { signal }),
   setConsent:  (consentType, given, via)   => api.post('/privacy/consents/', {
     consent_type: consentType, given: !!given, given_via: via || 'settings_page',
   }),
