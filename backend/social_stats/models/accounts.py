@@ -7,6 +7,8 @@
 #  Released under the MIT License — see LICENSE. Keep this notice.
 # ============================================================================
 """Accounts models."""
+from social_stats.entitlements import EntitledResourceMixin
+
 from django.db import models
 from django.utils import timezone
 from datetime import timedelta
@@ -15,7 +17,7 @@ from social_stats.platforms.registry import PLATFORM_CHOICES
 
 from social_stats.models.workspaces import Client
 
-class SocialAccount(models.Model):
+class SocialAccount(EntitledResourceMixin, models.Model):
     """Public provider identity, intentionally separated from secret tokens."""
     client = models.ForeignKey(Client, verbose_name='فضای کاری', on_delete=models.CASCADE, related_name='social_accounts')
     platform = models.CharField(verbose_name='پلتفرم', max_length=30, choices=PLATFORM_CHOICES)

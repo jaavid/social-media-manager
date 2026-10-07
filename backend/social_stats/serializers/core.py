@@ -8,7 +8,7 @@
 # ============================================================================
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from social_stats.models import Client, UserProfile, SocialAccount, PlatformCredential, DailyMetric, PostMetric, SyncLog, ClientGoal, Alert, AIInsight, WeeklyTopPost, SharedReport, OnboardingStep, Competitor, ONBOARDING_STEP_DESCRIPTIONS, ROISettings, ROIReport, SiteContent, LookupCollection, LookupItem, GMBBusinessInfo, GMBReview
+from social_stats.models import Client, SocialAccount, PlatformCredential, DailyMetric, PostMetric, SyncLog, ClientGoal, Alert, AIInsight, WeeklyTopPost, SharedReport, OnboardingStep, Competitor, ONBOARDING_STEP_DESCRIPTIONS, ROISettings, ROIReport, SiteContent, LookupCollection, LookupItem, GMBBusinessInfo, GMBReview
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -29,7 +29,7 @@ class ClientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Client
         fields = '__all__'
-        read_only_fields = ['organization', 'owner_user', 'ownership_type', 'created_via']
+        read_only_fields = ['organization', 'owner_user', 'ownership_type', 'created_via', 'subscription_plan']
 
     def get_competitors(self, obj):
         return CompetitorSerializer(obj.competitors.all(), many=True).data
@@ -168,6 +168,7 @@ class SharedReportSerializer(serializers.ModelSerializer):
         from social_stats.models import SocialAccount
         from social_stats.authorization import evaluate, acting_context
         from social_stats.platforms.registry import get_provider
+        capability_cache = {}
         actor = self.context['request'].user
         client = attrs.get('client', getattr(self.instance, 'client', None))
         platforms = attrs.get('platforms', getattr(self.instance, 'platforms', []))
@@ -176,14 +177,16 @@ class SharedReportSerializer(serializers.ModelSerializer):
         until = attrs.get('date_until', getattr(self.instance, 'date_until', None))
         if not client or not since or not until or since > until or not isinstance(platforms, list) or any(not isinstance(p, str) for p in platforms):
             raise serializers.ValidationError({'code': 'invalid_request'})
-        if acting_context(actor, client)[0] == 'forbidden' or not all(evaluate(actor, client, action).allowed for action in ('view_analytics','generate_reports')):
+        if acting_context(actor, client)[0] == 'forbidden' or not all(evaluate(actor, client, action, capability_cache=capability_cache).allowed for action in ('view_analytics','generate_reports')):
             from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied('Report access denied')
         accounts = SocialAccount.objects.filter(client=client)
-        if platforms: accounts = accounts.filter(platform__in=platforms)
-        if ids is not None: accounts = accounts.filter(pk__in=ids)
-        authorized = [account.pk for account in accounts if evaluate(actor, client, 'view_analytics', account=account).allowed
-            and evaluate(actor, client, 'generate_reports', account=account).allowed
+        if platforms:
+            accounts = accounts.filter(platform__in=platforms)
+        if ids is not None:
+            accounts = accounts.filter(pk__in=ids)
+        authorized = [account.pk for account in accounts if evaluate(actor, client, 'view_analytics', account=account, capability_cache=capability_cache).allowed
+            and evaluate(actor, client, 'generate_reports', account=account, capability_cache=capability_cache).allowed
             and get_provider(account.platform).manifest.capability('analytics').enabled
             and get_provider(account.platform).manifest.analytics_metrics]
         if not authorized or (ids is not None and set(ids) != set(authorized)):
@@ -228,31 +231,40 @@ class ROISettingsSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def validate_facebook_budget(self, v):
-        if v < 0: raise serializers.ValidationError("Budget cannot be negative.")
+        if v < 0:
+            raise serializers.ValidationError("Budget cannot be negative.")
         return v
     def validate_instagram_budget(self, v):
-        if v < 0: raise serializers.ValidationError("Budget cannot be negative.")
+        if v < 0:
+            raise serializers.ValidationError("Budget cannot be negative.")
         return v
     def validate_youtube_budget(self, v):
-        if v < 0: raise serializers.ValidationError("Budget cannot be negative.")
+        if v < 0:
+            raise serializers.ValidationError("Budget cannot be negative.")
         return v
     def validate_linkedin_budget(self, v):
-        if v < 0: raise serializers.ValidationError("Budget cannot be negative.")
+        if v < 0:
+            raise serializers.ValidationError("Budget cannot be negative.")
         return v
     def validate_gmb_budget(self, v):
-        if v < 0: raise serializers.ValidationError("Budget cannot be negative.")
+        if v < 0:
+            raise serializers.ValidationError("Budget cannot be negative.")
         return v
     def validate_agency_fee(self, v):
-        if v < 0: raise serializers.ValidationError("Agency fee cannot be negative.")
+        if v < 0:
+            raise serializers.ValidationError("Agency fee cannot be negative.")
         return v
     def validate_avg_sale_value(self, v):
-        if v < 0: raise serializers.ValidationError("Sale value cannot be negative.")
+        if v < 0:
+            raise serializers.ValidationError("Sale value cannot be negative.")
         return v
     def validate_conversion_rate(self, v):
-        if v < 0 or v > 100: raise serializers.ValidationError("Conversion rate must be 0-100.")
+        if v < 0 or v > 100:
+            raise serializers.ValidationError("Conversion rate must be 0-100.")
         return v
     def validate_lead_to_sale_rate(self, v):
-        if v < 0 or v > 100: raise serializers.ValidationError("Lead-to-sale rate must be 0-100.")
+        if v < 0 or v > 100:
+            raise serializers.ValidationError("Lead-to-sale rate must be 0-100.")
         return v
 
 

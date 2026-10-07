@@ -44,6 +44,14 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         require_organization_owner(self.request.user, serializer.instance)
         serializer.save()
 
+    @action(detail=True, methods=['get'])
+    def entitlements(self, request, pk=None):
+        organization = self.get_object()
+        require_organization_owner(request.user, organization)
+        from social_stats.entitlements import snapshot
+
+        return Response(snapshot(organization))
+
     @action(detail=True, methods=["get", "post"])
     def members(self, request, pk=None):
         organization = self.get_object()

@@ -120,7 +120,8 @@ class Decision:
     reason: str = ""
 
 
-def evaluate(user, workspace, action, *, account=None):
+def evaluate(user, workspace, action, *, account=None, capability_cache=None):
+    """Evaluate grants; optionally reuse entitlement lookups within one operation."""
     from .models import (
         AGENCY_CLIENT_PERMISSIONS,
         AgencyMembership,
@@ -137,6 +138,23 @@ def evaluate(user, workspace, action, *, account=None):
     role, relation = acting_context(user, workspace)
     if role == "forbidden":
         return Decision(False, reason="no active membership for this workspace")
+    from .entitlements import capability_allowed
+
+    capability = {
+        'manage_automation': 'automations',
+        'generate_reports': 'reports',
+        'export_data': 'reports',
+    }.get(action)
+    if capability:
+        cache_key = (workspace.organization_id, capability)
+        if capability_cache is None:
+            entitled = capability_allowed(workspace.organization, capability)
+        else:
+            if cache_key not in capability_cache:
+                capability_cache[cache_key] = capability_allowed(workspace.organization, capability)
+            entitled = capability_cache[cache_key]
+        if not entitled:
+            return Decision(False, reason=f"capability not entitled: {capability}", role=role)
     if role == "superadmin":
         return Decision(
             True,

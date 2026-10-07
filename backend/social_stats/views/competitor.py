@@ -20,7 +20,6 @@ from __future__ import annotations
 
 import logging
 from datetime import timedelta
-from typing import Optional
 
 from django.db.models import Avg, Max, Sum
 from django.utils import timezone
@@ -159,6 +158,10 @@ class CompetitorViewSet(TenantScopedMixin, viewsets.ModelViewSet):
         for k, v in platform_summary.items():
             v['avg_engagement'] = round(v['avg_engagement'] / max(1, v['samples']), 3)
             v['follower_delta'] = v['last_followers'] - v['first_followers']
+
+        from social_stats.entitlements import reserve_ai
+        if competitor.client is not None:
+            reserve_ai(competitor.client)
 
         try:
             msg = claude.messages.create(

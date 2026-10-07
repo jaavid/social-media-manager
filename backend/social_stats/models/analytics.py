@@ -8,6 +8,8 @@
 # ============================================================================
 """Analytics models."""
 import uuid
+from social_stats.entitlements import EntitledCapabilityMixin
+
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
@@ -295,7 +297,9 @@ class WeeklyTopPost(models.Model):
 
 
 # ── Shareable Public Reports ──────────────────────────────────────────────────
-class SharedReport(models.Model):
+class SharedReport(EntitledCapabilityMixin, models.Model):
+    entitlement_capability = 'reports'
+
     client      = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='shared_reports')
     token       = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     created_by  = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)

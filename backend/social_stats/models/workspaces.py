@@ -167,7 +167,12 @@ class Client(models.Model):
                 self.organization = Organization.objects.using(using).create(
                     name=self.company, owner_user_id=self.owner_user_id,
                 )
-            super().save(*args, **kwargs)
+            from social_stats.entitlements import locked_organization, require_capacity
+
+            with locked_organization(self.organization_id, using=using) as organization:
+                if original is None:
+                    require_capacity(organization, 'workspaces', using=using)
+                super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.company} ({self.name})"

@@ -180,7 +180,8 @@ def sync_facebook(self, client_id, days=30, credential_id=None, retry_on_failure
             raise ValueError('Invalid metric collection')
         for m in insights.get('data', []):
             key = metric_map.get(m['name'])
-            if not key: continue
+            if not key:
+                continue
             for v in m.get('values', []):
                 day = v['end_time'][:10]
                 if 'value' not in v:
@@ -268,14 +269,17 @@ def sync_facebook(self, client_id, days=30, credential_id=None, retry_on_failure
             except Exception:
                 pass
 
-        log.status = 'success'; log.records_synced = count
-    except Exception as e:
-        log.status = 'failed'; log.error_message = 'Provider analytics sync failed'
+        log.status = 'success'
+        log.records_synced = count
+    except Exception:
+        log.status = 'failed'
+        log.error_message = 'Provider analytics sync failed'
         if retry_on_failure:
             raise self.retry(exc=RuntimeError('Provider analytics sync failed'))
         raise RuntimeError('Provider analytics sync failed') from None
     finally:
-        log.finished_at = timezone.now(); log.save()
+        log.finished_at = timezone.now()
+        log.save()
 
 
 # ── Instagram ─────────────────────────────────────────────────────────────────
@@ -441,14 +445,17 @@ def sync_instagram(self, client_id, days=30, credential_id=None, retry_on_failur
             except Exception:
                 pass
 
-        log.status = 'success'; log.records_synced = count
-    except Exception as e:
-        log.status = 'failed'; log.error_message = 'Provider analytics sync failed'
+        log.status = 'success'
+        log.records_synced = count
+    except Exception:
+        log.status = 'failed'
+        log.error_message = 'Provider analytics sync failed'
         if retry_on_failure:
             raise self.retry(exc=RuntimeError('Provider analytics sync failed'))
         raise RuntimeError('Provider analytics sync failed') from None
     finally:
-        log.finished_at = timezone.now(); log.save()
+        log.finished_at = timezone.now()
+        log.save()
 
 
 # ── YouTube ───────────────────────────────────────────────────────────────────
@@ -510,14 +517,17 @@ def sync_youtube(self, client_id, days=30, credential_id=None, retry_on_failure=
             )
             count += 1
 
-        log.status = 'success'; log.records_synced = count
-    except Exception as e:
-        log.status = 'failed'; log.error_message = 'Provider analytics sync failed'
+        log.status = 'success'
+        log.records_synced = count
+    except Exception:
+        log.status = 'failed'
+        log.error_message = 'Provider analytics sync failed'
         if retry_on_failure:
             raise self.retry(exc=RuntimeError('Provider analytics sync failed'))
         raise RuntimeError('Provider analytics sync failed') from None
     finally:
-        log.finished_at = timezone.now(); log.save()
+        log.finished_at = timezone.now()
+        log.save()
 
 
 # ── LinkedIn ──────────────────────────────────────────────────────────────────
@@ -575,14 +585,17 @@ def sync_linkedin(self, client_id, days=30, credential_id=None, retry_on_failure
             )
             count += 1
 
-        log.status = 'success'; log.records_synced = count
-    except Exception as e:
-        log.status = 'failed'; log.error_message = 'Provider analytics sync failed'
+        log.status = 'success'
+        log.records_synced = count
+    except Exception:
+        log.status = 'failed'
+        log.error_message = 'Provider analytics sync failed'
         if retry_on_failure:
             raise self.retry(exc=RuntimeError('Provider analytics sync failed'))
         raise RuntimeError('Provider analytics sync failed') from None
     finally:
-        log.finished_at = timezone.now(); log.save()
+        log.finished_at = timezone.now()
+        log.save()
 
 
 # ── Google My Business ────────────────────────────────────────────────────────
@@ -704,13 +717,17 @@ def sync_gmb(self, client_id, days=30, credential_id=None, retry_on_failure=True
                     from dateutil.parser import parse as parse_dt
                     pub_at = None
                     if rev.get('createTime'):
-                        try: pub_at = parse_dt(rev['createTime'])
-                        except Exception: pass
+                        try:
+                            pub_at = parse_dt(rev['createTime'])
+                        except Exception:
+                            pass
 
                     reply_at = None
                     if reply.get('updateTime'):
-                        try: reply_at = parse_dt(reply['updateTime'])
-                        except Exception: pass
+                        try:
+                            reply_at = parse_dt(reply['updateTime'])
+                        except Exception:
+                            pass
 
                     GMBReview.objects.update_or_create(
                         review_id=rev.get('reviewId', rev.get('name', '')),
@@ -761,15 +778,18 @@ def sync_gmb(self, client_id, days=30, credential_id=None, retry_on_failure=True
                 )
                 count += 1
 
-        log.status = 'success'; log.records_synced = count
-    except Exception as e:
-        log.status = 'failed'; log.error_message = 'Provider analytics sync failed'
+        log.status = 'success'
+        log.records_synced = count
+    except Exception:
+        log.status = 'failed'
+        log.error_message = 'Provider analytics sync failed'
         logger.warning("Provider analytics sync failed")
         if retry_on_failure:
             raise self.retry(exc=RuntimeError('Provider analytics sync failed'))
         raise RuntimeError('Provider analytics sync failed') from None
     finally:
-        log.finished_at = timezone.now(); log.save()
+        log.finished_at = timezone.now()
+        log.save()
 
 
 # ── Smart Alert Checks ────────────────────────────────────────────────────────
@@ -825,7 +845,7 @@ def check_alerts():
 
             # 2. Sync failed 3x in a row
             last3 = list(SyncLog.objects.filter(client=client, platform=plat).order_by('-started_at')[:3])
-            if len(last3) == 3 and all(l.status == 'failed' for l in last3):
+            if len(last3) == 3 and all(log.status == 'failed' for log in last3):
                 alert = _create(client, plat, 'sync_failed',
                     f"{plat_label} sync failed 3 times in a row.",
                     f"sync_failed_{plat}")
@@ -1091,6 +1111,10 @@ def generate_ai_insights(client_id, month, year):
         return
 
     try:
+        from social_stats.entitlements import reserve_ai
+        if client is not None:
+            reserve_ai(client)
+
         import anthropic
         anthropic_client = anthropic.Anthropic(api_key=api_key)
         message = anthropic_client.messages.create(
@@ -1323,7 +1347,7 @@ def check_overdue_scheduled_posts():
         logger.info("check_overdue_scheduled_posts: marked %d posts as failed", updated)
 
 # Register Telegram protocol jobs with the existing Celery autodiscovery module.
-from .telegram_tasks import ingest_update, run_assistant, prune_telegram_updates, recover_telegram_jobs  # noqa: F401
+from .telegram_tasks import ingest_update, run_assistant, prune_telegram_updates, recover_telegram_jobs  # noqa: E402, F401
 
 
 @shared_task(bind=True, max_retries=0)
