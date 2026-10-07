@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import TriggerConfigModal from './TriggerConfigModal';
 import TestModeDrawer from './TestModeDrawer';
 import { botAPI, botConversationAPI } from '@/services/api';
+jest.mock('@/core/session', () => ({ useSession: () => ({ user: { id: 1, role: 'client', account_type: 'legacy', workspace_id: 7 } }) }));
 jest.mock('@/i18n', () => ({
   useLanguage: () => ({ t: (key) => key, tr: (value) => value, isPersian: false }),
 }));

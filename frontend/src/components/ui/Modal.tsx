@@ -17,6 +17,7 @@ export interface DialogProps {
   open: boolean;
   role?: 'dialog' | 'alertdialog';
   initialFocusRef?: RefObject<HTMLElement>;
+  returnFocusRef?: RefObject<HTMLElement>;
   onClose?: () => void;
   title?: ReactNode;
   description?: ReactNode;
@@ -31,6 +32,7 @@ export default function Modal({
   open,
   role = 'dialog',
   initialFocusRef,
+  returnFocusRef,
   onClose,
   title,
   description,
@@ -64,7 +66,7 @@ export default function Modal({
           }}
           onCloseAutoFocus={(event) => {
             event.preventDefault();
-            previousFocus.current?.focus();
+            (returnFocusRef?.current || previousFocus.current)?.focus();
           }}
           dir={isPersian ? 'rtl' : 'ltr'}
           {...(!description ? { 'aria-describedby': undefined } : {})}

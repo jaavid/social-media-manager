@@ -9,13 +9,14 @@
 import { useRef } from 'react';
 
 import * as DialogPrimitive from '@radix-ui/react-dialog';
-import type { ReactNode, CSSProperties } from 'react';
+import type { ReactNode, CSSProperties, RefObject } from 'react';
 import { X } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useLanguage } from '../../i18n';
 export interface SheetProps {
   open: boolean;
   onClose?: () => void;
+  returnFocusRef?: RefObject<HTMLElement>;
   side?: 'left' | 'right' | 'top' | 'bottom' | 'start' | 'end';
   width?: number | string;
   height?: number | string;
@@ -28,6 +29,7 @@ export interface SheetProps {
 export default function Drawer({
   open,
   onClose,
+  returnFocusRef,
   side = 'end',
   width = 420,
   height = 360,
@@ -74,7 +76,7 @@ export default function Drawer({
           }}
           onCloseAutoFocus={(event) => {
             event.preventDefault();
-            previousFocus.current?.focus();
+            (returnFocusRef?.current || previousFocus.current)?.focus();
           }}
           dir={isPersian ? 'rtl' : 'ltr'}
           className={cn('ds-sheet', `ds-sheet-${position}`)}

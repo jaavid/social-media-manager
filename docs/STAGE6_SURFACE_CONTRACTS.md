@@ -143,3 +143,32 @@ Multiple Facebook credentials require explicit credential selection in a future
 Meta extension; this picker reports ambiguous/unavailable rather than choosing one.
 Legacy Meta health and spend-sync consumers retain their separate owners; this
 batch does not migrate them or claim live Meta connectivity.
+
+## Bot inspector and trigger field ownership (Stage 6D)
+
+Owner: bot editor frontend maintainers. NodeInspector maps the existing node
+schema to canonical fields; TriggerConfigModal owns one configuration/draft per
+trigger type, keyed by identity/workspace/flow. The small editorMessages label map
+translates existing schema terminology; it is not a new field primitive. Remove a
+legacy field mapping only when its node is retired or a schema-driven inspector
+preserves the same ordering, interpolation, unknown properties and JSON fallback,
+with node/flow switching and invalid-input recovery regressions passing.
+
+Per-node field drafts belong to the editor instance. Invalid intermediate JSON or
+numbers cannot overwrite the last valid object or silently disappear on node
+switch/mobile drawer unmount. Save/publish/autosave consult the same validity guard.
+Failed saves retain draft/configuration; generic JSON accepts only object values
+and commits on blur. Node patches include their explicit owner. Async persona and
+workspace active-flow reads cannot mutate a newly selected node.
+
+Deletion uses the existing shared Modal alertdialog. Cancel restores its trigger;
+a confirmed deletion captures the target and supplies the canvas as returnFocusRef
+to the existing Modal/Drawer when that trigger is removed. returnFocusRef is an
+optional explicit fallback; ordinary overlay restoration remains unchanged.
+
+Owner: editor/feature maintainers for untouched VariableInserter, older editor
+helpers, legacy help/preview copy and settings/destructive families. Remove their
+legacy behavior per surface after canonical field/overlay and localized
+keyboard/contrast/failure evidence exists. Canvas coordinates, ReactFlow geometry,
+node metadata color and WhatsApp-specific preview presentation are valid extension
+styles; deleting them to lower a static count is not a removal criterion.
