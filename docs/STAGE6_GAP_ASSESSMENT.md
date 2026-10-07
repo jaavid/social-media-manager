@@ -625,3 +625,17 @@ no live revoke/password action and no credential images/traces are recorded.
 
 Evidence and required-check results are recorded with the PR; whole #106 remains
 open pending agency/business/notifications/alerts and final legacy family coverage.
+
+API/password local validation: Node 20.20.2 and Python 3.12; full Jest 67 suites /
+343 tests, Django 696 tests (3 existing skips), build/typecheck/lint (0 new errors
+or file/rule regressions), i18n (779 semantic keys), check:next and architecture
+passed. Production proxy contract check passed. The 19-case changed-flow browser
+suite passes: statuses including terminal session 401, malformed read/write,
+background failure, offline/reconnect/no replay, duplicate pending revoke, focus
+recovery and credential-free fa/en dark/light screenshots. Unit coverage includes
+issued-key cache exclusion, awaited clipboard failure and late identity response.
+The isolated Django test confirms actual cookie hash invalidation after password
+change. Required all-files pre-commit reports the same prior hygiene/Ruff debt
+(271 findings, 114 autofixes); 99 unrelated modified files were restored. All-files
+Gitleaks/Bandit and changed-file pre-commit passed; no baseline/assertion/policy was
+weakened. UI screenshots under `e2e/evidence/key-password` exclude secrets.

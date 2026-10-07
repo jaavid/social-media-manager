@@ -33,6 +33,7 @@ function Keys({ identity, enabled }) {
   const [issued, setIssued] = useState(null), [target, setTarget] = useState(null);
   const [copied, setCopied] = useState(false), [copyFailed, setCopyFailed] = useState(false);
   const [checked, setChecked] = useState(false), [observed, setObserved] = useState(false);
+  const copyGeneration = useRef(0);
   const heading = useRef(null), trigger = useRef(null), cancel = useRef(null);
   const denied = resource.denied || action.denied;
   useEffect(() => { if (denied) queueMicrotask(() => { if (action.alive.current) setIssued(null); }); }, [denied, action.alive]);
@@ -52,6 +53,7 @@ function Keys({ identity, enabled }) {
     const payload = { name: name.trim(), scopes: split(scopes), ip_allowlist: split(ips) };
     setTarget('create'); setChecked(false); setObserved(false);
     action.run(async () => parseIssuedKey((await apiKeysAPI.create(payload, workspace)).data, payload), async result => {
+      copyGeneration.current += 1;
       setIssued(result.secret); setCopied(false); setCopyFailed(false);
       await resource.commit(old => [result.metadata, ...(old || []).filter(k => k.id !== result.metadata.id)]);
       if (!action.alive.current) return;
@@ -71,9 +73,10 @@ function Keys({ identity, enabled }) {
     });
   };
   const copy = async () => {
+    const generation = copyGeneration.current;
     setCopied(false); setCopyFailed(false);
-    try { await navigator.clipboard.writeText(issued); if (action.alive.current) setCopied(true); }
-    catch { if (action.alive.current) setCopyFailed(true); }
+    try { await navigator.clipboard.writeText(issued); if (action.alive.current && generation === copyGeneration.current) setCopied(true); }
+    catch { if (action.alive.current && generation === copyGeneration.current) setCopyFailed(true); }
   };
   const rows = resource.data?.filter(k => inactive || k.is_active);
   const write = <WriteState action={action} recover={refresh} uncertainKey={target === 'create' ? 'keys.unknownCreate' : 'keys.unknownRevoke'} />;
@@ -81,6 +84,7 @@ function Keys({ identity, enabled }) {
     <div className="flex flex-wrap justify-between gap-3"><h3 ref={heading} tabIndex={-1}>{t('keys.title')}</h3>
       <Button onClick={refresh} disabled={resource.query.isFetching || action.busy}>{t('recovery.refresh')}</Button></div>
     <ReadState resource={resource} refresh={refresh} busy={action.busy} returnFocusRef={heading} />
+    {(!target || target === 'create' || denied) && write}
     {!denied && <>
       <form className="space-y-3" onSubmit={e => { e.preventDefault(); generate(); }} aria-busy={action.busy}>
         <Input label={t('keys.name')} value={name} maxLength={200} required disabled={action.busy} onChange={e => setName(e.target.value)} />
@@ -89,11 +93,10 @@ function Keys({ identity, enabled }) {
         <p className="text-sm text-muted-foreground">{t('keys.policy')}</p>
         <Button type="submit" disabled={action.locked || !resource.data || !!issued || resource.query.isFetching}>{t('keys.generate')}</Button>
       </form>
-      {(!target || target === 'create') && write}
       {action.success && <p role="status">{t('account.saved')}</p>}
       {issued && <div className="space-y-3 rounded border p-3">
         <p>{t('keys.once')}</p><div dir="ltr" className="break-all select-all">{issued}</div>
-        <Button onClick={copy}>{t('mfa.copy')}</Button> <Button variant="ghost" onClick={() => setIssued(null)}>{t('keys.dismiss')}</Button>
+        <Button onClick={copy}>{t('mfa.copy')}</Button> <Button variant="ghost" onClick={() => { copyGeneration.current += 1; setIssued(null); }}>{t('keys.dismiss')}</Button>
         {copied && <p role="status">{t('mfa.copied')}</p>}{copyFailed && <p role="alert">{t('mfa.copyFailed')}</p>}
       </div>}
       <label className="flex gap-2"><input type="checkbox" checked={inactive} onChange={e => setInactive(e.target.checked)} />{t('keys.inactive')}</label>
@@ -103,7 +106,7 @@ function Keys({ identity, enabled }) {
         {k.is_active && <Button variant="danger" disabled={action.locked || resource.query.isFetching} onClick={e => { trigger.current = e.currentTarget; setTarget(k.id); }}>{t('keys.revoke')}</Button>}
       </li>)}</ul>}
       {rows?.length === 0 && !resource.query.isError && !resource.query.isPaused && <DataState compact state={resource.data.length ? 'no-results' : 'empty'} title={t(resource.data.length ? 'keys.noResults' : 'keys.empty')} />}
-      {action.uncertain && checked && <div className="space-y-3"><p role="status">{t(observed ? 'keys.observedInactive' : 'keys.checked')}</p>
+      {action.uncertain && checked && target === 'create' && <div className="space-y-3"><p role="status">{t(observed ? 'keys.observedInactive' : 'keys.checked')}</p>
         <Button onClick={() => { action.verified(); setTarget(null); setChecked(false); }} >{t('keys.acknowledge')}</Button></div>}
     </>}
     <Modal open={target !== null && target !== 'create' && !denied} role="alertdialog" title={t('keys.revoke')} description={t('keys.revokeHint')}
