@@ -152,8 +152,10 @@ function ScopedPicker({ identity, workspace, value, onChange, onValidityChange, 
     return () => onValidityChange?.(false);
   }, [valid, onValidityChange]);
 
+  // A saved ad without a verified parent cannot be silently discarded by another edit.
+  const selectionPending = selectedAds.length > 0 && (verifiedCampaigns.length !== selectedCampaigns.length || ads.some(query => !visible(query)));
   function emit(nextCampaigns, nextAds) {
-    if (!accountValid) return;
+    if (!accountValid || selectionPending || disabled) return;
     onChange({
       ...value,
       ad_account_id: account,
@@ -189,7 +191,7 @@ function ScopedPicker({ identity, workspace, value, onChange, onValidityChange, 
         </NativeSelect>
       )}
       {accountValid && (
-        <fieldset className="min-w-0 space-y-2" disabled={disabled}>
+        <fieldset className="min-w-0 space-y-2" disabled={disabled || selectionPending}>
           <legend className="ds-field-label">{t('meta.campaigns')}</legend>
           <ReadState query={campaigns} title={t('meta.campaigns')} />
           <div className="max-h-52 space-y-2 overflow-y-auto">
@@ -211,7 +213,7 @@ function ScopedPicker({ identity, workspace, value, onChange, onValidityChange, 
         </fieldset>
       )}
       {verifiedCampaigns.length > 0 && (
-        <fieldset className="min-w-0 space-y-2" disabled={disabled}>
+        <fieldset className="min-w-0 space-y-2" disabled={disabled || selectionPending}>
           <legend className="ds-field-label">{t('meta.ads')}</legend>
           {ads.map((query, i) => (
             <ReadState

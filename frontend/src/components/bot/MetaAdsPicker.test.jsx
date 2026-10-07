@@ -179,7 +179,7 @@ test('removing a campaign drops its ads and late ads cannot overwrite current sc
       resolve = done;
     });
   });
-  setup();
+  setup({ ...selection, ad_ids: [] });
   await screen.findByLabelText('Campaign A');
   await waitFor(() => expect(metaAdsAPI.ads).toHaveBeenCalled());
   fireEvent.click(screen.getByLabelText('Campaign A'));
@@ -282,4 +282,22 @@ test('one failed campaign read shows successful ads without claiming all campaig
   expect(screen.getByLabelText(/Ad A/)).toBeChecked();
   expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
   expect(screen.queryByText(mockMessages['meta.empty'])).toBeNull();
+});
+
+test('unverified saved ads survive editing another campaign until its read recovers', async () => {
+  metaAdsAPI.campaigns.mockResolvedValue(wire('campaigns', [campaign, { id: '12', name: 'Campaign Two', account_id: '10' }], { ad_account_id: 'act_10' }));
+  const second = { id: '121', name: 'Ad Two', campaign_id: '12', is_ctwa: true };
+  metaAdsAPI.ads.mockImplementation((w, a, c) => c === '12' ? Promise.reject(unavailable) : Promise.resolve(wire('ads', [ad], { ad_account_id: a, campaign_id: c })));
+  setup({ ...selection, campaign_ids: ['11', '12'], ad_ids: ['111', '121'] });
+  await screen.findByLabelText(/Ad A/);
+  await screen.findByText(mockMessages['meta.unavailable']);
+  expect(screen.getByLabelText('Campaign A')).toBeDisabled();
+  expect(screen.getByLabelText(/Ad A/)).toBeDisabled();
+  fireEvent.click(screen.getByLabelText(/Ad A/));
+  expect(screen.getByTestId('selection')).toHaveTextContent('121');
+  metaAdsAPI.ads.mockImplementation((w, a, c) => Promise.resolve(wire('ads', c === '12' ? [second] : [ad], { ad_account_id: a, campaign_id: c })));
+  fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
+  await screen.findByLabelText(/Ad Two/);
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled());
+  expect(screen.getByLabelText(/Ad Two/)).toBeChecked();
 });
