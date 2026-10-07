@@ -6,7 +6,7 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import type { ReactNode, RefObject } from 'react';
@@ -17,6 +17,7 @@ export interface DialogProps {
   open: boolean;
   role?: 'dialog' | 'alertdialog';
   initialFocusRef?: RefObject<HTMLElement>;
+  returnFocusRef?: RefObject<HTMLElement>;
   onClose?: () => void;
   title?: ReactNode;
   description?: ReactNode;
@@ -31,6 +32,7 @@ export default function Modal({
   open,
   role = 'dialog',
   initialFocusRef,
+  returnFocusRef,
   onClose,
   title,
   description,
@@ -43,6 +45,10 @@ export default function Modal({
 }: DialogProps) {
   const { tr, isPersian } = useLanguage();
   const previousFocus = useRef<HTMLElement | null>(null);
+  const initialFocusFrame = useRef<number | null>(null);
+  useEffect(() => () => {
+    if (initialFocusFrame.current !== null) cancelAnimationFrame(initialFocusFrame.current);
+  }, [open]);
   return (
     <DialogPrimitive.Root
       open={open}
@@ -59,12 +65,19 @@ export default function Modal({
               document.activeElement as HTMLElement | null;
             if (initialFocusRef?.current) {
               event.preventDefault();
-              initialFocusRef.current.focus();
+              const target = initialFocusRef.current;
+            if (role === 'alertdialog') {
+              // Let Radix register the nested dismissal layer before exposing its
+              // focused Cancel control to an immediate Escape key.
+              initialFocusFrame.current = requestAnimationFrame(() => {
+                if (target.isConnected) target.focus();
+              });
+            } else target.focus();
             }
           }}
           onCloseAutoFocus={(event) => {
             event.preventDefault();
-            previousFocus.current?.focus();
+            (returnFocusRef?.current || previousFocus.current)?.focus();
           }}
           dir={isPersian ? 'rtl' : 'ltr'}
           {...(!description ? { 'aria-describedby': undefined } : {})}

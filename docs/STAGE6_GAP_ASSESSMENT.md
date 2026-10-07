@@ -145,7 +145,7 @@ adapter only after its provider supplies typed metric descriptors and conformanc
 `sync` execution. Existing historical rows need a genuine provider resync to establish metric
 presence; inventing/backfilling values is forbidden. Live provider credentials are unavailable.
 
-## Final criterion reconciliation (after A/B/C implementation)
+## Final criterion reconciliation (after A/B/C and bounded 6D implementation)
 
 The baseline tables above are historical and unchanged. **done** below is supported by the cited implementation and tests; **remaining** means the whole checkbox is broader than the certified surfaces, with its exact next action stated. Real dependencies are listed separately. Do not use a Closes directive for these issues.
 
@@ -165,7 +165,7 @@ The baseline tables above are historical and unchanged. **done** below is suppor
 | composer + scheduling | done | Composer #162; stage5-composer.spec.js; ComposerPage.test.jsx including stage6 scope handoff |
 | inbox/engagement | done | UnifiedInboxPage/ReviewsPage/useInboxResource; stage6-inbox.spec.js and inbox-races tests |
 | analytics/reporting | done | AnalyticsSurface/ReportsPage/PublicReportPage; analytics parser/backend reports tests and stage6 browser suites |
-| fullscreen/complex editors | remaining | BotFlow/VideoStudio migrated scope/recovery and narrow drawer; TestMode/TriggerConfig now use shared Drawer/Modal with failure preservation and ambiguity guards; NodeInspector/trigger widget controls and other complex editor internals still need field migration; MetaAdsPicker scoped reads, validation, per-campaign recovery and authorization are covered by Stage 6D Meta tests |
+| fullscreen/complex editors | remaining | BotFlow/VideoStudio migrated scope/recovery and narrow drawer; TestMode/TriggerConfig now use shared Drawer/Modal with failure preservation and ambiguity guards; NodeInspector/trigger widget controls now use canonical fields with per-node intermediate drafts, validation, save recovery and confirmed-delete focus; other complex editor internals still need field migration; MetaAdsPicker scoped reads, validation, per-campaign recovery and authorization are covered by Stage 6D Meta tests |
 | marketing surfaces در حدی که product brand مشترک لازم دارد | remaining | Existing MarketingLayout/tokens preserved; no broad marketing migration in stage6; typography/first-paint tests certify existing common brand only |
 | API مستند برای primitiveها و پنج page pattern. | done | STAGE6_SURFACE_CONTRACTS API and five existing pattern tables, including documented extensions |
 | هیچ visual token جدید page-local بدون دلیل ثبت‌شده اضافه نشود. | done | Migrated collections use canonical utilities/tokens; editor geometry is documented; no new palette/theme or unregistered visual token |
@@ -282,11 +282,45 @@ images capture failed refresh with retained selection under `e2e/evidence/stage6
 The frontend/Meta integration owner and extension removal criteria are recorded in
 STAGE6_SURFACE_CONTRACTS.md.
 
-Remaining: NodeInspector and TriggerConfig internal controls (next dependent PR),
-older settings/form/destructive-action families, other complex editor internals,
+Remaining: older settings/form/destructive-action families, other complex editor internals,
 legacy useData/key/aggregate/static catalogue consumers, route-specific skeletons,
 raw logging/copy and exhaustive legacy overlay/contrast/failure matrices. No Stage 7,
 #116, dependency upgrade or broad adapter removal is part of this batch. Multiple
 Meta credentials fail closed; bounded provider collections explicitly report partial
 data. Mock Graph/browser recovery tests do not certify live Meta credentials or
 remote API behavior.
+
+### Stage 6D — Bot editor controls (dependent on Meta recovery)
+
+NodeInspector and TriggerConfigModal internal fields now reuse canonical Input,
+Textarea, NativeSelect, Checkbox and Button. Labels, required/error descriptions,
+pending/disabled behavior and keyboard access follow the existing field contract.
+Node-owned intermediate number/JSON drafts survive node switching and drawer
+remounts, block save/publication until valid and preserve the last valid schema.
+Valid generic JSON replaces the object without losing deliberate key removals.
+Ordered item lists, variable interpolation and unknown schema properties remain
+intact. Flow/identity/workspace changes reject late persona/trigger responses; the
+existing active-flow list read is scoped and abortable with local retry.
+
+BotFlowEditor changes are limited to draft validity/ownership and captured delete
+target integration. Its existing save, TestModeDrawer and overlay architecture are
+retained. Confirmation cancellation restores the delete trigger; successful removal
+uses the existing Modal/Drawer returnFocusRef fallback to the canvas after the
+trigger disappears. Genuine canvas geometry and provider preview styles remain.
+
+Evidence: NodeInspector/TriggerConfigModal/Primitives Jest cases and
+`stage6d-controls.spec.js` cover invalid JSON/numbers, switching, ordered items,
+save failure/manual recovery, confirmation and focus, including 20 immediate
+Cancel-focus/Escape cycles without closing the inspector. The 18 node matrix cases
+cover fa/en, RTL/LTR, light/dark/system, 360/768/1440 and reduced motion; trigger
+cases cover keyboard input and recovery at both narrow/wide widths. Before images
+are from detached `7ee976a`; after images include actual fixture save failures in
+`frontend/e2e/evidence/stage6d/`. Final test/CI results are linked in the two PRs,
+which must merge Meta first, controls second. No test/baseline/threshold is relaxed.
+
+The remaining Stage 6 criteria above remain **remaining**: whole settings/form and
+destructive-action coverage, other complex editors/VariableInserter and legacy
+copy, old useData/key/aggregate/static catalogue consumers, layout-specific route
+skeletons, raw logging and exhaustive legacy overlay/contrast/failure matrices.
+#106/#112 stay open; #103 stays closed without a whole-issue completion claim.
+Stage 7/#116, upgrades and real Meta connection certification are out of scope.

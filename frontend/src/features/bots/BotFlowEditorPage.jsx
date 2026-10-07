@@ -113,6 +113,16 @@ function Editor() {
   const [testOpen,  setTestOpen]  = useState(false);
   const [publishOpen, setPublishOpen] = useState(false);
   const wrapperRef = useRef(null);
+  const [inspectorDrafts, setInspectorDrafts] = useState({});
+  const draftsRef = useRef({});
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleteReturnFocus, setDeleteReturnFocus] = useState(false);
+  const invalidDrafts = Object.entries(inspectorDrafts).some(([nodeId, fields]) => nodes.some(node => node.id === nodeId) && Object.values(fields).some(field => !field.valid));
+  function onInspectorDraft(owner, field, entry) {
+    const next = { ...draftsRef.current, [owner]: { ...draftsRef.current[owner], [field]: entry } };
+    draftsRef.current = next;
+    setInspectorDrafts(next);
+  }
 
   // Undo/redo history — stack of {nodes, edges} snapshots
   const historyRef = useRef({ past: [], future: [] });
@@ -194,13 +204,13 @@ function Editor() {
 
   // ── Autosave loop ────────────────────────────────────
   useEffect(() => {
-    if (!flow || !dirty || saveError || saving || !online) return;
+    if (!flow || !dirty || saveError || saving || !online || invalidDrafts) return;
     const t = setTimeout(save, 5000);
     return () => clearTimeout(t);
-  }, [dirty, nodes, edges, flow, saveError, saving, online]); // eslint-disable-line
+  }, [dirty, nodes, edges, flow, saveError, saving, online, invalidDrafts]); // eslint-disable-line
 
   async function save() {
-    if (!flow || busy.current) return false;
+    if (!flow || busy.current || Object.entries(draftsRef.current).some(([nodeId, fields]) => nodes.some(node => node.id === nodeId) && Object.values(fields).some(field => !field.valid))) return false;
     const savedRevision = revision.current;
     busy.current = true; setSaving(true); setSaveError(null);
     const payload = {
@@ -228,22 +238,24 @@ function Editor() {
   }
 
   // ── Mutations ────────────────────────────────────────
-  function patchSelected(nextDataPayload) {
-    if (!selectedId) return;
+  function patchSelected(nextDataPayload, owner = selectedId) {
+    if (!owner || owner !== selectedId) return;
     snapshot();
-    setNodes((ns) => ns.map((n) => n.id === selectedId
+    setNodes((ns) => ns.map((n) => n.id === owner
       ? { ...n, data: { ...n.data, data: nextDataPayload } }
       : n));
     markDirty();
   }
-  function deleteSelected() { if (selectedId) setDeleteOpen(true); }
+  function deleteSelected() { if (selectedId) { setDeleteReturnFocus(false); setDeleteTarget(selectedId); setDeleteOpen(true); } }
   function deleteConfirmed() {
-    if (!selectedId) return;
+    if (!deleteTarget) return;
+    setDeleteReturnFocus(true);
     setDeleteOpen(false);
+    setPanel(null);
     snapshot();
-    setNodes((ns) => ns.filter((n) => n.id !== selectedId));
-    setEdges((es) => es.filter((e) => e.source !== selectedId && e.target !== selectedId));
-    setSelectedId(null);
+    setNodes((ns) => ns.filter((n) => n.id !== deleteTarget));
+    setEdges((es) => es.filter((e) => e.source !== deleteTarget && e.target !== deleteTarget));
+    if (selectedId === deleteTarget) setSelectedId(null);
     markDirty();
   }
 
@@ -315,7 +327,7 @@ function Editor() {
     finally { actionBusy.current = false; }
   }
   async function openPublishModal() {
-    if (dirty && !await save()) return;
+    if (invalidDrafts || (dirty && !await save())) return;
     setPublishOpen(true);
   }
   async function unpublish() {
@@ -349,7 +361,7 @@ function Editor() {
 
   return (
     <div className="flex min-w-0 flex-col bg-background" style={{ height: 'calc(100dvh - var(--topbar-height, 64px))' }}>
-      <Modal open={deleteOpen} role="alertdialog" initialFocusRef={cancelDelete} title={t('editor.deleteNode')} description={t('editor.deleteConfirm')} onClose={() => setDeleteOpen(false)} footer={<><Button ref={cancelDelete} onClick={() => setDeleteOpen(false)}>{t('reports.cancel')}</Button><Button variant="danger" onClick={deleteConfirmed}>{t('editor.deleteNode')}</Button></>} />
+      <Modal open={deleteOpen} returnFocusRef={deleteReturnFocus ? wrapperRef : undefined} role="alertdialog" initialFocusRef={cancelDelete} title={t('editor.deleteNode')} description={t('editor.deleteConfirm')} onClose={() => setDeleteOpen(false)} footer={<><Button ref={cancelDelete} onClick={() => setDeleteOpen(false)}>{t('reports.cancel')}</Button><Button variant="danger" onClick={deleteConfirmed}>{t('editor.deleteNode')}</Button></>} />
       {!online && <DataState state="offline" compact title={t('catalog.state.offline.title')} />}
       {actionError && <DataState focusRef={errorRef} state="error" compact title={t('editor.actionFailed')} referenceId={apiError(actionError).referenceId} />}
       {saveError && <DataState focusRef={errorRef} state="error" compact title={t('editor.saveFailed')} referenceId={apiError(saveError).referenceId} action={<Button onClick={save}>{t('analytics.report.retry')}</Button>} />}
@@ -398,7 +410,7 @@ function Editor() {
              dirty ? 'Unsaved' :
              savedAt ? `Saved ${savedAt.toLocaleTimeString()}` : ''}
           </span>
-          <button type="button" onClick={save} disabled={!dirty || saving} style={btnGhost}>
+          <button type="button" onClick={save} disabled={!dirty || saving || invalidDrafts} style={btnGhost}>
             <Save size={13} /> Save
           </button>
           <button type="button" onClick={validateNow} style={btnGhost}>Validate</button>
@@ -408,25 +420,26 @@ function Editor() {
           {flow?.is_active && (
             <button type="button" onClick={unpublish} style={btnGhost}>Unpublish</button>
           )}
-          <button type="button" onClick={openPublishModal} style={btnPrimary} disabled={saving}>
+          <button type="button" onClick={openPublishModal} style={btnPrimary} disabled={saving || invalidDrafts}>
             <PlayCircle size={13} /> {flow?.is_active ? 'Re-publish' : 'Publish'}
           </button>
         </div>
       </header>
 
+      {invalidDrafts && <DataState compact state="error" title={t('bot.fieldsInvalid')} />}
       {validation && (
         <ValidationBanner result={validation} onClose={() => setValidation(null)} />
       )}
 
-      <div className="flex gap-2 p-2 xl:hidden"><Button onClick={() => setPanel('palette')}>{t('editor.nodes')}</Button><Button onClick={() => setPanel('inspector')}>{t('editor.inspector')}</Button></div>
-      <Drawer open={panel !== null} onClose={() => setPanel(null)} title={t(panel === 'palette' ? 'editor.nodes' : 'editor.inspector')} width={320}>
-        {panel === 'palette' ? <Palette compact onAdd={(...args) => { addNode(...args); setPanel(null); }} /> : <NodeInspector node={selected} onChange={patchSelected} onDelete={deleteSelected} variables={variables} />}
+      <div className="flex gap-2 p-2 xl:hidden"><Button onClick={() => { setDeleteReturnFocus(false); setPanel('palette'); }}>{t('editor.nodes')}</Button><Button onClick={() => { setDeleteReturnFocus(false); setPanel('inspector'); }}>{t('editor.inspector')}</Button></div>
+      <Drawer returnFocusRef={deleteReturnFocus ? wrapperRef : undefined} open={panel !== null} onClose={() => setPanel(null)} title={t(panel === 'palette' ? 'editor.nodes' : 'editor.inspector')} width={320}>
+        {panel === 'palette' ? <Palette compact onAdd={(...args) => { addNode(...args); setPanel(null); }} /> : <NodeInspector node={selected} onChange={patchSelected} onDelete={deleteSelected} variables={variables} disabled={saving} workspaceId={flow?.workspace ?? flow?.client} drafts={inspectorDrafts} onDraftChange={onInspectorDraft} />}
       </Drawer>
       {/* Desktop panels use the same components as the narrow-screen drawer. */}
       <div className="flex min-h-0 min-w-0 flex-1 overflow-auto">
         <div className="hidden shrink-0 xl:block"><Palette onAdd={addNode} /></div>
 
-        <div ref={wrapperRef} onDragOver={onDragOver} onDrop={onDrop}
+        <div ref={wrapperRef} tabIndex={-1} aria-label={t('bot.canvas')} onDragOver={onDragOver} onDrop={onDrop}
              style={{ flex: 1, minWidth: 0, position: 'relative' }}>
           <ReactFlow
               deleteKeyCode={null}
@@ -458,6 +471,9 @@ function Editor() {
             onChange={patchSelected}
             onDelete={deleteSelected}
             variables={variables}
+            disabled={saving}
+            workspaceId={flow?.workspace ?? flow?.client} drafts={inspectorDrafts}
+            onDraftChange={onInspectorDraft}
           />
         </aside>
       </div>

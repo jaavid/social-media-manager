@@ -9,7 +9,7 @@
 import { api } from '../http/client';
 
 export const botAPI = {
-  list:        (params)         => api.get   ('/bot-flows/', { params }),
+  list:        (params, signal) => api.get   ('/bot-flows/', { params, signal }),
   get:         (id)             => api.get   (`/bot-flows/${id}/`),
   create:      (data, params)   => api.post  ('/bot-flows/', data, { params }),
   update:      (id, data)       => api.put   (`/bot-flows/${id}/`, data),

@@ -95,3 +95,16 @@ it('connects tabs to named panels when panel content is supplied', () => {
   const panel = screen.getByRole('tabpanel', { name: 'Alpha' });
   expect(screen.getByRole('tab', { name: 'Alpha' })).toHaveAttribute('aria-controls', panel.id);
 });
+
+it.each([Modal, Sheet])('returns focus to the explicit fallback when a confirmed action removes its trigger', async Component => {
+  function Example() {
+    const [open, setOpen] = useState(false), [removed, setRemoved] = useState(false);
+    const fallback = React.useRef(null);
+    return <><div tabIndex={-1} ref={fallback}>Canvas</div>{!removed && <button onClick={() => setOpen(true)}>Delete node</button>}<Component open={open} returnFocusRef={removed ? fallback : undefined} onClose={() => setOpen(false)} title="Confirm"><button onClick={() => { setRemoved(true); setOpen(false); }}>Confirm delete</button></Component></>;
+  }
+  render(<Example />);
+  await userEvent.click(screen.getByRole('button', { name: 'Delete node' }));
+  await userEvent.click(screen.getByRole('button', { name: 'Confirm delete' }));
+  await waitFor(() => expect(screen.getByText('Canvas')).toHaveFocus());
+  expect(screen.queryByRole('button', { name: 'Delete node' })).not.toBeInTheDocument();
+});
