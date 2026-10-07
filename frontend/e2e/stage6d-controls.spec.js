@@ -143,3 +143,22 @@ test('confirmed deletion removes only selected node and returns focus to canvas'
   await expect(page.getByLabel(enMessages['bot.canvas'])).toBeFocused();
   expect(state.writes).toHaveLength(0);
 });
+
+test('immediate confirmation Escape preserves the tablet inspector across repeated openings', async ({ page }) => {
+  await page.setViewportSize({ width: 768, height: 950 });
+  await page.emulateMedia({ colorScheme: 'dark', reducedMotion: 'reduce' });
+  const state = await setup(page, 'en', 'dark');
+  state.failure = null;
+  const inspector = await inspect(page, 768, 'wait', enMessages);
+  const remove = inspector.getByRole('button', { name: enMessages['editor.deleteNode'], exact: true });
+  for (let attempt = 0; attempt < 20; attempt++) {
+    await remove.click();
+    const confirmation = page.getByRole('alertdialog');
+    await expect(confirmation.getByRole('button', { name: enMessages['reports.cancel'], exact: true })).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(confirmation).toHaveCount(0);
+    await expect(inspector).toBeVisible();
+    await expect(remove).toBeFocused();
+  }
+  await expect(page.locator('.react-flow__node[data-id="wait"]')).toBeVisible();
+});

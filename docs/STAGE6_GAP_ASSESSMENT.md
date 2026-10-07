@@ -310,7 +310,8 @@ trigger disappears. Genuine canvas geometry and provider preview styles remain.
 
 Evidence: NodeInspector/TriggerConfigModal/Primitives Jest cases and
 `stage6d-controls.spec.js` cover invalid JSON/numbers, switching, ordered items,
-save failure/manual recovery, confirmation and focus. The 18 node matrix cases
+save failure/manual recovery, confirmation and focus, including 20 immediate
+Cancel-focus/Escape cycles without closing the inspector. The 18 node matrix cases
 cover fa/en, RTL/LTR, light/dark/system, 360/768/1440 and reduced motion; trigger
 cases cover keyboard input and recovery at both narrow/wide widths. Before images
 are from detached `7ee976a`; after images include actual fixture save failures in

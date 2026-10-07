@@ -164,7 +164,9 @@ workspace active-flow reads cannot mutate a newly selected node.
 Deletion uses the existing shared Modal alertdialog. Cancel restores its trigger;
 a confirmed deletion captures the target and supplies the canvas as returnFocusRef
 to the existing Modal/Drawer when that trigger is removed. returnFocusRef is an
-optional explicit fallback; ordinary overlay restoration remains unchanged.
+optional explicit fallback; ordinary overlay restoration remains unchanged. Initial
+confirmation focus waits one animation frame for the existing Radix dismissal layer
+to register, so an immediate Escape cannot also close its inspector Drawer.
 
 Owner: editor/feature maintainers for untouched VariableInserter, older editor
 helpers, legacy help/preview copy and settings/destructive families. Remove their
