@@ -27,3 +27,4 @@ docker compose exec -T app python manage.py check --deploy
 docker compose exec -T app python manage.py check_platform_config
 docker compose exec -T app python manage.py check_provider_conformance
 docker compose exec -T app python manage.py check_oauth_readiness
+docker compose exec -T app python manage.py check_deployment_runtime

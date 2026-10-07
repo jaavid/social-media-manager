@@ -1,6 +1,7 @@
 """Check a disposable, seeded test account through the unified production ingress.
 
-Supply BROWSER_TEST_EMAIL and BROWSER_TEST_PASSWORD; never use production accounts.
+Supply BROWSER_TEST_EMAIL and BROWSER_TEST_PASSWORD for a disposable operator;
+never use production accounts.
 No credentials or cookie values are printed.
 """
 import http.cookiejar
@@ -45,6 +46,11 @@ assert any('sessionid=' in cookie and 'HttpOnly' in cookie and 'SameSite=Lax' in
 status, _, body = request('/api/auth/me/')
 assert status == 200
 identity = json.loads(body)
+status, _, body = request('/api/egress/connectivity/?mode=oauth')
+assert status == 200, 'operator OAuth readiness route failed through production ingress'
+oauth = json.loads(body)['oauth']
+assert oauth and all(type(report.get('configured')) is bool for report in oauth.values())
+# Print neither the response nor credentials/callback configuration.
 status, _, html = request('/admin/account-settings')
 assert status == 200 and identity['email'].encode() in html
 assert b'"refresh"' not in html and b'"access"' not in html
@@ -52,4 +58,5 @@ csrf = json.loads(request('/api/auth/session/')[2])['csrfToken']
 assert request('/api/profile/', 'PATCH', {}, csrf, 'https://attacker.invalid')[0] == 403
 assert request('/api/auth/session/', 'DELETE', csrf=csrf)[0] == 204
 assert request('/api/auth/me/')[0] == 401
-print('Unified ingress: CSRF, opaque cookie login, DAL identity, Origin and logout passed.')
+assert request('/api/egress/connectivity/?mode=oauth')[0] == 401
+print('Unified ingress: CSRF, cookie login, DAL identity, OAuth readiness, Origin and logout passed.')

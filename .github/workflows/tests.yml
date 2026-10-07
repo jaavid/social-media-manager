@@ -83,6 +83,13 @@ jobs:
           DEBUG: "False"
         run: python manage.py check_provider_conformance
 
+      - name: Deployment source contracts
+        working-directory: backend
+        env:
+          SECRET_KEY: test-secret-not-for-prod
+          DEBUG: "False"
+        run: python manage.py check_deployment_runtime --local-only
+
       - name: Run Django tests
         working-directory: backend
         env:
@@ -98,6 +105,7 @@ jobs:
           DEBUG: "False"
           ANTHROPIC_API_KEY: ""
           ALLOWED_HOSTS: "*"
+          TEST_RUNTIME_METRICS_REDIS_URL: redis://localhost:6379/15
         run: python manage.py test social_stats.tests --verbosity=1
 
   frontend:
@@ -263,11 +271,8 @@ jobs:
           grep -E '^beat[[:space:]]+RUNNING' /tmp/supervisor.txt
           grep -E '^nginx[[:space:]]+RUNNING' /tmp/supervisor.txt
 
-          docker compose exec -T app celery -A dashboard inspect registered --timeout=10 | tee /tmp/registered.txt
-          grep -F 'social_stats.scheduler.process_post_queues' /tmp/registered.txt
-          grep -F 'social_stats.scheduler.process_scheduled_posts' /tmp/registered.txt
-          grep -F 'social_stats.inbox_tasks.sync_inbox_for_all_clients' /tmp/registered.txt
-          grep -F 'social_stats.security.tasks.detect_security_anomalies' /tmp/registered.txt
+          docker compose exec -T app python manage.py check_deployment_runtime
+          docker compose exec -T app python manage.py runtime_metrics --strict
 
       - name: Teardown
         if: always()

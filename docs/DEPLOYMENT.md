@@ -18,6 +18,7 @@ docker compose exec app supervisorctl status
 docker compose exec app python manage.py check_platform_config
 docker compose exec app python manage.py check_provider_conformance
 docker compose exec app python manage.py check_oauth_readiness
+docker compose exec app python manage.py check_deployment_runtime
 docker compose exec app python manage.py createsuperuser
 ```
 
@@ -34,10 +35,17 @@ docker compose pull
 docker compose up -d
 docker compose exec app python manage.py check_platform_config
 docker compose exec app python manage.py check_provider_conformance
+docker compose exec app python manage.py check_deployment_runtime
 docker compose exec app supervisorctl status
 ```
 
 برای تغییر از سورس: `docker compose up -d --build`. پس از migration، بازگشت image به‌تنهایی تضمین بازگشت schema نیست؛ rollback را با بکاپ و سازگاری migration انجام دهید.
+
+`check_deployment_runtime` همهٔ taskهای beat در تنظیمات، scheduleهای فعال دیتابیس و taskهای event/feature ثبت‌شده در نسخهٔ محلی را با پاسخ **تک‌تک workerها** مقایسه می‌کند؛ نبود worker یا task خروجی غیرصفر می‌دهد. برای الزام پاسخ worker مشخص، `--worker celery@HOST` را تکرار کنید؛ بدون این گزینه فقط workerهای پاسخ‌دهنده بررسی می‌شوند. `--timeout 10` مهلت پاسخ است. از `--local-only` فقط برای بررسی سورس در CI استفاده کنید، نه تأیید استقرار.
+
+همین command مسیر واقعی `/api/egress/connectivity/?mode=oauth` را با operator موقت و بدون ذخیرهٔ کاربر/session یا credential، داخل فرایند Django اجرا می‌کند؛ این بررسی جای smoke شبکهٔ ingress را نمی‌گیرد. همهٔ OAuth providerهای گزارش موجود بررسی می‌شوند و فقط boolean تنظیم‌بودن چاپ می‌شود. تنظیم‌نبودن provider اختیاری خطا نیست؛ مثلاً `--require-oauth youtube --require-oauth linkedin` آن دو را الزامی می‌کند. این readiness حضور تنظیمات است، نه تأیید app review یا دسترسی واقعی API خارجی. تست `check_browser_session.py` در CI همان endpoint و منع دسترسی پس از logout را از ingress واقعی با operator آزمایشی پوشش می‌دهد.
+
+متریک‌های task، صف و sync در [راهنمای پایش](OBSERVABILITY.md) آمده‌اند.
 
 برای ارتقای tenant با migration `0076_organization_tenancy`، API و workerهای نویسندهٔ قدیمی را متوقف کنید، بکاپ بگیرید، migration را اجرا و سپس همهٔ API/workerها را با نسخهٔ جدید راه‌اندازی کنید. از deploy هم‌زمان نسخهٔ قدیم و جدید پرهیز کنید: فضای کاری جدید به FK سازمانِ غیر nullable نیاز دارد. روی دیتابیس بزرگ، زمان migration را در staging اندازه بگیرید؛ یک سازمان برای هر فضای کاری ساخته می‌شود. مالکیت مبهم قدیمی را بعداً با بررسی انسانی در ابزار مدیریتی اصلاح کنید؛ migration آن را حدس نمی‌زند. این migration برای جلوگیری از حذف مالکیت/سیاست سازمان برگشت مستقیم ندارد؛ rollback به بکاپ سازگار نیاز دارد.
 

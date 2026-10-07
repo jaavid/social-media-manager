@@ -301,6 +301,11 @@ CELERY_BEAT_SCHEDULER    = 'django_celery_beat.schedulers:DatabaseScheduler'
 CELERY_TASK_ALWAYS_EAGER = DEBUG
 CELERY_TASK_EAGER_PROPAGATES = DEBUG
 
+# Bounded shared task counters survive worker restarts. Isolate in another Redis
+# database/instance when desired; no payload or account identifiers are stored.
+RUNTIME_METRICS_ENABLED = os.environ.get('RUNTIME_METRICS_ENABLED', 'False').lower() == 'true'
+RUNTIME_METRICS_REDIS_URL = os.environ.get('RUNTIME_METRICS_REDIS_URL', CELERY_BROKER_URL)
+
 CELERY_BEAT_SCHEDULE = {
     'telegram-recover-jobs': {'task': 'social_stats.telegram_tasks.recover_telegram_jobs', 'schedule': 60.0},
     'telegram-prune-updates': {'task': 'social_stats.telegram_tasks.prune_telegram_updates', 'schedule': 86400.0},
@@ -450,7 +455,8 @@ LOGGING = {
     },
     'handlers': {
         'console': {
-            'class': 'logging.StreamHandler', 'stream': 'ext://sys.stdout',
+            'class': 'logging.StreamHandler',
+            'stream': 'ext://sys.stderr' if os.environ.get('LOG_STREAM') == 'stderr' else 'ext://sys.stdout',
             'formatter': 'production',
         },
     },
