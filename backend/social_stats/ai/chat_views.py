@@ -47,10 +47,10 @@ from rest_framework.response import Response
 from ..models import AIConversation, AIMessage
 from ..ai_helpers import brand_voice_prompt
 from social_stats.views.ai import _resolved_client
-from . import AIError, RateLimited, prompts
+from . import RateLimited, prompts
 from .client import _anthropic_or_none
 from . import cost_tracker, rate_limiter
-from .tools import TOOL_SCHEMA, execute_tool, CONFIRMATION_REQUIRED
+from .tools import TOOL_SCHEMA, execute_tool
 
 logger = logging.getLogger(__name__)
 
@@ -232,7 +232,8 @@ def chat(request):
         }
     """
     client, err = _resolved_client(request)
-    if err: return err
+    if err:
+        return err
 
     user = request.user
     message_text = (request.data.get('message') or '').strip()
@@ -319,6 +320,10 @@ def chat(request):
     while iterations < MAX_TOOL_ITERATIONS:
         iterations += 1
         t0 = time.monotonic()
+        from social_stats.entitlements import reserve_ai
+        if client is not None:
+            reserve_ai(client)
+
         try:
             response = sdk.messages.create(
                 model=model_id,
@@ -344,11 +349,10 @@ def chat(request):
         usage_in  += int(getattr(usage, 'input_tokens',  0) or 0)
         usage_out += int(getattr(usage, 'output_tokens', 0) or 0)
         request_id = getattr(response, 'id', '') or ''
-        stop_reason = getattr(response, 'stop_reason', '') or ''
         blocks = _normalise_blocks_to_dicts(getattr(response, 'content', []) or [])
 
         # Cost record per-turn
-        per_turn_cost = cost_tracker.estimate_cost(
+        cost_tracker.estimate_cost(
             int(getattr(usage, 'input_tokens', 0) or 0),
             int(getattr(usage, 'output_tokens', 0) or 0),
             model_id,
@@ -370,7 +374,7 @@ def chat(request):
 
         if not tool_calls:
             # Final response — persist + return
-            assistant_msg = _persist_assistant_turn(conversation, blocks, model_id,
+            _persist_assistant_turn(conversation, blocks, model_id,
                                                     (usage_in, usage_out),
                                                     cost_tracker.estimate_cost(usage_in, usage_out, model_id))
             final_blocks = blocks
@@ -378,7 +382,7 @@ def chat(request):
 
         # Need to execute tools. Persist this assistant turn (with tool_use blocks),
         # then run the tools, then loop with tool_results in the next user message.
-        assistant_msg = _persist_assistant_turn(conversation, blocks, model_id,
+        _persist_assistant_turn(conversation, blocks, model_id,
                                                  (0, 0), Decimal('0'))
         final_blocks = blocks
 
@@ -432,6 +436,10 @@ def chat(request):
         if halt_for_confirmation:
             # Don't iterate further until the user confirms; let Claude take ONE more
             # turn to summarise + ask the user, then break.
+            from social_stats.entitlements import reserve_ai
+            if client is not None:
+                reserve_ai(client)
+
             try:
                 response = sdk.messages.create(
                     model=model_id,

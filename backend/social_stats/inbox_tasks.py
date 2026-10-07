@@ -34,7 +34,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from .models import (
-    Client, PlatformCredential, UnifiedReview,
+    PlatformCredential, UnifiedReview,
     Conversation, Message,
 )
 from . import sentiment as _sentiment
@@ -187,7 +187,7 @@ def _upsert_fb_ig_comment(client_id: int, platform: str, post_id: str, cmt: dict
                 'author_handle': author_handle,
                 'content':      body,
                 'sent_at':      created_at,
-                'sentiment':    _sentiment.classify(body) if body else 'unknown',
+                'sentiment':    _sentiment.classify(body, workspace_id=client_id) if body else 'unknown',
             },
         )
         if created:
@@ -305,7 +305,7 @@ def _upsert_yt_comment(client_id: int, thread_id: str, comment_id: Optional[str]
                 'author_handle': author_handle,
                 'content':      body,
                 'sent_at':      created_at,
-                'sentiment':    _sentiment.classify(body) if body else 'unknown',
+                'sentiment':    _sentiment.classify(body, workspace_id=client_id) if body else 'unknown',
             },
         )
         if created:
@@ -425,7 +425,7 @@ def _sync_linkedin_post_comments(cred: PlatformCredential, post_urn: str) -> int
                     'author_handle': str(actor),
                     'content':       body,
                     'sent_at':       sent_at,
-                    'sentiment':     _sentiment.classify(body) if body else 'unknown',
+                    'sentiment':     _sentiment.classify(body, workspace_id=cred.client_id) if body else 'unknown',
                 },
             )
             if created:
@@ -545,7 +545,7 @@ def sync_gmb_reviews_unified(self, client_id: int, credential_id: Optional[int] 
                     'rating':              rating,
                     'comment':             comment,
                     'created_at_platform': _parse_iso(r.get('createTime')),
-                    'sentiment':           _sentiment.classify(comment) if comment else 'unknown',
+                    'sentiment':           _sentiment.classify(comment, workspace_id=client_id) if comment else 'unknown',
                 },
             )
             if not created:

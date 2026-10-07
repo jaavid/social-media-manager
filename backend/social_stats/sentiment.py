@@ -28,7 +28,7 @@ VALID = ('positive', 'neutral', 'negative', 'unknown')
 _MODEL = 'claude-haiku-4-5-20251001'  # cheapest Haiku — fits the cost target
 
 
-def classify(text: str) -> str:
+def classify(text: str, *, workspace_id=None) -> str:
     """Return one of {'positive','neutral','negative','unknown'}. Never raises."""
     if not text or not text.strip():
         return 'unknown'
@@ -38,6 +38,11 @@ def classify(text: str) -> str:
         return 'unknown'
 
     try:
+        if workspace_id is not None:
+            from .entitlements import reserve_ai
+            from .models import Client
+
+            reserve_ai(Client.objects.get(pk=workspace_id))
         msg = client.messages.create(
             model=_MODEL,
             max_tokens=8,

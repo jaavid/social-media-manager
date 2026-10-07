@@ -525,11 +525,11 @@ class AgencyInviteFromUser(models.Model):
 # Subscription — (end-user billing)
 # ─────────────────────────────────────────────────────────────────────────────
 class Subscription(models.Model):
-    """One subscription per *subject* (an end-user workspace OR an agency).
-    Exactly one of `client` / `agency` is set. Retained after payments were
-    removed; all plans are now unlimited (see billing_plans.py).
-    """
+    """Organization billing authority; legacy subjects retain invoice history only."""
     PLAN_CHOICES = [
+        ('self-hosted', 'Self-hosted'),
+        ('org-free', 'Organization Free'),
+        ('org-pro', 'Organization Pro'),
         ('eu-free',         'End-user · Free'),
         ('eu-pro',          'End-user · Pro'),
         ('eu-premium',      'End-user · Premium'),
@@ -547,6 +547,11 @@ class Subscription(models.Model):
         ('halted',     'Halted'),
     ]
 
+    organization = models.OneToOneField(
+        'social_stats.Organization', on_delete=models.CASCADE,
+        related_name='subscription', null=True, blank=True,
+    )
+
     client = models.OneToOneField(
         'social_stats.Client', on_delete=models.CASCADE,
         related_name='subscription', null=True, blank=True,
@@ -556,7 +561,7 @@ class Subscription(models.Model):
         related_name='subscription', null=True, blank=True,
     )
 
-    plan       = models.CharField(max_length=30, choices=PLAN_CHOICES, default='eu-free')
+    plan       = models.CharField(max_length=30, choices=PLAN_CHOICES, default='self-hosted')
     status     = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
 
     # Legacy payment-gateway columns — retained as inert storage after payments
@@ -582,8 +587,9 @@ class Subscription(models.Model):
             # Exactly one subject — XOR enforced at the DB layer.
             models.CheckConstraint(
                 check=(
-                    (models.Q(client__isnull=False) & models.Q(agency__isnull=True))
-                    | (models.Q(client__isnull=True) & models.Q(agency__isnull=False))
+                    (models.Q(organization__isnull=False) & models.Q(client__isnull=True) & models.Q(agency__isnull=True))
+                    | (models.Q(organization__isnull=True) & models.Q(client__isnull=False) & models.Q(agency__isnull=True))
+                    | (models.Q(organization__isnull=True) & models.Q(client__isnull=True) & models.Q(agency__isnull=False))
                 ),
                 name='subscription_exactly_one_subject',
             ),
@@ -591,14 +597,14 @@ class Subscription(models.Model):
 
     @property
     def subject(self):
-        return self.client or self.agency
+        return self.organization or self.client or self.agency
 
     @property
     def subject_kind(self) -> str:
-        return 'client' if self.client_id else 'agency'
+        return 'organization' if self.organization_id else ('client' if self.client_id else 'agency')
 
     def __str__(self):
-        sub = f'client#{self.client_id}' if self.client_id else f'agency#{self.agency_id}'
+        sub = f'{self.subject_kind}#{self.subject.pk}'
         return f"Subscription<{sub} {self.plan} {self.status}>"
 
 

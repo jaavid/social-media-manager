@@ -1,6 +1,8 @@
 """Tenant ownership is independent of agency delegation and workspace grants."""
 
 from django.conf import settings
+from social_stats.entitlements import EntitledResourceMixin
+
 from django.db import models
 
 
@@ -20,7 +22,7 @@ class Organization(models.Model):
         return self.name
 
 
-class OrganizationMembership(models.Model):
+class OrganizationMembership(EntitledResourceMixin, models.Model):
     organization = models.ForeignKey(
         Organization, on_delete=models.CASCADE, related_name="memberships"
     )

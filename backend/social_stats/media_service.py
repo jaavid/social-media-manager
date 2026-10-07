@@ -74,6 +74,26 @@ def upload_media(
     alt_text: str = '',
     tags: Optional[list] = None,
 ) -> MediaAsset:
+    """Check quota before writing bytes, and hold the tenant lock through save."""
+    from .entitlements import locked_organization, require_capacity
+    from .models import Client
+
+    workspace = Client.objects.get(pk=client_id)
+    with locked_organization(workspace.organization_id) as organization:
+        require_capacity(organization, 'storage_bytes', file.size or 0)
+        return _upload_media(file, client_id=client_id, uploaded_by_id=uploaded_by_id,
+                             alt_text=alt_text, tags=tags, folder=folder)
+
+
+def _upload_media(
+    file: UploadedFile,
+    client_id: int,
+    *,
+    uploaded_by_id: Optional[int] = None,
+    folder: str = '',
+    alt_text: str = '',
+    tags: Optional[list] = None,
+) -> MediaAsset:
     """
     Persist `file` and return a MediaAsset row. Generates a thumbnail when the
     file is an image; extracts image dimensions; for video, attempts to read

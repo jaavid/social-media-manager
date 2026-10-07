@@ -6,16 +6,7 @@
 #  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
 #  Released under the MIT License — see LICENSE. Keep this notice.
 # ============================================================================
-"""
-Plan catalog — retained only so existing imports (usage_limits, serializers,
-the account-type model) keep resolving. The product is now free and
-open-source: there are no paid tiers and every quota is unlimited.
-
-Every plan's `limits` are `None` (unlimited). `get_limit()` returns `None` for
-any key, so `usage_limits.check_limit()` always allows the action. The two
-account *types* (end_user vs agency) still exist for role separation — that
-lives in the permission layer, not here.
-"""
+"""Organization catalog. Historical SKUs retain their self-hosted behavior."""
 from __future__ import annotations
 
 
@@ -27,11 +18,14 @@ def _unlimited(sku: str, side: str, label: str) -> dict:
         'label':    label,
         'price':    0,
         'currency': 'INR',
+        'capabilities': {'automations': True, 'reports': True, 'ai': True},
         'features': ['All features included — free to self-host'],
-        # Every known limit key maps to None (= unlimited). get_limit() also
-        # returns None for any key not listed, so nothing is ever gated.
+        # Self-hosted and historical plans retain unlimited known quotas.
         'limits': {
             'workspaces':               None,
+            'members':                  None,
+            'social_accounts':          None,
+            'storage_bytes':            None,
             'connected_platforms':      None,
             'posts_per_month':          None,
             'ai_generations_per_month': None,
@@ -61,18 +55,25 @@ PLANS = {
 }
 
 
+SELF_HOSTED = _unlimited('self-hosted', 'organization', 'Self-hosted')
+ORG_FREE = _unlimited('org-free', 'organization', 'Organization Free')
+ORG_FREE['limits'].update(workspaces=1, members=3, social_accounts=3,
+                          storage_bytes=1073741824, ai_generations_per_month=50)
+ORG_FREE['capabilities'].update(automations=False, reports=False)
+ORG_PRO = _unlimited('org-pro', 'organization', 'Organization Pro')
+ORG_PRO['limits'].update(workspaces=10, members=25, social_accounts=50,
+                         storage_bytes=53687091200, ai_generations_per_month=1000)
+PLANS.update({p['sku']: p for p in (SELF_HOSTED, ORG_FREE, ORG_PRO)})
+
+
 def get_plan(sku: str) -> dict:
-    """Return a plan dict; falls back to eu-free if the sku is unknown so
-    callers always get a valid (unlimited) limit-bag."""
-    return PLANS.get(sku) or EU_FREE
+    # Unknown billing state must never silently become unlimited.
+    return PLANS.get(sku) or ORG_FREE
 
 
 def list_plans(side: str | None = None) -> list[dict]:
-    if side:
-        return [p for p in PLANS.values() if p['side'] == side]
-    return list(PLANS.values())
+    return [p for p in PLANS.values() if side is None or p['side'] == side]
 
 
 def get_limit(sku: str, key: str):
-    """Always None — every quota is unlimited now that the product is free."""
-    return None
+    return get_plan(sku)['limits'][key]

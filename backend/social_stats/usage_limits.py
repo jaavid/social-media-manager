@@ -9,8 +9,7 @@
 """
 usage measurement + limit enforcement helpers.
 
-Backed by the workspace's Subscription row (which's
-billing_views auto-creates on first access). Keep this module thin and
+Backed by the organization subscription. Legacy agency meters remain historical. Keep this module thin and
 read-only: callers either query (`get_usage`) or check (`check_limit`)
 before performing the action.
 
@@ -19,162 +18,52 @@ A limit value of `0` blocks the action entirely.
 """
 from __future__ import annotations
 
-from datetime import timedelta
-
-from django.utils import timezone
-
-from .billing_plans import get_plan
-from .models import (
-    AgencyClientRelation, AIUsageLog, Client, PlatformCredential,
-    Subscription, UnifiedPost,
-)
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Subscription bootstrapping
-# ─────────────────────────────────────────────────────────────────────────────
-_LEGACY_PLAN_TO_SKU = {
-    'free':           'eu-free',
-    'pro':            'eu-pro',
-    'premium':        'eu-premium',
-    'agency_managed': 'eu-free',  # agency-managed workspaces stay on the free tier
-}
+from .models import Client, Subscription
 
 
 def get_or_create_subscription(client: Client) -> Subscription:
-    """Free-tier subscriptions are auto-provisioned on first access so the
-    rest of the codebase can read `client.subscription` without null-checks."""
-    legacy = client.subscription_plan or 'free'
-    sku = _LEGACY_PLAN_TO_SKU.get(legacy, legacy if legacy.startswith(('eu-', 'agency-')) else 'eu-free')
-    sub, _ = Subscription.objects.get_or_create(
-        client=client,
-        defaults={'plan': sku, 'status': 'active'},
-    )
-    return sub
+    """Compatibility helper: billing ownership is always the organization."""
+    from .entitlements import subscription_for
 
-
-def get_or_create_agency_subscription(agency) -> Subscription:
-    """Agency subscriptions are auto-provisioned on the starter tier so the
-    this flows can read a usage row without null-checks."""
-    sub, _ = Subscription.objects.get_or_create(
-        agency=agency,
-        defaults={'plan': 'agency-starter', 'status': 'active'},
-    )
-    return sub
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Usage queries
-# ─────────────────────────────────────────────────────────────────────────────
-def _period_start(sub: Subscription):
-    if sub.current_period_start:
-        return sub.current_period_start
-    # Fall back to the start of the current calendar month
-    now = timezone.now()
-    return now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-
-
-def _connected_platforms(client: Client) -> int:
-    return PlatformCredential.objects.filter(client=client, is_active=True).count()
-
-
-def _posts_this_period(sub: Subscription) -> int:
-    return UnifiedPost.objects.filter(
-        client=sub.client,
-        status__in=('published', 'queued'),
-        published_at__gte=_period_start(sub),
-    ).count()
-
-
-def _ai_generations_this_period(sub: Subscription) -> int:
-    return AIUsageLog.objects.filter(
-        client=sub.client,
-        created_at__gte=_period_start(sub),
-    ).count()
-
-
-def _active_relations(client: Client) -> int:
-    return AgencyClientRelation.objects.filter(client=client, status='active').count()
+    return subscription_for(client.organization)
 
 
 def get_usage(client: Client) -> dict:
-    """Snapshot of usage vs limits for the workspace's current plan."""
-    sub = get_or_create_subscription(client)
-    plan = get_plan(sub.plan)
-    counts = {
-        'connected_platforms':      _connected_platforms(client),
-        'posts_per_month':          _posts_this_period(sub),
-        'ai_generations_per_month': _ai_generations_this_period(sub),
-        'active_relations':         _active_relations(client),
-    }
-    rows = []
-    for key, current in counts.items():
-        limit = plan['limits'].get(key)
-        rows.append({
-            'key':       key,
-            'current':   current,
-            'limit':     limit,                                    # None → unlimited
-            'remaining': None if limit is None else max(0, limit - current),
-            'percent':   None if limit in (None, 0) else round(min(100, current * 100 / limit), 1),
-        })
+    from .entitlements import snapshot
+
+    state = snapshot(client.organization)
+    # Keep the legacy list contract while reporting organization totals.
+    state['usage'] = [{'key': key, **value} for key, value in state['usage'].items()]
+    return state
+
+
+def check_limit(client: Client, key: str, *, increment: int = 1):
+    """Read-only preflight; model writes/reservations perform atomic enforcement."""
+    from .entitlements import EntitlementDenied, require_capacity
+
+    key = {'connected_platforms': 'social_accounts'}.get(key, key)
+    try:
+        return True, None, require_capacity(client.organization, key, increment)
+    except EntitlementDenied as exc:
+        return False, 'Organization entitlement exceeded', exc.detail
+
+
+def get_or_create_agency_subscription(agency):
+    """Historical lookup only; delegated agencies never own tenant billing."""
+    return Subscription.objects.filter(agency=agency).first()
+
+
+def get_agency_usage(agency):
+    from .models import AgencyClientRelation
+
     return {
-        'subscription': {
-            'plan':         sub.plan,
-            'plan_label':   plan['label'],
-            'status':       sub.status,
-            'current_period_end':   sub.current_period_end.isoformat() if sub.current_period_end else None,
-            'cancel_at_period_end': sub.cancel_at_period_end,
-        },
-        'usage': rows,
+        'subscription': None,
+        'usage': [{'key': 'managed_clients', 'current': AgencyClientRelation.objects.filter(
+            agency=agency, status='active',
+        ).count(), 'limit': None, 'remaining': None, 'percent': None}],
     }
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Limit checks (called by views before performing the action)
-# ─────────────────────────────────────────────────────────────────────────────
-def check_limit(client: Client, key: str, *, increment: int = 1) -> tuple[bool, str | None, dict | None]:
-    """Returns (ok, reason_if_blocked, info_dict).
-
-    Payments were removed — the product is free and open-source, so every
-    quota is unlimited for both account types. This always allows the action.
-    `get_usage()` still reports live counts for the in-app meter.
-    """
-    sub = get_or_create_subscription(client)
-    return (True, None, {'current': None, 'limit': None, 'plan': sub.plan})
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Agency-side usage + checks 
-# ─────────────────────────────────────────────────────────────────────────────
-def _managed_clients(agency) -> int:
-    return AgencyClientRelation.objects.filter(agency=agency, status='active').count()
-
-
-def get_agency_usage(agency) -> dict:
-    sub = get_or_create_agency_subscription(agency)
-    plan = get_plan(sub.plan)
-    current = _managed_clients(agency)
-    limit = plan['limits'].get('managed_clients')
-    return {
-        'subscription': {
-            'plan':         sub.plan,
-            'plan_label':   plan['label'],
-            'status':       sub.status,
-            'current_period_end':   sub.current_period_end.isoformat() if sub.current_period_end else None,
-            'cancel_at_period_end': sub.cancel_at_period_end,
-        },
-        'usage': [{
-            'key':       'managed_clients',
-            'current':   current,
-            'limit':     limit,
-            'remaining': None if limit is None else max(0, limit - current),
-            'percent':   None if limit in (None, 0) else round(min(100, current * 100 / limit), 1),
-        }],
-    }
-
-
-def check_agency_limit(agency, key: str, *, increment: int = 1) -> tuple[bool, str | None, dict | None]:
-    """Same shape as `check_limit` but for agency-side keys (managed_clients).
-    Unlimited now that payments are removed — always allows."""
-    sub = get_or_create_agency_subscription(agency)
-    return (True, None, {'current': None, 'limit': None, 'plan': sub.plan})
+def check_agency_limit(agency, key: str, *, increment: int = 1):
+    # Delegation quotas are outside tenant subscription ownership (#51).
+    return True, None, {'current': None, 'limit': None, 'plan': None}

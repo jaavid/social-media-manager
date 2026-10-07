@@ -137,6 +137,15 @@ def evaluate(user, workspace, action, *, account=None):
     role, relation = acting_context(user, workspace)
     if role == "forbidden":
         return Decision(False, reason="no active membership for this workspace")
+    from .entitlements import capability_allowed
+
+    capability = {
+        'manage_automation': 'automations',
+        'generate_reports': 'reports',
+        'export_data': 'reports',
+    }.get(action)
+    if capability and not capability_allowed(workspace.organization, capability):
+        return Decision(False, reason=f"capability not entitled: {capability}", role=role)
     if role == "superadmin":
         return Decision(
             True,

@@ -7,6 +7,8 @@
 #  Released under the MIT License — see LICENSE. Keep this notice.
 # ============================================================================
 """Automation models."""
+from social_stats.entitlements import EntitledCapabilityMixin
+
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -33,8 +35,10 @@ AUTOMATION_TRIGGER_CHOICES = [
 ]
 
 
-class AutomationRule(models.Model):
+class AutomationRule(EntitledCapabilityMixin, models.Model):
     """IF (trigger + filters) THEN action — runs on inbox/engagement events."""
+
+    entitlement_capability = 'automations'
     client          = models.ForeignKey(Client, verbose_name='فضای کاری', on_delete=models.CASCADE, related_name='automation_rules')
     name            = models.CharField(verbose_name='نام', max_length=200)
     trigger_type    = models.CharField(verbose_name='نوع محرک', max_length=40, choices=AUTOMATION_TRIGGER_CHOICES)

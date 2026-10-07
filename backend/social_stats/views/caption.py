@@ -200,6 +200,10 @@ def _generate_caption(request):
     if not api_key:
         return Response({'error': 'AI service is not configured. Contact your administrator.'}, status=503)
 
+    from social_stats.entitlements import reserve_ai
+    if client is not None:
+        reserve_ai(client)
+
     try:
         claude = anthropic.Anthropic(api_key=api_key)
         user_prompt = _build_user_prompt(topic, tone, post_type, platforms, keywords, cta, client_context)

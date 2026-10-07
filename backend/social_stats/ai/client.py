@@ -43,7 +43,7 @@ import hashlib
 import json
 import logging
 import time
-from typing import Any, Iterable, Optional
+from typing import Iterable, Optional
 
 from django.conf import settings
 
@@ -90,9 +90,25 @@ class AIClient:
     # ── Internal helpers ─────────────────────────────────────────────────
 
     def _check_processing_allowed(self):
-        """GDPR/DPDP restrict-processing gate (Client.is_processing_paused)."""
+        """Check processing restrictions and effective AI capability."""
+        if self.client is not None:
+            from ..entitlements import capability_allowed
+
+            if not capability_allowed(self.client.organization, 'ai'):
+                raise RateLimited('Organization AI capability is unavailable', scope='organization')
         if self.client is not None and getattr(self.client, 'is_processing_paused', False):
             raise AIError('AI processing is paused for this workspace (data-processing restriction).')
+
+    def _reserve_entitlement(self):
+        if self.client is None:
+            return  # Platform-only tools have no tenant; retain global budgets.
+        from ..entitlements import EntitlementDenied, reserve_ai
+
+        try:
+            reserve_ai(self.client)
+        except EntitlementDenied as exc:
+            raise RateLimited('Organization AI entitlement exhausted',
+                              scope='organization') from exc
 
     def _model(self, override: Optional[str], deep: bool = False, fast: bool = False) -> str:
         if override:
@@ -210,6 +226,7 @@ class AIClient:
 
         # 3. SDK call
         sdk = self._sdk_client()
+        self._reserve_entitlement()
         kwargs = {
             'model': chosen_model,
             'max_tokens': max_tokens,
@@ -288,6 +305,7 @@ class AIClient:
         rate_limiter.check(client_id, feature=self.feature)
 
         sdk = self._sdk_client()
+        self._reserve_entitlement()
         kwargs = {
             'model': chosen_model,
             'max_tokens': max_tokens,
@@ -355,6 +373,7 @@ class AIClient:
         rate_limiter.check(client_id, feature=self.feature)
 
         sdk = self._sdk_client()
+        self._reserve_entitlement()
         kwargs = {
             'model': chosen_model,
             'max_tokens': max_tokens,

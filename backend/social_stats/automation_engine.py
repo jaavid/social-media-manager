@@ -27,11 +27,10 @@ Supported actions:
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
+from typing import Optional
 
 import requests
 from celery import shared_task
-from django.contrib.auth.models import User
 from django.db import transaction
 from django.utils import timezone
 
@@ -76,6 +75,12 @@ def evaluate_automation_rules(self, event_type: str, object_id: int, client_id: 
     if not ctx:
         return 0
 
+    from .entitlements import capability_allowed
+    from .models import Client
+
+    workspace = Client.objects.get(pk=client_id)
+    if not capability_allowed(workspace.organization, 'automations'):
+        return 0
     rules = list(AutomationRule.objects.filter(client_id=client_id, is_active=True))
 
     try:
@@ -212,6 +217,10 @@ def _matches(rule: AutomationRule, ctx: dict) -> bool:
 
 # ── Action handlers ──────────────────────────────────────────────────────────
 def _run_action(rule: AutomationRule, ctx: dict) -> None:
+    from .entitlements import capability_allowed
+
+    if not capability_allowed(rule.client.organization, 'automations'):
+        return
     handler = ACTION_HANDLERS.get(rule.action_type)
     if handler is None:
         logger.warning('Unknown action_type=%s on rule=%s', rule.action_type, rule.id)
@@ -489,6 +498,10 @@ def _generate_smart_reply(ctx: dict) -> str:
         'Return JSON: {"reply": "<text>"}'
     )
     try:
+        from social_stats.entitlements import reserve_ai
+        if client is not None:
+            reserve_ai(client)
+
         msg = claude.messages.create(
             model=HAIKU, max_tokens=300, timeout=20,
             system=sys, messages=[{'role': 'user', 'content': user}],

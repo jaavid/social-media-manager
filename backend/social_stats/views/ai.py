@@ -28,11 +28,9 @@ All use the saved BrandVoiceProfile when generating content.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, time, timedelta
+from datetime import timedelta
 
-from django.conf import settings
 from django.core.cache import cache
-from django.db.models import Avg, Count
 from django.utils import timezone
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -45,7 +43,7 @@ from social_stats.ai_helpers import (
 )
 from social_stats.ai_context import build_client_ai_context
 from social_stats.models import (
-    Client, BrandVoiceProfile, PostMetric, Message, Conversation,
+    Client, BrandVoiceProfile, PostMetric, Message,
 )
 
 logger = logging.getLogger(__name__)
@@ -106,7 +104,8 @@ def compose_post(request):
     Returns: {variants: {platform: [v1, v2, v3]}}
     """
     client, err = _resolved_client(request)
-    if err: return err
+    if err:
+        return err
     if not rate_limit_check(client.id, 'compose-post', DAILY_LIMIT_DEFAULT):
         return Response({'error': 'Daily AI limit reached'}, status=429)
 
@@ -144,6 +143,10 @@ def compose_post(request):
         '{"variants": {"<platform>": ["<v1>", "<v2>", "<v3>"]}}'
     )
 
+    from social_stats.entitlements import reserve_ai
+    if client is not None:
+        reserve_ai(client)
+
     try:
         msg = claude.messages.create(
             model=HAIKU, max_tokens=2048, timeout=30,
@@ -171,7 +174,8 @@ def suggest_hashtags(request):
     Returns: {hashtags: ['#a', '#b', ...]}
     """
     client, err = _resolved_client(request)
-    if err: return err
+    if err:
+        return err
     if not rate_limit_check(client.id, 'suggest-hashtags', DAILY_LIMIT_DEFAULT):
         return Response({'error': 'Daily AI limit reached'}, status=429)
 
@@ -202,6 +206,10 @@ def suggest_hashtags(request):
         'Return JSON: {"hashtags": ["#tag1", ...]}'
     )
 
+    from social_stats.entitlements import reserve_ai
+    if client is not None:
+        reserve_ai(client)
+
     try:
         msg = claude.messages.create(
             model=HAIKU, max_tokens=512, timeout=20,
@@ -217,12 +225,15 @@ def suggest_hashtags(request):
     # Normalize: prefix #, dedupe, cap at count
     seen, cleaned = set(), []
     for t in tags:
-        if not isinstance(t, str): continue
+        if not isinstance(t, str):
+            continue
         t = t.strip().lstrip('#').strip()
-        if not t or t.lower() in seen: continue
+        if not t or t.lower() in seen:
+            continue
         seen.add(t.lower())
         cleaned.append(f'#{t}')
-        if len(cleaned) >= count: break
+        if len(cleaned) >= count:
+            break
 
     cache.set(ckey, cleaned, CACHE_TTL)
     return Response({'hashtags': cleaned, 'cached': False})
@@ -239,7 +250,8 @@ def best_time_to_post(request):
     Returns: {slots: [{day_of_week, hour, score, label}, ...3]}
     """
     client, err = _resolved_client(request)
-    if err: return err
+    if err:
+        return err
 
     platform = (request.data.get('platform') or '').strip()
     if not platform:
@@ -358,6 +370,10 @@ def suggest_reply(request):
         'Make the 3 replies distinct: one warm, one concise/professional, one playful (only if appropriate).'
     )
 
+    from social_stats.entitlements import reserve_ai
+    if client is not None:
+        reserve_ai(client)
+
     try:
         msg = claude.messages.create(
             model=HAIKU, max_tokens=600, timeout=20,
@@ -388,7 +404,8 @@ def rewrite(request):
     Returns: {text: '...'}
     """
     client, err = _resolved_client(request)
-    if err: return err
+    if err:
+        return err
     if not rate_limit_check(client.id, 'rewrite', DAILY_LIMIT_DEFAULT):
         return Response({'error': 'Daily AI limit reached'}, status=429)
 
@@ -413,6 +430,10 @@ def rewrite(request):
         + (bv + '\n' if bv else '')
     )
     user_prompt = f'Transformation: {instruction}\n\nOriginal:\n"""{text[:3000]}"""'
+
+    from social_stats.entitlements import reserve_ai
+    if client is not None:
+        reserve_ai(client)
 
     try:
         msg = claude.messages.create(
@@ -440,7 +461,8 @@ def translate(request):
     Returns: {text: '...'}
     """
     client, err = _resolved_client(request)
-    if err: return err
+    if err:
+        return err
     if not rate_limit_check(client.id, 'translate', DAILY_LIMIT_DEFAULT * 2):
         return Response({'error': 'Daily AI limit reached'}, status=429)
 
@@ -464,6 +486,10 @@ def translate(request):
         'the translated text.'
     )
     user_prompt = f'Translate to {target}:\n\n"""{text[:5000]}"""'
+
+    from social_stats.entitlements import reserve_ai
+    if client is not None:
+        reserve_ai(client)
 
     try:
         msg = claude.messages.create(
@@ -491,7 +517,8 @@ def generate_image_caption(request):
     Returns: {caption: '...'}
     """
     client, err = _resolved_client(request)
-    if err: return err
+    if err:
+        return err
     if not rate_limit_check(client.id, 'image-caption', DAILY_LIMIT_DEFAULT):
         return Response({'error': 'Daily AI limit reached'}, status=429)
 
@@ -516,6 +543,10 @@ def generate_image_caption(request):
         'Output ONLY the caption — no explanations.\n'
         + (bv + '\n' if bv else '')
     )
+
+    from social_stats.entitlements import reserve_ai
+    if client is not None:
+        reserve_ai(client)
 
     try:
         msg = claude.messages.create(
@@ -549,7 +580,8 @@ def content_calendar(request):
     Returns: {calendar: [{week, day, topic, post_type, caption_hint, hashtags}]}
     """
     client, err = _resolved_client(request)
-    if err: return err
+    if err:
+        return err
     if not rate_limit_check(client.id, 'content-calendar', 5):
         return Response({'error': 'Daily limit reached'}, status=429)
 
@@ -582,6 +614,10 @@ def content_calendar(request):
         '"topic": "...", "caption_hint": "...", "hashtags": ["#a", "#b"]}]}'
     )
 
+    from social_stats.entitlements import reserve_ai
+    if client is not None:
+        reserve_ai(client)
+
     try:
         msg = claude.messages.create(
             model=SONNET, max_tokens=4096, timeout=60,
@@ -609,7 +645,8 @@ def train_brand_voice(request):
     Returns: the saved BrandVoiceProfile (voice_summary, tones, rules, forbidden).
     """
     client, err = _resolved_client(request)
-    if err: return err
+    if err:
+        return err
 
     samples = request.data.get('sample_posts') or []
     if not isinstance(samples, list) or len(samples) < 3:
@@ -641,6 +678,10 @@ def train_brand_voice(request):
         '"style_rules": ["<short rule>", ...], '
         '"forbidden_words": ["<word>", ...]}'
     )
+
+    from social_stats.entitlements import reserve_ai
+    if client is not None:
+        reserve_ai(client)
 
     try:
         msg = claude.messages.create(
@@ -678,7 +719,8 @@ def train_brand_voice(request):
 @permission_classes([IsAuthenticated])
 def get_brand_voice(request):
     client, err = _resolved_client(request)
-    if err: return err
+    if err:
+        return err
     profile = getattr(client, 'brand_voice', None)
     if not profile:
         return Response({'voice_summary': '', 'tone_descriptors': [],

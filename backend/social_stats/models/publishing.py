@@ -7,6 +7,8 @@
 #  Released under the MIT License — see LICENSE. Keep this notice.
 # ============================================================================
 """Publishing models."""
+from social_stats.entitlements import EntitledResourceMixin
+
 from django.db import models
 from django.contrib.auth.models import User
 from social_stats.platforms.registry import PLATFORM_CHOICES
@@ -66,7 +68,7 @@ QUEUED_ITEM_STATUS_CHOICES = [
 
 
 # ── Composer & Publishing ─────────────────────────────────────────────────────
-class MediaAsset(models.Model):
+class MediaAsset(EntitledResourceMixin, models.Model):
     """Uploaded media library — photos, videos, gifs available to the composer."""
     client       = models.ForeignKey(Client, verbose_name='فضای کاری', on_delete=models.CASCADE, related_name='media_assets')
     uploaded_by  = models.ForeignKey(User, verbose_name='بارگذاری‌کننده', on_delete=models.SET_NULL, null=True, blank=True, related_name='uploaded_media')
