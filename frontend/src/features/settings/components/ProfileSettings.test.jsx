@@ -183,3 +183,19 @@ test('photo file validation, failed upload and object URL lifecycle preserve rec
   view.unmount();
   expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:photo');
 });
+
+test('legacy adjacent content remains inside the verified profile boundary', async () => {
+  profileAPI.get.mockRejectedValueOnce({ isAxiosError: true, response: { status: 403 } });
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  render(
+    <QueryClientProvider client={client}>
+      <ProfileSettings user={user}>
+        <button>Legacy adjacent action</button>
+      </ProfileSettings>
+    </QueryClientProvider>,
+  );
+  await screen.findByRole('alert');
+  expect(screen.queryByRole('button', { name: 'Legacy adjacent action' })).toBeNull();
+  fireEvent.click(screen.getByRole('button', { name: mockMessages['profile.retry'] }));
+  expect(await screen.findByRole('button', { name: 'Legacy adjacent action' })).toBeVisible();
+});

@@ -35,7 +35,7 @@ export function parseProfile(data, userId) {
 }
 
 /** Account-owned resource; a context change remounts its private editable draft. */
-export default function ProfileSettings({ user }) {
+export default function ProfileSettings({ user, children }) {
   const identity = [user?.id, user?.role, user?.account_type];
   const workspace = user?.workspace_id ?? user?.client_id ?? null;
   return (
@@ -44,10 +44,12 @@ export default function ProfileSettings({ user }) {
       identity={identity}
       workspace={workspace}
       user={user}
-    />
+    >
+      {children}
+    </ProfileRead>
   );
 }
-function ProfileRead({ identity, workspace, user }) {
+function ProfileRead({ identity, workspace, user, children }) {
   const { t } = useLanguage();
   const query = useQuery({
     queryKey: QK.profile(identity, workspace),
@@ -105,6 +107,7 @@ function ProfileRead({ identity, workspace, user }) {
           <Button variant="secondary" disabled={query.isFetching} onClick={() => query.refetch()}>
             {t('profile.refresh')}
           </Button>
+          {children}
         </>
       )}
     </section>

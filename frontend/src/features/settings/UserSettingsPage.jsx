@@ -275,10 +275,9 @@ export default function UserSettingsPage() {
 // ── Profile Tab ───────────────────────────────────────────────────────────────
 
 function ProfileTab({ user, logout, navigate }) {
-  return <>
-    <ProfileSettings user={user} />
+  return <ProfileSettings user={user}>
     {user?.role === 'client' && <DeleteAccountSection logout={logout} navigate={navigate} />}
-  </>;
+  </ProfileSettings>;
 }
 
 // ── Delete Account Section (client only) ──────────────────────────────────────
