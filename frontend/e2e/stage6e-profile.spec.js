@@ -56,7 +56,9 @@ async function setup(page, language = 'en', theme = 'light') {
             status: state.readStatus,
             json: { error: 'private-profile-token' },
           });
-        return route.fulfill({ json: state.malformed ? {} : profile });
+        return route.fulfill({
+          json: state.malformed ? {} : { ...profile, ...(state.noAvatar ? { avatar: null } : {}) },
+        });
       }
       state.writes.push(request.postData());
       if (state.saveStatus)
@@ -123,7 +125,9 @@ for (const language of ['fa', 'en'])
         await expect(page.getByText(c['profile.saveFailed'])).toBeVisible();
         await expect(first).toHaveValue('Edited');
         await expect(page.getByText('private-profile-token')).toHaveCount(0);
-        await expect(page.getByRole('region', { name: c['profile.title'] }).getByRole('alert')).toBeFocused();
+        await expect(
+          page.getByRole('region', { name: c['profile.title'] }).getByRole('alert'),
+        ).toBeFocused();
         state.readStatus = 503;
         await page.getByRole('button', { name: c['profile.refresh'], exact: true }).click();
         await expect(page.getByText(c['profile.refreshFailed'])).toBeVisible();
@@ -151,7 +155,9 @@ for (const failure of [403, 404, 429, 503, 'malformed'])
     state.readStatus = typeof failure === 'number' ? failure : 0;
     state.malformed = failure === 'malformed';
     await page.goto('/admin/account-settings');
-    await expect(page.getByRole('region', { name: enMessages['profile.title'] }).getByRole('alert')).toBeVisible();
+    await expect(
+      page.getByRole('region', { name: enMessages['profile.title'] }).getByRole('alert'),
+    ).toBeVisible();
     await expect(page.getByLabel(enMessages['profile.first'], { exact: true })).toHaveCount(0);
     await expect(page.getByText(enMessages['profile.saved'], { exact: true })).toHaveCount(0);
     state.readStatus = 0;
@@ -187,3 +193,38 @@ test('slow profile, offline refresh/reconnect and denial preserve or hide correc
   await expect(first).toHaveCount(0);
   await expect(page.getByText(enMessages['profile.denied'])).toBeVisible();
 });
+
+for (const language of ['fa', 'en'])
+  for (const noAvatar of [false, true])
+    test(`discard draft upload ${language}/existing-photo-${!noAvatar}`, async ({ page }) => {
+      const c = language === 'fa' ? faMessages : enMessages;
+      const state = await setup(page, language);
+      state.noAvatar = noAvatar;
+      await page.goto('/admin/account-settings');
+      await expect(page.getByLabel(c['profile.first'], { exact: true })).toHaveValue('Fixture');
+      const input = page.getByLabel(c['profile.upload'], { exact: true });
+      const photo = {
+        name: 'draft.png',
+        mimeType: 'image/png',
+        buffer: Buffer.from('fixture-image'),
+      };
+      await input.setInputFiles(photo);
+      await page.getByRole('button', { name: c['profile.discard'], exact: true }).click();
+      await expect(input).toBeFocused();
+      expect(await input.evaluate((element) => element.files.length)).toBe(0);
+      await expect(page.getByRole('alertdialog')).toHaveCount(0);
+      await expect(page.getByText(c['profile.removalPending'])).toHaveCount(0);
+      const region = page.getByRole('region', { name: c['profile.title'] });
+      if (noAvatar) await expect(region.getByRole('img')).toHaveCount(0);
+      else await expect(region.getByRole('img')).toHaveAttribute('src', '/favicon.ico');
+      expect(state.writes).toHaveLength(0);
+      await page.getByRole('button', { name: c['profile.save'], exact: true }).click();
+      await expect(page.getByText(c['profile.saveFailed'])).toBeVisible();
+      expect(state.writes).toHaveLength(1);
+      expect(state.writes[0]).not.toContain('name="avatar"');
+      expect(state.writes[0]).not.toContain('remove_avatar');
+      await input.setInputFiles(photo);
+      await expect(
+        page.getByRole('button', { name: c['profile.discard'], exact: true }),
+      ).toBeVisible();
+    });

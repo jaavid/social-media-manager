@@ -199,3 +199,34 @@ test('legacy adjacent content remains inside the verified profile boundary', asy
   fireEvent.click(screen.getByRole('button', { name: mockMessages['profile.retry'] }));
   expect(await screen.findByRole('button', { name: 'Legacy adjacent action' })).toBeVisible();
 });
+
+for (const savedAvatar of ['/original.png', null])
+  test(`discarding an unsaved photo preserves persisted avatar ${savedAvatar}`, async () => {
+    profileAPI.get.mockResolvedValueOnce({ data: { ...profile, avatar: savedAvatar } });
+    profileAPI.update.mockResolvedValueOnce({
+      data: { first_name: 'First', last_name: 'Last', avatar: savedAvatar },
+    });
+    setup();
+    await screen.findByLabelText(mockMessages['profile.first']);
+    const upload = screen.getByLabelText(mockMessages['profile.upload']);
+    const photo = new File(['photo'], 'draft.png', { type: 'image/png' });
+    fireEvent.change(upload, { target: { files: [photo] } });
+    await waitFor(() => expect(screen.getByRole('img')).toHaveAttribute('src', 'blob:photo'));
+    fireEvent.click(screen.getByRole('button', { name: mockMessages['profile.discard'] }));
+    expect(screen.queryByRole('alertdialog')).toBeNull();
+    expect(screen.queryByText(mockMessages['profile.removalPending'])).toBeNull();
+    expect(profileAPI.update).not.toHaveBeenCalled();
+    expect(upload).toHaveFocus();
+    expect(upload.value).toBe('');
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:photo');
+    if (savedAvatar) expect(screen.getByRole('img')).toHaveAttribute('src', savedAvatar);
+    else expect(screen.queryByRole('img')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: mockMessages['profile.save'] }));
+    await screen.findByText(mockMessages['profile.saved']);
+    const body = profileAPI.update.mock.calls[0][0];
+    expect(body.has('avatar')).toBe(false);
+    expect(body.has('remove_avatar')).toBe(false);
+    // Clearing the input also allows the same File to be chosen again.
+    fireEvent.change(upload, { target: { files: [photo] } });
+    expect(screen.getByRole('button', { name: mockMessages['profile.discard'] })).toBeVisible();
+  });

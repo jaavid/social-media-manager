@@ -231,10 +231,20 @@ function ProfileForm({ initial, queryKey }) {
                 if (remove) {
                   setRemove(false);
                   changed();
+                } else if (file) {
+                  // Discarding a draft upload must never remove the persisted photo.
+                  setFile(null);
+                  setPreview(null);
+                  setFileError(false);
+                  if (fileRef.current) {
+                    fileRef.current.value = '';
+                    fileRef.current.focus();
+                  }
+                  changed();
                 } else setConfirm(true);
               }}
             >
-              {t(remove ? 'profile.undo' : 'profile.remove')}
+              {t(remove ? 'profile.undo' : file ? 'profile.discard' : 'profile.remove')}
             </Button>
           )}
           {remove && <DataState compact state="partial" title={t('profile.removalPending')} />}

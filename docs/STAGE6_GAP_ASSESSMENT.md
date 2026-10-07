@@ -348,7 +348,9 @@ it. A failed save retains names, selected File and removal intent. Writes have a
 synchronous pending guard, are not replayed automatically and show safe inline
 failure. Uncertain save copy calls for server verification before manual retry;
 no remote atomic/exactly-once guarantee is claimed. Blob previews are revoked on
-replacement/unmount; file selection has image/5 MB checks and clears after a
+replacement/unmount. Discarding an unsaved upload clears only its File/input/preview,
+restores the saved photo and focuses the upload control; it never emits remove_avatar
+or stages persisted-photo deletion. File selection has image/5 MB checks and clears after a
 verified success. Technical email direction uses existing LTR styling.
 
 Evidence: ProfileSettings Jest tests and stage6e-profile.spec.js cover malformed

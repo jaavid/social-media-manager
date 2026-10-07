@@ -1,5 +1,6 @@
 // Semantic catalogs. Identical key sets and ICU placeholders are checked in CI.
 const accountsEn = {
+  "profile.discard": "Discard selected photo",
   "profile.title": "Profile information",
   "profile.description": "Update your name and profile photo.",
   "profile.retry": "Retry read",
@@ -287,6 +288,7 @@ const accountsEn = {
   'category.business': 'Business listings',
 } as const;
 const accountsFa = {
+  "profile.discard": "لغو انتخاب عکس",
   "profile.title": "اطلاعات پروفایل",
   "profile.description": "نام و عکس پروفایل خود را ویرایش کنید.",
   "profile.retry": "تلاش دوباره برای خواندن",
