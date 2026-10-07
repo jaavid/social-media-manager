@@ -117,7 +117,6 @@ function Editor() {
   const draftsRef = useRef({});
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleteReturnFocus, setDeleteReturnFocus] = useState(false);
-  useEffect(() => { if (panel !== null) setDeleteReturnFocus(false); }, [panel]);
   const invalidDrafts = Object.entries(inspectorDrafts).some(([nodeId, fields]) => nodes.some(node => node.id === nodeId) && Object.values(fields).some(field => !field.valid));
   function onInspectorDraft(owner, field, entry) {
     const next = { ...draftsRef.current, [owner]: { ...draftsRef.current[owner], [field]: entry } };
@@ -247,7 +246,7 @@ function Editor() {
       : n));
     markDirty();
   }
-  function deleteSelected() { if (selectedId) { setDeleteTarget(selectedId); setDeleteOpen(true); } }
+  function deleteSelected() { if (selectedId) { setDeleteReturnFocus(false); setDeleteTarget(selectedId); setDeleteOpen(true); } }
   function deleteConfirmed() {
     if (!deleteTarget) return;
     setDeleteReturnFocus(true);
@@ -432,7 +431,7 @@ function Editor() {
         <ValidationBanner result={validation} onClose={() => setValidation(null)} />
       )}
 
-      <div className="flex gap-2 p-2 xl:hidden"><Button onClick={() => setPanel('palette')}>{t('editor.nodes')}</Button><Button onClick={() => setPanel('inspector')}>{t('editor.inspector')}</Button></div>
+      <div className="flex gap-2 p-2 xl:hidden"><Button onClick={() => { setDeleteReturnFocus(false); setPanel('palette'); }}>{t('editor.nodes')}</Button><Button onClick={() => { setDeleteReturnFocus(false); setPanel('inspector'); }}>{t('editor.inspector')}</Button></div>
       <Drawer returnFocusRef={deleteReturnFocus ? wrapperRef : undefined} open={panel !== null} onClose={() => setPanel(null)} title={t(panel === 'palette' ? 'editor.nodes' : 'editor.inspector')} width={320}>
         {panel === 'palette' ? <Palette compact onAdd={(...args) => { addNode(...args); setPanel(null); }} /> : <NodeInspector node={selected} onChange={patchSelected} onDelete={deleteSelected} variables={variables} disabled={saving} workspaceId={flow?.workspace ?? flow?.client} drafts={inspectorDrafts} onDraftChange={onInspectorDraft} />}
       </Drawer>
