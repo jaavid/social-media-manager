@@ -558,3 +558,70 @@ pre-commit still reports the pre-existing hygiene/Ruff debt (271 findings before
 fixes). Unrelated autofixes and regenerated historical evidence were restored;
 no gate or debt baseline was weakened. Full Docker/ingress and full browser CI
 results belong to the PR's Tests workflow, not a local certification.
+
+## UI completion batch — main after #176
+
+Baseline `a9644ef` (2026-10-07), latest main fetched before changes. Root/frontend
+AGENTS, CONTRIBUTING, full bodies/comments of #106/#115/#116/#112, merged #175/#176,
+recent main ancestry, this assessment and Ravinta v1.1 files inspected. Historical
+stack comments are superseded by merged main. Operations #70/#67, sync/session,
+MFA/privacy/deletion, profile, bot and Meta Ads implementations are retained.
+
+### Pre-implementation scope reconciliation
+
+| Issue / criterion | Verified existing implementation | Remaining work / acceptance evidence |
+| --- | --- | --- |
+| #106 boundaries, read retry, session/error transport | App native loading/error/global-error/not-found; provider-independent RouteFailure; queryClient/status/idempotency and cookie session contracts, migrated Stage 5/6 families, #175/#176 regressions | Existing route and family tests do not certify every legacy consumer; full family failure/accessibility matrix remains |
+| #106 account keys/password | Real backend collection/create/revoke, profile eligibility and password validators | SettingsSections APIKeysSection fabricates empty collections, accepts unchecked writes, unawaited clipboard; SecurityTab defaults non-social after failed profile and accepts any password response |
+| #106 agency/business | Existing role-scoped backend and workspace APIs | AgencyTab converts failure to disconnected; SettingsPage business read/write lacks race/checked DTO/draft contract |
+| #106 notifications/alerts | Existing polling and notification preferences endpoints | NotificationBell ignores read failures; useAlerts retains cross-context local rows, unchecked writes; preferences reader/writer unchecked; no complete local failure matrix |
+| #106 remaining hooks / catalogue | Scoped migrated collections/editor/report consumers | Live legacy readers, editor helper failures, lookups and raw errors need final consumer inventory; unused useOverview/useGoals are not live blockers |
+| #115 fonts/weights/locale | Local Noto variable fonts, OFL files, i18n.css role weights/locale line boxes, typography.spec and catalog specimens | Audit active override consumers, theme.js contradictory roles, actual control clipping and product matrix beyond catalog; first paint/hydration/system/200% validation at final head |
+| #116 tokens/mark | Canonical tokens and approved geometric SVG master; shared BrandLogo exists | Duplicate accessible names, incomplete variants/clearance, text-only provisional wordmark; full name/install/metadata inventory and contrast/provider provenance evidence |
+| #116 external acceptance | README/palette mark name proposed; BRAND specifies spelling, master mark approved | Final outlined Persian/Latin lockups not delivered; domain/handle/trademark verification absent. Cannot close issue or fabricate approved assets/availability |
+
+Execution: first API Keys/password PR; second remaining state families; third
+active typography; fourth independent brand rollout. Each targets main. A dependent
+branch must reconcile with newly merged main and rerun required checks before merge.
+No automatic merge is requested. None of these scope observations authorizes a
+Closes directive until all original acceptance criteria are verified.
+
+Real #112 dependencies: `services/platforms.js` compatibility catalogue,
+`hooks/useData.js:useLookups` filters backend keys by PLATFORM_LIST; named platform
+lists in SettingsPage/Onboarding/PostIdeas/MyPosts still need registry and unknown
+provider semantics. This blocks a whole-product claim of exclusively metadata-led
+provider presentation (#116) and completion of these data consumers (#106), not
+account recovery or typography. No provider or commercial feature is added.
+
+### API Keys / password implementation
+
+`keyPasswordRecovery.ts` validates the distinct wire contracts and projects list
+metadata without secrets/hashes/raw diagnostics. `APIKeysSection` uses account,
+role/type and workspace identity; GET requests include captured authorized workspace
+and include_inactive=1 for authoritative revocation reconciliation. The checkbox
+filters that complete collection locally, with empty vs no-results distinction.
+Scopes/IP allowlist and backend ownership are preserved. Create must return a full
+one-time key matching its prefix/name/scopes/IPs and active metadata. Only metadata
+enters Query cache; the full value stays in the keyed component's transient state.
+Refresh failure preserves draft and issued value; denied reads hide private data.
+Clipboard success follows the awaited writeText Promise. Writes have a synchronous
+pending guard and no automatic replay/reconnect queue.
+
+Ambiguous issuance requires a checked list and explicit acknowledgment before a
+separate operation; the list cannot prove which request issued a row or retrieve
+the full key. Revocation reconciliation observes target inactivity, not causation.
+No lost-key recovery or exactly-once assertion is made. Password eligibility uses
+validated profile id/is_social, not a default. The password write accepts only the
+actual detail acknowledgment. A malformed/lost result retains input and locks
+resubmission: neither profile GET nor session status can prove its outcome.
+
+Backend `views/profile.py:change_password` updates the password hash without
+`update_session_auth_hash` or tracked-session revocation. Django cookie sessions,
+including the current one, therefore fail authentication on their next request;
+native JWT and tracked rows are not explicitly revoked. UI copy states this actual
+contract. MFA/session controls remain independent of password eligibility/read
+failure, including social accounts. Tests use mocked transports or isolated users;
+no live revoke/password action and no credential images/traces are recorded.
+
+Evidence and required-check results are recorded with the PR; whole #106 remains
+open pending agency/business/notifications/alerts and final legacy family coverage.

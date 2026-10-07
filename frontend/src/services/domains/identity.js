@@ -13,7 +13,7 @@ export const profileAPI = {
   get:               (signal) => api.get('/profile/', { signal }),
   update:            (data)   => api.patch('/profile/', data, data instanceof FormData ? { headers: { 'Content-Type': 'multipart/form-data' } } : undefined),
   changePassword:    (data)   => api.post('/profile/change-password/', data),
-  agencyInfo:        ()       => api.get('/profile/agency/'),
+  agencyInfo:        (signal) => api.get('/profile/agency/', { signal }),
   disconnectAgency:  ()       => api.post('/profile/disconnect-agency/'),
   deleteAccount:     (data)   => api.delete('/profile/delete-account/', { data }),
 };
@@ -63,9 +63,9 @@ export const mfaAPI = {
 };
 
 export const apiKeysAPI = {
-  list:    (includeInactive) => api.get  ('/api-keys/', { params: includeInactive ? { include_inactive: 1 } : {} }),
-  create:  (data)            => api.post ('/api-keys/', data),
-  revoke:  (id, reason)      => api.post (`/api-keys/${id}/revoke/`, { reason: reason || 'user_revoked' }),
+  list:    (includeInactive, signal, workspace) => api.get('/api-keys/', { signal, params: { ...(includeInactive ? { include_inactive: 1 } : {}), ...(workspace ? { client_id: workspace } : {}) } }),
+  create:  (data, workspace) => api.post('/api-keys/', { ...data, ...(workspace ? { client_id: workspace } : {}) }),
+  revoke:  (id, reason, workspace) => api.post(`/api-keys/${id}/revoke/`, { reason: reason || 'user_revoked', ...(workspace ? { client_id: workspace } : {}) }),
 };
 
 export const privacyAPI = {
