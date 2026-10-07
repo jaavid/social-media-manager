@@ -1069,6 +1069,13 @@ const whatsappFa = {
   'whatsapp.inbox.send': 'ارسال پیام',
 } as const;
 export const enMessages = {
+  "posts.workspace": "Workspace",
+  "posts.chooseWorkspace": "Choose an authorized workspace to read posts.",
+  "posts.empty": "No synced posts yet.",
+  "posts.reader": "Post collection status",
+  "posts.connections": "Connection status",
+  "lookup.title": "Reference options",
+  "lookup.fallback": "Reference options are unavailable or empty. Existing compatibility options are shown; they do not establish provider capabilities.",
   "bot.match.exact": "Exact match (whole message equals a keyword)",
   "bot.match.contains": "Contains a keyword",
   "bot.match.regex": "Regex pattern",
@@ -1308,6 +1315,13 @@ export const enMessages = {
  ...whatsappEn, ...composerEn, ...accountsEn, ...commonEn, ...marketingEn, ...catalogEn } as const;
 export type MessageKey = keyof typeof enMessages;
 export const faMessages = {
+  "posts.workspace": "فضای کاری",
+  "posts.chooseWorkspace": "برای خواندن پست‌ها یک فضای کاری مجاز را انتخاب کنید.",
+  "posts.empty": "هنوز پستی همگام نشده است.",
+  "posts.reader": "وضعیت فهرست پست‌ها",
+  "posts.connections": "وضعیت اتصال‌ها",
+  "lookup.title": "گزینه‌های مرجع",
+  "lookup.fallback": "گزینه‌های مرجع در دسترس نیستند یا خالی‌اند. گزینه‌های سازگاری موجود نمایش داده می‌شوند؛ این فهرست اثبات قابلیت شبکه‌ها نیست.",
   "bot.match.exact": "تطبیق دقیق پیام با کلیدواژه",
   "bot.match.contains": "وجود کلیدواژه در پیام",
   "bot.match.regex": "الگوی عبارت منظم",

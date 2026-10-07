@@ -1,3 +1,4 @@
+import LookupState from '@/components/ui/LookupState';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -145,7 +146,8 @@ function SettingsBody({ clientId: propClientId, identity, enabled }) {
   const action = useCheckedAction();
   const initialized = useRef(false);
   const heading = useRef(null);
-  const { lookups, loading: lookupsLoading } = useLookups();
+  const lookupResource = useLookups();
+  const { lookups, loading: lookupsLoading } = lookupResource;
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
   const didRefetch = useRef(false);
@@ -921,7 +923,7 @@ function SettingsBody({ clientId: propClientId, identity, enabled }) {
       )}
 
       {activeTab === 'profile' && (
-        <div>
+        <div><LookupState resource={lookupResource} />
           <h3 ref={heading} tabIndex={-1}>{t('business.title')}</h3>
           <ReadState resource={resource} refresh={() => resource.query.refetch()} busy={saving} returnFocusRef={heading} />
           <WriteState action={action} recover={async () => { const result = await resource.query.refetch(); if (action.alive.current && result.isSuccess) action.verified(); }} />

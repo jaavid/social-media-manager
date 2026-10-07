@@ -1,3 +1,8 @@
+import { useLanguage } from '@/i18n';
+import DataState from '@/components/ui/DataState';
+import Button from '@/components/ui/Button';
+import { ReadState, AccountScope } from '@/components/ui/accountRecovery';
+import LookupState from '@/components/ui/LookupState';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -6,34 +11,38 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
-import { useMemo, useState } from 'react';
-import { ExternalLink, MessageCircle, Heart, Play, CalendarDays, Loader2, ChevronDown } from 'lucide-react';
+import { useMemo, useRef, useState } from 'react';
+import { ExternalLink, MessageCircle, Heart, Play, Loader2, ChevronDown } from 'lucide-react';
 import PageHeader from '../components/layout/PageHeader';
 import DateRangePicker from '../components/ui/DateRangePicker';
 import PlatformTabs from '../components/ui/PlatformTabs';
 import SocialPlatformIcon from '../components/ui/SocialPlatformIcon';
 import { useSession as useAuth } from '../core/session';
-import { useDateRange, useOAuthStatus, usePosts, useLookups } from '../hooks/useData';
+import { useDateRange, useOAuthStatus, usePosts, useLookups, useWorkspaces } from '../hooks/useData';
 import { PLATFORMS, fmt } from '../services/platforms';
 
-function EmptyState() {
-  return (
-    <div style={styles.emptyState}>
-      <CalendarDays size={28} style={{ color: 'var(--text-tertiary)' }} />
-      <h3 style={styles.emptyTitle}>No posts found</h3>
-      <p style={styles.emptyText}>Posts will appear here once your connected accounts have synced content.</p>
-    </div>
-  );
+function EmptyState({ filtered }) {
+  const { t } = useLanguage();
+  return <DataState state={filtered ? 'no-results' : 'empty'} title={t(filtered ? 'recovery.noResults' : 'posts.empty')} />;
 }
-
 export default function MyPostsPage() {
+  return <AccountScope>{(_identity, enabled, key) => enabled && <Posts key={key} />}</AccountScope>;
+}
+function Posts() {
   const { user } = useAuth();
-  const clientId = user?.client_id;
+  const { t, tr } = useLanguage();
+  const postFocus = useRef(null), oauthFocus = useRef(null);
+  const [workspace, setWorkspace] = useState('');
+  const workspaceResource = useWorkspaces();
+  const clientId = user?.client_id || workspace;
   const [range, setRange] = useDateRange(30);
   const [platform, setPlatform] = useState('all');
-  const { posts, total, hasMore, loading, loadingMore, loadMore } = usePosts(clientId, platform, range);
-  const { status: oauthStatus } = useOAuthStatus(clientId);
-  const { lookups } = useLookups();
+  const postResource = usePosts(clientId, platform, range);
+  const { posts, total, hasMore, loading, loadingMore, loadMore } = postResource;
+  const oauthResource = useOAuthStatus(clientId);
+  const { status: oauthStatus } = oauthResource;
+  const lookupResource = useLookups();
+  const { lookups } = lookupResource;
 
   const platformLabelMap = (lookups.platforms || []).reduce((acc, item) => {
     acc[item.key] = item.label;
@@ -57,12 +66,12 @@ export default function MyPostsPage() {
       <PageHeader
         title="My Posts"
         subtitle="Review recent content performance across your connected accounts."
-        actions={<DateRangePicker range={range} onChange={setRange} />}
+        actions={<div className="flex flex-wrap gap-3"><Button disabled={!clientId || postResource.query.isFetching} onClick={() => postResource.refetch()}>{t('recovery.refresh')}</Button>{!user?.client_id && <select aria-label={t('posts.workspace')} value={workspace} onChange={e => { setWorkspace(e.target.value); setPlatform('all'); }}><option value="">{t('posts.chooseWorkspace')}</option>{workspaceResource.workspaces.map(row => <option key={row.id} value={row.id}>{row.name || row.company || row.id}</option>)}</select>}<DateRangePicker range={range} onChange={setRange} /></div>}
         meta={[
-          { label: 'Showing', value: `${posts.length} of ${total}` },
-          { label: 'Platforms', value: connectedPlatforms.length || 0 },
+          { label: 'Showing', value: total === null ? '—' : `${posts.length} of ${total}` },
+          { label: 'Platforms', value: oauthResource.data ? connectedPlatforms.length : '—' },
           { label: 'View', value: platform === 'all' ? 'All Platforms' : (platformLabelMap[platform] || PLATFORMS[platform]?.label || platform) },
-        ]}
+        ].map(({ label, value }) => <span key={label}>{tr(label)}: {value}</span>)}
       />
 
       <div className="app-surface app-surface--compact" style={styles.filterBar}>
@@ -74,10 +83,15 @@ export default function MyPostsPage() {
         />
       </div>
 
+      {!user?.client_id && <ReadState resource={workspaceResource} refresh={workspaceResource.refetch} />}
+      {!clientId && <DataState state="empty" title={t('posts.chooseWorkspace')} />}
+      <section ref={postFocus} tabIndex={-1} aria-label={t('posts.reader')}>{clientId && <ReadState resource={postResource} refresh={postResource.refetch} returnFocusRef={postFocus} />}</section>
+      <section ref={oauthFocus} tabIndex={-1} aria-label={t('posts.connections')}>{clientId && <ReadState resource={oauthResource} refresh={oauthResource.refetch} returnFocusRef={oauthFocus} />}</section>
+      <LookupState resource={lookupResource} />
       {loading ? (
-        <div style={styles.loading}>Loading posts…</div>
-      ) : posts.length === 0 ? (
-        <EmptyState />
+        null
+      ) : !postResource.error && !postResource.offline && total !== null && posts.length === 0 ? (
+        <EmptyState filtered={postResource.datasetCount > 0 || platform !== 'all'} />
       ) : (
         <div style={styles.grid}>
           {posts.map((post) => {
