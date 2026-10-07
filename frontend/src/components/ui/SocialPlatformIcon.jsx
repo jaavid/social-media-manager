@@ -106,7 +106,7 @@ export default function SocialPlatformIcon({ platform, size = 18, title, label, 
             width: size, height: size, borderRadius: '28%', background: color, color: '#fff',
             display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
             fontSize: Math.max(9, Number(size) * 0.46), fontWeight: 800, lineHeight: 1,
-            fontFamily: 'system-ui, sans-serif', ...style,
+            fontFamily: 'var(--font-sans)', ...style,
           }}
         >
           {fallbackLabel.trim().slice(0, 1).toUpperCase() || '?'}

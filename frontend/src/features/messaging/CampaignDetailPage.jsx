@@ -196,7 +196,7 @@ export default function CampaignDetailPage() {
                 <div>
                   <div style={{ fontWeight: 500 }}>{m.contact?.name || m.contact?.phone}</div>
                   <div style={{ fontSize: 11, color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)' }}>
-                    {m.contact?.phone}
+                    <bdi dir="ltr">{m.contact?.phone}</bdi>
                   </div>
                 </div>
               ),

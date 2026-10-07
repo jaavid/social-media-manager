@@ -279,7 +279,7 @@ function Table({ leads, selected, onToggleRow, onToggleAll }) {
                   <Link to={`/admin/leads/${l.id}`} style={{ fontWeight: 600, color: 'var(--text-primary)', textDecoration: 'none' }}>
                     {l.name || <em style={{ color: 'var(--text-tertiary)' }}>(no name)</em>}
                   </Link>
-                  {l.email && <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{l.email}</div>}
+                  {l.email && <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}><bdi dir="ltr">{l.email}</bdi></div>}
                 </td>
                 <td style={td}><code style={{ fontSize: 12 }}>{l.phone}</code></td>
                 <td style={td}>
@@ -371,7 +371,7 @@ function KanbanBoard({ byStatus, onChangeStatus }) {
                 <Link to={`/admin/leads/${l.id}`} style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', textDecoration: 'none' }}>
                   {l.name || l.phone}
                 </Link>
-                <div style={{ marginTop: 2, fontSize: 11, color: 'var(--text-tertiary)' }}>{l.phone}</div>
+                <div style={{ marginTop: 2, fontSize: 11, color: 'var(--text-tertiary)' }}><bdi dir="ltr">{l.phone}</bdi></div>
                 {l.interest && (
                   <div style={{
                     marginTop: 6, fontSize: 11,

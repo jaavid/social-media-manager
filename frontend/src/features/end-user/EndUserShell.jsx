@@ -203,10 +203,10 @@ export default function EndUserShell({ children }) {
             fontSize: 12,
           }}>
             <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
-              {user.first_name || user.email}
+              <bdi dir="auto">{user.first_name || user.email}</bdi>
             </div>
             <div style={{ color: 'var(--text-tertiary)', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {user.email}
+              <bdi dir="ltr">{user.email}</bdi>
             </div>
           </div>
         )}

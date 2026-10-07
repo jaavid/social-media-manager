@@ -114,8 +114,8 @@ export default function LeadDetailPage() {
             {lead.name || <em style={{ color: 'var(--text-tertiary)' }}>(no name)</em>}
           </h1>
           <div style={{ marginTop: 6, display: 'flex', gap: 12, flexWrap: 'wrap', fontSize: 13, color: 'var(--text-secondary)' }}>
-            {lead.phone && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Phone size={12} /> {lead.phone}</span>}
-            {lead.email && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Mail size={12} /> {lead.email}</span>}
+            {lead.phone && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Phone size={12} /> <bdi dir="ltr">{lead.phone}</bdi></span>}
+            {lead.email && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Mail size={12} /> <bdi dir="ltr">{lead.email}</bdi></span>}
             {lead.location && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><MapPin size={12} /> {lead.location}</span>}
           </div>
         </div>

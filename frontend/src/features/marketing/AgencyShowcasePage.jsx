@@ -114,7 +114,7 @@ export default function AgencyShowcasePage({ slug }) {
                   <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', display: 'flex', alignItems: 'center', gap: 4 }}>
                     <MapPin size={11} /> {location}
                   </div>
-                  <h1 style={{
+                  <h1 data-typography="display" style={{
                     margin: '4px 0 0',
                     fontSize: 'clamp(32px, 4vw, 44px)',
                     fontWeight: 700,

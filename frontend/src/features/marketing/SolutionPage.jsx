@@ -99,7 +99,7 @@ function Hero({ data }) {
             {data.eyebrow}
           </MotionSpan>
 
-          <MotionH1
+          <MotionH1 data-typography="display"
             initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
             style={{
@@ -449,7 +449,7 @@ function CustomerQuote({ data }) {
           <span style={{
             fontSize: 'clamp(40px, 6vw, 64px)',
             color: 'var(--brand-primary)',
-            lineHeight: 0.5, fontFamily: 'serif',
+            lineHeight: 0.5, fontFamily: 'var(--font-sans)',
           }}>"</span>
           <p style={{
             margin: '8px 0 0',

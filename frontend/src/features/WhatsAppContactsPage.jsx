@@ -188,9 +188,9 @@ export default function WhatsAppContactsPage() {
                       <td style={td}>
                         <input type="checkbox" checked={selected.has(c.id)} onChange={() => toggle(c.id)} />
                       </td>
-                      <td style={{ ...td, fontFamily: 'monospace' }}>{c.phone}</td>
+                      <td style={{ ...td, fontFamily: 'monospace' }}><bdi dir="ltr">{c.phone}</bdi></td>
                       <td style={td}>{c.name}</td>
-                      <td style={td}>{c.email}</td>
+                      <td style={td}><bdi dir="ltr">{c.email}</bdi></td>
                       <td style={td}>{(c.tags || []).map((t) => <span key={t} style={tag}>{t}</span>)}</td>
                       <td style={td}>
                         <span style={{ ...badge, background: opt.bg, color: opt.color }}>{opt.label}</span>

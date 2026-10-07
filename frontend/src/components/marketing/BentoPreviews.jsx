@@ -170,7 +170,7 @@ function Node({ x, y, label, tone, delay = 0.1 }) {
       <text x={x + 14} y={y + 3.5}
             fontSize="9" fontWeight="600"
             fill="var(--text-primary)"
-            fontFamily="Inter, sans-serif">{label}</text>
+            fontFamily="var(--font-sans)">{label}</text>
     </motion.g>
   );
 }

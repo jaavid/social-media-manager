@@ -22,6 +22,7 @@ export default function Catalog() {
   return <main lang={language} dir={language === 'fa' ? 'rtl' : 'ltr'} className="mx-auto min-w-0 max-w-3xl space-y-8 p-4 sm:p-8 font-sans" data-typography-catalog>
     <h1 className="text-3xl font-bold">{t('catalog.title')}</h1>
     <p>{t('catalog.intro')}</p>
+    <p data-typography="display" className="break-words text-3xl">{t('catalog.sample')}</p>
     <div className="flex flex-wrap gap-4">
       <label>{t('catalog.language')}<select value={language} onChange={event => setLanguage(event.target.value as 'fa' | 'en')}>
         <option value="fa">{t('catalog.persian')}</option><option value="en">{t('catalog.english')}</option>
@@ -36,8 +37,9 @@ export default function Catalog() {
         {['sm', 'base', 'lg'].map(size => <p key={size} data-sample={size} className={{ sm: 'text-sm', base: 'text-base', lg: 'text-lg' }[size]}>
           {message('catalog.sample', sampleLanguage)}
         </p>)}
-        <p className="break-words">{message('catalog.mixed', sampleLanguage)} <bdi dir="ltr" lang="en">{t('catalog.identifier')}</bdi> · <bdi dir="ltr" lang="en">team@example.com</bdi> · <bdi dir="ltr" lang="en">{t('catalog.url')}</bdi></p>
-        {[400, 500, 600, 700, 800].map(weight => <p key={weight} data-weight={weight} style={{ fontWeight: weight }}>{weight} · {message('catalog.sample', sampleLanguage)}</p>)}
+        <p className="break-words" data-mixed-content>{message('catalog.mixed', sampleLanguage)} <bdi dir="ltr" lang="en">{t('catalog.identifier')}</bdi> · <bdi dir="ltr" lang="en">team@example.com</bdi> · <bdi dir="ltr" lang="en">{t('catalog.url')}</bdi></p>
+        {[400, 500, 600, 700, 800].map(weight => <div key={weight} data-weight={weight} style={{ fontWeight: weight }}>{weight} · {message('catalog.sample', sampleLanguage)}</div>)}
+        <p data-glyph-sample>{message('catalog.glyphs', sampleLanguage)}</p>
         <div className="flex flex-wrap items-start gap-3">
           <Button size="xs"><span>{message('catalog.sample', sampleLanguage)}</span></Button>
           <Badge>{message('catalog.sample', sampleLanguage)}</Badge>

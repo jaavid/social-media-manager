@@ -123,7 +123,7 @@ export default function UserSettingsPage() {
   const navigate = useNavigate();
   const [tab, setTab] = useState('profile');
   return (
-    <div className={cn('[min-height:100vh]')}>
+    <div className={cn('app-page app-page--content app-page--lg settings-page', '[min-height:100vh]')}>
       <PageHeader
         title="Settings"
         subtitle="Manage your account, workspace, and integrations"
@@ -134,7 +134,7 @@ export default function UserSettingsPage() {
           'settings-body',
           '[display:flex]',
           '[gap:24px]',
-          '[padding:24px_28px]',
+          'px-0 py-6 sm:px-7',
           '[max-width:960px]',
           '[margin:0_auto]',
         )}

@@ -456,7 +456,7 @@ export function CrossLinksSection({ user }) {
                   '[margin-top:2px]',
                   '[font-size:12px]',
                   '[color:var(--text-secondary)]',
-                  '[line-height:1.5]',
+                  '[line-height:var(--line-height-body)]',
                 )}
               >
                 {l.description}
@@ -507,7 +507,7 @@ function SectionContainer({ title, description, action, children }) {
           '[margin:4px_0_24px]',
           '[font-size:14px]',
           '[color:var(--text-secondary)]',
-          '[line-height:1.55]',
+          '[line-height:var(--line-height-body)]',
         )}
       >
         {description}

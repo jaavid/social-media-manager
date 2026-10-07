@@ -10,9 +10,12 @@ textarea {
 /* Both variable families are preloaded by next/font/local (100–900). */
 html { font-synthesis: none; }
 [lang] { font-family: var(--font-sans); line-height: var(--line-height-body); }
+body, .main-content { line-height: var(--line-height-body); }
 body { font-weight: 400; line-height: var(--line-height-body); }
 button, input, select, textarea { font: inherit; font-weight: 500 !important; line-height: var(--line-height-body) !important; }
-label { font-weight: 500; }
+label { font-weight: 500; line-height: var(--line-height-body); }
+p, blockquote { font-weight: 400 !important; line-height: var(--line-height-body) !important; }
+button p { font-weight: 500 !important; }
 h1 { font-weight: 700 !important; }
 [data-typography="display"], h1.font-extrabold { font-weight: 800 !important; }
 h2, h3, h4, h5, h6 { font-weight: 600 !important; }
@@ -57,3 +60,16 @@ html[dir='rtl'] .ds-mobile-nav {
 }
 
 input:lang(en), textarea:lang(en), select:lang(en) { direction: ltr; text-align: start; }
+
+/* Reflow follows available content space, including enlarged browser text. */
+.settings-page { container-type: inline-size; }
+@container (max-width: 700px) {
+  .settings-body { flex-direction: column !important; padding-inline: 0; }
+  .settings-body > .settings-sidebar {
+    width: 100%; position: static; align-self: stretch;
+    flex-direction: row; overflow-x: auto; gap: 4px;
+  }
+  .settings-sidebar > div { display: contents; }
+  .settings-sidebar > div > div:first-child { display: none; }
+  .settings-sidebar button { flex-shrink: 0; white-space: nowrap; }
+}

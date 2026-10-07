@@ -114,7 +114,7 @@ export default function CaseStudyPage({ slug }) {
                 <Sparkles size={11} /> {industry}
               </span>
 
-              <h1 style={{
+              <h1 data-typography="display" style={{
                 margin: 0,
                 fontSize: 'clamp(36px, 5vw, 56px)',
                 fontWeight: 700,

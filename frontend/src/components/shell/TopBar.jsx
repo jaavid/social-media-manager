@@ -135,7 +135,7 @@ function WorkspaceSwitcher({ user, basePath }) {
               {current.name}
             </span>
             <span className="block truncate text-[11px] leading-relaxed text-muted-foreground">
-              {current.subtitle}
+              <bdi dir="auto">{current.subtitle}</bdi>
             </span>
           </span>
           <ChevronDown
@@ -172,7 +172,7 @@ function WorkspaceSwitcher({ user, basePath }) {
                 {workspace.name}
               </span>
               <span className="block truncate text-[11px] leading-relaxed text-muted-foreground">
-                {workspace.subtitle}
+                <bdi dir="auto">{workspace.subtitle}</bdi>
               </span>
             </span>
             {workspace.current && <Check size={14} className="text-primary" />}

@@ -84,7 +84,7 @@ export default function ComingSoonPage() {
             {meta.kind === 'solution' ? "صفحه راه حل" : "صفحه محصول"} - به زودی ارسال می‌شود
           </span>
 
-          <h1 style={{
+          <h1 data-typography="display" style={{
             margin: 0,
             fontSize: 'clamp(36px, 6vw, 56px)',
             fontWeight: 700,

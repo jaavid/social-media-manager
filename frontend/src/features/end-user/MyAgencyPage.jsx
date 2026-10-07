@@ -215,7 +215,7 @@ export default function MyAgencyPage() {
                 </div>
                 {current.agency.website && (
                   <a href={current.agency.website} target="_blank" rel="noreferrer" style={{ marginTop: 4, display: 'inline-flex', alignItems: 'center', gap: 4, color: 'var(--brand-primary-hover)', fontSize: 12 }}>
-                    {current.agency.website} <ExternalLink size={11} />
+                    <bdi dir="ltr">{current.agency.website}</bdi> <ExternalLink size={11} />
                   </a>
                 )}
               </div>

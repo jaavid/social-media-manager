@@ -219,7 +219,7 @@ export default function AIUsagePage() {
                   {(byUser?.users || []).slice(0, 12).map((u) => (
                     <li key={u.user_id} style={listRowStyle}>
                       <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {u.name || u.email}
+                        <bdi dir="auto">{u.name || u.email}</bdi>
                       </span>
                       <span style={{ color: 'var(--text-tertiary)', fontSize: 11 }}>
                         {fmtNum(u.requests)} req

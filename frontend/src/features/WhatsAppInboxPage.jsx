@@ -188,7 +188,7 @@ function Thread({ data, loading, onSent }) {
             {data.contact?.name || data.contact?.phone}
           </div>
           <div style={{ fontSize: 11, color: COLORS.muted, fontFamily: 'monospace' }}>
-            {data.contact?.phone}
+            <bdi dir="ltr">{data.contact?.phone}</bdi>
           </div>
         </div>
         <span style={{
