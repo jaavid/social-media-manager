@@ -27,7 +27,12 @@ app.conf.imports = (
     'social_stats.security.tasks',
     'social_stats.notification_watchers',
     'social_stats.security.privacy_tasks',
+    'social_stats.security.platform_compliance_tasks',
     'social_stats.events.publisher',
+    'social_stats.competitor_tasks',
+    'social_stats.meta_capi_tasks',
+    'social_stats.bot_webhook_tasks',
+    'social_stats.bot_engine.handlers.timed',
 )
 
 app.autodiscover_tasks()

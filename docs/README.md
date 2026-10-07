@@ -11,6 +11,7 @@ Social Stats ابزار متن‌باز مدیریت شبکه‌های اجتم�
 | چه قابلیتی واقعاً موجود است؟ | [پلتفرم‌ها](PLATFORM_SUPPORT.md) |
 | نقش‌ها، فضای کاری و تأیید | [دسترسی](ACCESS.md) |
 | سرور واقعی، ارتقا و بکاپ | [استقرار](DEPLOYMENT.md) |
+| متریک task، صف و سلامت sync | [پایش](OBSERVABILITY.md) |
 | مسیریابی و اجرای Next.js | [Next](NEXT_MIGRATION.md) |
 | خطاهای رایج | [رفع مشکل](TROUBLESHOOTING.md) |
 | توسعه، تست و مشارکت | [مشارکت](CONTRIBUTING.md) |

@@ -1,5 +1,6 @@
 """Celery tracing without persisting task arguments or return values."""
 import logging
+import time
 import uuid
 
 from celery import Task, signals
@@ -7,6 +8,7 @@ from django.conf import settings
 from logging.config import dictConfig
 
 from .observability import request_id_context, safe_request_id, task_id_context
+from .runtime_metrics import record_task
 
 logger = logging.getLogger('social_stats.tasks.lifecycle')
 
@@ -50,12 +52,16 @@ def task_started(task=None, task_id=None, **kwargs):
     task_token = task_id_context.set(task_id)
     # Keep tokens on the per-execution request, never on the shared Task object.
     task.request.log_context_tokens = (request_token, task_token)
+    task.request.metrics_started_at = time.monotonic()
     logger.info('task_started', extra={'task_name': task.name})
 
 
 @signals.task_postrun.connect
 def task_finished(task=None, state=None, **kwargs):
     try:
+        started = getattr(task.request, 'metrics_started_at', None)
+        if started is not None:
+            record_task(task.name, state, time.monotonic() - started)
         logger.info('task_finished', extra={'task_name': task.name, 'task_state': state})
     finally:
         tokens = getattr(task.request, 'log_context_tokens', None)
