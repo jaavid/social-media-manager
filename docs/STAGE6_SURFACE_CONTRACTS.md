@@ -113,3 +113,33 @@ were not exercised. No scope prerequisite PR is missing from origin/main.
 TriggerConfigModal and TestModeDrawer use the canonical Modal/Drawer and restore focus. Typed acknowledgements distinguish approval from publication, preserve configuration/phone on failure and lock replay after ambiguous unsafe responses. Test phone is component-local; the old persistent phone key is removed. Polling validates conversation, flow and workspace identity using the existing read-only bot conversation client field; failed stop retains running data. NodeInspector fields and MetaAdsPicker scope/error reads remain explicitly owned legacy gaps, not certified by this overlay migration.
 
 Public password verification uses the existing CSRF bootstrap/header contract, including authenticated sessions. Token/public routes retain the existing Persian locale policy; browser tests cover this policy rather than assuming an English preference overrides it.
+
+## Stage 6D: scoped Meta picker reads
+
+MetaAdsPicker remains a Meta extension; it does not add provider-specific logic to
+registry-driven features. Its existing QueryClient owns identity/role/account-type,
+workspace, Marketing ad-account and individual campaign keys. All reads consume
+AbortSignal; changing an owner clears the dependent selection and never uses
+previous-key placeholder data. Each campaign's ads have independent read/retry
+state. Recoverable same-key refresh preserves verified rows and selection; an
+authorization/not-found response hides cached rows and disables saving. Unknown
+or cross-scope selections cannot pass the trigger publication gate.
+
+Picker APIs require explicit `workspace_id` (normalized by the existing vocabulary
+middleware), existing `manage_automation` authorization, including the credential's
+SocialAccount override, and one unambiguous active workspace Facebook credential.
+The Marketing ad account must occur in the credential's `/me/adaccounts` response;
+campaign parentage and returned ad parentage must agree. Missing credentials are
+disconnected only after authorization. Provider failures use safe codes/statuses;
+provider 401 means denied provider access, never revoked application authentication.
+Malformed collections are failures. Bounded Graph responses with another page are
+explicitly partial; a missing item on a partial membership read is unverified,
+never proof that the item does not exist. Pagination URLs/tokens are not exposed.
+
+Owner: bot/Meta integration maintainers. Removal criteria: retire this extension
+only when a replacement preserves scoped Marketing API parentage, per-campaign
+recovery, validated payload selection and equivalent authorization/browser tests.
+Multiple Facebook credentials require explicit credential selection in a future
+Meta extension; this picker reports ambiguous/unavailable rather than choosing one.
+Legacy Meta health and spend-sync consumers retain their separate owners; this
+batch does not migrate them or claim live Meta connectivity.

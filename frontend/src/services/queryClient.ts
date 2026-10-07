@@ -53,6 +53,7 @@ export function createQueryClient() { return new QueryClient({
  * client id so cross-tenant queries don't collide in the cache.
  */
 export const QK = {
+  metaAds: (identity: readonly unknown[], workspace: WorkspaceId, collection: string, account = '', campaign = '') => ['meta-ads', identity, workspace, collection, account, campaign],
   connectionExtension: (workspaceId: WorkspaceId, accountId: number, name: string) => ['connections.extension', workspaceId, accountId, name],
   connectionWorkspace: () => ['connections.workspace'],
   connections: (workspaceId: WorkspaceId) => ['connections', workspaceId],

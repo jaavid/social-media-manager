@@ -165,7 +165,7 @@ The baseline tables above are historical and unchanged. **done** below is suppor
 | composer + scheduling | done | Composer #162; stage5-composer.spec.js; ComposerPage.test.jsx including stage6 scope handoff |
 | inbox/engagement | done | UnifiedInboxPage/ReviewsPage/useInboxResource; stage6-inbox.spec.js and inbox-races tests |
 | analytics/reporting | done | AnalyticsSurface/ReportsPage/PublicReportPage; analytics parser/backend reports tests and stage6 browser suites |
-| fullscreen/complex editors | remaining | BotFlow/VideoStudio migrated scope/recovery and narrow drawer; TestMode/TriggerConfig now use shared Drawer/Modal with failure preservation and ambiguity guards; legacy NodeInspector/trigger widget controls, MetaAdsPicker read/error scope and other complex editor internals still need field/read migration |
+| fullscreen/complex editors | remaining | BotFlow/VideoStudio migrated scope/recovery and narrow drawer; TestMode/TriggerConfig now use shared Drawer/Modal with failure preservation and ambiguity guards; NodeInspector/trigger widget controls and other complex editor internals still need field migration; MetaAdsPicker scoped reads, validation, per-campaign recovery and authorization are covered by Stage 6D Meta tests |
 | marketing surfaces در حدی که product brand مشترک لازم دارد | remaining | Existing MarketingLayout/tokens preserved; no broad marketing migration in stage6; typography/first-paint tests certify existing common brand only |
 | API مستند برای primitiveها و پنج page pattern. | done | STAGE6_SURFACE_CONTRACTS API and five existing pattern tables, including documented extensions |
 | هیچ visual token جدید page-local بدون دلیل ثبت‌شده اضافه نشود. | done | Migrated collections use canonical utilities/tokens; editor geometry is documented; no new palette/theme or unregistered visual token |
@@ -264,3 +264,29 @@ Global lint/i18n/architecture baseline files and dependencies were not edited. T
 ### Final batch C local validation
 
 112 Playwright cases passed against the final production build: status/slow/offline/reconnect matrices, publication approval, ambiguous test-run locking, password/report recovery and 72 locale/theme/viewport combinations. Actual baseline/after screenshots and failure evidence are in `frontend/e2e/evidence/stage6/`. Relevant Django suites passed 151 cases, including real SessionAuthentication CSRF verification and bot DTO scope. Lint, check:next, architecture, i18n, typecheck and production build passed without changing debt baselines. GitHub CI is recorded in PR #168 after final-head verification.
+
+### Stage 6D — Meta Ads recovery
+
+Rechecked latest origin/main `7ee976a`: #166/#167/#168 are merged; main Tests and
+Security are green. #106/#112 remain open and #103 remains closed with the legacy
+debt recorded above. Historical baseline tables are unchanged.
+
+MetaAdsPicker now validates wire collections and ownership, cancels obsolete reads,
+preserves verified same-scope data on recoverable refresh failure, hides denied
+data, rejects unverified selection at trigger publication and gives per-control
+recovery. Workspace/account permission and campaign/ad parentage use the existing
+backend authorization contract. `MetaAdsPicker.test.jsx`, `stage6d-meta.spec.js` and
+`test_meta_ads_scope.py` provide slow/failure/malformed/refresh/offline/race and
+permission/isolation evidence. Before images are from detached `7ee976a`; after
+images capture failed refresh with retained selection under `e2e/evidence/stage6d/`.
+The frontend/Meta integration owner and extension removal criteria are recorded in
+STAGE6_SURFACE_CONTRACTS.md.
+
+Remaining: NodeInspector and TriggerConfig internal controls (next dependent PR),
+older settings/form/destructive-action families, other complex editor internals,
+legacy useData/key/aggregate/static catalogue consumers, route-specific skeletons,
+raw logging/copy and exhaustive legacy overlay/contrast/failure matrices. No Stage 7,
+#116, dependency upgrade or broad adapter removal is part of this batch. Multiple
+Meta credentials fail closed; bounded provider collections explicitly report partial
+data. Mock Graph/browser recovery tests do not certify live Meta credentials or
+remote API behavior.
