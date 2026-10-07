@@ -7,6 +7,7 @@
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
 import Input from '../../components/ui/Input';
+import ProfileSettings from './components/ProfileSettings';
 import { cn } from '../../lib/utils';
 /**
  * UserSettingsPage — /account-settings
@@ -16,7 +17,6 @@ import { cn } from '../../lib/utils';
 import {
   useState,
   useEffect,
-  useRef,
   useId,
   cloneElement,
   isValidElement,
@@ -26,17 +26,12 @@ import {
   User,
   Lock,
   Building2,
-  Camera,
-  Save,
   Loader2,
-  Eye,
-  EyeOff,
   CheckCircle,
   AlertTriangle,
   X,
   LogOut,
   Shield,
-  Mail,
   Trash2,
   Bell,
   Palette,
@@ -60,7 +55,6 @@ import {
 } from './components/SettingsSections';
 import { MFAManager, ActiveSessionsList } from './components/SecuritySections';
 const CYAN = 'var(--brand-primary)';
-const CYAN_SOFT = 'rgba(0,215,255,0.1)';
 const TAB_GROUPS = [
   {
     label: 'Account',
@@ -136,7 +130,6 @@ const TAB_GROUPS = [
 ];
 
 // Flat list for filtering by clientOnly
-const TABS = TAB_GROUPS.flatMap((g) => g.items);
 export default function UserSettingsPage() {
   const { user, refreshAuth, logout } = useAuth();
   const navigate = useNavigate();
@@ -282,341 +275,10 @@ export default function UserSettingsPage() {
 // ── Profile Tab ───────────────────────────────────────────────────────────────
 
 function ProfileTab({ user, logout, navigate }) {
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [avatar, setAvatar] = useState(null);
-  const [preview, setPreview] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [success, setSuccess] = useState('');
-  const [error, setError] = useState('');
-  const fileRef = useRef();
-  useEffect(() => {
-    profileAPI
-      .get()
-      .then((res) => {
-        setFirstName(res.data.first_name || '');
-        setLastName(res.data.last_name || '');
-        setPreview(res.data.avatar || null);
-      })
-      .catch(() => {
-        setFirstName(user?.name?.split(' ')[0] || '');
-      })
-      .finally(() => setLoading(false));
-  }, []);
-  const handleAvatarChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setAvatar(file);
-    setPreview(URL.createObjectURL(file));
-  };
-  const handleRemoveAvatar = async () => {
-    setAvatar(null);
-    setPreview(null);
-    const fd = new FormData();
-    fd.append('first_name', firstName);
-    fd.append('last_name', lastName);
-    fd.append('remove_avatar', 'true');
-    await profileAPI.update(fd);
-  };
-  const handleSave = async (e) => {
-    e.preventDefault();
-    setError('');
-    setSuccess('');
-    if (!firstName.trim()) {
-      setError('First name is required.');
-      return;
-    }
-    setSaving(true);
-    try {
-      const fd = new FormData();
-      fd.append('first_name', firstName.trim());
-      fd.append('last_name', lastName.trim());
-      if (avatar) fd.append('avatar', avatar);
-      await profileAPI.update(fd);
-      setSuccess('Profile updated successfully.');
-      setAvatar(null);
-    } catch (err) {
-      setError(
-        err?.response?.data?.error || 'Failed to save. Please try again.',
-      );
-    } finally {
-      setSaving(false);
-    }
-  };
-  if (loading) return <Spinner />;
-  const initials =
-    `${firstName[0] || ''}${lastName[0] || ''}`.toUpperCase() ||
-    (user?.name?.[0] || 'U').toUpperCase();
-  return (
-    <div className={cn('[padding:32px_36px]')}>
-      <h3
-        className={cn(
-          '[margin:0_0_4px]',
-          '[font-size:18px]',
-          '[font-weight:700]',
-          '[color:var(--text-primary)]',
-        )}
-      >
-        Profile Information
-      </h3>
-      <p
-        className={cn(
-          '[margin:0_0_28px]',
-          '[font-size:14px]',
-          '[color:var(--text-secondary)]',
-        )}
-      >
-        Update your name and profile photo.
-      </p>
-
-      <form onSubmit={handleSave}>
-        {/* Avatar */}
-        <div
-          className={cn(
-            'settings-avatar-row',
-            '[display:flex]',
-            '[align-items:center]',
-            '[gap:24px]',
-            '[margin-bottom:28px]',
-          )}
-        >
-          <div
-            className={cn(
-              '[position:relative]',
-              '[width:80px]',
-              '[height:80px]',
-              '[flex-shrink:0]',
-            )}
-          >
-            {preview ? (
-              <img
-                src={preview}
-                alt="avatar"
-                className={cn(
-                  '[width:80px]',
-                  '[height:80px]',
-                  '[border-radius:50%]',
-                  '[object-fit:cover]',
-                  '[border:3px_solid_rgba(0,215,255,0.25)]',
-                )}
-              />
-            ) : (
-              <div
-                className={cn(
-                  '[width:80px]',
-                  '[height:80px]',
-                  '[border-radius:50%]',
-                  '[background:linear-gradient(135deg,#00d7ff,#0099bb)]',
-                  '[display:flex]',
-                  '[align-items:center]',
-                  '[justify-content:center]',
-                  '[font-size:26px]',
-                  '[font-weight:800]',
-                  '[color:#021418]',
-                )}
-              >
-                {initials}
-              </div>
-            )}
-            <button
-              type="button"
-              onClick={() => fileRef.current.click()}
-              title="Change photo"
-              className={cn(
-                '[position:absolute]',
-                '[bottom:0]',
-                '[inset-inline-end:0]',
-                '[width:26px]',
-                '[height:26px]',
-                '[border-radius:50%]',
-                '[background:var(--text-primary)]',
-                '[border:2px_solid_var(--surface-card)]',
-                '[display:flex]',
-                '[align-items:center]',
-                '[justify-content:center]',
-                '[cursor:pointer]',
-                '[color:var(--surface-card)]',
-              )}
-            >
-              <Camera size={13} />
-            </button>
-            {preview && (
-              <button
-                type="button"
-                onClick={handleRemoveAvatar}
-                title="Remove photo"
-                className={cn(
-                  '[position:absolute]',
-                  '[top:-4px]',
-                  '[inset-inline-end:-4px]',
-                  '[width:20px]',
-                  '[height:20px]',
-                  '[border-radius:50%]',
-                  '[background:#ef4444]',
-                  '[border:2px_solid_#fff]',
-                  '[display:flex]',
-                  '[align-items:center]',
-                  '[justify-content:center]',
-                  '[cursor:pointer]',
-                  '[color:var(--surface-card)]',
-                )}
-              >
-                <X size={12} />
-              </button>
-            )}
-          </div>
-          <div>
-            <p
-              className={cn(
-                '[margin:0_0_4px]',
-                '[font-weight:600]',
-                '[font-size:14px]',
-                '[color:var(--text-primary)]',
-              )}
-            >
-              Profile Photo
-            </p>
-            <p
-              className={cn(
-                '[margin:0]',
-                '[font-size:13px]',
-                '[color:var(--text-tertiary)]',
-              )}
-            >
-              JPG, PNG or GIF · Max 5MB
-            </p>
-            <button
-              type="button"
-              onClick={() => fileRef.current.click()}
-              className={cn(
-                '[margin-top:10px]',
-                '[padding:7px_16px]',
-                '[border-radius:10px]',
-                '[border:1.5px_solid_#00d7ff]',
-                '[background:rgba(0,215,255,0.1)]',
-                '[color:#0a7a8f]',
-                '[font-size:13px]',
-                '[font-weight:600]',
-                '[cursor:pointer]',
-              )}
-            >
-              Upload Photo
-            </button>
-          </div>
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/*"
-            onChange={handleAvatarChange}
-            className={cn('[display:none]')}
-          />
-        </div>
-
-        <div
-          className={cn(
-            'settings-field-grid',
-            '[display:grid]',
-            'grid-cols-1 sm:grid-cols-2',
-            '[gap:16px]',
-            '[margin-bottom:0]',
-          )}
-        >
-          <Field label="First Name" required>
-            <Input
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              placeholder="Jane"
-            />
-          </Field>
-          <Field label="Last Name">
-            <Input
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              placeholder="Smith"
-            />
-          </Field>
-        </div>
-
-        <Field label="Email Address">
-          <div
-            className={cn(
-              '[height:44px]',
-              '[padding:0_14px]',
-              '[border-radius:12px]',
-              '[border:1px_solid_rgba(148,163,184,0.3)]',
-              '[background:rgba(248,250,252,0.96)]',
-              '[font-size:14px]',
-              '[color:var(--text-primary)]',
-              '[outline:none]',
-              '[font-family:inherit]',
-              '[transition:border_.15s,_box-shadow_.15s]',
-              '[box-sizing:border-box]',
-              '[width:100%]',
-              '[background:var(--surface-sunken)]',
-              '[color:var(--text-tertiary)]',
-              '[display:flex]',
-              '[align-items:center]',
-              '[gap:8px]',
-            )}
-          >
-            <Mail size={14} color="var(--text-tertiary)" />
-            {user?.email || '—'}
-          </div>
-          <p
-            className={cn(
-              '[margin:6px_0_0]',
-              '[font-size:12px]',
-              '[color:var(--text-tertiary)]',
-            )}
-          >
-            Email cannot be changed here.
-          </p>
-        </Field>
-
-        {error && <Alert type="error" msg={error} />}
-        {success && <Alert type="success" msg={success} />}
-
-        <button
-          type="submit"
-          disabled={saving}
-          className={cn(
-            '[display:inline-flex]',
-            '[align-items:center]',
-            '[gap:8px]',
-            '[padding:12px_28px]',
-            '[border-radius:14px]',
-            '[border:none]',
-            '[background:linear-gradient(135deg,#00d7ff,#0099bb)]',
-            '[color:#021418]',
-            '[font-size:14px]',
-            '[font-weight:800]',
-            '[cursor:pointer]',
-            '[box-shadow:0_6px_20px_rgba(0,215,255,0.25)]',
-            '[margin-top:4px]',
-          )}
-        >
-          {saving ? (
-            <>
-              <Loader2
-                size={15}
-                className={cn('[animation:spin_1s_linear_infinite]')}
-              />{' '}
-              Saving...
-            </>
-          ) : (
-            <>
-              <Save size={15} /> Save Changes
-            </>
-          )}
-        </button>
-      </form>
-
-      {user?.role === 'client' && (
-        <DeleteAccountSection logout={logout} navigate={navigate} />
-      )}
-    </div>
-  );
+  return <>
+    <ProfileSettings user={user} />
+    {user?.role === 'client' && <DeleteAccountSection logout={logout} navigate={navigate} />}
+  </>;
 }
 
 // ── Delete Account Section (client only) ──────────────────────────────────────
