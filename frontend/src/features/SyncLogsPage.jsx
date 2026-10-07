@@ -7,176 +7,188 @@
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
 import { useState } from 'react';
-import { useSyncLogs } from '../hooks/useData';
-import { PLATFORMS } from '../services/platforms';
-import { ChevronUp, ChevronDown } from 'lucide-react';
-import PageHeader from '../components/layout/PageHeader';
-import SocialPlatformIcon from '../components/ui/SocialPlatformIcon';
-
-const STATUSES = ['all', 'success', 'failed', 'running', 'pending'];
+import { useSyncLogs } from '@/hooks/useData';
+import { useLanguage } from '@/i18n';
+import { apiError } from '@/services/http/errors';
+import PageHeader from '@/components/layout/PageHeader';
+import Button from '@/components/ui/Button';
+import DataState from '@/components/ui/DataState';
+import NativeSelect from '@/components/ui/NativeSelect';
+import Skeleton from '@/components/ui/Skeleton';
 
 export default function SyncLogsPage() {
-  const { logs, loading } = useSyncLogs(null);
-  const [expanded, setExpanded]       = useState(null);
-  const [filterPlatform, setFilterPlatform] = useState('all');
-  const [filterStatus, setFilterStatus]     = useState('all');
-  const [filterClient, setFilterClient]     = useState('');
-
-  const clientNames = [...new Set(logs.map(l => l.client_name).filter(Boolean))].sort();
-
-  const filtered = logs.filter(l => {
-    if (filterPlatform !== 'all' && l.platform !== filterPlatform) return false;
-    if (filterStatus   !== 'all' && l.status   !== filterStatus)   return false;
-    if (filterClient   && l.client_name !== filterClient)          return false;
-    return true;
-  });
-
+  const { t, formatDate, formatNumber } = useLanguage();
+  const { logs, hasData, loading, refreshing, error, offline, refetch } = useSyncLogs(null);
+  const [platform, setPlatform] = useState('all');
+  const [status, setStatus] = useState('all');
+  const [workspace, setWorkspace] = useState('');
+  const failure = apiError(error);
+  const denied = [401, 403, 404].includes(failure.status);
+  const filtered = logs.filter(
+    (row) =>
+      (platform === 'all' || row.platform === platform) &&
+      (status === 'all' || row.status === status) &&
+      (!workspace || row.client_name === workspace),
+  );
+  const clear = () => {
+    setPlatform('all');
+    setStatus('all');
+    setWorkspace('');
+  };
+  const retry = (
+    <Button onClick={() => refetch()} disabled={refreshing}>
+      {t('recovery.retry')}
+    </Button>
+  );
+  const state = denied
+    ? failure.status === 404
+      ? 'not-found'
+      : 'forbidden'
+    : offline
+      ? 'offline'
+      : error
+        ? hasData
+          ? 'stale'
+          : 'error'
+        : loading
+          ? 'loading'
+          : refreshing
+            ? 'refreshing'
+            : null;
   return (
-    <div className="app-page app-page--wide">
+    <section className="app-page app-page--wide space-y-4" aria-label={t('syncLogs.title')}>
       <PageHeader
-        title="Sync Logs"
-        subtitle={`${filtered.length} of ${logs.length} record${logs.length !== 1 ? 's' : ''}`}
+        title={t('syncLogs.title')}
+        subtitle={t('syncLogs.description')}
+        actions={
+          <Button onClick={() => refetch()} disabled={refreshing}>
+            {t('recovery.refresh')}
+          </Button>
+        }
       />
-
-      {/* Filter bar */}
-      <div className="app-surface app-surface--compact" style={styles.filterBar}>
-        <select value={filterClient} onChange={e => setFilterClient(e.target.value)} style={styles.select}>
-          <option value="">All Users</option>
-          {clientNames.map(n => <option key={n} value={n}>{n}</option>)}
-        </select>
-
-        <select value={filterPlatform} onChange={e => setFilterPlatform(e.target.value)} style={styles.select}>
-          <option value="all">All Platforms</option>
-          {Object.entries(PLATFORMS).map(([k, v]) => (
-            <option key={k} value={k}>{v.label}</option>
+      <div className="app-surface app-surface--compact flex flex-wrap gap-3">
+        <NativeSelect
+          label={t('syncLogs.workspace')}
+          value={workspace}
+          onChange={(e) => setWorkspace(e.target.value)}
+        >
+          <option value="">{t('recovery.all')}</option>
+          {[...new Set(logs.map((row) => row.client_name).filter(Boolean))].sort().map((name) => (
+            <option key={name}>{name}</option>
           ))}
-        </select>
-
-        <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={styles.select}>
-          {STATUSES.map(s => (
-            <option key={s} value={s}>{s === 'all' ? 'All Statuses' : s.charAt(0).toUpperCase() + s.slice(1)}</option>
+        </NativeSelect>
+        <NativeSelect
+          label={t('syncLogs.platform')}
+          value={platform}
+          onChange={(e) => setPlatform(e.target.value)}
+        >
+          <option value="all">{t('recovery.all')}</option>
+          {[...new Set(logs.map((row) => row.platform))].sort().map((name) => (
+            <option key={name}>{name}</option>
           ))}
-        </select>
-
-        {(filterClient || filterPlatform !== 'all' || filterStatus !== 'all') && (
-          <button
-            onClick={() => { setFilterClient(''); setFilterPlatform('all'); setFilterStatus('all'); }}
-            style={styles.clearBtn}
-          >
-            Clear filters ✕
-          </button>
-        )}
+        </NativeSelect>
+        <NativeSelect
+          label={t('syncLogs.status')}
+          value={status}
+          onChange={(e) => setStatus(e.target.value)}
+        >
+          {['all', 'success', 'failed', 'running', 'pending'].map((name) => (
+            <option key={name} value={name}>
+              {t(name === 'all' ? 'recovery.all' : `syncLogs.${name}`)}
+            </option>
+          ))}
+        </NativeSelect>
+        <Button variant="ghost" onClick={clear}>
+          {t('recovery.clearFilters')}
+        </Button>
       </div>
-
-      <div className="app-surface app-surface--panel" style={styles.tableWrap}>
-        {loading ? (
-          <div style={styles.center}>Loading logs…</div>
-        ) : filtered.length === 0 ? (
-          <div style={styles.center}>
-            {logs.length === 0 ? 'No sync logs yet. Click "Sync Now" on a user dashboard to start.' : 'No logs match the selected filters.'}
-          </div>
-        ) : (
-          <table style={styles.table}>
-            <thead>
-              <tr>
-                {['User','Platform','Status','Records Synced','Started','Duration','Error'].map(h => (
-                  <th key={h} style={styles.th}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map(l => (
-                <>
-                  <tr key={l.id} style={styles.tr}>
-                    <td style={{ ...styles.td, fontWeight: 600 }}>{l.client_name || '—'}</td>
-                    <td style={styles.td}>
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                        <SocialPlatformIcon platform={l.platform} size={15} />
-                        {PLATFORMS[l.platform]?.label || l.platform}
-                      </span>
+      {state && (
+        <DataState
+          compact
+          state={state}
+          referenceId={failure.referenceId}
+          title={t(
+            failure.status === 404
+              ? 'recovery.notFound'
+              : failure.status === 403
+                ? 'recovery.forbidden'
+                : denied
+                  ? 'recovery.denied'
+                  : failure.status === 429
+                    ? 'recovery.rateLimited'
+                    : offline
+                      ? 'recovery.offline'
+                      : error
+                        ? hasData
+                          ? 'recovery.stale'
+                          : 'recovery.failed'
+                        : refreshing
+                          ? 'recovery.refreshing'
+                          : 'recovery.loading',
+          )}
+          action={state !== 'loading' && state !== 'refreshing' ? retry : undefined}
+        />
+      )}
+      {loading && !hasData && !error && !offline && (
+        <div aria-hidden="true" className="space-y-3">
+          <Skeleton height={40} />
+          <Skeleton height={180} />
+        </div>
+      )}
+      {hasData &&
+        !denied &&
+        (filtered.length ? (
+          <div className="app-surface overflow-x-auto" aria-busy={refreshing || undefined}>
+            <table className="w-full text-start text-sm">
+              <caption className="sr-only">{t('syncLogs.title')}</caption>
+              <thead>
+                <tr>
+                  {['workspace', 'platform', 'status', 'records', 'started', 'duration'].map(
+                    (key) => (
+                      <th className="p-3 text-start" scope="col" key={key}>
+                        {t(`syncLogs.${key}`)}
+                      </th>
+                    ),
+                  )}
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((row) => (
+                  <tr key={row.id} className="border-t border-border">
+                    <td className="p-3">{row.client_name}</td>
+                    <td className="p-3">
+                      <bdi>{row.platform}</bdi>
                     </td>
-                    <td style={styles.td}>
-                      <span style={badge(l.status)}>{l.status}</span>
+                    <td className="p-3">{t(`syncLogs.${row.status}`)}</td>
+                    <td className="p-3">{formatNumber(row.records_synced)}</td>
+                    <td className="p-3">
+                      {formatDate(row.started_at, { dateStyle: 'medium', timeStyle: 'short' })}
                     </td>
-                    <td style={{ ...styles.td, textAlign: 'center' }}>{l.records_synced ?? 0}</td>
-                    <td style={styles.td}>{new Date(l.started_at).toLocaleString()}</td>
-                    <td style={styles.td}>{l.duration_seconds != null ? `${l.duration_seconds}s` : '—'}</td>
-                    <td style={styles.td}>
-                      {l.error_message ? (
-                        <button
-                          onClick={() => setExpanded(expanded === l.id ? null : l.id)}
-                          style={styles.errorBtn}
-                        >
-                          <span style={styles.errorBtnInner}>
-                            {expanded === l.id ? <><ChevronUp size={12} /> Hide</> : <><ChevronDown size={12} /> View</>}
-                          </span>
-                        </button>
-                      ) : (
-                        <span style={{ color: 'var(--text-tertiary)', fontSize: 12 }}>—</span>
-                      )}
+                    <td className="p-3">
+                      {row.duration_seconds === null
+                        ? t('recovery.unknown')
+                        : t('syncLogs.seconds', { count: row.duration_seconds })}
                     </td>
                   </tr>
-                  {expanded === l.id && l.error_message && (
-                    <tr key={`${l.id}-err`} style={{ background: '#fff7f7' }}>
-                      <td colSpan={7} style={styles.errorCell}>
-                        <pre style={styles.errorText}>{l.error_message}</pre>
-                      </td>
-                    </tr>
-                  )}
-                </>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-    </div>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          !error &&
+          !offline && (
+            <DataState
+              compact
+              state={logs.length ? 'no-results' : 'empty'}
+              title={t(logs.length ? 'recovery.noResults' : 'syncLogs.empty')}
+              action={
+                logs.length ? (
+                  <Button onClick={clear}>{t('recovery.clearFilters')}</Button>
+                ) : undefined
+              }
+            />
+          )
+        ))}
+    </section>
   );
 }
-
-const statusColors = {
-  success: { background: '#dcfce7', color: '#16a34a' },
-  failed:  { background: '#fee2e2', color: '#dc2626' },
-  running: { background: '#e6fbff', color: '#00d7ff' },
-  pending: { background: 'var(--surface-page)', color: 'var(--text-secondary)' },
-};
-
-function badge(status) {
-  return {
-    display: 'inline-block', padding: '2px 10px', borderRadius: 20,
-    fontSize: 11, fontWeight: 600,
-    ...(statusColors[status] || statusColors.pending),
-  };
-}
-
-const styles = {
-  filterBar: { display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginBottom: 16 },
-  select: {
-    padding: '8px 12px', borderRadius: 8, border: '1.5px solid var(--border-default)',
-    fontSize: 13, background: 'var(--surface-card)', color: 'var(--text-secondary)', cursor: 'pointer', outline: 'none',
-  },
-  clearBtn: {
-    padding: '8px 14px', borderRadius: 8, border: '1.5px solid #fca5a5',
-    background: '#fff7f7', color: '#dc2626', cursor: 'pointer', fontSize: 12, fontWeight: 600,
-  },
-  tableWrap: { boxShadow: '0 1px 6px rgba(0,0,0,.07)', overflowX: 'auto' },
-  table:     { width: '100%', borderCollapse: 'collapse', fontSize: 13 },
-  th: {
-    textAlign: 'left', padding: '10px 12px', background: 'var(--surface-page)',
-    color: 'var(--text-secondary)', fontWeight: 600, fontSize: 12, borderBottom: '1px solid var(--border-default)',
-    whiteSpace: 'nowrap',
-  },
-  tr:        { borderBottom: '1px solid var(--surface-sunken)' },
-  td:        { padding: '12px 12px', color: 'var(--text-secondary)', verticalAlign: 'middle' },
-  center:    { textAlign: 'center', color: 'var(--text-tertiary)', padding: 40 },
-  errorBtn: {
-    padding: '3px 10px', borderRadius: 6, border: '1px solid #fca5a5',
-    background: '#fff7f7', color: '#dc2626', cursor: 'pointer', fontSize: 11, fontWeight: 600,
-  },
-  errorBtnInner: { display: 'flex', alignItems: 'center', gap: 4 },
-  errorCell: { padding: '0 16px 12px' },
-  errorText: {
-    margin: 0, padding: '12px 16px', borderRadius: 8,
-    background: '#fef2f2', color: '#991b1b', fontSize: 12,
-    whiteSpace: 'pre-wrap', wordBreak: 'break-all', border: '1px solid #fecaca',
-  },
-};

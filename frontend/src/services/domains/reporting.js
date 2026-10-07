@@ -18,7 +18,7 @@ export const adminAPI = {
 };
 
 export const syncLogsAPI = {
-  list: (params) => api.get('/synclogs/', { params }),
+  list: (params, signal) => api.get('/synclogs/', { params, signal }),
 };
 
 export const goalsAPI = {
