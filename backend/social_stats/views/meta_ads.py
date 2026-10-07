@@ -9,10 +9,13 @@
 """
 Meta Ads (Marketing API) integration.
 
-Endpoints (auth, tenant-scoped via the user's facebook PlatformCredential):
-    GET /api/meta-ads/accounts/                       — list /me/adaccounts
-    GET /api/meta-ads/campaigns/?ad_account_id=…      — list CTWA-eligible campaigns
-    GET /api/meta-ads/ads/?campaign_id=…              — list ads under a campaign
+Picker reads require explicit workspace_id, automation permission and one active
+Facebook credential. Marketing account/campaign parentage is verified before reads.
+
+Endpoints:
+    GET /api/meta-ads/accounts/?workspace_id=…       — list /me/adaccounts
+    GET /api/meta-ads/campaigns/?workspace_id=…&ad_account_id=…      — list CTWA-eligible campaigns
+    GET /api/meta-ads/ads/?workspace_id=…&ad_account_id=…&campaign_id=…              — list ads under a campaign
 
 The daily Celery task and the CTWACampaign `/sync-meta` action both
 call `sync_campaign_spend(campaign)` here. In dev (no facebook credential
@@ -23,6 +26,7 @@ prompt the user to connect.
 from __future__ import annotations
 
 import logging
+import re
 
 import requests
 from django.utils import timezone
@@ -65,12 +69,13 @@ def _graph(method: str, path: str, *, token: str, params: dict | None = None,
     try:
         r = requests.request(method, url, params=p, timeout=timeout)
         body = r.json() if r.content else {}
-    except Exception as e:  # noqa: BLE001
-        logger.exception('Graph %s %s failed', method, path)
-        return (False, {'error': str(e)})
-    if r.status_code >= 400:
-        return (False, {'error': body.get('error', {}).get('message', 'graph error'),
-                        'status_code': r.status_code, 'raw': body})
+    except (requests.RequestException, ValueError):
+        logger.warning('Meta Ads transport or response failure')
+        return (False, {'code': 'provider_unavailable'})
+    if not isinstance(body, dict):
+        return (False, {'code': 'invalid_provider_response'})
+    if r.status_code >= 400 or 'error' in body:
+        return (False, {'code': 'provider_failed', 'status_code': r.status_code})
     return (True, body)
 
 
@@ -125,89 +130,139 @@ def meta_ads_health(request):
     })
 
 
+def _picker_context(request):
+    """Explicit workspace and existing automation/account authorization, before I/O."""
+    from social_stats.views.connections import workspace_for, permitted
+
+    # WorkspaceVocabularyMiddleware normalizes workspace_id to client_id.
+    workspace_id = request.query_params.get('client_id', '')
+    if not re.fullmatch(r'[1-9][0-9]*', workspace_id):
+        return None, None, Response({'code': 'workspace_required'}, status=400)
+    workspace, error = workspace_for(request, int(workspace_id))
+    if error is not None:
+        return None, None, error
+    if not permitted(request.user, workspace, 'manage_automation'):
+        return None, None, Response({'code': 'permission_denied'}, status=403)
+    credentials = list(PlatformCredential.objects.filter(
+        client=workspace, platform='facebook', is_active=True,
+    ).select_related('social_account')[:2])
+    if len(credentials) > 1:
+        return None, None, Response({'code': 'ambiguous_meta_connection'}, status=409)
+    cred = credentials[0] if credentials else None
+    if cred and cred.social_account and not permitted(
+        request.user, workspace, 'manage_automation', cred.social_account,
+    ):
+        return None, None, Response({'code': 'permission_denied'}, status=403)
+    if not cred or not cred.access_token:
+        return None, None, Response({'connected': False, 'workspace_id': workspace.pk})
+    return cred.access_token, workspace.pk, None
+
+
+def _provider_failure(body):
+    status = body.get('status_code')
+    status = status if status in (401, 403, 404, 429) else 502
+    # A provider 401 is not a revoked application session.
+    if status == 401:
+        status = 403
+    return Response({'code': 'meta_read_failed'}, status=status)
+
+
+def _collection(token, path, fields):
+    ok, body = _graph('GET', path, token=token, params={'fields': fields, 'limit': 100})
+    if not ok:
+        return None, False, _provider_failure(body)
+    rows = body.get('data')
+    if (not isinstance(rows, list) or any(not isinstance(row, dict)
+            or not isinstance(row.get('id'), str) or not row['id'] for row in rows)
+            or len({row['id'] for row in rows}) != len(rows)):
+        return None, False, Response({'code': 'invalid_meta_response'}, status=502)
+    paging = body.get('paging', {})
+    if not isinstance(paging, dict):
+        return None, False, Response({'code': 'invalid_meta_response'}, status=502)
+    return rows, bool(paging.get('next')), None
+
+
+def _account_scope(request, token):
+    account = request.query_params.get('ad_account_id', '')
+    if not re.fullmatch(r'act_[0-9]+', account):
+        return None, Response({'code': 'ad_account_required'}, status=400)
+    rows, partial, error = _collection(token, '/me/adaccounts', 'id,name,currency')
+    if error is not None:
+        return None, error
+    if account not in {row['id'] for row in rows}:
+        return None, Response({'code': 'meta_scope_unverified' if partial else 'permission_denied'},
+                              status=503 if partial else 403)
+    return account, None
+
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def list_ad_accounts(request):
-    token, client_id = _resolve_token(request.user)
-    if not token:
-        return Response({'error': 'meta ads not connected', 'connected': False})
-    ok, body = _graph('GET', '/me/adaccounts', token=token, params={
-        'fields': 'id,name,account_status,currency,balance,amount_spent',
-        'limit': 50,
-    })
-    if not ok:
-        return Response({'error': body.get('error') or 'graph error'}, status=502)
-    return Response({
-        'connected': True,
-        'accounts': [{
-            'id':             a.get('id'),
-            'name':           a.get('name'),
-            'account_status': a.get('account_status'),
-            'currency':       a.get('currency'),
-            'balance':        a.get('balance'),
-            'amount_spent':   a.get('amount_spent'),
-        } for a in (body.get('data') or [])],
-    })
+    token, workspace_id, error = _picker_context(request)
+    if error is not None:
+        return error
+    rows, partial, error = _collection(token, '/me/adaccounts', 'id,name,account_status,currency')
+    if error is not None:
+        return error
+    return Response({'connected': True, 'workspace_id': workspace_id,
+                     'accounts': rows, 'partial': partial})
 
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def list_ad_campaigns(request):
-    token, _ = _resolve_token(request.user)
-    if not token:
-        return Response({'error': 'meta ads not connected', 'connected': False})
-    ad_account_id = (request.query_params.get('ad_account_id') or '').strip()
-    if not ad_account_id:
-        return Response({'error': 'ad_account_id is required'}, status=400)
-    if not ad_account_id.startswith('act_'):
-        ad_account_id = f'act_{ad_account_id}'
-    ok, body = _graph('GET', f'/{ad_account_id}/campaigns', token=token, params={
-        'fields': 'id,name,objective,status,effective_status,daily_budget,lifetime_budget,start_time,stop_time',
-        'limit': 100,
-    })
-    if not ok:
-        return Response({'error': body.get('error') or 'graph error'}, status=502)
-    # CTWA campaigns use OUTCOME_ENGAGEMENT or LEAD_GENERATION objectives —
-    # we surface ALL active campaigns so the UI can filter; the picker can
-    # show a "CTWA-eligible" badge.
-    return Response({
-        'connected': True,
-        'campaigns': body.get('data') or [],
-    })
+    token, workspace_id, error = _picker_context(request)
+    if error is not None:
+        return error
+    account, error = _account_scope(request, token)
+    if error is not None:
+        return error
+    rows, partial, error = _collection(token, f'/{account}/campaigns',
+                                      'id,name,objective,status,effective_status,account_id')
+    if error is not None:
+        return error
+    if any(str(row.get('account_id')) != account[4:] for row in rows):
+        return Response({'code': 'invalid_meta_scope'}, status=502)
+    return Response({'connected': True, 'workspace_id': workspace_id,
+                     'ad_account_id': account, 'campaigns': rows, 'partial': partial})
 
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def list_ads(request):
-    token, _ = _resolve_token(request.user)
-    if not token:
-        return Response({'error': 'meta ads not connected', 'connected': False})
-    campaign_id = (request.query_params.get('campaign_id') or '').strip()
-    if not campaign_id:
-        return Response({'error': 'campaign_id is required'}, status=400)
-    ok, body = _graph('GET', f'/{campaign_id}/ads', token=token, params={
-        'fields': (
-            'id,name,status,effective_status,creative{title,body,call_to_action_type,'
-            'object_story_spec,thumbnail_url,image_url}'
-        ),
-        'limit': 200,
-    })
+    token, workspace_id, error = _picker_context(request)
+    if error is not None:
+        return error
+    account, error = _account_scope(request, token)
+    if error is not None:
+        return error
+    campaign = request.query_params.get('campaign_id', '')
+    if not re.fullmatch(r'[0-9]+', campaign):
+        return Response({'code': 'campaign_required'}, status=400)
+    ok, body = _graph('GET', f'/{campaign}', token=token, params={'fields': 'id,account_id'})
     if not ok:
-        return Response({'error': body.get('error') or 'graph error'}, status=502)
-    ads = body.get('data') or []
-    # Detect CTWA — creative.call_to_action_type == 'WHATSAPP_MESSAGE' OR
-    # object_story_spec has a whatsapp destination.
-    for a in ads:
-        creative = a.get('creative') or {}
-        cta = (creative.get('call_to_action_type') or '').upper()
-        story = creative.get('object_story_spec') or {}
-        is_ctwa = (
-            cta == 'WHATSAPP_MESSAGE'
-            or 'whatsapp' in (story.get('link_data', {}) or {})
-            or any('whatsapp' in str(v).lower() for v in story.values())
-        )
-        a['is_ctwa'] = bool(is_ctwa)
-    return Response({'connected': True, 'ads': ads})
+        return _provider_failure(body)
+    if body.get('id') != campaign or str(body.get('account_id')) != account[4:]:
+        return Response({'code': 'permission_denied'}, status=403)
+    rows, partial, error = _collection(token, f'/{campaign}/ads',
+        'id,name,status,effective_status,campaign_id,creative{call_to_action_type,object_story_spec}')
+    if error is not None:
+        return error
+    if any(row.get('campaign_id') != campaign for row in rows):
+        return Response({'code': 'invalid_meta_scope'}, status=502)
+    for row in rows:
+        creative = row.pop('creative', None)
+        if creative is not None and not isinstance(creative, dict):
+            return Response({'code': 'invalid_meta_response'}, status=502)
+        story = (creative or {}).get('object_story_spec') or {}
+        if not isinstance(story, dict):
+            return Response({'code': 'invalid_meta_response'}, status=502)
+        row['is_ctwa'] = ((creative or {}).get('call_to_action_type') == 'WHATSAPP_MESSAGE'
+                          or 'whatsapp' in (story.get('link_data') or {})
+                          or any('whatsapp' in str(value).lower() for value in story.values()))
+    return Response({'connected': True, 'workspace_id': workspace_id,
+                     'ad_account_id': account, 'campaign_id': campaign,
+                     'ads': rows, 'partial': partial})
 
 
 # ─────────────────────────────────────────────────────────────────────────────

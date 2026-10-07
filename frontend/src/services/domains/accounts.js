@@ -21,9 +21,9 @@ export const ctwaAPI = {
 };
 
 export const metaAdsAPI = {
-  accounts:  ()        => api.get('/meta-ads/accounts/'),
-  campaigns: (account) => api.get('/meta-ads/campaigns/', { params: { ad_account_id: account } }),
-  ads:       (campaign) => api.get('/meta-ads/ads/', { params: { campaign_id: campaign } }),
+  accounts: (workspace, signal) => api.get('/meta-ads/accounts/', { params: { workspace_id: workspace }, signal }),
+  campaigns: (workspace, account, signal) => api.get('/meta-ads/campaigns/', { params: { workspace_id: workspace, ad_account_id: account }, signal }),
+  ads: (workspace, account, campaign, signal) => api.get('/meta-ads/ads/', { params: { workspace_id: workspace, ad_account_id: account, campaign_id: campaign }, signal }),
   health:    ()        => api.get('/meta-ads/health/'),
 };
 

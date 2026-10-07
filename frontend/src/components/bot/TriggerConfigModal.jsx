@@ -43,10 +43,11 @@ export default function TriggerConfigModal({ flow, onClose, onPublished }) {
   const [triggerType, setTriggerType]   = useState(flow.trigger_type || 'ctwa_ad');
   const [config,      setConfig]        = useState(flow.trigger_config || {});
   const [busy,        setBusy]          = useState(false);
+  const [metaValid, setMetaValid] = useState(false);
   const [validation,  setValidation]    = useState(null);
 
   async function go() {
-    if (pending.current || ambiguous || approval) return;
+    if (pending.current || ambiguous || approval || (triggerType === 'ctwa_ad' && !metaValid)) return;
     pending.current = true; setBusy(true); setValidation(null); setFailure(null);
     let publishing = false;
     try {
@@ -71,7 +72,7 @@ export default function TriggerConfigModal({ flow, onClose, onPublished }) {
 
   return (
     <Modal open title={flow.name} description={t('editor.publishConfirm')} onClose={() => { if (!busy) onClose(); }}
-      footer={<><Button disabled={busy} onClick={onClose}>{t('reports.cancel')}</Button><Button disabled={busy || ambiguous || approval} onClick={go}>{t('editor.publishAction')} <ArrowRight size={13} /></Button></>}>
+      footer={<><Button disabled={busy} onClick={onClose}>{t('reports.cancel')}</Button><Button disabled={busy || ambiguous || approval || (triggerType === 'ctwa_ad' && !metaValid)} onClick={go}>{t('editor.publishAction')} <ArrowRight size={13} /></Button></>}>
       {approval && <DataState state="partial" compact title={t('editor.approvalQueued')} />}
       {failure && <DataState focusRef={errorRef} state="error" compact title={t(ambiguous ? 'editor.publishUnknown' : 'editor.publishFailed')} referenceId={apiError(failure).referenceId} />}
         <div style={{ padding: '0 20px 18px', flex: 1, overflowY: 'auto' }}>
@@ -101,7 +102,7 @@ export default function TriggerConfigModal({ flow, onClose, onPublished }) {
 
           {/* Trigger-specific config */}
           {triggerType === 'ctwa_ad' && (
-            <MetaAdsPicker value={config} onChange={setConfig} />
+            <MetaAdsPicker value={config} onChange={setConfig} workspaceId={flow.client} onValidityChange={setMetaValid} disabled={busy} />
           )}
 
           {triggerType === 'keyword' && (
