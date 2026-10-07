@@ -41,14 +41,14 @@ function Password({ identity, enabled }) {
     {resource.data && !action.denied && (resource.data.is_social ? <p>{t('password.social')}</p> : <>
       <p className="text-sm text-muted-foreground">{t('password.sessions')}</p>
       <form onSubmit={submit} className="space-y-3" aria-busy={action.busy}>
-        <Input label={t('password.current')} type="password" autoComplete="current-password" value={current} disabled={action.busy} required onChange={e => setCurrent(e.target.value)} />
-        <Input label={t('password.new')} type="password" autoComplete="new-password" value={password} disabled={action.busy} required onChange={e => setPassword(e.target.value)} />
-        <Input label={t('password.confirm')} type="password" autoComplete="new-password" value={confirm} disabled={action.busy} required onChange={e => setConfirm(e.target.value)} />
+        <Input label={t('password.current')} type="password" autoComplete="current-password" value={current} disabled={action.busy} required onChange={e => { setCurrent(e.target.value); if (action.failure?.status === 400) action.verified(); }} />
+        <Input label={t('password.new')} type="password" autoComplete="new-password" value={password} disabled={action.busy} required onChange={e => { setPassword(e.target.value); if (action.failure?.status === 400) action.verified(); }} />
+        <Input label={t('password.confirm')} type="password" autoComplete="new-password" value={confirm} disabled={action.busy} required onChange={e => { setConfirm(e.target.value); if (action.failure?.status === 400) action.verified(); }} />
         {validation && <p role="alert">{t(validation)}</p>}
         <Button type="submit" disabled={action.locked || resource.query.isFetching}>{t('password.submit')}</Button>
       </form>
     </>)}
-    <WriteState action={action} uncertainKey="password.unknown" />
+    {action.failure?.status === 400 ? <p role="alert">{t('password.rejected')}</p> : <WriteState action={action} uncertainKey="password.unknown" />}
     {action.success && <p role="status">{t('password.saved')}</p>}
   </section></Card><MFAManager /><ActiveSessionsList /></div>;
 }

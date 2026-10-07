@@ -15,3 +15,11 @@ test('eligibility and password result cannot be guessed', () => {
   for (const v of [{}, { ok: true }, { detail: 'ok' }]) expect(() => parsePasswordChange(v)).toThrow();
   expect(() => parsePasswordChange({ detail: 'Password changed successfully.' })).not.toThrow();
 });
+
+test('issuance accepts exactly the backend list truncation without losing the one-time secret', () => {
+  const scopes = Array.from({ length: 51 }, () => 'x'.repeat(81));
+  const ip_allowlist = ['1'.repeat(51)];
+  const dto = { ...metadata, scopes: scopes.slice(0, 50).map(s => s.slice(0, 80)), ip_allowlist: ['1'.repeat(50)], plaintext_key: `sk_live_${'A'.repeat(32)}` };
+  expect(parseIssuedKey(dto, { name: metadata.name, scopes, ip_allowlist }).adjusted).toBe(true);
+  expect(parseIssuedKey(dto, { name: metadata.name, scopes, ip_allowlist }).secret).toBe(dto.plaintext_key);
+});

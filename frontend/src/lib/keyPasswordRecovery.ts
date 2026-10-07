@@ -27,9 +27,9 @@ export function parseIssuedKey(v: unknown, payload: { name: string; scopes: stri
   check(row(v) && typeof v.plaintext_key === 'string' && /^sk_(live|test)_[A-Za-z0-9_-]{32}$/.test(v.plaintext_key) &&
     v.plaintext_key.slice(0, 12) === metadata.key_prefix && metadata.is_active && !metadata.is_expired &&
     metadata.revoked_at === null && metadata.name === payload.name &&
-    JSON.stringify(metadata.scopes) === JSON.stringify(payload.scopes) &&
-    JSON.stringify(metadata.ip_allowlist) === JSON.stringify(payload.ip_allowlist));
-  return { metadata, secret: v.plaintext_key };
+    JSON.stringify(metadata.scopes) === JSON.stringify(payload.scopes.slice(0, 50).map(s => s.slice(0, 80))) &&
+    JSON.stringify(metadata.ip_allowlist) === JSON.stringify(payload.ip_allowlist.slice(0, 50).map(s => s.slice(0, 50))));
+  return { metadata, secret: v.plaintext_key, adjusted: JSON.stringify(metadata.scopes) !== JSON.stringify(payload.scopes) || JSON.stringify(metadata.ip_allowlist) !== JSON.stringify(payload.ip_allowlist) };
 }
 export function parsePasswordProfile(v: unknown, userId: unknown) {
   check(row(v) && v.id === userId && typeof v.is_social === 'boolean');

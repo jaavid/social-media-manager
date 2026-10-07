@@ -30,6 +30,7 @@ function Keys({ identity, enabled }) {
     signal => apiKeysAPI.list(true, signal, workspace), parseKeys);
   const action = useCheckedAction();
   const [name, setName] = useState(''), [scopes, setScopes] = useState(''), [ips, setIps] = useState('');
+  const [adjusted, setAdjusted] = useState(false);
   const [issued, setIssued] = useState(null), [target, setTarget] = useState(null);
   const [copied, setCopied] = useState(false), [copyFailed, setCopyFailed] = useState(false);
   const [checked, setChecked] = useState(false), [observed, setObserved] = useState(false);
@@ -54,7 +55,7 @@ function Keys({ identity, enabled }) {
     setTarget('create'); setChecked(false); setObserved(false);
     action.run(async () => parseIssuedKey((await apiKeysAPI.create(payload, workspace)).data, payload), async result => {
       copyGeneration.current += 1;
-      setIssued(result.secret); setCopied(false); setCopyFailed(false);
+      setIssued(result.secret); setAdjusted(result.adjusted); setCopied(false); setCopyFailed(false);
       await resource.commit(old => [result.metadata, ...(old || []).filter(k => k.id !== result.metadata.id)]);
       if (!action.alive.current) return;
       setName(''); setScopes(''); setIps(''); setTarget(null);
@@ -95,9 +96,9 @@ function Keys({ identity, enabled }) {
       </form>
       {action.success && <p role="status">{t('account.saved')}</p>}
       {issued && <div className="space-y-3 rounded border p-3">
-        <p>{t('keys.once')}</p><div dir="ltr" className="break-all select-all">{issued}</div>
-        <Button onClick={copy}>{t('mfa.copy')}</Button> <Button variant="ghost" onClick={() => { copyGeneration.current += 1; setIssued(null); }}>{t('keys.dismiss')}</Button>
-        {copied && <p role="status">{t('mfa.copied')}</p>}{copyFailed && <p role="alert">{t('mfa.copyFailed')}</p>}
+        <p>{t('keys.once')}</p>{adjusted && <p role="alert">{t('keys.adjusted')}</p>}<div dir="ltr" className="break-all select-all">{issued}</div>
+        <Button onClick={copy}>{t('keys.copy')}</Button> <Button variant="ghost" onClick={() => { copyGeneration.current += 1; setIssued(null); }}>{t('keys.dismiss')}</Button>
+        {copied && <p role="status">{t('keys.copied')}</p>}{copyFailed && <p role="alert">{t('keys.copyFailed')}</p>}
       </div>}
       <label className="flex gap-2"><input type="checkbox" checked={inactive} onChange={e => setInactive(e.target.checked)} />{t('keys.inactive')}</label>
       {rows && <ul aria-busy={resource.query.isFetching} className="divide-y divide-border">{rows.map(k => <li key={k.id} className="flex flex-wrap items-center justify-between gap-3 py-3">

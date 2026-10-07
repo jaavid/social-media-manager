@@ -639,3 +639,5 @@ change. Required all-files pre-commit reports the same prior hygiene/Ruff debt
 (271 findings, 114 autofixes); 99 unrelated modified files were restored. All-files
 Gitleaks/Bandit and changed-file pre-commit passed; no baseline/assertion/policy was
 weakened. UI screenshots under `e2e/evidence/key-password` exclude secrets.
+
+PR #177 review follow-up: checked issuance now accepts exactly the backend's documented 50-entry / 80-character scope / 50-character IP truncation and warns when stored metadata differs; unrelated mismatches still fail validation. API key clipboard messages describe keys rather than MFA codes. Definite password HTTP 400 has localized rejection guidance, cleared on editing, while unknown mutations stay locked. Targeted 16 Jest tests and all 19 browser cases passed again; production build passed.
