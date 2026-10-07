@@ -1,4 +1,5 @@
 """Billing policy stays at the tenant boundary for all resource write paths."""
+import unittest
 from importlib import import_module
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
@@ -251,8 +252,11 @@ class EntitlementTests(TestCase):
         self.assertEqual(Subscription.objects.filter(client__organization=other).count(), 2)
 
 
-class BillingMigrationTests(TestCase):
+class BillingMigrationTests(unittest.TestCase):
+    """Use autocommit so a second connection can see the isolated test schema."""
+
     def test_real_schema_migration_keeps_invoice_and_ai_usage(self):
+        """Reproduce PostgreSQL's old ordering failure, then verify safe upgrade."""
         import tempfile
         from pathlib import Path
         from django.db import connections
@@ -261,10 +265,21 @@ class BillingMigrationTests(TestCase):
 
         alias = 'billing_migration'
         with tempfile.TemporaryDirectory() as directory:
-            config = connections['default'].settings_dict.copy()
-            config.update(ENGINE='django.db.backends.sqlite3',
-                          NAME=str(Path(directory) / 'billing.sqlite3'))
-            db = DatabaseWrapper(config, alias=alias)
+            primary = connections['default']
+            config = primary.settings_dict.copy()
+            schema = None
+            if primary.vendor == 'postgresql':
+                import uuid
+                schema = 'billing_migration_' + uuid.uuid4().hex
+                with primary.cursor() as cursor:
+                    cursor.execute('CREATE SCHEMA ' + primary.ops.quote_name(schema))
+                config['OPTIONS'] = {**config.get('OPTIONS', {}),
+                                     'options': '-c search_path=' + schema}
+                db = type(primary)(config, alias=alias)
+            else:
+                config.update(ENGINE='django.db.backends.sqlite3',
+                              NAME=str(Path(directory) / 'billing.sqlite3'))
+                db = DatabaseWrapper(config, alias=alias)
             connections[alias] = db
             try:
                 executor = MigrationExecutor(db)
@@ -279,6 +294,7 @@ class BillingMigrationTests(TestCase):
                     ):
                         editor.create_model(state.apps.get_model(app, model))
                 org = state.apps.get_model('social_stats', 'Organization').objects.using(alias).create(name='Historical')
+                unbilled = state.apps.get_model('social_stats', 'Organization').objects.using(alias).create(name='Needs default plan')
                 workspace = state.apps.get_model('social_stats', 'Client').objects.using(alias).create(
                     organization_id=org.pk, name='Before', email='before@billing.test',
                 )
@@ -292,14 +308,30 @@ class BillingMigrationTests(TestCase):
                     client_id=workspace.pk, feature='caption', model='historical',
                 )
                 migration = executor.loader.get_migration('social_stats', '0082_organization_subscriptions')
+                if primary.vendor == 'postgresql':
+                    from django.db import OperationalError
+
+                    broken = type(migration)(migration.name, migration.app_label)
+                    broken.operations = [*migration.operations[:-2],
+                                         migration.operations[-1], migration.operations[-2]]
+                    with self.assertRaisesRegex(OperationalError, 'pending trigger events'):
+                        executor.apply_migration(state.clone(), broken)
+                    # The failed atomic upgrade must leave historical data intact.
+                    original = state.apps.get_model('social_stats', 'Subscription').objects.using(alias).get(pk=sub.pk)
+                    self.assertEqual(original.client_id, workspace.pk)
                 state = executor.apply_migration(state, migration)
                 migrated = state.apps.get_model('social_stats', 'Subscription').objects.using(alias).get(pk=sub.pk)
                 self.assertEqual(migrated.organization_id, org.pk)
                 self.assertIsNone(migrated.client_id)
                 self.assertEqual(migrated.gateway_customer_id, 'retained')
+                default_sub = state.apps.get_model('social_stats', 'Subscription').objects.using(alias).get(organization_id=unbilled.pk)
+                self.assertEqual(default_sub.plan, 'self-hosted')
                 self.assertEqual(migrated.usage_counters['ai'][month_key()], 1)
                 saved_invoice = state.apps.get_model('social_stats', 'Invoice').objects.using(alias).get(pk=invoice.pk)
                 self.assertEqual(saved_invoice.subscription_id, sub.pk)
             finally:
                 db.close()
                 del connections[alias]
+                if schema:
+                    with primary.cursor() as cursor:
+                        cursor.execute('DROP SCHEMA ' + primary.ops.quote_name(schema) + ' CASCADE')

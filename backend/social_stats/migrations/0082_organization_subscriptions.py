@@ -59,9 +59,11 @@ class Migration(migrations.Migration):
             name='plan',
             field=models.CharField(choices=[('self-hosted', 'Self-hosted'), ('org-free', 'Organization Free'), ('org-pro', 'Organization Pro'), ('eu-free', 'End-user · Free'), ('eu-pro', 'End-user · Pro'), ('eu-premium', 'End-user · Premium'), ('agency-starter', 'Agency · Starter'), ('agency-growth', 'Agency · Growth'), ('agency-scale', 'Agency · Scale'), ('agency-enterprise', 'Agency · Enterprise')], default='self-hosted', max_length=30),
         ),
-        migrations.RunPython(backfill_organization_subscriptions),
         migrations.AddConstraint(
             model_name='subscription',
             constraint=models.CheckConstraint(condition=models.Q(models.Q(('organization__isnull', False), ('client__isnull', True), ('agency__isnull', True)), models.Q(('organization__isnull', True), ('client__isnull', False), ('agency__isnull', True)), models.Q(('organization__isnull', True), ('client__isnull', True), ('agency__isnull', False)), _connector='OR'), name='subscription_exactly_one_subject'),
         ),
+        # PostgreSQL defers foreign-key triggers from the data backfill. Finish
+        # all ALTER TABLE operations before any rows are inserted/updated.
+        migrations.RunPython(backfill_organization_subscriptions),
     ]

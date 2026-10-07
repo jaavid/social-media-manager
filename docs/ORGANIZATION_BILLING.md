@@ -73,3 +73,13 @@ leaves historical rows untouched. Agency subscriptions are never inferred as ten
 ownership. The database enforces one subject per row and one subscription per tenant.
 The migration is intentionally irreversible: combining later tenant billing changes
 back into historical workspace subscriptions has no unambiguous safe mapping.
+
+## Upgrading an existing PostgreSQL installation
+
+Migration 0082 completes schema changes before its subscription backfill. This
+avoids PostgreSQL's `pending trigger events` error when provisioning default
+subscriptions in a populated database. If an older image failed on 0082, its
+atomic transaction rolls back; deploy the corrected image and retry normal
+migration/startup. No fake migration, manual data deletion or volume removal is
+needed. Installations that already applied 0082 keep their existing data and
+migration history.
