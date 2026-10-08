@@ -223,3 +223,7 @@ returns it to draft, and stale approval revisions cannot execute.
 
 Apply migrations 0078–0079 before serving this API/UI version. They add local
 intent deduplication and per-account delivery keys without deleting existing logs.
+
+### Historical Telegram reconnect (2026-10-08 review batch)
+
+A selected account with historical `bot_id:chat_id` identity may reconcile to canonical chat identity only when provider validation proves that exact bot and chat, the original scoped attached credential exists and no canonical account collision exists. Preserve account, credential and extension IDs under the existing workspace transaction/lock. Untargeted historical reconnect requires selection. Never use display names or suffix matching, replace another account, or adopt an ambiguous unattached credential. Scope is rechecked after provider validation. Public fixture tests verify idempotency, isolation, quotas and transaction rollback; real provider reconnect is outside this audit.
