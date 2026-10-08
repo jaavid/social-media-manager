@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="{% if persian %}fa{% else %}en{% endif %}" dir="{% if persian %}rtl{% else %}ltr{% endif %}">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="referrer" content="no-referrer">
+<title>{% if persian %}انتخاب مقصد اتصال{% else %}Choose connection destination{% endif %}</title>
+<style>
+body { font-family: system-ui, sans-serif; margin: 0; background: #f8fafc; color: #0f172a; line-height: 1.6; }
+main { overflow-wrap: anywhere; max-width: 36rem; margin: 2rem auto; padding: 1.5rem; background: white; border: 1px solid #64748b; }
+fieldset { min-inline-size: 0; }
+button { max-inline-size: 100%; overflow-wrap: anywhere; }
+label { display: block; padding: .75rem; overflow-wrap: anywhere; }
+button { padding: .75rem 1rem; margin: .5rem; font: inherit; background: #0f172a; color: white; border: 2px solid #0f172a; }
+:focus-visible { outline: 3px solid #2563eb; outline-offset: 3px; }
+@media (prefers-color-scheme: dark) { body { background: #0f172a; color: #f8fafc; } main { background: #1e293b; } button { background: #f8fafc; color: #0f172a; border-color: #f8fafc; } }
+@media (max-width: 40rem) { main { margin: 1rem; padding: 1rem; } }
+</style></head>
+<body><main>
+<h1>{% if persian %}مقصد اتصال را انتخاب کنید{% else %}Choose the destination to connect{% endif %}</h1>
+<p>{% if persian %}چند مقصد مجاز پیدا شد. پس از انتخاب، رضایت OAuth دوباره درخواست می‌شود تا مقصد با مجوز تازه بررسی شود. هنوز حسابی متصل نشده و توکن این مرحله نگه‌داری نمی‌شود.{% else %}More than one destination is available. After you choose, consent opens again so the destination can be checked against a fresh grant. No account has been connected and this grant's token is not retained.{% endif %}</p>
+<form method="post" action="/api/oauth/destination-selection/">
+{% csrf_token %}<input type="hidden" name="nonce" value="{{ pending.nonce }}">
+<fieldset><legend>{% if persian %}مقصد مجاز{% else %}Available destination{% endif %}</legend>
+{% for choice in pending.choices %}<label><input type="radio" name="destination" value="{{ choice.id }}" required> {{ choice.name }} <bdi>{{ choice.id }}</bdi></label>{% endfor %}
+</fieldset>
+<button type="submit">{% if persian %}ادامه و درخواست رضایت{% else %}Continue to consent{% endif %}</button>
+<button type="submit" name="action" value="cancel" formnovalidate>{% if persian %}انصراف{% else %}Cancel{% endif %}</button>
+</form></main></body></html>

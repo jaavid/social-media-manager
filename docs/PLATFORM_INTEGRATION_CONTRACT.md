@@ -223,3 +223,21 @@ returns it to draft, and stale approval revisions cannot execute.
 
 Apply migrations 0078–0079 before serving this API/UI version. They add local
 intent deduplication and per-account delivery keys without deleting existing logs.
+
+OAuth destination choice (2026-10-08 review batch): a newly authorized grant
+with multiple eligible Facebook Pages/Instagram accounts, YouTube channels or
+Business Profile accounts/locations requires an explicit destination choice.
+The short-lived browser session continuation retains only public identifiers,
+redacted display labels, user/workspace/platform scope, expiry and a one-use
+nonce. It retains no provider grant token. Selection is CSRF protected and
+permission checked, then restarts the existing consent path with fresh OAuth
+state and the same scopes. The chosen identity is checked again against the
+fresh provider response; a missing identity fails instead of selecting another.
+Business Profile account/location choices remain paired. Reconnect still
+requires the original account identity. Independent consent clears a pending
+selection; cancel, expiry, stale scope and completed callbacks clear it.
+Google's combined grant and linked Meta credential persistence are atomic;
+no earlier destination remains saved if a later save is denied. The retained
+legacy consumer path has no independent supported consent start; its unexpected
+multi-page response is refused rather than silently choosing the first Page.
+This does not add provider capabilities, scopes or a commercial integration.
