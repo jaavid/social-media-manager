@@ -830,7 +830,7 @@ function SettingsBody({ clientId: propClientId, identity, enabled }) {
               '[margin:0]',
               '[color:var(--text-secondary)]',
               '[font-size:14px]',
-              '[line-height:1.7]',
+              '[line-height:var(--line-height-body)]',
               '[max-width:700px]',
             )}
           >
@@ -1003,7 +1003,7 @@ function SettingsBody({ clientId: propClientId, identity, enabled }) {
                         '[margin:0]',
                         '[font-size:13px]',
                         '[color:var(--text-secondary)]',
-                        '[line-height:1.6]',
+                        '[line-height:var(--line-height-body)]',
                       )}
                     >
                       The details that anchor your workspace and keep your
@@ -1164,7 +1164,7 @@ function SettingsBody({ clientId: propClientId, identity, enabled }) {
                         '[margin:0]',
                         '[font-size:13px]',
                         '[color:var(--text-secondary)]',
-                        '[line-height:1.6]',
+                        '[line-height:var(--line-height-body)]',
                       )}
                     >
                       Define tone, category, and the story your content should
@@ -1371,7 +1371,7 @@ function SettingsBody({ clientId: propClientId, identity, enabled }) {
                         '[margin:0]',
                         '[font-size:13px]',
                         '[color:var(--text-secondary)]',
-                        '[line-height:1.6]',
+                        '[line-height:var(--line-height-body)]',
                       )}
                     >
                       Keep your messaging focused on the people you actually
@@ -1555,7 +1555,7 @@ function SettingsBody({ clientId: propClientId, identity, enabled }) {
                         '[margin:0]',
                         '[font-size:13px]',
                         '[color:var(--text-secondary)]',
-                        '[line-height:1.6]',
+                        '[line-height:var(--line-height-body)]',
                       )}
                     >
                       Use the same asset experience from onboarding so brand
@@ -1587,7 +1587,7 @@ function SettingsBody({ clientId: propClientId, identity, enabled }) {
                       className={cn(
                         '[font-size:13px]',
                         '[color:var(--text-secondary)]',
-                        '[line-height:1.6]',
+                        '[line-height:var(--line-height-body)]',
                       )}
                     >
                       Upload a logo or a strong profile mark for your brand.
@@ -1688,7 +1688,7 @@ function SettingsBody({ clientId: propClientId, identity, enabled }) {
                       className={cn(
                         '[font-size:13px]',
                         '[color:var(--text-secondary)]',
-                        '[line-height:1.6]',
+                        '[line-height:var(--line-height-body)]',
                       )}
                     >
                       Keep a few product or service visuals handy for creative

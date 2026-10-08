@@ -146,7 +146,7 @@ function Verifications() {
                   <FileText size={12} style={{ verticalAlign: '-1px', marginRight: 6, color: 'var(--text-tertiary)' }} />
                   <span style={{ color: 'var(--text-tertiary)' }}>{d.type}</span>{' '}
                   <a href={d.url} target="_blank" rel="noreferrer" style={{ color: 'var(--brand-primary-hover)' }}>
-                    {d.url} <ExternalLink size={11} style={{ verticalAlign: '-2px' }} />
+                    <bdi dir="ltr">{d.url}</bdi> <ExternalLink size={11} style={{ verticalAlign: '-2px' }} />
                   </a>
                   {d.note && <span style={{ color: 'var(--text-secondary)' }}> — {d.note}</span>}
                 </li>

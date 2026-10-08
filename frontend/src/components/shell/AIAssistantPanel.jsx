@@ -970,7 +970,7 @@ function ResultBlock({ text, subText }) {
             '[word-break:break-word]',
             '[flex:1]',
             '[font-size:13px]',
-            '[line-height:1.5]',
+            '[line-height:var(--line-height-body)]',
           )}
         >
           {text}

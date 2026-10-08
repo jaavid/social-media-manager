@@ -23,7 +23,7 @@ import {
   useAppNavigate as useNavigate,
 } from '../../core/navigation';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
-import { BarChart3, MessageCircle, Target, Menu, X } from 'lucide-react';
+import { BarChart3, MessageCircle, Target, Menu, X, Search } from 'lucide-react';
 import toast from '../ui/toast';
 import { useRealtime } from '../../hooks/useRealtime';
 import ModuleRail from './ModuleRail';
@@ -319,7 +319,8 @@ function MobileTopBar({ onMenuOpen, onOpenPalette }) {
           '[text-align:start]',
         )}
       >
-        {t('common.search', 'Search anything…')}
+        <Search size={16} className="shrink-0" aria-hidden />
+        <span className="hidden min-[480px]:inline truncate">{t('common.search', 'Search anything…')}</span>
       </button>
       <LanguageToggle variant="ghost" />
       <ThemeToggle variant="ghost" />

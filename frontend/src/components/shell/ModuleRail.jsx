@@ -327,7 +327,7 @@ function UserMenu({
               '[color:var(--text-primary)]',
             )}
           >
-            {user?.name || user?.email}
+            <bdi dir="auto">{user?.name || user?.email}</bdi>
           </div>
           <div className={cn('[margin-top:6px]')}>
             <AccountTypeBadge

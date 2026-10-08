@@ -210,7 +210,7 @@ for (const language of ['fa', 'en'])
       };
       await input.setInputFiles(photo);
       await page.getByRole('button', { name: c['profile.discard'], exact: true }).click();
-      await expect(input).toBeFocused();
+      await expect(page.getByRole('button', { name: c['profile.upload'], exact: true })).toBeFocused();
       expect(await input.evaluate((element) => element.files.length)).toBe(0);
       await expect(page.getByRole('alertdialog')).toHaveCount(0);
       await expect(page.getByText(c['profile.removalPending'])).toHaveCount(0);

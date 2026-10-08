@@ -289,7 +289,7 @@ function VerificationPanel({ slug, profile, onChanged }) {
             {items.map((d, i) => (
               <li key={i} style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
                 <FileText size={11} style={{ verticalAlign: '-1px', marginRight: 4 }} />
-                <span style={{ color: 'var(--text-tertiary)' }}>{d.type}</span> · {d.url}
+                <span style={{ color: 'var(--text-tertiary)' }}>{d.type}</span> · <bdi dir="ltr">{d.url}</bdi>
               </li>
             ))}
           </ul>

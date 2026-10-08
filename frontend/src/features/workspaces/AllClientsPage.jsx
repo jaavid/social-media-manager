@@ -349,7 +349,7 @@ export default function AllClientsPage({ onSelectClient }) {
                 '[margin:0]',
                 '[font-size:13px]',
                 '[color:#7c3aed]',
-                '[line-height:1.5]',
+                '[line-height:var(--line-height-body)]',
               )}
             >
               Send an invitation link. Once they sign up and verify their email,
@@ -978,7 +978,7 @@ export default function AllClientsPage({ onSelectClient }) {
                         '[color:var(--text-secondary)]',
                       )}
                     >
-                      {c.email}
+                      <bdi dir="ltr">{c.email}</bdi>
                     </td>
                     <td
                       className={cn(
@@ -998,7 +998,7 @@ export default function AllClientsPage({ onSelectClient }) {
                             '[font-size:12px]',
                           )}
                         >
-                          {c.website}
+                          <bdi dir="ltr">{c.website}</bdi>
                         </a>
                       ) : (
                         <span className={cn('[color:var(--text-quaternary)]')}>
@@ -1177,7 +1177,7 @@ export default function AllClientsPage({ onSelectClient }) {
                   className={cn(
                     '[font-size:12px]',
                     '[color:var(--text-secondary)]',
-                    '[line-height:1.5]',
+                    '[line-height:var(--line-height-body)]',
                   )}
                 >
                   {s.desc}

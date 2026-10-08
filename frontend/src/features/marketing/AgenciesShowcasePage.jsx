@@ -96,7 +96,7 @@ export default function AgenciesShowcasePage() {
             <Sparkles size={12} /> آژانس‌های شریک
           </span>
 
-          <h1 style={{
+          <h1 data-typography="display" style={{
             margin: 0,
             fontSize: 'clamp(40px, 6vw, 64px)',
             fontWeight: 700,

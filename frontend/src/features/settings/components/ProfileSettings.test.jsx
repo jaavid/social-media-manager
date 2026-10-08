@@ -216,7 +216,7 @@ for (const savedAvatar of ['/original.png', null])
     expect(screen.queryByRole('alertdialog')).toBeNull();
     expect(screen.queryByText(mockMessages['profile.removalPending'])).toBeNull();
     expect(profileAPI.update).not.toHaveBeenCalled();
-    expect(upload).toHaveFocus();
+    expect(screen.getByRole('button', { name: mockMessages['profile.upload'] })).toHaveFocus();
     expect(upload.value).toBe('');
     expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:photo');
     if (savedAvatar) expect(screen.getByRole('img')).toHaveAttribute('src', savedAvatar);
@@ -230,3 +230,12 @@ for (const savedAvatar of ['/original.png', null])
     fireEvent.change(upload, { target: { files: [photo] } });
     expect(screen.getByRole('button', { name: mockMessages['profile.discard'] })).toBeVisible();
   });
+
+ test('visible upload trigger opens the native file selector', async () => {
+  setup(); await screen.findByLabelText(mockMessages['profile.first']);
+  const native = screen.getByLabelText(mockMessages['profile.upload']);
+  const click = jest.spyOn(native, 'click');
+  fireEvent.click(screen.getByRole('button', { name: mockMessages['profile.upload'] }));
+  expect(click).toHaveBeenCalledTimes(1);
+  expect(native).toHaveAttribute('tabindex', '-1');
+});

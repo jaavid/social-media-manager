@@ -99,14 +99,14 @@ export default function GMBWidget({ clientId }) {
               {info.phone && (
                 <div style={s.detailRow}>
                   <Phone size={14} style={s.detailIcon} />
-                  <span>{info.phone}</span>
+                  <span><bdi dir="ltr">{info.phone}</bdi></span>
                 </div>
               )}
               {info.website && (
                 <div style={s.detailRow}>
                   <Globe size={14} style={s.detailIcon} />
                   <a href={info.website} target="_blank" rel="noreferrer" style={s.link}>
-                    {info.website.replace(/^https?:\/\//, '').replace(/\/$/, '')}
+                    <bdi dir="ltr">{info.website.replace(/^https?:\/\//, '').replace(/\/$/, '')}</bdi>
                   </a>
                 </div>
               )}

@@ -62,7 +62,7 @@ export default function PageHeader({
             {localize(title)}
           </h1>
           {subtitle && (
-            <p className="mb-0 mt-1 text-sm leading-relaxed text-[var(--text-secondary)]">
+            <p className="mb-0 mt-1 text-sm leading-[var(--line-height-body)] break-words text-[var(--text-secondary)]">
               {localize(subtitle)}
             </p>
           )}

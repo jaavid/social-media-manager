@@ -1052,7 +1052,7 @@ function StaffTab() {
                     '[text-overflow:ellipsis]',
                   )}
                 >
-                  {s.name || s.email}
+                  <bdi dir="auto">{s.name || s.email}</bdi>
                 </div>
                 <div
                   className={cn(
@@ -1063,7 +1063,7 @@ function StaffTab() {
                     '[text-overflow:ellipsis]',
                   )}
                 >
-                  {s.email}
+                  <bdi dir="ltr">{s.email}</bdi>
                 </div>
               </div>
               {!s.is_active && (
@@ -1133,7 +1133,7 @@ function StaffTab() {
                     '[color:var(--text-primary)]',
                   )}
                 >
-                  {selected.name || selected.email}
+                  <bdi dir="auto">{selected.name || selected.email}</bdi>
                 </div>
                 <div
                   className={cn(
@@ -1142,7 +1142,7 @@ function StaffTab() {
                     '[margin-top:2px]',
                   )}
                 >
-                  {selected.email}
+                  <bdi dir="ltr">{selected.email}</bdi>
                 </div>
               </div>
               <SegmentedTabs

@@ -132,6 +132,7 @@ function ProfileForm({ initial, queryKey }) {
     cancelRef = useRef(null),
     removeRef = useRef(null),
     fileRef = useRef(null),
+    fileTriggerRef = useRef(null),
     errorRef = useRef(null);
   useEffect(() => {
     alive.current = true;
@@ -201,27 +202,34 @@ function ProfileForm({ initial, queryKey }) {
               className="h-20 w-20 rounded-full object-cover"
             />
           )}
-          <Input
-            ref={fileRef}
-            label={t('profile.upload')}
-            hint={t('profile.fileHint')}
-            error={fileError ? t('profile.fileInvalid') : undefined}
-            type="file"
-            accept="image/*"
-            onChange={(event) => {
-              const next = event.target.files?.[0];
-              if (!next) return;
-              changed();
-              if (!next.type.startsWith('image/') || next.size > 5 * 1024 * 1024) {
-                setFileError(true);
-                event.target.value = '';
-                return;
-              }
-              setFileError(false);
-              setFile(next);
-              setRemove(false);
-            }}
-          />
+          <div className="min-w-0 space-y-2">
+            <Button ref={fileTriggerRef} type="button" onClick={() => fileRef.current?.click()} aria-describedby="profile-file-hint">{t('profile.upload')}</Button>
+            {file && <bdi dir="auto" className="block break-all text-sm">{file.name}</bdi>}
+            <p id="profile-file-hint" className="text-sm text-muted-foreground">{t('profile.fileHint')}</p>
+            {fileError && <p role="alert" className="text-sm text-destructive">{t('profile.fileInvalid')}</p>}
+            <input
+              aria-hidden="true"
+              className="sr-only"
+              tabIndex={-1}
+              ref={fileRef}
+              aria-label={t('profile.upload')}
+              type="file"
+              accept="image/*"
+              onChange={(event) => {
+                const next = event.target.files?.[0];
+                if (!next) return;
+                changed();
+                if (!next.type.startsWith('image/') || next.size > 5 * 1024 * 1024) {
+                  setFileError(true);
+                  event.target.value = '';
+                  return;
+                }
+                setFileError(false);
+                setFile(next);
+                setRemove(false);
+              }}
+            />
+          </div>
           {(savedAvatar || file) && (
             <Button
               ref={removeRef}
@@ -238,7 +246,7 @@ function ProfileForm({ initial, queryKey }) {
                   setFileError(false);
                   if (fileRef.current) {
                     fileRef.current.value = '';
-                    fileRef.current.focus();
+                    fileTriggerRef.current?.focus();
                   }
                   changed();
                 } else setConfirm(true);
