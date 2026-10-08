@@ -45,6 +45,7 @@ function setup() {
   const view = render(root);
   return {
     ...view,
+    client,
     switch: (user) => {
       mockUser = user;
       view.rerender(
@@ -209,4 +210,21 @@ test('sign-out-everywhere retains the current-session warning and validates the 
   expect(sessionsAPI.revokeAll).toHaveBeenCalledTimes(1);
   expect(sessionsAPI.revoke).not.toHaveBeenCalled();
   expect(screen.queryByText(mockMessages['sessions.revoked'])).toBeNull();
+});
+
+test('cancelled refetch with cached success cannot unlock an ambiguous revocation', async () => {
+  sessionsAPI.revoke.mockRejectedValueOnce(failure(503));
+  const view = setup();
+  await screen.findByText('Fixture browser · Test OS · Desktop');
+  click('sessions.revoke');
+  const dialog = screen.getByRole('alertdialog');
+  const submit = within(dialog).getByRole('button', { name: mockMessages['sessions.revoke'] });
+  fireEvent.click(submit);
+  await screen.findByText(mockMessages['sessions.uncertain']);
+  sessionsAPI.list.mockImplementationOnce(() => new Promise(() => {}));
+  fireEvent.click(within(dialog).getByRole('button', { name: mockMessages['recovery.retry'] }));
+  await waitFor(() => expect(sessionsAPI.list).toHaveBeenCalledTimes(2));
+  await act(async () => view.client.cancelQueries({ queryKey: ['account-sessions'] }));
+  expect(submit).toBeDisabled();
+  expect(sessionsAPI.revoke).toHaveBeenCalledTimes(1);
 });
