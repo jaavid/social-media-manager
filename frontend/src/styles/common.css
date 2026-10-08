@@ -59,7 +59,7 @@
 /* Keep page titles aligned with content and below the fixed shell header. */
 .page-header-sticky {
   position: sticky;
-  top: var(--topbar-height);
+  /* top: var(--topbar-height); */
   z-index: 10;
   margin: 0 0 24px;
   padding: 16px 0;
