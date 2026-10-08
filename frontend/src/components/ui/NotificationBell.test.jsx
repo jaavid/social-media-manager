@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, waitFor } from '@testing-library/react';
 import { NavigationProvider } from '../../core/navigation';
 import NotificationBell from './NotificationBell';
@@ -16,12 +17,14 @@ const authenticated = {
   refreshAuth: jest.fn(),
 };
 
-function mount() {
-  return render(<NavigationProvider><NotificationBell /></NavigationProvider>);
-}
+let client;
+function wrap(child = <NotificationBell />) { return <QueryClientProvider client={client}><NavigationProvider>{child}</NavigationProvider></QueryClientProvider>; }
+function mount() { return render(wrap()); }
+afterEach(() => { client.clear(); jest.useRealTimers(); });
 
 beforeEach(() => {
   jest.clearAllMocks();
+  client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
   alertsAPI.list.mockResolvedValue({ data: [] });
   notificationAPI.list.mockResolvedValue({ data: [] });
 });
@@ -47,6 +50,8 @@ test('authenticated session starts both pollers', async () => {
 
 test('logout aborts requests, clears caches, and stops future polling', async () => {
   jest.useFakeTimers();
+  alertsAPI.list.mockImplementation(() => new Promise(() => {}));
+  notificationAPI.list.mockImplementation(() => new Promise(() => {}));
   useAuth.mockReturnValue(authenticated);
   const view = mount();
   await waitFor(() => expect(notificationAPI.list).toHaveBeenCalledTimes(1));
@@ -54,7 +59,7 @@ test('logout aborts requests, clears caches, and stops future polling', async ()
   const notificationSignal = notificationAPI.list.mock.calls[0][0].signal;
 
   useAuth.mockReturnValue({ status: 'anonymous', user: null, refreshAuth: jest.fn() });
-  view.rerender(<NavigationProvider><NotificationBell /></NavigationProvider>);
+  view.rerender(wrap());
   expect(alertSignal.aborted).toBe(true);
   expect(notificationSignal.aborted).toBe(true);
   jest.advanceTimersByTime(120000);
@@ -66,6 +71,6 @@ test('logout aborts requests, clears caches, and stops future polling', async ()
 
 test('header variant fits inside the 56px top bar', () => {
   useAuth.mockReturnValue(authenticated);
-  render(<NavigationProvider><NotificationBell variant="ghost" /></NavigationProvider>);
+  render(wrap(<NotificationBell variant="ghost" />));
   expect(screen.getByTitle('Notifications & Alerts')).toHaveStyle({ width: '36px', height: '36px', boxShadow: 'none' });
 });

@@ -19,13 +19,14 @@ import { useLanguage } from '../../i18n';
  *   - whatsapp + browser push render as "Coming soon" — server still accepts
  *     the preference but doesn't deliver yet (logged TODO).
  */
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Bell, Save, Inbox, Mail, MessageCircle, Globe, Sparkles,
 } from 'lucide-react';
 
 import { notificationPrefsAPI } from '../../services/api';
-import toast from '../../components/ui/toast';
+import { AccountScope, useAccountRead, useCheckedAction, ReadState, WriteState } from '@/components/ui/accountRecovery';
+import { parsePreferences, parsePreferenceWrite } from '@/lib/settingsRecovery';
 
 
 const CHANNEL_META = [
@@ -81,7 +82,8 @@ const SECTIONS = [
 
 
 function normalizeMatrix(data) {
-  return (data?.matrix || []).map(row => ({
+  const checked = parsePreferences(data);
+  return checked.matrix.map(row => ({
     ...row,
     label: data.events?.find(event => event.id === row.event_type)?.label || row.event_type.replaceAll('_', ' '),
     channels: Object.fromEntries((data.channels || []).map(channel => [channel.id, !!row[channel.id]])),
@@ -89,31 +91,30 @@ function normalizeMatrix(data) {
 }
 
 export default function NotificationPreferencesPage() {
-  const { tr } = useLanguage();
+  return <AccountScope>{(identity, enabled, key) => <Preferences key={`${key}:${enabled}`} identity={identity} enabled={enabled} />}</AccountScope>;
+}
+function Preferences({ identity, enabled }) {
+  const { tr, t } = useLanguage();
+  const resource = useAccountRead('notification-preferences', identity, enabled, notificationPrefsAPI.get, parsePreferences);
+  const action = useCheckedAction();
+  const initialized = useRef(false);
   const [channels, setChannels] = useState([]);
-  const [error, setError] = useState(false);
   const [matrix,  setMatrix]  = useState([]);
   const [draft,   setDraft]   = useState({});  // { event_type: { channel: bool } }
-  const [loading, setLoading] = useState(true);
-  const [saving,  setSaving]  = useState(false);
+  const saving = action.busy;
 
-  const load = useCallback(() => {
-    setLoading(true);
-    notificationPrefsAPI.get()
-      .then((r) => {
-        const m = normalizeMatrix(r.data);
-        setMatrix(m);
-        setChannels((r.data.channels || []).map(c => ({ ...CHANNEL_META.find(meta => meta.key === c.id), key: c.id, label: c.label })));
-        setError(false);
-        const d = {};
-        m.forEach((row) => { d[row.event_type] = { ...(row.channels || {}) }; });
-        setDraft(d);
-      })
-      .catch(() => { setError(true); toast.error(tr("Could not load notification preferences")); })
-      .finally(() => setLoading(false));
-  }, [tr]);
-
-  useEffect(() => { void Promise.resolve().then(load); }, [load]);
+  useEffect(() => {
+    if (!resource.data || initialized.current) return;
+    initialized.current = true;
+    const data = resource.data;
+    queueMicrotask(() => {
+      if (!action.alive.current) return;
+      const m = normalizeMatrix(data);
+      setMatrix(m);
+      setChannels(data.channels.map(c => ({ ...CHANNEL_META.find(meta => meta.key === c.id), key: c.id, label: c.label })));
+      setDraft(Object.fromEntries(m.map(row => [row.event_type, { ...row.channels }])));
+    });
+  }, [resource.data, action.alive]);
 
   const dirty = useMemo(() => {
     return matrix.some((row) =>
@@ -144,26 +145,16 @@ export default function NotificationPreferencesPage() {
       });
     });
     if (rows.length === 0) return;
-    setSaving(true);
-    try {
-      await notificationPrefsAPI.update(rows);
-      const r = await notificationPrefsAPI.get();
-      const m = normalizeMatrix(r.data);
-      setMatrix(m);
-      const d = {};
-      m.forEach((row) => { d[row.event_type] = { ...(row.channels || {}) }; });
-      setDraft(d);
-      toast.success(tr("Preferences saved"));
-    } catch (e) {
-      toast.error(e?.response?.data?.error || tr("Could not save preferences"));
-    } finally {
-      setSaving(false);
-    }
+    if (resource.denied || action.denied) return;
+    action.run(async () => parsePreferenceWrite((await notificationPrefsAPI.update(rows)).data, rows.length), async () => {
+      const next = { ...resource.data, matrix: resource.data.matrix.map(row => ({ ...row, ...draft[row.event_type] })) };
+      await resource.commit(next);
+      if (action.alive.current) setMatrix(normalizeMatrix(next));
+    });
   }
 
-  if (loading) return <div style={{ padding: 32, color: 'var(--text-tertiary)' }}>{tr("Loading…")}</div>;
-
-  if (error) return <div role="alert"><p>{tr('Could not load notification preferences')}</p><button type="button" onClick={load}>{tr('Retry')}</button></div>;
+  const recover = async () => { const result = await resource.query.refetch(); if (action.alive.current && result.isSuccess) action.verified(); return result; };
+  if (!resource.data || action.denied) return <><ReadState resource={resource} refresh={recover} /><WriteState action={action} recover={recover} /></>;
   const known = new Set(SECTIONS.flatMap(section => section.events));
   const sections = [...SECTIONS, { title: 'Other events', events: matrix.map(row => row.event_type).filter(event => !known.has(event)) }];
   return (
@@ -174,11 +165,14 @@ export default function NotificationPreferencesPage() {
           <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>{tr("Notifications")}</h1>
           <p style={{ margin: '4px 0 0', color: 'var(--text-secondary)', fontSize: 14 }}>{tr("Choose how you want to be told about each thing that happens.")}</p>
         </div>
-        <button type="button" onClick={save} disabled={!dirty || saving} style={dirty && !saving ? btnPrimary : btnDisabled}>
+        <button type="button" onClick={save} disabled={!dirty || action.locked || resource.query.isFetching} style={dirty && !saving ? btnPrimary : btnDisabled}>
           <Save size={13} /> {saving ? tr("Saving…") : (dirty ? tr("Save changes") : tr("No changes"))}
         </button>
       </header>
 
+      <ReadState resource={resource} refresh={recover} busy={saving} />
+      <WriteState action={action} recover={recover} />
+      {action.success && <p role="status">{t('account.saved')}</p>}
       <p style={hint}>
         <Sparkles size={11} style={{ verticalAlign: '-1px', marginRight: 4, color: 'var(--brand-primary-hover)' }} />{tr("WhatsApp and Push are")} <strong>{tr("coming soon")}</strong> {tr("— your preferences are saved and will activate the moment those channels go live.")}</p>
 
@@ -215,7 +209,7 @@ export default function NotificationPreferencesPage() {
                       {channels.map((c) => (
                         <td key={c.key} style={{ ...td, textAlign: 'center' }}>
                           <input
-                            type="checkbox"
+                            type="checkbox" disabled={saving}
                             checked={!!draft[ev]?.[c.key]}
                             onChange={() => toggle(ev, c.key)}
                             aria-label={`${tr(row.label)} · ${tr(c.label)}`}

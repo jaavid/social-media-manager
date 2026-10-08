@@ -9,8 +9,9 @@
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import { useSession } from '@/core/session';
 import { apiError } from '@/services/http/errors';
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { workspacesAPI, oauthAPI, overviewAPI, syncLogsAPI, goalsAPI, alertsAPI, lookupsAPI } from '../services/api';
+import { useState, useEffect, useCallback } from 'react';
+import { workspacesAPI, oauthAPI, overviewAPI, syncLogsAPI, goalsAPI, lookupsAPI } from '../services/api';
+import useNotificationFeed from './useNotificationFeed';
 import { parseSyncLogs } from '@/lib/recoveryCollections';
 import { PLATFORM_LIST } from '../services/platforms';
 import { format, subDays } from 'date-fns';
@@ -166,55 +167,9 @@ export function useGoals(params) {
   return { goals, loading, refetch: fetch };
 }
 
-export function useAlerts(clientId, { enabled = true, scopeKey = null } = {}) {
-  const [alerts, setAlerts]   = useState([]);
-  const [loading, setLoading] = useState(false);
-  const timerRef              = useRef(null);
-  const requestRef            = useRef(null);
-
-  const fetch = useCallback(async () => {
-    if (!enabled) return;
-    requestRef.current?.abort();
-    const controller = new AbortController();
-    requestRef.current = controller;
-    try {
-      setLoading(true);
-      const params = clientId ? { client: clientId } : {};
-      const res = await alertsAPI.list(params, { signal: controller.signal });
-      setAlerts(res.data.results || res.data);
-    } catch (e) { if (e?.code !== 'ERR_CANCELED') console.error(e); }
-    finally { if (!controller.signal.aborted) setLoading(false); }
-  }, [clientId, enabled, scopeKey]);
-
-  useEffect(() => {
-    if (!enabled) {
-      setAlerts([]);
-      setLoading(false);
-      requestRef.current?.abort();
-      return undefined;
-    }
-    fetch();
-    timerRef.current = setInterval(fetch, 60000);
-    return () => {
-      clearInterval(timerRef.current);
-      requestRef.current?.abort();
-    };
-  }, [fetch, enabled]);
-
-  const markRead = useCallback(async (id) => {
-    await alertsAPI.markRead(id);
-    setAlerts(prev => prev.map(a => a.id === id ? { ...a, is_read: true } : a));
-  }, []);
-
-  const markAllRead = useCallback(async () => {
-    const params = clientId ? { client: clientId } : {};
-    await alertsAPI.markAllRead(params);
-    setAlerts(prev => prev.map(a => ({ ...a, is_read: true })));
-  }, [clientId]);
-
-  const unreadCount = alerts.filter(a => !a.is_read).length;
-
-  return { alerts, loading, unreadCount, markRead, markAllRead, refetch: fetch };
+export function useAlerts(clientId, options = {}) {
+  const result = useNotificationFeed('alerts', clientId, options);
+  return { ...result, alerts: result.rows };
 }
 
 export function useLookups() {

@@ -1,5 +1,25 @@
 // Semantic catalogs. Identical key sets and ICU placeholders are checked in CI.
 const accountsEn = {
+  "business.uploadLimit": "Product-file uploads are not supported by the current workspace endpoint. Existing product URLs are retained.",
+  "business.competitorLimit": "Competitors are read-only in this form. Manage them through the existing Competitors page; saving this profile does not update them.",
+
+  "agency.title": "Agency connection",
+  "agency.none": "No agency connected.",
+  "agency.disconnect": "Disconnect agency",
+  "agency.hint": "The agency will lose access. This may change your workspace access; the current browser session will be refreshed after a confirmed disconnect.",
+  "agency.unknown": "The disconnect result is unknown. Check the agency state before another request. Reconnecting will not repeat this action.",
+  "agency.saved": "Agency disconnected.",
+  "agency.observed": "The account is currently disconnected. No further disconnect is needed.",
+  "agency.sessionFailed": "Disconnection is confirmed or observed, but the session could not be refreshed. Retry only the session read.",
+  "preferences.title": "Notification preferences",
+  "preferences.event": "Event",
+  "preferences.save": "Save preferences",
+  "preferences.observed": "Current preferences were checked. Your draft remains; review before saving again.",
+  "business.title": "Business profile",
+  "feed.emptyAlerts": "No matching alerts.",
+  "feed.emptyNotifications": "No notifications yet.",
+  "invitation.unknown": "The invitation response is unknown. Do not repeat acceptance or rejection. Notification read status cannot prove the invitation outcome. Check your agency or workspace access, or contact support.",
+
   "keys.title": "API Keys",
   "keys.name": "Key name",
   "keys.scopes": "Scopes (comma-separated)",
@@ -448,6 +468,26 @@ const accountsEn = {
   'category.business': 'Business listings',
 } as const;
 const accountsFa = {
+  "business.uploadLimit": "بارگذاری فایل محصول در مسیر فعلی فضای کار پشتیبانی نمی‌شود. نشانی‌های موجود محصولات حفظ می‌شوند.",
+  "business.competitorLimit": "رقبا در این فرم فقط خواندنی‌اند. از صفحه موجود رقبا آن‌ها را مدیریت کنید؛ ذخیره مشخصات کسب‌وکار رقبا را تغییر نمی‌دهد.",
+
+  "agency.title": "ارتباط با آژانس",
+  "agency.none": "آژانسی متصل نیست.",
+  "agency.disconnect": "قطع ارتباط با آژانس",
+  "agency.hint": "آژانس دسترسی را از دست می‌دهد. ممکن است دسترسی فضای کار تغییر کند؛ نشست مرورگر پس از قطع ارتباط تأییدشده تازه می‌شود.",
+  "agency.unknown": "نتیجه قطع ارتباط نامعلوم است. پیش از درخواست دیگر وضعیت آژانس را بررسی کنید. اتصال دوباره این عملیات را تکرار نمی‌کند.",
+  "agency.saved": "ارتباط آژانس قطع شد.",
+  "agency.observed": "حساب اکنون متصل نیست. قطع ارتباط دیگری لازم نیست.",
+  "agency.sessionFailed": "قطع ارتباط تأیید یا مشاهده شده، اما نشست تازه نشد. فقط دریافت نشست را دوباره امتحان کنید.",
+  "preferences.title": "تنظیمات اعلان‌ها",
+  "preferences.event": "رویداد",
+  "preferences.save": "ذخیره تنظیمات اعلان",
+  "preferences.observed": "تنظیمات جاری بررسی شد. پیش‌نویس شما باقی است؛ پیش از ذخیره دوباره بازبینی کنید.",
+  "business.title": "مشخصات کسب‌وکار",
+  "feed.emptyAlerts": "هشدار مطابق فیلتر نیست.",
+  "feed.emptyNotifications": "هنوز اعلانی نیست.",
+  "invitation.unknown": "نتیجه پاسخ دعوت نامعلوم است. پذیرش یا رد را تکرار نکنید. خوانده‌شدن اعلان نتیجه دعوت را اثبات نمی‌کند. دسترسی آژانس یا فضای کار را بررسی کنید یا با پشتیبانی تماس بگیرید.",
+
   "keys.title": "کلیدهای API",
   "keys.name": "نام کلید",
   "keys.scopes": "دامنه‌های دسترسی (جداشده با ویرگول)",
