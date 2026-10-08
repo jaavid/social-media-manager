@@ -13,11 +13,14 @@ OAuth 2.0 handlers for all 5 platforms:
 import secrets
 import requests
 import logging
+import time
 from urllib.parse import urlencode
 from datetime import timedelta
 
 from django.conf import settings
-from django.shortcuts import redirect
+from django.db import transaction
+from django.shortcuts import redirect, render
+from django.views.decorators.csrf import csrf_protect
 from django.utils import timezone
 from django.db.models.functions import Coalesce
 
@@ -30,6 +33,7 @@ from social_stats.marketplace_permissions import (
     resolve_acting_context, check_action, deny_response, approval_pending_response,
 )
 from social_stats.activity_logger import log_activity_for_request
+from social_stats.oauth_destinations import choose_destination, destination_boundary, provider_object, provider_rows, FIELDS
 
 logger = logging.getLogger(__name__)
 
@@ -70,9 +74,20 @@ def _authorize_oauth_start(request, client_id, platform):
         return Response({'code': 'scope_denied'}, status=403)
     if not permitted(request.user, workspace, 'connect_platforms', account):
         return Response({'code': 'permission_denied'}, status=403)
+    continuation = request.session.pop('oauth_destination_continue', None)
+    destinations = {}
+    if request.GET.get('selection_continue') == '1':
+        if (not continuation or continuation.get('user_id') != request.user.pk
+                or continuation.get('workspace_id') != workspace.pk
+                or continuation.get('platform') != platform
+                or continuation.get('expires_at', 0) <= time.time()):
+            return Response({'code': 'invalid_request'}, status=400)
+        destinations = continuation['destinations']
+    request.session.pop('oauth_destination_selection', None)
     request.session['oauth_connection'] = {
         'workspace_id': workspace.pk, 'platform': platform,
         'account_id': account.pk if account else None, 'matched': False,
+        'user_id': request.user.pk, 'destinations': destinations,
     }
 
 
@@ -87,7 +102,8 @@ def _oauth_reconnect_account(request):
 def _oauth_callback_authorized(request):
     from .connections import workspace_for, account_for, permitted
     context = request.session.get('oauth_connection')
-    if not context or not _oauth_connection_enabled(context['platform']):
+    if (not context or context.get('user_id', request.user.pk) != request.user.pk
+            or not _oauth_connection_enabled(context['platform'])):
         return False
     workspace, error = workspace_for(request, context['workspace_id'])
     if error is not None:
@@ -163,14 +179,68 @@ def _settings_redirect(client_id, query='', *, request=None):
     based on the logged-in user's role (admin vs client).
     query is either '?connected=xxx' or '?error=xxx'.
     """
-    if request is not None and query.startswith('?connected='):
+    if request is not None and (query.startswith('?connected=') or query.startswith('?error=')):
+        request.session.pop('oauth_destination_selection', None)
+        request.session.pop('oauth_destination_continue', None)
         context = request.session.pop('oauth_connection', {})
-        if context.get('account_id') and not context.get('matched'):
+        if query.startswith('?connected=') and context.get('account_id') and not context.get('matched'):
             query = '?error=account_mismatch'
     sep = '&' if query else '?'
     return redirect(
         f"{settings.FRONTEND_URL}/oauth/callback{query}{sep}client_id={client_id}"
     )
+
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+@csrf_protect
+def oauth_destination_selection(request):
+    """Choose only an offered identity; restart consent with fresh one-time state.
+
+    CSRF protection is explicit even when an authentication adapter bypasses DRF's
+    session-CSRF behavior. This endpoint stores no provider credential.
+    """
+    pending = request.session.get('oauth_destination_selection')
+    context = request.session.get('oauth_connection', {})
+    if (not isinstance(pending, dict) or not pending
+            or pending.get('workspace_id') != context.get('workspace_id')
+            or pending.get('platform') != context.get('platform') or pending.get('user_id') != request.user.pk
+            or pending.get('expires_at', 0) <= time.time()
+            or not _oauth_callback_authorized(request)):
+        request.session.pop('oauth_destination_selection', None)
+        request.session.pop('oauth_destination_continue', None)
+        request.session.pop('oauth_connection', None)
+        request.session.pop('oauth_state', None)
+        return Response({'code': 'permission_denied'}, status=403)
+    workspace = pending['workspace_id']
+    if request.method == 'POST':
+        if request.data.get('action') == 'cancel':
+            return _settings_redirect(workspace, '?error=oauth_cancelled', request=request)
+        nonce = request.data.get('nonce')
+        chosen = request.data.get('destination')
+        if (not isinstance(nonce, str) or not secrets.compare_digest(nonce, pending['nonce'])
+                or not isinstance(chosen, str)
+                or chosen not in {item['id'] for item in pending['choices']}):
+            return Response({'code': 'invalid_request'}, status=400)
+        destinations = {key: value for key, value in pending['destinations'].items() if key in FIELDS}
+        destinations[pending['field']] = chosen
+        request.session['oauth_destination_continue'] = {
+            'user_id': request.user.pk, 'workspace_id': workspace,
+            'platform': pending['platform'], 'destinations': destinations,
+            'expires_at': pending['expires_at'],
+        }
+        request.session.pop('oauth_destination_selection', None)
+        request.session.pop('oauth_state', None)
+        flow = 'facebook' if pending['platform'] in {'facebook', 'instagram'} else 'google'
+        return redirect(f'/api/oauth/{flow}/start/{workspace}/?' + urlencode({
+            'platform': pending['platform'], 'selection_continue': '1',
+        }))
+    response = render(request, 'social_stats/oauth_destination_selection.html', {
+        'pending': pending, 'persian': request.COOKIES.get('socialstats.language') == 'fa',
+    })
+    response['Cache-Control'] = 'private, no-store'
+    response['Referrer-Policy'] = 'no-referrer'
+    return response
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -277,6 +347,8 @@ def facebook_consumer_callback(request):
 
     logger.info("FB consumer pages for client %s: %s", client_id, [p.get('name') for p in pages])
 
+    if len(pages) > 1:
+        return _settings_redirect(client_id, '?error=destination_selection_required', request=request)
     if pages:
         page       = pages[0]
         page_id    = page['id']
@@ -297,7 +369,7 @@ def facebook_consumer_callback(request):
             params={'fields': 'instagram_business_account', 'access_token': page_token},
             timeout=10
         ).json()
-        ig_id = ig_resp.get('instagram_business_account', {}).get('id', '')
+        ig_id = provider_object(request, provider_object(request, ig_resp).get('instagram_business_account') or {}).get('id', '')
         if ig_id:
             ig_info = requests.get(
                 f'https://graph.facebook.com/v21.0/{ig_id}',
@@ -351,6 +423,7 @@ def facebook_consumer_callback(request):
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
+@destination_boundary
 def facebook_oauth_callback(request):
     """Exchange code for tokens, fetch page/IG IDs, save to DB."""
     code      = request.GET.get('code')
@@ -400,10 +473,11 @@ def facebook_oauth_callback(request):
     expires_at = timezone.now() + timedelta(seconds=expires_in)
 
     # Step 3: Get Pages the user manages
-    pages = requests.get(
+    pages_response = requests.get(
         f"https://graph.facebook.com/{settings.META_API_VERSION}/me/accounts",
         params={'access_token': long_token}, timeout=10
-    ).json().get('data', [])
+    ).json()
+    pages = provider_rows(request, provider_object(request, pages_response).get('data', []))
 
     # Log granted permissions — helps diagnose if Meta stripped a scope
     # (e.g. instagram_manage_insights not yet approved by App Review).
@@ -421,55 +495,44 @@ def facebook_oauth_callback(request):
         logger.warning("FB callback: /me/accounts returned no pages for client %s", client_id)
         return _settings_redirect(client_id, '?error=facebook_no_pages', request=request)
 
-    # Step 4: Probe every page for a linked Instagram Business Account.
-    # Prefer the first page that has IG linked. If none do, fall back to
-    # pages[0] for FB-only credential.
-    chosen_page = None
-    chosen_ig_id = ''
+    # Probe candidates without persisting a credential. A new multi-account
+    # grant requires an explicit choice; reconnect requires its exact identity.
+    candidates = []
+    reconnect = _oauth_reconnect_account(request)
+    source = request.session['oauth_connection']['platform']
     for page in pages:
-        page_id    = page['id']
-        page_name  = page.get('name', '')
+        page_id = page.get('id')
         page_token = page.get('access_token', long_token)
-
         ig_resp = requests.get(
             f"https://graph.facebook.com/{settings.META_API_VERSION}/{page_id}",
-            params={
-                'fields':       'instagram_business_account',
-                'access_token': page_token,
-            }, timeout=10
+            params={'fields': 'instagram_business_account', 'access_token': page_token}, timeout=10,
         ).json()
-
-        ig_id = ig_resp.get('instagram_business_account', {}).get('id', '')
-        logger.info(
-            "FB page candidate: client=%s page_id=%s",
-            client_id, page_id
-        )
-
-        reconnect = _oauth_reconnect_account(request)
-        matches = reconnect and ((reconnect.platform == 'facebook' and str(page_id) == reconnect.external_id)
-                                 or (reconnect.platform == 'instagram' and str(ig_id) == reconnect.external_id))
-        if matches or (not reconnect and ig_id and not chosen_page):
-            chosen_page  = page
-            chosen_ig_id = ig_id
-            break
-
-    if chosen_page is None:
-        chosen_page = pages[0]
+        ig_id = provider_object(request, provider_object(request, ig_resp).get('instagram_business_account') or {}).get('id', '')
+        if source == 'instagram' and not ig_id:
+            continue
+        identity = ig_id if source == 'instagram' else page_id
+        candidates.append((identity, page.get('name', ''), (page, ig_id)))
+    chosen_page, chosen_ig_id = choose_destination(
+        request, candidates, 'instagram_account' if source == 'instagram' else 'facebook_page',
+        expected=reconnect.external_id if reconnect else None,
+        secrets_to_scrub=(short_token, long_token, *(page.get('access_token', '') for page in pages)),
+    )
 
     page_id    = chosen_page['id']
     page_name  = chosen_page.get('name', '')
     page_token = chosen_page.get('access_token', long_token)
 
     connected = []
+    pending_credentials = []
 
     # Save Facebook credential for the chosen page
-    _save_credential(client_id, 'facebook', {
+    pending_credentials.append(('facebook', {
         'access_token':  page_token,
         'refresh_token': long_token,
         'expires_at':    expires_at,
         'page_id':       page_id,
         'page_name':     page_name,
-    }, request=request)
+    }))
     connected.append('facebook')
 
     # Save Instagram credential if a linked IG Business Account was found
@@ -479,20 +542,24 @@ def facebook_oauth_callback(request):
             params={'fields': 'name,username', 'access_token': page_token}, timeout=10
         ).json()
 
-        _save_credential(client_id, 'instagram', {
+        pending_credentials.append(('instagram', {
             'access_token':          page_token,
             'refresh_token':         long_token,
             'expires_at':            expires_at,
             'page_id':               page_id,
             'page_name':             ig_info.get('username', page_name),
             'instagram_account_id':  chosen_ig_id,
-        }, request=request)
+        }))
         connected.append('instagram')
     else:
         logger.warning(
             "FB callback: no page with linked Instagram for client %s (checked %d pages)",
             client_id, len(pages)
         )
+
+    with transaction.atomic():
+        for destination_platform, defaults in pending_credentials:
+            _save_credential(client_id, destination_platform, defaults, request=request)
 
     platforms = ','.join(connected)
     return _settings_redirect(client_id, f"?connected={platforms}", request=request)
@@ -558,6 +625,7 @@ def google_oauth_start(request, client_id):
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
+@destination_boundary
 def google_oauth_callback(request):
     """Exchange code for tokens, fetch YouTube channel + GMB location."""
     code      = request.GET.get('code')
@@ -597,6 +665,7 @@ def google_oauth_callback(request):
     expires_at    = timezone.now() + timedelta(seconds=expires_in)
 
     connected = []
+    pending_credentials = []
 
     # ── YouTube ───────────────────────────────────────────
     if platform in ('youtube', 'all'):
@@ -611,20 +680,24 @@ def google_oauth_callback(request):
 
         logger.info("YouTube channel lookup completed")
 
-        yt_items = yt_resp.get('items', [])
+        yt_items = provider_rows(request, provider_object(request, yt_resp).get('items', []))
+        context = request.session.get('oauth_connection', {})
+        if not yt_items and (context.get('account_id') or context.get('destinations', {}).get('youtube_channel')):
+            return _settings_redirect(client_id, '?error=account_mismatch', request=request)
         if yt_items:
             reconnect = _oauth_reconnect_account(request)
-            channel = next((item for item in yt_items if reconnect and str(item.get('id')) == reconnect.external_id), yt_items[0])
+            channel = choose_destination(request, [(item.get('id'), provider_object(request, item.get('snippet', {})).get('title', ''), item) for item in yt_items],
+                'youtube_channel', expected=reconnect.external_id if reconnect else None, secrets_to_scrub=(access_token, refresh_token))
             channel_id   = channel['id']
-            channel_name = channel['snippet']['title']
+            channel_name = provider_object(request, channel.get('snippet', {})).get('title', '')
 
-            _save_credential(client_id, 'youtube', {
+            pending_credentials.append(('youtube', {
                 'access_token':  access_token,
                 'refresh_token': refresh_token,
                 'expires_at':    expires_at,
                 'channel_id':    channel_id,
                 'channel_name':  channel_name,
-            }, request=request)
+            }))
             connected.append('youtube')
 
     # ── Google My Business ────────────────────────────────
@@ -636,11 +709,15 @@ def google_oauth_callback(request):
         gmb_accounts = gmb_accounts_resp.json()
         logger.info("GMB accounts status=%s", gmb_accounts_resp.status_code)
 
-        accounts = gmb_accounts.get('accounts', [])
+        accounts = provider_rows(request, provider_object(request, gmb_accounts).get('accounts', []))
+        context = request.session.get('oauth_connection', {})
+        if not accounts and (context.get('account_id') or context.get('destinations', {}).get('gmb_account')):
+            return _settings_redirect(client_id, '?error=account_mismatch', request=request)
         if accounts:
             reconnect = _oauth_reconnect_account(request)
             previous = getattr(reconnect, 'credential', None) if reconnect else None
-            selected_account = next((item for item in accounts if previous and item.get('name') == previous.gmb_account_id), accounts[0])
+            selected_account = choose_destination(request, [(item.get('name'), item.get('accountName', ''), item) for item in accounts],
+                'gmb_account', expected=previous.gmb_account_id if previous else None, secrets_to_scrub=(access_token, refresh_token))
             gmb_account_id = selected_account['name']
 
             gmb_locations_resp = requests.get(
@@ -651,32 +728,35 @@ def google_oauth_callback(request):
             gmb_locations = gmb_locations_resp.json()
             logger.info("GMB locations status=%s", gmb_locations_resp.status_code)
 
-            locations = gmb_locations.get('locations', [])
+            locations = provider_rows(request, provider_object(request, gmb_locations).get('locations', []))
+            if not locations and (context.get('account_id') or context.get('destinations', {}).get('gmb_location')):
+                return _settings_redirect(client_id, '?error=account_mismatch', request=request)
             if locations:
-                location = next((item for item in locations if reconnect and item.get('name') == reconnect.external_id), locations[0])
+                location = choose_destination(request, [(item.get('name'), item.get('title', ''), item) for item in locations],
+                    'gmb_location', expected=reconnect.external_id if reconnect else None, secrets_to_scrub=(access_token, refresh_token))
                 location_id = location['name']
                 biz_name    = location.get('title', '')
 
-                _save_credential(client_id, 'google_my_business', {
+                pending_credentials.append(('google_my_business', {
                     'access_token':    access_token,
                     'refresh_token':   refresh_token,
                     'expires_at':      expires_at,
                     'gmb_account_id':  gmb_account_id,
                     'gmb_location_id': location_id,
                     'page_name':       biz_name,
-                }, request=request)
+                }))
                 connected.append('google_my_business')
             else:
                 # No locations found — save token anyway so user shows as connected
                 logger.warning("GMB: no locations found for account %s", gmb_account_id)
-                _save_credential(client_id, 'google_my_business', {
+                pending_credentials.append(('google_my_business', {
                     'access_token':    access_token,
                     'refresh_token':   refresh_token,
                     'expires_at':      expires_at,
                     'gmb_account_id':  gmb_account_id,
                     'gmb_location_id': '',
-                    'page_name':       accounts[0].get('accountName', 'Google My Business'),
-                }, request=request)
+                    'page_name':       selected_account.get('accountName', 'Google My Business'),
+                }))
                 connected.append('google_my_business')
         else:
             # No GMB account — still save the token with the Google profile name
@@ -685,16 +765,19 @@ def google_oauth_callback(request):
                 'https://www.googleapis.com/oauth2/v3/userinfo',
                 headers={'Authorization': f'Bearer {access_token}'}, timeout=10
             ).json()
-            _save_credential(client_id, 'google_my_business', {
+            pending_credentials.append(('google_my_business', {
                 'access_token':    access_token,
                 'refresh_token':   refresh_token,
                 'expires_at':      expires_at,
                 'gmb_account_id':  '',
                 'gmb_location_id': '',
                 'page_name':       user_info.get('name', 'Google My Business'),
-            }, request=request)
+            }))
             connected.append('google_my_business')
 
+    with transaction.atomic():
+        for destination_platform, defaults in pending_credentials:
+            _save_credential(client_id, destination_platform, defaults, request=request)
     platforms = ','.join(connected)
     return _settings_redirect(client_id, f"?connected={platforms}", request=request)
 
