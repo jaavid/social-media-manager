@@ -42,7 +42,10 @@ def probe_direct(service: str, *, timeout: int = 4) -> dict:
 
 
 def probe_gateway_health(*, timeout: int = 4) -> dict:
-    base = gateway_url()
+    try:
+        base = gateway_url()
+    except ValueError:
+        return {'reachable': False, 'configured': True, 'error': 'invalid_configuration', 'route': 'gateway'}
     if not base:
         return {'reachable': False, 'configured': False, 'error': 'not_configured'}
 
@@ -51,10 +54,10 @@ def probe_gateway_health(*, timeout: int = 4) -> dict:
     if gateway_key():
         headers['X-API-Gateway-Key'] = gateway_key()
     try:
-        response = requests.get(f'{base}/_gateway/health', headers=headers, timeout=timeout)
+        response = requests.get(f'{base}/_gateway/health', headers=headers, timeout=timeout, allow_redirects=False)
         payload = response.json() if response.headers.get('content-type', '').startswith('application/json') else {}
         return {
-            'reachable': response.ok and bool(payload.get('ok', response.ok)),
+            'reachable': 200 <= response.status_code < 300 and bool(payload.get('ok', response.ok)),
             'configured': True,
             'status': response.status_code,
             'version': payload.get('version'),
@@ -71,7 +74,10 @@ def probe_gateway_health(*, timeout: int = 4) -> dict:
 
 
 def probe_gateway_route(service: str, *, timeout: int = 4) -> dict:
-    base = gateway_url()
+    try:
+        base = gateway_url()
+    except ValueError:
+        return {'reachable': False, 'configured': True, 'error': 'invalid_configuration', 'route': 'gateway'}
     config = get_service(service)
     if not base:
         return {
@@ -90,12 +96,13 @@ def probe_gateway_route(service: str, *, timeout: int = 4) -> dict:
             f'{base}/_gateway/probe/{config.gateway_route}',
             headers=headers,
             timeout=timeout,
+            allow_redirects=False,
         )
         try:
             payload = response.json()
         except ValueError:
             payload = {}
-        reachable = bool(response.ok and payload.get('reachable'))
+        reachable = bool(200 <= response.status_code < 300 and payload.get('reachable'))
         result = {
             'reachable': reachable,
             'configured': True,
@@ -124,7 +131,11 @@ def runtime_route(service: str) -> str:
     mode = configured_mode(service)
     if mode in ('direct', 'gateway'):
         return mode
-    if gateway_url() and direct_circuit_open(service):
+    try:
+        configured = bool(gateway_url())
+    except ValueError:
+        configured = False
+    if configured and direct_circuit_open(service):
         return 'gateway'
     return 'direct'
 

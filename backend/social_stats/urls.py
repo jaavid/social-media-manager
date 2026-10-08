@@ -29,7 +29,7 @@ from social_stats.views.calendar import (
 )
 from social_stats.views.oauth import (
     facebook_oauth_start, facebook_oauth_callback, facebook_consumer_callback,
-    google_oauth_start, google_oauth_callback,
+    google_oauth_start, google_oauth_callback, oauth_destination_selection,
     linkedin_oauth_start, linkedin_oauth_callback,
     oauth_status, oauth_disconnect, oauth_debug,
 )
@@ -432,6 +432,7 @@ urlpatterns = [
     path('oauth/facebook/callback/',                   facebook_oauth_callback,    name='fb_callback'),
 
     # OAuth — Google (YouTube + GMB)
+    path('oauth/destination-selection/', oauth_destination_selection, name='oauth_destination_selection'),
     path('oauth/google/start/<int:client_id>/',    google_oauth_start,    name='google_start'),
     path('oauth/google/callback/',                 google_oauth_callback, name='google_callback'),
 

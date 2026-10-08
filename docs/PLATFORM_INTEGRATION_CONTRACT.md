@@ -103,6 +103,22 @@ integration layer. Telegram's integration row and rich-media resolution use thos
 hooks; other providers need not implement Telegram behavior.
 
 `health` reports local credential readiness, not guaranteed upstream authorization.
+Account metadata must be an object and its destination type must belong to the
+provider manifest before constructing the execution context. Malformed historical
+metadata projects unknown/unavailable health; it must neither crash the registry
+reader nor claim readiness. The existing execution boundary still checks the
+credential's account, workspace and provider.
+
+Auth fields declare `normalization: trim | preserve`. Omitted normalization is
+compatible with `preserve`; custom password/secret whitespace is intentional unless
+the field explicitly declares otherwise. Built-in bot tokens, destination IDs and
+API-key fields declare `trim`. The connection dialog applies this contract in
+temporary component state and sends no credential to URL, cache or persistent
+storage.
+
+The shared reply executor records only a stable `token_expired` provider error on
+the selected credential. Inbox HTTP callers and approved operations share that
+behavior; transport errors and upstream outages do not invalidate credentials.
 Polling consumers checkpoint cursors only after account-scoped event persistence.
 Webhook adapters verify signatures before constructing `authenticity_verified=True`;
 that boolean is trusted internal input, never copied from a public request body.
@@ -224,6 +240,29 @@ returns it to draft, and stale approval revisions cannot execute.
 Apply migrations 0078–0079 before serving this API/UI version. They add local
 intent deduplication and per-account delivery keys without deleting existing logs.
 
-### Historical Telegram reconnect (2026-10-08 review batch)
+### HTTP fallback and OIDC token responses (review audit 2026-10-08)
 
-A selected account with historical `bot_id:chat_id` identity may reconcile to canonical chat identity only when provider validation proves that exact bot and chat, the original scoped attached credential exists and no canonical account collision exists. Preserve account, credential and extension IDs under the existing workspace transaction/lock. Untargeted historical reconnect requires selection. Never use display names or suffix matching, replace another account, or adopt an ambiguous unattached credential. Scope is rechecked after provider validation. Public fixture tests verify idempotency, isolation, quotas and transaction rollback; real provider reconnect is outside this audit.
+The shared egress router permits network fallback for GET/HEAD/OPTIONS. Other
+methods may use fallback only after Requests `ConnectTimeout` when the caller
+explicitly set `allow_redirects=False`. A connect timeout on a later redirect leg
+cannot prove that the original write was never sent. Read timeout, generic
+connection error and TLS error do not justify mutation replay. HTTP responses do
+not trigger fallback. An open direct circuit chooses the gateway before sending
+a new operation; it does not replay a previous uncertain operation. Provider
+clients retain their established timeout/network error contracts. A missing
+gateway propagates the original failure. Provider GET/list results do not prove
+the causal outcome of an earlier write.
+
+The OIDC authorization-code token POST never follows redirects and rejects every
+3xx response before reading access tokens or calling userinfo. Existing discovery,
+userinfo and explicit insecure-development URL policy remain unchanged.
+
+Gateway transport verification (2026-10-08, review batch): configured gateway
+URLs must use HTTPS and cannot contain URL credentials, query strings, or
+fragments. An empty setting still means no gateway. There is no implicit HTTP
+exemption for development. Gateway calls and credential-bearing diagnostic
+probes never follow redirects, including when a caller requests them. A 3xx
+response cannot establish successful gateway health. Invalid optional gateway
+configuration is reported as unavailable; auto routing can still use direct
+transport, while explicitly requested gateway transport fails before sending.
+These controls complement the ambiguous-write fallback boundary above.

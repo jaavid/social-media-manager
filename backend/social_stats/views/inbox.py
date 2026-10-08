@@ -40,7 +40,7 @@ from social_stats.serializers.inbox import (
     MessageSerializer, UnifiedReviewSerializer,
 )
 from social_stats.models import (
-    Conversation, Message, UnifiedReview, PlatformCredential,
+    Conversation, Message, UnifiedReview,
 )
 from social_stats.publishers import (
     PublishError,
@@ -209,8 +209,6 @@ class ConversationViewSet(TenantScopedMixin, viewsets.ReadOnlyModelViewSet):
         try:
             msg = deliver_reply(conv, text, request.user)
         except PublishError as exc:
-            if exc.code == 'token_expired':
-                PlatformCredential.objects.filter(social_account=conv.social_account).first().mark_auth_failure('token_expired')
             return Response({'detail': 'Reply failed', 'code': exc.code},
                 status=429 if exc.code == 'rate_limited' else 502 if exc.code in {'network_error', 'timeout', 'invalid_response', 'provider_error'} else 400)
 
@@ -299,10 +297,6 @@ class UnifiedReviewViewSet(TenantScopedMixin, viewsets.ReadOnlyModelViewSet):
         try:
             deliver_reply(review, text, request.user)
         except PublishError as exc:
-            if exc.code == 'token_expired':
-                credential = PlatformCredential.objects.filter(social_account=review.social_account).first()
-                if credential:
-                    credential.mark_auth_failure('token_expired')
             return Response({'detail': 'Reply failed', 'code': exc.code},
                 status=429 if exc.code == 'rate_limited' else 502 if exc.code in {'network_error', 'timeout', 'invalid_response', 'provider_error'} else 400)
 

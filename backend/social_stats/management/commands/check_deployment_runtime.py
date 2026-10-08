@@ -81,9 +81,12 @@ class Command(BaseCommand):
         workers = {}
         if not options['local_only']:
             try:
+                # Celery 5.6 Inspect.registered() hides built-ins and offers no
+                # builtins keyword. Request the complete worker registry so
+                # scheduled backend_cleanup remains required.
                 workers = current_app.control.inspect(
                     destination=options['worker'] or None, timeout=options['timeout'],
-                ).registered()
+                )._request('registered', builtins=True)
             except Exception as error:
                 raise CommandError('Cannot inspect Celery workers; check broker access.') from error
             if not workers:
