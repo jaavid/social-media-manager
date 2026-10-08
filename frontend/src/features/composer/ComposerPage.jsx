@@ -102,10 +102,11 @@ function ComposerEditor({ workspaceId, id, draftKey }) {
     setDraft(next);
   }, [post.data, providers, recovered, accounts.data, draft.intentKey]);
   useEffect(() => {
-    if (id && !hydrated.current && !recovered) return;
+    // Do not persist the pre-hydration render while cached data initializes state.
+    if (id && !editorReady && !recovered) return;
     if (baseline.current === snapshot) transientStorage.removeItem(draftKey);
     else transientStorage.setItem(draftKey, JSON.stringify({ ...draft, savedPostId: savedId.current }));
-  }, [snapshot, draft, draftKey, id, recovered]);
+  }, [snapshot, draft, draftKey, id, recovered, editorReady]);
   useEffect(() => {
     const warn = event => { if (snapshot !== baseline.current) { event.preventDefault(); event.returnValue = ''; } };
     window.addEventListener('beforeunload', warn);

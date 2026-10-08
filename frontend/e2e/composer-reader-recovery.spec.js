@@ -23,3 +23,25 @@ for(const matching of [false,true])test(`composer queue distinguishes ${matching
 test('safe queue metadata denial evidence',async({page,context})=>{const s=await fixture(page);await page.setViewportSize({width:1440,height:1100});await open(page);await page.getByLabel(en['composer.queue.destination']).selectOption('11');await page.clock.install();await page.clock.fastForward(31000);s.status=403;await context.setOffline(true);await context.setOffline(false);if(!process.env.E2E_UI_BASELINE)await expect(page.getByRole('option',{name:'Synthetic queue'})).toHaveCount(0);else await page.waitForTimeout(300);await page.screenshot({path:`e2e/evidence/composer-reader/denial-${process.env.E2E_UI_BASELINE?'before':'after'}-en-light-1440.png`,fullPage:true});});
 
 for(const status of [403,404,503])test(`composer existing post background ${status} hides denied snapshots or retains outage drafts`,async({page,context})=>{const s=await fixture(page);await page.goto('/dashboard/analytics/composer/900');const input=page.getByLabel('Content',{exact:true});await expect(input).toHaveValue('Synthetic saved post');await input.fill('Synthetic edited post');await page.clock.install();await page.clock.fastForward(31000);s.postStatus=status;const response=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/composer/posts/900/'&&r.status()===status);await context.setOffline(true);await context.setOffline(false);await response;if(status===503)await expect(input).toHaveValue('Synthetic edited post');else await expect(input).toHaveCount(0);if(status===404)await expect(page.getByText(en['recovery.notFound'],{exact:true})).toBeVisible();expect(s.writes).toBe(0);});
+
+test('save navigation and immediate reload never persist an empty post recovery draft',async({page})=>{
+ await fixture(page);
+ await page.addInitScript(()=>{
+  const original=Storage.prototype.setItem;window.__emptyComposerDraftWrites=0;
+  Storage.prototype.setItem=function(key,value){
+   if(key.startsWith('composer-draft:')){try{if(JSON.parse(value).content==='')window.__emptyComposerDraftWrites++;}catch{}}
+   return original.call(this,key,value);
+  };
+ });
+ await page.route(/\/api\/composer\/posts\/(?:\?.*)?$/,route=>route.fulfill({json:{id:900,client:7,title:'',content:'Synthetic saved post',media_type:'text',media_urls:[],target_platforms:['facebook'],platform_overrides:{},status:'draft',scheduled_at:null}}));
+ await page.goto('/dashboard/analytics/composer');
+ await page.getByRole('button',{name:'Facebook',exact:true}).first().click();
+ await page.getByLabel('Content',{exact:true}).fill('Synthetic saved post');
+ await page.getByRole('button',{name:'Save Draft',exact:true}).click();
+ await expect(page).toHaveURL(/\/dashboard\/analytics\/composer\/900$/);
+ await expect(page.getByLabel('Content',{exact:true})).toHaveValue('Synthetic saved post');
+ expect(await page.evaluate(()=>window.__emptyComposerDraftWrites)).toBe(0);
+ await page.reload();
+ await expect(page.getByLabel('Content',{exact:true})).toHaveValue('Synthetic saved post');
+ expect(await page.evaluate(()=>window.__emptyComposerDraftWrites)).toBe(0);
+});

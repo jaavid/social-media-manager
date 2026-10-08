@@ -5,6 +5,7 @@ import { composer } from '@/services/domains/composer';
 import { connectionsAPI } from '@/services/domains/connections';
 import { connectionFixture, connectionAccount } from '@/services/__fixtures__/connections';
 import { setLanguage } from '@/i18n';
+import { QK } from '@/services/queryClient';
 
 const mockNavigate = jest.fn();
 let mockId;
@@ -18,8 +19,8 @@ jest.mock('@/services/domains/composer', () => ({ composer: { get: jest.fn(), sa
 jest.mock('@/services/domains/connections', () => ({ connectionsAPI: { get: jest.fn() } }));
 jest.mock('@/components/ai/AIWriteButton', () => () => null);
 jest.mock('@/components/connections/composerExtensions', () => ({ composerExtensions: {} }));
-function mount() {
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
+function mount(existingClient) {
+  const client = existingClient || new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
   const view = render(<QueryClientProvider client={client}><ComposerPage /></QueryClientProvider>);
   return { ...view, client };
 }
@@ -236,4 +237,23 @@ test('404 after an existing post read hides the snapshot and a valid retry resto
   composer.get.mockResolvedValue(stored);fireEvent.click(screen.getByRole('button',{name:'Try again',exact:true}));
   await waitFor(() => expect(screen.getByLabelText('Content')).toHaveValue('Synthetic edited draft'));
   expect(composer.save).not.toHaveBeenCalled();
+});
+
+test('initial post hydration never persists an empty recovery draft and later edits survive remount', async () => {
+  mockId = '900';
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: Infinity } } });
+  client.setQueryData(QK.connections(7), fixture);
+  client.setQueryData(['composer.post', 7, '900'], stored);
+  const writes = jest.spyOn(Storage.prototype, 'setItem');
+  try {
+    const view = mount(client);
+    await waitFor(() => expect(screen.getByLabelText('Content')).toHaveValue(stored.content));
+    expect(writes.mock.calls.filter(([key]) => key.startsWith('composer-draft:'))).toEqual([]);
+    fireEvent.change(screen.getByLabelText('Content'), { target: { value: 'Synthetic unsaved edit' } });
+    await waitFor(() => expect(writes.mock.calls.some(([key, value]) => key.startsWith('composer-draft:') && JSON.parse(value).content === 'Synthetic unsaved edit')).toBe(true));
+    view.unmount();
+    mount();
+    await waitFor(() => expect(screen.getByLabelText('Content')).toHaveValue('Synthetic unsaved edit'));
+    expect(composer.save).not.toHaveBeenCalled();
+  } finally { writes.mockRestore(); }
 });
