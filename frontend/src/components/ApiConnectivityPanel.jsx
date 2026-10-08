@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { CheckCircle2, AlertCircle, RefreshCw, Route, Server, XCircle } from 'lucide-react';
 import { useSession as useAuth } from '../core/session';
 import { egressAPI } from '../services/egress';
+import { useLanguage } from '../i18n';
+import { apiError } from '@/services/http/errors';
 
 function Reachability({ value }) {
   if (!value) return <span style={styles.muted}>Not tested</span>;
@@ -34,33 +36,53 @@ function RouteBadge({ route }) {
 export default function ApiConnectivityPanel() {
   const { user } = useAuth();
   const operator = user?.role === 'superadmin' || user?.role === 'staff';
+  return operator ? <ScopedConnectivityPanel key={`${user.id}:${user.role}`} /> : null;
+}
+function ScopedConnectivityPanel() {
+  const { t } = useLanguage();
+  const lock = useRef(false), alive = useRef(false);
+  useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [testingService, setTestingService] = useState('');
   const [error, setError] = useState('');
-
-  if (!operator) return null;
+  const errorRef = useRef(null);
+  useEffect(() => { if (error) errorRef.current?.focus(); }, [error]);
+  const fail = failure => {
+    if (!alive.current) return;
+    const status = apiError(failure).status;
+    if ([401, 403, 404].includes(status)) setData(null);
+    setError(t([401, 403].includes(status) ? 'connections.forbidden' : status === 404 ? 'recovery.notFound' : 'connections.failed'));
+  };
 
   const runAll = async () => {
+    if (lock.current || !alive.current) return;
+    lock.current = true;
     setLoading(true);
     setError('');
     try {
       const response = await egressAPI.connectivity();
-      setData(response.data);
-    } catch (err) {
-      setError(err.response?.data?.detail || 'Connectivity test failed.');
+      if (!alive.current) return;
+      setData(parseConnectivity(response.data));
+    } catch (failure) {
+      fail(failure);
     } finally {
-      setLoading(false);
+      lock.current = false;
+      if (alive.current) setLoading(false);
     }
   };
 
   const retest = async (service) => {
+    if (lock.current || !alive.current) return;
+    lock.current = true;
     setTestingService(service);
     setError('');
     try {
       const response = await egressAPI.connectivity(service);
-      const tested = response.data?.services?.[0];
-      if (!tested) return;
+      if (!alive.current) return;
+      const payload = parseConnectivity(response.data);
+      const tested = payload.services[0];
+      if (payload.services.length !== 1 || tested.id !== service) throw new Error('Invalid probe response');
       setData((current) => {
         const existing = current?.services || [];
         const next = existing.some((item) => item.id === service)
@@ -73,10 +95,11 @@ export default function ApiConnectivityPanel() {
           services: next,
         };
       });
-    } catch (err) {
-      setError(err.response?.data?.detail || `Could not test ${service}.`);
+    } catch (failure) {
+      fail(failure);
     } finally {
-      setTestingService('');
+      lock.current = false;
+      if (alive.current) setTestingService('');
     }
   };
 
@@ -91,15 +114,16 @@ export default function ApiConnectivityPanel() {
             HTTP 4xx responses still count as reachable because this test checks network connectivity, not credentials.
           </p>
         </div>
-        <button type="button" onClick={runAll} disabled={loading} style={styles.button}>
+        <button type="button" onClick={runAll} disabled={loading || Boolean(testingService)} style={styles.button}>
           <RefreshCw size={15} style={loading ? { animation: 'spin 1s linear infinite' } : undefined} />
           {loading ? 'Testing…' : data ? 'Test all again' : 'Run connectivity test'}
         </button>
       </div>
 
-      {error && <div style={styles.error}><AlertCircle size={15} /> {error}</div>}
+      {(loading || testingService) && <p role="status">{t('connections.loading')}</p>}
+      {error && <div role="alert" tabIndex={-1} ref={errorRef} style={styles.error}><AlertCircle size={15} /> {error}</div>}
 
-      {!data && !loading && (
+      {!data && !loading && !error && (
         <div style={styles.empty}>
           No probes have run yet. Tests use short unauthenticated reachability requests and never expose platform tokens.
         </div>
@@ -146,7 +170,7 @@ export default function ApiConnectivityPanel() {
                       <button
                         type="button"
                         onClick={() => retest(service.id)}
-                        disabled={Boolean(testingService)}
+                        disabled={loading || Boolean(testingService)}
                         style={styles.smallButton}
                       >
                         {testingService === service.id ? 'Testing…' : 'Retest'}
@@ -165,6 +189,15 @@ export default function ApiConnectivityPanel() {
       )}
     </section>
   );
+}
+
+function parseConnectivity(value) {
+  if (!value || typeof value !== 'object' || !Array.isArray(value.services)
+      || !value.gateway || typeof value.gateway !== 'object'
+      || value.services.some(row => !row || typeof row.id !== 'string' || typeof row.name !== 'string'
+        || !row.direct || !row.gateway || typeof row.direct.reachable !== 'boolean' || typeof row.gateway.reachable !== 'boolean')
+      || new Set(value.services.map(row => row.id)).size !== value.services.length) throw new Error('Invalid probe response');
+  return value;
 }
 
 const styles = {

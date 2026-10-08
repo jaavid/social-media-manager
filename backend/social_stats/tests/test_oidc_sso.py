@@ -142,3 +142,21 @@ class OIDCSSOTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertIn('/login?error=', response['Location'])
         token_post.assert_not_called()
+
+    def test_token_redirects_never_send_credentials_or_accept_redirect_payload(self):
+        for status in (301, 302, 303, 307, 308):
+            with self.subTest(status=status), patch.dict('os.environ', SSO_ENV), patch(
+                'social_stats.oidc_sso.http_requests.get', return_value=MockResponse(DISCOVERY),
+            ) as get, patch(
+                'social_stats.oidc_sso.http_requests.post',
+                return_value=MockResponse({'access_token': 'fixture-redirect-body'}, status),
+            ) as post:
+                start = self.client.get('/api/auth/sso/start/')
+                state = urllib.parse.parse_qs(urllib.parse.urlparse(start['Location']).query)['state'][0]
+                response = self.client.get('/api/auth/sso/callback/', {'code': 'fixture-code', 'state': state})
+                self.assertIn('/login?error=', response['Location'])
+                post.assert_called_once()
+                self.assertIs(post.call_args.kwargs.get('allow_redirects'), False)
+                # Only discovery GETs: no userinfo request with redirect's token.
+                self.assertEqual(get.call_count, 2)
+                self.assertNotIn('_auth_user_id', self.client.session)

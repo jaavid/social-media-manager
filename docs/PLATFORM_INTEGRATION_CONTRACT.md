@@ -103,6 +103,22 @@ integration layer. Telegram's integration row and rich-media resolution use thos
 hooks; other providers need not implement Telegram behavior.
 
 `health` reports local credential readiness, not guaranteed upstream authorization.
+Account metadata must be an object and its destination type must belong to the
+provider manifest before constructing the execution context. Malformed historical
+metadata projects unknown/unavailable health; it must neither crash the registry
+reader nor claim readiness. The existing execution boundary still checks the
+credential's account, workspace and provider.
+
+Auth fields declare `normalization: trim | preserve`. Omitted normalization is
+compatible with `preserve`; custom password/secret whitespace is intentional unless
+the field explicitly declares otherwise. Built-in bot tokens, destination IDs and
+API-key fields declare `trim`. The connection dialog applies this contract in
+temporary component state and sends no credential to URL, cache or persistent
+storage.
+
+The shared reply executor records only a stable `token_expired` provider error on
+the selected credential. Inbox HTTP callers and approved operations share that
+behavior; transport errors and upstream outages do not invalidate credentials.
 Polling consumers checkpoint cursors only after account-scoped event persistence.
 Webhook adapters verify signatures before constructing `authenticity_verified=True`;
 that boolean is trusted internal input, never copied from a public request body.
@@ -224,20 +240,29 @@ returns it to draft, and stale approval revisions cannot execute.
 Apply migrations 0078–0079 before serving this API/UI version. They add local
 intent deduplication and per-account delivery keys without deleting existing logs.
 
-OAuth destination choice (2026-10-08 review batch): a newly authorized grant
-with multiple eligible Facebook Pages/Instagram accounts, YouTube channels or
-Business Profile accounts/locations requires an explicit destination choice.
-The short-lived browser session continuation retains only public identifiers,
-redacted display labels, user/workspace/platform scope, expiry and a one-use
-nonce. It retains no provider grant token. Selection is CSRF protected and
-permission checked, then restarts the existing consent path with fresh OAuth
-state and the same scopes. The chosen identity is checked again against the
-fresh provider response; a missing identity fails instead of selecting another.
-Business Profile account/location choices remain paired. Reconnect still
-requires the original account identity. Independent consent clears a pending
-selection; cancel, expiry, stale scope and completed callbacks clear it.
-Google's combined grant and linked Meta credential persistence are atomic;
-no earlier destination remains saved if a later save is denied. The retained
-legacy consumer path has no independent supported consent start; its unexpected
-multi-page response is refused rather than silently choosing the first Page.
-This does not add provider capabilities, scopes or a commercial integration.
+### HTTP fallback and OIDC token responses (review audit 2026-10-08)
+
+The shared egress router permits network fallback for GET/HEAD/OPTIONS. Other
+methods may use fallback only after Requests `ConnectTimeout` when the caller
+explicitly set `allow_redirects=False`. A connect timeout on a later redirect leg
+cannot prove that the original write was never sent. Read timeout, generic
+connection error and TLS error do not justify mutation replay. HTTP responses do
+not trigger fallback. An open direct circuit chooses the gateway before sending
+a new operation; it does not replay a previous uncertain operation. Provider
+clients retain their established timeout/network error contracts. A missing
+gateway propagates the original failure. Provider GET/list results do not prove
+the causal outcome of an earlier write.
+
+The OIDC authorization-code token POST never follows redirects and rejects every
+3xx response before reading access tokens or calling userinfo. Existing discovery,
+userinfo and explicit insecure-development URL policy remain unchanged.
+
+Gateway transport verification (2026-10-08, review batch): configured gateway
+URLs must use HTTPS and cannot contain URL credentials, query strings, or
+fragments. An empty setting still means no gateway. There is no implicit HTTP
+exemption for development. Gateway calls and credential-bearing diagnostic
+probes never follow redirects, including when a caller requests them. A 3xx
+response cannot establish successful gateway health. Invalid optional gateway
+configuration is reported as unavailable; auto routing can still use direct
+transport, while explicitly requested gateway transport fails before sending.
+These controls complement the ambiguous-write fallback boundary above.

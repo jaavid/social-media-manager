@@ -25,3 +25,13 @@ Therefore #116 remains open. Safe synthetic fa/en, RTL/LTR, light/dark 360/768/1
 The existing semantic-contract browser test additionally verifies 162 canonical pairs across light/dark/system-dark, including essential control borders, focus, destructive foreground and primary hover/active states. Actual ratios are recorded in frontend/e2e/evidence/brand/semantic-contrast.json. These checks do not claim certification of every legacy page or native installation.
 
 Final rendered-contrast regression: the module-rail mark previously filled its primary-colored button with the same primary color (ratio 1:1). ModuleRail now uses the existing monochrome variant with canonical `--text-on-brand`; approved geometry, accessible name and routing stay unchanged. The brand matrix checks the actual SVG fill against its button background at ≥3:1 in light/dark, alongside the existing token checks. Updated synthetic captures show the visible mark.
+
+## Notification migration correction (2026-10-08)
+
+The display-label change in `8a37acd` left migration state behind the model on
+post-merge main `6ac39d0`. Migration 0083 records only the `client_joined` choice
+label. Its event key, field length, notification preferences and dispatch behavior
+are preserved; forward and reverse schema SQL are no-ops. Upgrade with ordinary
+`manage.py migrate`. A rollback to 0082 restores the historical display label in
+migration state without rewriting preference rows. This correction does not
+complete the remaining #116 acceptance work above.

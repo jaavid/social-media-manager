@@ -96,6 +96,7 @@ class AuthField:
     title_fa: str
     secret: bool = False
     required: bool = True
+    normalization: str = 'preserve'
 
     def __post_init__(self):
         if not re.fullmatch(r'[a-z][a-z0-9_]{0,49}', self.key):
@@ -104,6 +105,8 @@ class AuthField:
             raise ValueError('auth.field: localized titles required')
         if type(self.secret) is not bool or type(self.required) is not bool:
             raise ValueError('auth.field: boolean flags required')
+        if self.normalization not in {'preserve', 'trim'}:
+            raise ValueError('auth.field: invalid normalization')
 
 
 @dataclass(frozen=True)
@@ -253,10 +256,10 @@ class PlatformManifest:
         if self.auth_fields:
             return self.auth_fields
         if self.auth_type == 'bot_token':
-            return (AuthField('token', 'Bot token', 'توکن ربات', secret=True),
-                    AuthField('destination_id', 'Destination ID', 'شناسه مقصد'))
+            return (AuthField('token', 'Bot token', 'توکن ربات', secret=True, normalization='trim'),
+                    AuthField('destination_id', 'Destination ID', 'شناسه مقصد', normalization='trim'))
         if self.auth_type == 'api_key':
-            return (AuthField('api_key', 'API key', 'کلید API', secret=True),)
+            return (AuthField('api_key', 'API key', 'کلید API', secret=True, normalization='trim'),)
         return ()
 
     def public_contract(self):
