@@ -81,7 +81,9 @@ export default function Drawer({
           }}
           onCloseAutoFocus={(event) => {
             event.preventDefault();
-            (returnFocusRef?.current || previousFocus.current)?.focus();
+            const target = returnFocusRef?.current || previousFocus.current;
+            // Resume the underlying Radix focus scope before restoring its trigger.
+            queueMicrotask(() => { if (target?.isConnected) target.focus(); });
           }}
           dir={isPersian ? 'rtl' : 'ltr'}
           className={cn('ds-sheet', `ds-sheet-${position}`)}
