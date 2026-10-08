@@ -92,6 +92,7 @@ export function useCheckedAction() {
     success,
     errorRef,
     alive,
+    invalidate: () => { alive.current = false; },
     online,
     denied: [401, 403, 404].includes(failure?.status),
     locked: busy || uncertain || !online,

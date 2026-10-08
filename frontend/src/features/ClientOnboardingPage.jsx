@@ -1,3 +1,7 @@
+import { AccountScope, ReadState, WriteState, useAccountRead, useCheckedAction } from '@/components/ui/accountRecovery';
+import { parseOnboarding, parseOnboardingWrite } from '@/lib/onboardingRecovery';
+import { apiError } from '@/services/http/errors';
+import Button from '@/components/ui/Button';
 import LookupState from '@/components/ui/LookupState';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
@@ -10,7 +14,7 @@ import LookupState from '@/components/ui/LookupState';
 import { transientStorage } from '../lib/runtime/storage';
 import { apiBaseUrl } from '../lib/runtime/config';
 
-import { useEffect, useState } from 'react';
+import { useRef, useState } from 'react';
 import { useAppNavigate as useNavigate } from '../core/navigation';
 import { useSession as useAuth } from '../core/session';
 import { workspacesAPI } from '../services/api';
@@ -66,13 +70,25 @@ const GENDERS = [
 ];
 
 export default function ClientOnboardingPage() {
+  return <AccountScope>{(identity, enabled, key) => enabled && <Onboarding key={key} identity={identity} enabled={enabled} />}</AccountScope>;
+}
+function Onboarding({ identity, enabled }) {
   const { user, refreshUser } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const clientId = user?.client_id;
+  const profileFocus = useRef(null);
+  const [createdId, setCreatedId] = useState(null);
+  const clientId = user?.client_id || createdId;
+  const action = useCheckedAction();
+  const [refreshFailed, setRefreshFailed] = useState(false);
+  const [observed, setObserved] = useState(null);
+  const profile = useAccountRead('onboarding-profile', [...identity, clientId], enabled && Boolean(clientId), signal => workspacesAPI.get(clientId, signal), value => parseOnboarding(value, clientId));
   const connections = useQuery({ queryKey: QK.connections(Number(clientId)),
     queryFn: ({ signal }) => connectionsAPI.get(Number(clientId), signal),
     enabled: Boolean(clientId), retry: false });
+  const connectionFailure = apiError(connections.error);
+  const connectionDenied = [401,403,404].includes(connectionFailure.status);
+  const connectionData = connectionDenied ? undefined : connections.data;
   const lookupResource = useLookups();
   const { lookups } = lookupResource;
 
@@ -88,13 +104,12 @@ export default function ClientOnboardingPage() {
   const STEP_STORAGE_KEY = `onboarding_step_${user?.client_id || 'new'}`;
 
   const [currentStep, setCurrentStep] = useState(0);
-  const [loading, setLoading]         = useState(false);
-  const [saving, setSaving]           = useState(false);
+  const loading = action.busy;
   const [errors, setErrors]           = useState({});
   const [submitError, setSubmitError] = useState('');
   const [dataLoaded, setDataLoaded]   = useState(false);
   const [formData, setFormData] = useState({
-    name: user?.first_name + ' ' + user?.last_name || '',
+    name: [user?.first_name, user?.last_name].filter(Boolean).join(' '),
     company: '',
     email: user?.email || '',
     phone: '',
@@ -117,10 +132,8 @@ export default function ClientOnboardingPage() {
   });
 
   // Load existing client data and resume saved step on mount
-  useEffect(() => {
-    if (!clientId || dataLoaded) return;
-    workspacesAPI.get(clientId).then(res => {
-      const c = res.data;
+  if (clientId && !dataLoaded && profile.data) {
+    const c = profile.data;
       setFormData(prev => ({
         ...prev,
         name:                  [c.name].filter(Boolean).join(' ') || prev.name,
@@ -139,6 +152,7 @@ export default function ClientOnboardingPage() {
         gender:                c.gender                || prev.gender,
         business_location:     c.business_location     || prev.business_location,
         target_locations:      c.target_locations      || prev.target_locations,
+        brand_assets:          c.brand_assets,
         competitors:           (c.competitors || []).map(comp => ({
           name: comp.name || '',
           social_links: Object.entries(comp.social_links || {}).map(([platform, url]) => ({ platform, url })),
@@ -148,8 +162,7 @@ export default function ClientOnboardingPage() {
       const savedStep = parseInt(transientStorage.getItem(STEP_STORAGE_KEY) || '0', 10);
       if (savedStep > 0) setCurrentStep(Math.min(savedStep, 5));
       setDataLoaded(true);
-    }).catch(() => setDataLoaded(true));
-  }, [clientId, dataLoaded, STEP_STORAGE_KEY]);
+  }
 
   const competitorLinksArrayToObject = (links) => {
     return (links || []).reduce((acc, link) => {
@@ -211,7 +224,7 @@ export default function ClientOnboardingPage() {
   ];
   const currentStepData = steps[currentStep];
   const progressPct = Math.round(((currentStep + 1) / steps.length) * 100);
-  const connectedAccountsCount = connections.data?.providers.flatMap(provider => provider.accounts).filter(account => account.health.ready).length;
+  const connectedAccountsCount = connectionData?.providers.flatMap(provider => provider.accounts).filter(account => account.health.ready).length;
 
   const handleInputChange = (field, value) => {
     setErrors((prev) => {
@@ -319,7 +332,7 @@ export default function ClientOnboardingPage() {
   const focusStep = (stepIndex) => {
     setCurrentStep(stepIndex);
     if (typeof window !== 'undefined') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
     }
   };
 
@@ -365,18 +378,16 @@ export default function ClientOnboardingPage() {
   const buildSubmitData = () => {
     const normalizedData = {
       ...formData,
-      competitors: formData.competitors.map(comp => ({
-        name: comp.name,
-        social_links: competitorLinksArrayToObject(comp.social_links),
-      })),
+      product_images: profile.data?.product_images || [],
     };
+    delete normalizedData.competitors;
     const fd = new FormData();
     Object.keys(normalizedData).forEach(key => {
       if (normalizedData[key] === null || normalizedData[key] === undefined) return;
       if (key === 'profile_image' && normalizedData[key] instanceof File) {
         fd.append(key, normalizedData[key]);
       } else if (key === 'product_images') {
-        fd.append(key, JSON.stringify([]));
+        fd.append(key, JSON.stringify(normalizedData.product_images));
       } else if (Array.isArray(normalizedData[key]) || typeof normalizedData[key] === 'object') {
         fd.append(key, JSON.stringify(normalizedData[key]));
       } else {
@@ -386,14 +397,16 @@ export default function ClientOnboardingPage() {
     return fd;
   };
 
-  const saveProgress = async () => {
-    if (!clientId) return;
-    try {
-      setSaving(true);
-      await workspacesAPI.update(clientId, buildSubmitData());
-    } catch { /* silent */ } finally {
-      setSaving(false);
-    }
+  const saveDraft = async (complete = false) => {
+    const submit = buildSubmitData();
+    if (complete) submit.append('onboarding_complete', 'true');
+    const response = clientId ? await workspacesAPI.update(clientId, submit) : await workspacesAPI.create(submit);
+    const expected = Object.fromEntries([...submit.entries()].filter(([key]) => key !== 'onboarding_complete').map(([key, value]) => [key, ['product_images','business_subcategories','target_locations','brand_assets'].includes(key) ? JSON.parse(value) : value]));
+    return parseOnboardingWrite(response.data, clientId, expected, complete);
+  };
+  const continueAfterKnownCompletion = async () => {
+    try { await refreshUser(); if (action.alive.current) { transientStorage.removeItem(STEP_STORAGE_KEY); navigate('/dashboard'); } }
+    catch { if (action.alive.current) setRefreshFailed(true); }
   };
 
   const handleNext = async () => {
@@ -402,11 +415,14 @@ export default function ClientOnboardingPage() {
       return;
     }
     setSubmitError('');
-    await saveProgress();
+    const advance = () => {
     const nextStep = Math.min(currentStep + 1, steps.length - 1);
     setCurrentStep(nextStep);
     transientStorage.setItem(STEP_STORAGE_KEY, String(nextStep));
-    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    };
+    if (!clientId) { advance(); return; }
+    await action.run(() => saveDraft(), advance);
   };
 
   const handleSubmit = async () => {
@@ -424,30 +440,11 @@ export default function ClientOnboardingPage() {
       return;
     }
 
-    setLoading(true);
     setSubmitError('');
-    try {
-      const submitData = buildSubmitData();
-      submitData.append('onboarding_complete', 'true');
-
-      if (clientId) {
-        await workspacesAPI.update(clientId, submitData);
-      } else {
-        await workspacesAPI.create(submitData);
-        await refreshUser();
-      }
-      transientStorage.removeItem(STEP_STORAGE_KEY);
-      navigate('/dashboard');
-    } catch (error) {
-      console.error('Onboarding submission failed:', error);
-      setSubmitError(
-        error.response?.data?.profile_image?.[0]
-        || error.response?.data?.detail
-        || 'We could not save your onboarding details. Please review the highlighted sections and try again.'
-      );
-    } finally {
-      setLoading(false);
-    }
+    await action.run(() => saveDraft(true), async result => {
+      if (!clientId) setCreatedId(result.id);
+      await continueAfterKnownCompletion();
+    });
   };
 
   const handleSkip = () => {
@@ -487,8 +484,8 @@ export default function ClientOnboardingPage() {
                 <div style={styles.panelTitle}>Who you are</div>
                 <div style={styles.row}>
                   <div style={styles.field}>
-                    <label style={styles.label}>Your Name</label>
-                    <input
+                    <label id="onboarding-field-1" style={styles.label}>Your Name</label>
+                    <input aria-labelledby="onboarding-field-1"
                       type="text"
                       value={formData.name}
                       onChange={(e) => handleInputChange('name', e.target.value)}
@@ -499,8 +496,8 @@ export default function ClientOnboardingPage() {
                   </div>
 
                   <div style={styles.field}>
-                    <label style={styles.label}>Business Name <span style={styles.requiredAsterisk}>*</span></label>
-                    <input
+                    <label id="onboarding-field-2" style={styles.label}>Business Name <span style={styles.requiredAsterisk}>*</span></label>
+                    <input aria-labelledby="onboarding-field-2"
                       type="text"
                       value={formData.company}
                       onChange={(e) => handleInputChange('company', e.target.value)}
@@ -512,8 +509,8 @@ export default function ClientOnboardingPage() {
                   </div>
                 </div>
                 <div style={styles.field}>
-                  <label style={styles.label}>Email</label>
-                  <input
+                  <label id="onboarding-field-3" style={styles.label}>Email</label>
+                  <input aria-labelledby="onboarding-field-3"
                     type="email"
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
@@ -528,8 +525,8 @@ export default function ClientOnboardingPage() {
                 <div style={styles.panelTitle}>Where people can reach you</div>
                 <div style={styles.row}>
                   <div style={styles.field}>
-                    <label style={styles.label}>Phone Number</label>
-                    <input
+                    <label id="onboarding-field-4" style={styles.label}>Phone Number</label>
+                    <input aria-labelledby="onboarding-field-4"
                       type="tel"
                       value={formData.phone}
                       onChange={(e) => handleInputChange('phone', e.target.value)}
@@ -539,8 +536,8 @@ export default function ClientOnboardingPage() {
                   </div>
 
                   <div style={styles.field}>
-                    <label style={styles.label}>WhatsApp Number</label>
-                    <input
+                    <label id="onboarding-field-5" style={styles.label}>WhatsApp Number</label>
+                    <input aria-labelledby="onboarding-field-5"
                       type="tel"
                       value={formData.whatsapp_number}
                       onChange={(e) => handleInputChange('whatsapp_number', e.target.value)}
@@ -552,8 +549,8 @@ export default function ClientOnboardingPage() {
 
                 <div style={styles.row}>
                   <div style={styles.field}>
-                    <label style={styles.label}>Website</label>
-                    <input
+                    <label id="onboarding-field-6" style={styles.label}>Website</label>
+                    <input aria-labelledby="onboarding-field-6"
                       type="url"
                       value={formData.website}
                       onChange={(e) => handleInputChange('website', e.target.value)}
@@ -564,8 +561,8 @@ export default function ClientOnboardingPage() {
                   </div>
 
                   <div style={styles.field}>
-                    <label style={styles.label}>Google My Business URL</label>
-                    <input
+                    <label id="onboarding-field-7" style={styles.label}>Google My Business URL</label>
+                    <input aria-labelledby="onboarding-field-7"
                       type="url"
                       value={formData.gmb_url}
                       onChange={(e) => handleInputChange('gmb_url', e.target.value)}
@@ -594,8 +591,8 @@ export default function ClientOnboardingPage() {
                 <div style={styles.panelTitle}>Category & voice</div>
                 <div style={styles.row}>
                   <div style={styles.field}>
-                    <label style={styles.label}>Business Category <span style={styles.requiredAsterisk}>*</span></label>
-                    <select
+                    <label id="onboarding-field-8" style={styles.label}>Business Category <span style={styles.requiredAsterisk}>*</span></label>
+                    <select aria-labelledby="onboarding-field-8"
                       value={formData.business_category}
                       onChange={(e) => handleInputChange('business_category', e.target.value)}
                       style={styles.select}
@@ -657,8 +654,8 @@ export default function ClientOnboardingPage() {
               <div style={styles.formPanelAlt}>
                 <div style={styles.panelTitle}>Brand story</div>
                 <div style={styles.field}>
-                  <label style={styles.label}>Brand Description <span style={styles.requiredAsterisk}>*</span></label>
-                  <textarea
+                  <label id="onboarding-field-9" style={styles.label}>Brand Description <span style={styles.requiredAsterisk}>*</span></label>
+                  <textarea aria-labelledby="onboarding-field-9"
                     value={formData.brand_description}
                     onChange={(e) => handleInputChange('brand_description', e.target.value)}
                     style={styles.textarea}
@@ -669,8 +666,8 @@ export default function ClientOnboardingPage() {
                 </div>
 
                 <div style={styles.field}>
-                  <label style={styles.label}>Unique Selling Points (USP) <span style={styles.requiredAsterisk}>*</span></label>
-                  <textarea
+                  <label id="onboarding-field-10" style={styles.label}>Unique Selling Points (USP) <span style={styles.requiredAsterisk}>*</span></label>
+                  <textarea aria-labelledby="onboarding-field-10"
                     value={formData.usp}
                     onChange={(e) => handleInputChange('usp', e.target.value)}
                     style={styles.textarea}
@@ -697,8 +694,8 @@ export default function ClientOnboardingPage() {
               <div style={styles.formPanel}>
                 <div style={styles.panelTitle}>Customer snapshot</div>
                 <div style={styles.field}>
-                  <label style={styles.label}>Target Audience Description <span style={styles.requiredAsterisk}>*</span></label>
-                  <textarea
+                  <label id="onboarding-field-11" style={styles.label}>Target Audience Description <span style={styles.requiredAsterisk}>*</span></label>
+                  <textarea aria-labelledby="onboarding-field-11"
                     value={formData.target_audience}
                     onChange={(e) => handleInputChange('target_audience', e.target.value)}
                     style={styles.textarea}
@@ -730,8 +727,8 @@ export default function ClientOnboardingPage() {
               <div style={styles.formPanelAlt}>
                 <div style={styles.panelTitle}>Where they are</div>
                 <div style={styles.field}>
-                  <label style={styles.label}>Business Location <span style={styles.requiredAsterisk}>*</span></label>
-                  <input
+                  <label id="onboarding-field-12" style={styles.label}>Business Location <span style={styles.requiredAsterisk}>*</span></label>
+                  <input aria-labelledby="onboarding-field-12"
                     type="text"
                     value={formData.business_location}
                     onChange={(e) => handleInputChange('business_location', e.target.value)}
@@ -814,6 +811,7 @@ export default function ClientOnboardingPage() {
                 <div style={styles.fileUpload}>
                   <input
                     type="file"
+                    disabled
                     accept="image/*"
                     multiple
                     onChange={(e) => handleFileUpload('product_images', e.target.files)}
@@ -824,6 +822,7 @@ export default function ClientOnboardingPage() {
                     <Upload size={16} />
                     Choose Product Images
                   </label>
+                  <p>{t('business.uploadLimit')}</p>
                   {getFieldError('product_images') && <div style={styles.errorTooltip}>{getFieldError('product_images')}</div>}
                   <div style={styles.imageGrid}>
                     {formData.product_images.map((file, index) => (
@@ -844,6 +843,8 @@ export default function ClientOnboardingPage() {
       case 4: // Competitors
         return (
           <div style={styles.stepContent}>
+            <p>{t('business.competitorLimit')}</p>
+            <fieldset disabled>
             <CompetitorSection
               competitors={formData.competitors}
               socialPlatforms={socialPlatformOptions}
@@ -857,6 +858,7 @@ export default function ClientOnboardingPage() {
               title="Competitive Landscape"
               subtitle="Add the brands your audience compares you against so we can shape smarter positioning from day one."
             />
+            </fieldset>
           </div>
         );
 
@@ -878,7 +880,7 @@ export default function ClientOnboardingPage() {
               </div>
               <div style={styles.connectHeroCard}>
                 <div style={styles.connectMiniStat}>
-                  <div style={styles.connectMiniValue}>{connections.data ? connections.data.providers.filter(provider => provider.accounts.length > 0).length : '—'}</div>
+                  <div style={styles.connectMiniValue}>{connectionData ? connectionData.providers.filter(provider => provider.accounts.length > 0).length : '—'}</div>
                   <div style={styles.connectMiniLabel}>Accounts ready</div>
                 </div>
                 <div style={styles.connectMiniNote}>You can still finish setup now and connect more later from Settings.</div>
@@ -886,6 +888,7 @@ export default function ClientOnboardingPage() {
             </div>
 
             <div style={styles.connectPanel}>
+              <ReadState resource={{ query: connections, failure: connectionFailure, denied: connectionDenied, data: connectionData }} refresh={connections.refetch} />
               <ConnectedAccounts
                 clientId={clientId}
               />
@@ -950,11 +953,17 @@ export default function ClientOnboardingPage() {
   return (
     <div className="app-page app-page--content app-page--lg">
       <LookupState resource={lookupResource} />
+      {clientId && <section ref={profileFocus} tabIndex={-1} aria-label={t('onboarding.profile')}><ReadState resource={profile} refresh={profile.query.refetch} returnFocusRef={profileFocus} /></section>}
+      <WriteState action={action} uncertainKey="onboarding.uncertain" recover={clientId ? async () => { const result = await profile.query.refetch(); if (result.isSuccess) setObserved(result.data); } : undefined} />
+      {action.uncertain && observed && <div role="status"><bdi dir="auto">{observed.name} · {observed.company}</bdi><Button onClick={() => { action.verified(); setObserved(null); }}>{t('ideas.acknowledge')}</Button></div>}
+      {!clientId && <p role="status">{t('onboarding.createFirst')}</p>}
+      {refreshFailed && <p role="alert">{t('onboarding.sessionFailed')} <Button onClick={continueAfterKnownCompletion}>{t('recovery.retry')}</Button></p>}
       <PageHeader
         title="Complete Your Profile"
         subtitle="Set up your business profile to get the most out of Social Stats"
       />
 
+      {(!clientId || profile.data) && <>
       <div style={styles.heroShell}>
         <div style={styles.heroCopy}>
           <span style={styles.heroBadge}>Onboarding Flow</span>
@@ -1013,14 +1022,14 @@ export default function ClientOnboardingPage() {
           <div style={styles.contentStepBadge}>{currentStep + 1} / {steps.length}</div>
         </div>
         {submitError && <div style={styles.submitBanner}>{submitError}</div>}
-        {renderStepContent()}
+        <fieldset disabled={action.busy} className="min-w-0">{renderStepContent()}</fieldset>
 
         {/* Navigation */}
         <div style={styles.navigation}>
           <button
             onClick={handleSkip}
             style={styles.skipBtn}
-            disabled={loading}
+            disabled={action.busy}
           >
             Skip for now
           </button>
@@ -1030,7 +1039,7 @@ export default function ClientOnboardingPage() {
               <button
                 onClick={() => setCurrentStep(currentStep - 1)}
                 style={styles.backBtn}
-                disabled={loading}
+                disabled={action.busy}
               >
                 Back
               </button>
@@ -1040,7 +1049,7 @@ export default function ClientOnboardingPage() {
               <button
                 onClick={handleNext}
                 style={styles.nextBtn}
-                disabled={loading}
+                disabled={action.locked || refreshFailed}
               >
                 Next
                 <ArrowRight size={16} />
@@ -1049,7 +1058,7 @@ export default function ClientOnboardingPage() {
               <button
                 onClick={handleSubmit}
                 style={styles.submitBtn}
-                disabled={loading}
+                disabled={action.locked || refreshFailed}
               >
                 {loading ? (
                   <>
@@ -1067,6 +1076,7 @@ export default function ClientOnboardingPage() {
           </div>
         </div>
       </div>
+      </>}
     </div>
   );
 }

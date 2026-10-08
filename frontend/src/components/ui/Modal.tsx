@@ -45,6 +45,7 @@ export default function Modal({
 }: DialogProps) {
   const { tr, isPersian } = useLanguage();
   const previousFocus = useRef<HTMLElement | null>(null);
+  const contentRef = useRef<HTMLDivElement | null>(null);
   const initialFocusFrame = useRef<number | null>(null);
   useEffect(() => () => {
     if (initialFocusFrame.current !== null) cancelAnimationFrame(initialFocusFrame.current);
@@ -59,7 +60,18 @@ export default function Modal({
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay className="ds-overlay" />
         <DialogPrimitive.Content
+          ref={contentRef}
           role={role}
+          onEscapeKeyDown={(event) => {
+            if (event.target instanceof Node && !contentRef.current?.contains(event.target)) event.preventDefault();
+          }}
+          onKeyDownCapture={(event) => {
+            if (event.key === 'Escape' && event.target instanceof Node && contentRef.current?.contains(event.target)) {
+              event.preventDefault();
+              event.stopPropagation();
+              onClose?.();
+            }
+          }}
           onOpenAutoFocus={(event) => {
             previousFocus.current =
               document.activeElement as HTMLElement | null;

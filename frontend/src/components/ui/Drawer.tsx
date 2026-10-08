@@ -41,6 +41,7 @@ export default function Drawer({
 }: SheetProps) {
   const { tr, isPersian } = useLanguage();
   const previousFocus = useRef<HTMLElement | null>(null);
+  const contentRef = useRef<HTMLDivElement | null>(null);
   const position =
     side === 'left'
       ? isPersian
@@ -70,6 +71,10 @@ export default function Drawer({
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay className="ds-overlay" />
         <DialogPrimitive.Content
+          ref={contentRef}
+          onEscapeKeyDown={(event) => {
+            if (event.target instanceof Node && !contentRef.current?.contains(event.target)) event.preventDefault();
+          }}
           onOpenAutoFocus={() => {
             previousFocus.current =
               document.activeElement as HTMLElement | null;

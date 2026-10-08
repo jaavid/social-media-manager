@@ -108,3 +108,24 @@ it.each([Modal, Sheet])('returns focus to the explicit fallback when a confirmed
   await waitFor(() => expect(screen.getByText('Canvas')).toHaveFocus());
   expect(screen.queryByRole('button', { name: 'Delete node' })).not.toBeInTheDocument();
 });
+
+
+it('immediate Escape closes only the focused nested confirmation over repeated openings', async () => {
+  const drawerClose = jest.fn();
+  function Example() {
+    const [open, setOpen] = useState(false);
+    const cancel = React.useRef(null);
+    return <><Sheet open onClose={drawerClose} title="Inspector"><button onClick={() => setOpen(true)}>Delete item</button></Sheet><Modal open={open} role="alertdialog" initialFocusRef={cancel} onClose={() => setOpen(false)} title="Confirm delete" footer={<button ref={cancel}>Cancel</button>} /></>;
+  }
+  render(<Example />);
+  for (let attempt = 0; attempt < 20; attempt++) {
+    await userEvent.click(screen.getByRole('button', { name: 'Delete item' }));
+    const cancel = screen.getByRole('button', { name: 'Cancel', exact: true });
+    await waitFor(() => expect(cancel).toHaveFocus());
+    fireEvent.keyDown(cancel, { key: 'Escape' });
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+    expect(screen.getByRole('dialog', { name: 'Inspector' })).toBeVisible();
+    expect(drawerClose).not.toHaveBeenCalled();
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Delete item' })).toHaveFocus());
+  }
+});
