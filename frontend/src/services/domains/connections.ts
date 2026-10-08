@@ -4,7 +4,7 @@ import { api } from '@/services/http/client';
 export type ConnectionState = 'ready' | 'expired' | 'revoked' | 'not_connected' | 'unknown' | 'error';
 export type SyncState = 'unknown' | 'not_available' | 'pending' | 'fresh' | 'stale' | 'failure';
 type CapabilityStatus = 'supported' | 'beta' | 'planned' | 'not_available';
-export interface ConnectionField { key: string; title_en: string; title_fa: string; secret: boolean; required: boolean }
+export interface ConnectionField { key: string; title_en: string; title_fa: string; secret: boolean; required: boolean; normalization?: 'preserve' | 'trim' }
 export interface ConnectedAccount {
   id: number; name: string; external_id: string;
   identity: { id: string; name: string }; destination: { id: string; kind: string };
@@ -81,7 +81,7 @@ function provider(v: unknown): boolean {
     || !Array.isArray(v.contract.auth.fields) || !strings(v.contract.destination_types) || !strings(v.contract.ui_extensions)
     || !object(v.permissions) || !bool(v.permissions.connect) || !Array.isArray(v.accounts) || !v.accounts.every(account)) return false;
   if (!v.contract.auth.fields.every(f => object(f) && str(f.key) && /^[a-z][a-z0-9_]{0,49}$/.test(f.key)
-    && str(f.title_en) && str(f.title_fa) && bool(f.secret) && bool(f.required))) return false;
+    && str(f.title_en) && str(f.title_fa) && bool(f.secret) && bool(f.required) && (f.normalization === undefined || oneOf(f.normalization, ['preserve', 'trim'])))) return false;
   return v.readiness === null || (object(v.readiness) && bool(v.readiness.configured) && strings(v.readiness.missing));
 }
 export function parseConnections(wire: unknown, workspaceId: number): Connections {

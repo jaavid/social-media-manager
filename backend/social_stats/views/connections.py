@@ -62,15 +62,16 @@ def connections(request, workspace_id):
             secrets = (credential.access_token, credential.refresh_token) if credential else ()
             def public_identity(value):
                 return public_provider_data(value, secrets)
-            kind = account.metadata.get('destination_type', manifest.destination_types[0])
+            account_metadata = account.metadata if isinstance(account.metadata, dict) else {}
+            kind = account_metadata.get('destination_type', manifest.destination_types[0]) if isinstance(account.metadata, dict) else 'unknown'
             if not isinstance(kind, str) or kind not in manifest.destination_types:
                 kind = 'unknown'
             accounts.append({
                 'id': account.pk, 'name': public_identity(account.display_name),
                 'external_id': public_identity(account.external_id),
-                'identity': {'id': public_identity(account.metadata.get('account_identity', account.external_id)),
-                             'name': public_identity(account.metadata.get('account_name', account.display_name))},
-                'destination': {'id': public_identity(account.metadata.get('destination_id', account.external_id)),
+                'identity': {'id': public_identity(account_metadata.get('account_identity', account.external_id)),
+                             'name': public_identity(account_metadata.get('account_name', account.display_name))},
+                'destination': {'id': public_identity(account_metadata.get('destination_id', account.external_id)),
                                 'kind': kind},
                 'health': asdict(health), 'sync': sync_health(provider, account),
                 'publishing_readiness': {mode: bool(health.ready and account.is_active

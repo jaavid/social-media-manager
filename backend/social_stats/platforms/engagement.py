@@ -26,10 +26,18 @@ def deliver_reply(target, text, actor):
     provider = get_provider(target.platform)
     last_inbound = target.messages.filter(direction='inbound').order_by('-created_at').first() if conversation else None
     remote_id = (target.platform_thread_id if kind == 'inbox' else getattr(last_inbound, 'platform_message_id', '')) if conversation else target.platform_review_id
-    result = ProviderExecution(provider, credential, DestinationContext(account.pk, target.client_id,
-        kind=account.metadata.get('destination_type', provider.manifest.destination_types[0]))).call(
-            'reply', ReplyRequest(remote_id, text, kind=kind,
-                recipient_id=(last_inbound.author_handle if last_inbound else target.contact_handle) if conversation else ''))
+    destination_kind = account.metadata.get('destination_type', provider.manifest.destination_types[0]) if isinstance(account.metadata, dict) else None
+    if not isinstance(destination_kind, str) or destination_kind not in provider.manifest.destination_types:
+        raise ProviderError('Account destination is invalid', code='invalid_destination')
+    try:
+        result = ProviderExecution(provider, credential, DestinationContext(account.pk, target.client_id,
+            kind=destination_kind)).call(
+                'reply', ReplyRequest(remote_id, text, kind=kind,
+                    recipient_id=(last_inbound.author_handle if last_inbound else target.contact_handle) if conversation else ''))
+    except ProviderError as error:
+        if error.code == 'token_expired':
+            credential.mark_auth_failure('token_expired')
+        raise
     message_id = result.data.get('message_id', '')
     if not isinstance(message_id, str) or any(secret and secret in message_id for secret in (credential.access_token, credential.refresh_token)):
         raise ProviderError('Invalid reply identifier', code='invalid_response')

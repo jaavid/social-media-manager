@@ -103,6 +103,22 @@ integration layer. Telegram's integration row and rich-media resolution use thos
 hooks; other providers need not implement Telegram behavior.
 
 `health` reports local credential readiness, not guaranteed upstream authorization.
+Account metadata must be an object and its destination type must belong to the
+provider manifest before constructing the execution context. Malformed historical
+metadata projects unknown/unavailable health; it must neither crash the registry
+reader nor claim readiness. The existing execution boundary still checks the
+credential's account, workspace and provider.
+
+Auth fields declare `normalization: trim | preserve`. Omitted normalization is
+compatible with `preserve`; custom password/secret whitespace is intentional unless
+the field explicitly declares otherwise. Built-in bot tokens, destination IDs and
+API-key fields declare `trim`. The connection dialog applies this contract in
+temporary component state and sends no credential to URL, cache or persistent
+storage.
+
+The shared reply executor records only a stable `token_expired` provider error on
+the selected credential. Inbox HTTP callers and approved operations share that
+behavior; transport errors and upstream outages do not invalidate credentials.
 Polling consumers checkpoint cursors only after account-scoped event persistence.
 Webhook adapters verify signatures before constructing `authenticity_verified=True`;
 that boolean is trusted internal input, never copied from a public request body.

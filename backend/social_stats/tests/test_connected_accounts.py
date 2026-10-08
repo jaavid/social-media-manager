@@ -51,6 +51,18 @@ class ConnectedAccountsTests(FixtureRegistration, TestCase):
         self.assertNotIn('PRIVATE-', str(response))
         self.assertEqual(self.item()['accounts'][0]['destination']['kind'], 'unknown')
 
+    def test_nonobject_historical_metadata_never_crashes_or_claims_readiness(self):
+        account = self.first.social_account
+        for metadata in ([], 'malformed'):
+            with self.subTest(metadata=metadata):
+                account.metadata = metadata
+                account.save(update_fields=['metadata'])
+                item = self.item()['accounts'][0]
+                self.assertFalse(item['health']['ready'])
+                self.assertEqual(item['destination']['kind'], 'unknown')
+                self.assertFalse(any(item['engagement_readiness'].values()))
+                self.assertFalse(any(item['publishing_readiness'].values()))
+
     def test_health_matches_runtime_expiry_revocation_and_unknown(self):
         self.first.expires_at = timezone.now() - timedelta(hours=1)
         self.first.save()
