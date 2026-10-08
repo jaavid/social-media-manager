@@ -29,7 +29,8 @@ test('save navigation and immediate reload never persist an empty post recovery 
  await page.addInitScript(()=>{
   const original=Storage.prototype.setItem;window.__emptyComposerDraftWrites=0;
   Storage.prototype.setItem=function(key,value){
-   if(key.startsWith('composer-draft:')){try{if(JSON.parse(value).content==='')window.__emptyComposerDraftWrites++;}catch{}}
+   // An incomplete new draft is valid; only the existing post must avoid a temporary empty snapshot.
+   if(key.startsWith('composer-draft:')&&key.endsWith(':900')){try{if(JSON.parse(value).content==='')window.__emptyComposerDraftWrites++;}catch{}}
    return original.call(this,key,value);
   };
  });
