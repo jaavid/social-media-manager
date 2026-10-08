@@ -30,11 +30,14 @@ const empty = { title: '', content: '', mediaType: 'text', mediaAssets: [], targ
   platformOverrides: {}, scheduleMode: 'now', scheduledAt: '', queueId: '' };
 export default function ComposerPage() {
   const { user } = useSession();
-  const { id } = useAppParams();
+  const { id: parameterId } = useAppParams();
+  const { pathname } = useAppLocation();
+  // The pathname can commit before dynamic parameters during route hydration.
+  const id = parameterId || pathname.match(/\/analytics\/composer\/([1-9]\d*)$/)?.[1];
   const [search] = useAppSearchParams();
   const requested = Number(search.get('workspace'));
   const workspaceId = Number.isSafeInteger(requested) && requested > 0 ? requested : user?.workspace_id || user?.client_id;
-  const scope = `${user?.id}:${workspaceId}:${id || 'new'}`;
+  const scope = `${user?.id}:${user?.role}:${user?.account_type}:${workspaceId}:${id || 'new'}`;
   return <ComposerEditor key={scope} workspaceId={workspaceId} id={id} draftKey={`composer-draft:${scope}`} />;
 }
 
@@ -68,6 +71,7 @@ function ComposerEditor({ workspaceId, id, draftKey }) {
   const snapshot = JSON.stringify(draft);
   const baseline = useRef(recovered ? null : snapshot);
   const errorRef = useRef(null);
+  const queueFocus = useRef(null);
   const accounts = useQuery({ queryKey: QK.connections(workspaceId), enabled: !!workspaceId,
     queryFn: ({ signal }) => connectionsAPI.get(workspaceId, signal), retry: false });
   const post = useQuery({ queryKey: ['composer.post', workspaceId, postId], enabled: !!postId && !!workspaceId,
@@ -98,10 +102,11 @@ function ComposerEditor({ workspaceId, id, draftKey }) {
     setDraft(next);
   }, [post.data, providers, recovered, accounts.data, draft.intentKey]);
   useEffect(() => {
-    if (id && !hydrated.current && !recovered) return;
+    // Do not persist the pre-hydration render while cached data initializes state.
+    if (id && !editorReady && !recovered) return;
     if (baseline.current === snapshot) transientStorage.removeItem(draftKey);
     else transientStorage.setItem(draftKey, JSON.stringify({ ...draft, savedPostId: savedId.current }));
-  }, [snapshot, draft, draftKey, id, recovered]);
+  }, [snapshot, draft, draftKey, id, recovered, editorReady]);
   useEffect(() => {
     const warn = event => { if (snapshot !== baseline.current) { event.preventDefault(); event.returnValue = ''; } };
     window.addEventListener('beforeunload', warn);
@@ -111,7 +116,12 @@ function ComposerEditor({ workspaceId, id, draftKey }) {
   const update = (key, value) => { setDraft(current => ({ ...current, ...(key === 'mediaAssets' ? { mediaDirty: true } : {}), [key]: typeof value === 'function' ? value(current[key]) : value })); setResult(null); };
   const selected = providers.filter(p => draft.targetPlatforms.includes(p.key));
   const modes = [...new Set(providers.flatMap(p => Object.keys(publishingModes(p))))];
-  const availableQueues = (queues.data || []).filter(q => q.platforms.length === draft.targetPlatforms.length && draft.targetPlatforms.length && draft.targetPlatforms.every(p => q.platforms.includes(p)));
+  const queueFailure = apiError(queues.error);
+  const queuesDenied = [401,403,404].includes(queueFailure.status);
+  const queueRows = queuesDenied ? undefined : queues.data;
+  const queueState = queuesDenied ? queueFailure.status === 404 ? 'not-found' : 'forbidden' : queues.isPaused ? 'offline' : queues.isError ? queueRows ? 'stale' : 'error' : queues.isPending ? 'loading' : queues.isFetching ? 'refreshing' : null;
+  const queueMessage = queuesDenied ? queueFailure.status === 404 ? 'recovery.notFound' : 'recovery.forbidden' : queueFailure.status === 429 ? 'recovery.rateLimited' : queues.isPaused ? 'recovery.offline' : queues.isError ? 'composer.queue.unavailable' : queues.isPending ? 'composer.queue.loading' : 'recovery.refreshing';
+  const availableQueues = (queueRows || []).filter(q => q.platforms.length === draft.targetPlatforms.length && draft.targetPlatforms.length && draft.targetPlatforms.every(p => q.platforms.includes(p)));
   const selectedQueue = availableQueues.find(q => String(q.id) === draft.queueId);
   const issues = [];
   for (const key of draft.targetPlatforms) {
@@ -174,7 +184,7 @@ function ComposerEditor({ workspaceId, id, draftKey }) {
     if (busy.current || (operation !== 'save' && !canPublish)) return;
     const instant = scheduledInstant(draft.scheduledAt);
     if (operation === 'schedule' && (!instant || Date.parse(instant) <= new Date().getTime())) { setFailure({ code: 'schedule_invalid' }); return; }
-    if (operation === 'add_to_queue' && (!selectedQueue || queues.isError)) return;
+    if (operation === 'add_to_queue' && (!selectedQueue || queues.isError || queues.isPaused)) return;
     busy.current = true; setPending(operation); setFailure(null); setResult(null);
     let commandStarted = false;
     try {
@@ -243,13 +253,15 @@ function ComposerEditor({ workspaceId, id, draftKey }) {
   const operation = draft.scheduleMode === 'schedule' ? 'schedule' : draft.scheduleMode === 'queue' ? 'add_to_queue' : 'publish_now';
   const label = operation === 'schedule' ? 'schedule' : operation === 'add_to_queue' ? 'queue' : 'publish';
   if ([accounts, post].some(query => query.isError && ['permission', 'authentication'].includes(apiError(query.error).kind))) return <DataState state="forbidden" title={t('composer.editor.permission_denied')} />;
+  const missingResource = [accounts, post].find(query => query.isError && apiError(query.error).status === 404);
+  if (missingResource) return <DataState state="not-found" title={t('recovery.notFound')} action={<Button onClick={() => missingResource.refetch()}>{t('composer.editor.retry')}</Button>} />;
   if (!workspaceId) return <DataState state="forbidden" title={t('composer.editor.permission_denied')} />;
   if (id && (!post.data || !editorReady) && !recovered) return <DataState state={post.isError ? 'error' : 'loading'} title={t(post.isError ? 'composer.editor.unavailable' : 'composer.editor.loading')}
     action={post.isError && <Button onClick={() => post.refetch()}>{t('composer.editor.retry')}</Button>} />;
   return <Page maxWidth="2xl"><div className="space-y-6" aria-busy={!!pending}>
     <PageHeader sticky={false} title={t(id ? 'composer.editor.edit' : 'composer.editor.title')} subtitle={t('composer.editor.description')}
       actions={<><Button variant="secondary" icon={Save} disabled={!!pending || ambiguous || !!retryDelay} onClick={() => run('save')}>{t('composer.editor.save')}</Button>
-        <Button icon={Send} loading={!!pending && pending !== 'upload'} disabled={!!pending || !canPublish || (operation === 'add_to_queue' && (!selectedQueue || queues.isError))} onClick={() => run(operation)}>{t(`composer.editor.${label}`)}</Button></>} />
+        <Button icon={Send} loading={!!pending && pending !== 'upload'} disabled={!!pending || !canPublish || (operation === 'add_to_queue' && (!selectedQueue || queues.isError || queues.isPaused))} onClick={() => run(operation)}>{t(`composer.editor.${label}`)}</Button></>} />
     {failure && <div ref={errorRef} tabIndex={-1} role="alert" className="rounded-xl border border-border bg-card p-4 text-start">
       <p>{t(errorKey(failure.code))}</p>
       {failure.retryAfter && <bdi>{failure.retryAfter}</bdi>}
@@ -314,9 +326,9 @@ function ComposerEditor({ workspaceId, id, draftKey }) {
             {['now', 'schedule', 'queue'].map(mode => <Button key={mode} variant={draft.scheduleMode === mode ? 'primary' : 'secondary'} aria-pressed={draft.scheduleMode === mode} onClick={() => update('scheduleMode', mode)}>{t(`composer.editor.${mode}`)}</Button>)}
           </div>
             {draft.scheduleMode === 'schedule' && <Input type="datetime-local" label={t('composer.editor.date')} hint={t('composer.editor.timezone', undefined, { zone: Intl.DateTimeFormat().resolvedOptions().timeZone })} value={draft.scheduledAt} onChange={e => update('scheduledAt', e.target.value)} />}
-            {draft.scheduleMode === 'queue' && <><NativeSelect label={t('composer.queue.destination')} value={draft.queueId} disabled={queues.isPending || queues.isError} onChange={e => update('queueId', e.target.value)}>
+            {draft.scheduleMode === 'queue' && <section ref={queueFocus} tabIndex={-1} aria-label={t('composer.queue.region')}><NativeSelect label={t('composer.queue.destination')} value={draft.queueId} disabled={queues.isPending || queues.isError || queues.isPaused} onChange={e => update('queueId', e.target.value)}>
               <option value="">{t('composer.queue.select')}</option>{availableQueues.map(q => <option key={q.id} value={q.id}>{q.name}</option>)}
-            </NativeSelect>{queues.isError && <DataState compact state="error" title={t('composer.queue.unavailable')} action={<Button onClick={() => queues.refetch()}>{t('composer.editor.retry')}</Button>} />}</>}
+            </NativeSelect>{queueState && <DataState compact state={queueState} title={t(queueMessage)} referenceId={queueFailure.referenceId} action={!['loading','refreshing'].includes(queueState) && <Button disabled={queues.isFetching} onClick={async () => { const response = await queues.refetch(); if (response.isSuccess) queueFocus.current?.focus(); }}>{t('composer.editor.retry')}</Button>} />}{!queueState && queueRows && !availableQueues.length && <DataState compact state={queueRows.length ? 'no-results' : 'empty'} title={t(queueRows.length ? 'composer.queue.empty' : 'composer.queue.none')} />}</section>}
           </Card>
         </fieldset>
       </div>

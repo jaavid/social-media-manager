@@ -89,7 +89,9 @@ export default function Modal({
           }}
           onCloseAutoFocus={(event) => {
             event.preventDefault();
-            (returnFocusRef?.current || previousFocus.current)?.focus();
+            const target = returnFocusRef?.current || previousFocus.current;
+            // Resume the underlying Radix focus scope before restoring its trigger.
+            queueMicrotask(() => { if (target?.isConnected) target.focus(); });
           }}
           dir={isPersian ? 'rtl' : 'ltr'}
           {...(!description ? { 'aria-describedby': undefined } : {})}

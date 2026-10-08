@@ -5,6 +5,7 @@ import { composer } from '@/services/domains/composer';
 import { connectionsAPI } from '@/services/domains/connections';
 import { connectionFixture, connectionAccount } from '@/services/__fixtures__/connections';
 import { setLanguage } from '@/i18n';
+import { QK } from '@/services/queryClient';
 
 const mockNavigate = jest.fn();
 let mockId;
@@ -18,8 +19,8 @@ jest.mock('@/services/domains/composer', () => ({ composer: { get: jest.fn(), sa
 jest.mock('@/services/domains/connections', () => ({ connectionsAPI: { get: jest.fn() } }));
 jest.mock('@/components/ai/AIWriteButton', () => () => null);
 jest.mock('@/components/connections/composerExtensions', () => ({ composerExtensions: {} }));
-function mount() {
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
+function mount(existingClient) {
+  const client = existingClient || new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
   const view = render(<QueryClientProvider client={client}><ComposerPage /></QueryClientProvider>);
   return { ...view, client };
 }
@@ -192,4 +193,67 @@ test('stored provider content and mode control validation and remain editable wi
   fireEvent.change(input, { target: { value: 'Edited provider content' } }); command();
   await waitFor(() => expect(composer.save).toHaveBeenCalled());
   expect(composer.save.mock.calls[0][2]).toEqual(expect.objectContaining({ content: 'x'.repeat(101), platform_overrides: { contract_example: { social_account_id: 10, content: 'Edited provider content', media_type: 'text' } } }));
+});
+
+
+test.each([403,404])('queue denial %s hides old metadata while preserving the independent editor', async status => {
+  const { client } = await compose();
+  fireEvent.click(screen.getByRole('button', { name: 'Add to Queue', exact: true }));
+  expect(screen.getByRole('option', { name: 'Evening' })).toBeInTheDocument();
+  composer.queues.mockRejectedValue({ isAxiosError:true, response: { status } });
+  await act(async () => { await client.refetchQueries({ queryKey: ['composer.queues',7] }); });
+  await waitFor(() => expect(screen.queryByRole('option', { name: 'Evening' })).not.toBeInTheDocument());
+  expect(screen.getByLabelText('Content')).toHaveValue('Keep this content');
+  expect(screen.getByLabelText('Destination queue')).toBeDisabled();
+  expect(composer.command).not.toHaveBeenCalled();
+});
+test('same-user role/type changes exclude the previous draft context', async () => {
+  const { rerender, client } = await compose();
+  mockUser = { ...mockUser, role:'staff', account_type:'agency_member' };
+  rerender(<QueryClientProvider client={client}><ComposerPage /></QueryClientProvider>);
+  await waitFor(() => expect(screen.getByLabelText('Content')).toHaveValue(''));
+  expect(composer.save).not.toHaveBeenCalled();
+});
+
+test('an existing post route cannot flash a new empty draft while dynamic parameters hydrate', async () => {
+  window.history.replaceState({}, '', '/admin/analytics/composer/900');
+  let resolve; composer.get.mockReturnValue(new Promise(done => { resolve = done; }));
+  mount();
+  expect(screen.queryByLabelText('Content')).not.toBeInTheDocument();
+  await waitFor(() => expect(composer.get).toHaveBeenCalledWith(7, '900', expect.any(AbortSignal)));
+  await act(async () => resolve(stored));
+  await waitFor(() => expect(screen.getByLabelText('Content')).toHaveValue(stored.content));
+  expect(composer.save).not.toHaveBeenCalled();
+});
+
+test('404 after an existing post read hides the snapshot and a valid retry restores the local draft', async () => {
+  mockId = '900'; const { client } = mount();
+  await waitFor(() => expect(screen.getByLabelText('Content')).toHaveValue(stored.content));
+  fireEvent.change(screen.getByLabelText('Content'), { target: { value:'Synthetic edited draft' } });
+  composer.get.mockRejectedValue({ isAxiosError:true, response:{status:404} });
+  await act(async () => client.refetchQueries({queryKey:['composer.post',7,'900']}));
+  await waitFor(() => expect(screen.queryByLabelText('Content')).not.toBeInTheDocument());
+  expect(screen.getByText('This resource is no longer available. Use navigation to choose another resource.')).toBeInTheDocument();
+  composer.get.mockResolvedValue(stored);fireEvent.click(screen.getByRole('button',{name:'Try again',exact:true}));
+  await waitFor(() => expect(screen.getByLabelText('Content')).toHaveValue('Synthetic edited draft'));
+  expect(composer.save).not.toHaveBeenCalled();
+});
+
+test('initial post hydration never persists an empty recovery draft and later edits survive remount', async () => {
+  mockId = '900';
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: Infinity } } });
+  client.setQueryData(QK.connections(7), fixture);
+  client.setQueryData(['composer.post', 7, '900'], stored);
+  const writes = jest.spyOn(Storage.prototype, 'setItem');
+  try {
+    const view = mount(client);
+    await waitFor(() => expect(screen.getByLabelText('Content')).toHaveValue(stored.content));
+    expect(writes.mock.calls.filter(([key]) => key.startsWith('composer-draft:'))).toEqual([]);
+    fireEvent.change(screen.getByLabelText('Content'), { target: { value: 'Synthetic unsaved edit' } });
+    await waitFor(() => expect(writes.mock.calls.some(([key, value]) => key.startsWith('composer-draft:') && JSON.parse(value).content === 'Synthetic unsaved edit')).toBe(true));
+    view.unmount();
+    mount();
+    await waitFor(() => expect(screen.getByLabelText('Content')).toHaveValue('Synthetic unsaved edit'));
+    expect(composer.save).not.toHaveBeenCalled();
+  } finally { writes.mockRestore(); }
 });
