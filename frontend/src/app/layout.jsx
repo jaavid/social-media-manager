@@ -53,7 +53,11 @@ export default async function RootLayout({ children }) {
       '--font-latin-face': latinFont.style.fontFamily.split(',')[0] }}
     data-preference={preference} data-theme={theme}
     className={`${arabicFont.variable} ${latinFont.variable}${theme === 'dark' ? ' dark' : ''}`} suppressHydrationWarning>
-    <head><script dangerouslySetInnerHTML={{ __html: bootstrap }} /></head>
+    <head>
+      <script dangerouslySetInnerHTML={{ __html: bootstrap }} />
+      <script defer src="https://stats.tamin24.ir/script.js" data-website-id="88ddb74e-fddf-479b-bb0e-9b0487f0a849" />
+      <script defer src="https://stats.tamin24.ir/recorder.js" data-website-id="88ddb74e-fddf-479b-bb0e-9b0487f0a849" />
+    </head>
     <body><SiteProviders language={language} preferredLanguage={preferredLanguage} theme={preference} hasSession={cookieJar.has('sessionid')}>
       {children}
       <Suspense fallback={null}><PageviewTracker /></Suspense>

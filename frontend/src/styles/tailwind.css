@@ -1,5 +1,5 @@
-@import "tailwindcss";
-@import "./primitives.css";
+@import 'tailwindcss';
+@import './primitives.css';
 
 /* Scan route files and shared features under src. */
 @source "../";
@@ -34,8 +34,10 @@
   --color-destructive-foreground: var(--destructive-foreground);
   --color-sidebar: var(--surface-card);
   --color-sidebar-foreground: var(--text-secondary);
-  --color-chart-1: var(--chart-1); --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3); --color-chart-4: var(--chart-4);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
   --text-xs: var(--product-text-xs);
   --text-sm: var(--product-text-sm);
   --text-base: var(--product-text-base);
@@ -71,10 +73,11 @@
   --text-base--line-height: var(--line-height-body);
   --text-lg--line-height: var(--line-height-body);
   --spacing: 4px;
-  --breakpoint-sm: 40rem; --breakpoint-md: 48rem;
-  --breakpoint-lg: 64rem; --breakpoint-xl: 80rem;
+  --breakpoint-sm: 40rem;
+  --breakpoint-md: 48rem;
+  --breakpoint-lg: 64rem;
+  --breakpoint-xl: 80rem;
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-
 }
 
 @layer base {
