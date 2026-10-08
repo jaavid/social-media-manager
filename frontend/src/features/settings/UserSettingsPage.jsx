@@ -6,7 +6,7 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
-import Input from '../../components/ui/Input';
+import SecurityTab from './components/PasswordSection';
 import DeleteAccountSection from './components/DeleteAccountSection';
 import ProfileSettings from './components/ProfileSettings';
 import { cn } from '../../lib/utils';
@@ -18,9 +18,6 @@ import { cn } from '../../lib/utils';
 import {
   useState,
   useEffect,
-  useId,
-  cloneElement,
-  isValidElement,
 } from 'react';
 import { useAppNavigate as useNavigate } from '../../core/navigation';
 import {
@@ -30,9 +27,7 @@ import {
   Loader2,
   CheckCircle,
   AlertTriangle,
-  X,
   LogOut,
-  Shield,
   Bell,
   Palette,
   Keyboard,
@@ -53,7 +48,6 @@ import {
   WebhooksSection,
   CrossLinksSection,
 } from './components/SettingsSections';
-import { MFAManager, ActiveSessionsList } from './components/SecuritySections';
 const CYAN = 'var(--brand-primary)';
 const TAB_GROUPS = [
   {
@@ -281,256 +275,6 @@ function ProfileTab({ user, logout, navigate }) {
 }
 
 // ── Security Tab ──────────────────────────────────────────────────────────────
-
-function SecurityTab({ user }) {
-  const [current, setCurrent] = useState('');
-  const [newPwd, setNewPwd] = useState('');
-  const [confirm, setConfirm] = useState('');
-  const [showC, setShowC] = useState(false);
-  const [showN, setShowN] = useState(false);
-  const [showConf, setShowConf] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [success, setSuccess] = useState('');
-  const [error, setError] = useState('');
-  const [isSocial, setIsSocial] = useState(false);
-  const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    profileAPI
-      .get()
-      .then((res) => setIsSocial(res.data.is_social))
-      .finally(() => setLoading(false));
-  }, []);
-  const handleSave = async (e) => {
-    e.preventDefault();
-    setError('');
-    setSuccess('');
-    if (!current || !newPwd || !confirm) {
-      setError('All fields are required.');
-      return;
-    }
-    if (newPwd !== confirm) {
-      setError('New passwords do not match.');
-      return;
-    }
-    if (newPwd.length < 8) {
-      setError('Password must be at least 8 characters.');
-      return;
-    }
-    setSaving(true);
-    try {
-      await profileAPI.changePassword({
-        current_password: current,
-        new_password: newPwd,
-        confirm_password: confirm,
-      });
-      setSuccess('Password changed successfully.');
-      setCurrent('');
-      setNewPwd('');
-      setConfirm('');
-    } catch (err) {
-      setError(err?.response?.data?.error || 'Failed to change password.');
-    } finally {
-      setSaving(false);
-    }
-  };
-  if (loading) return <Spinner />;
-  return (
-    <div className={cn('[padding:32px_36px]')}>
-      <h3
-        className={cn(
-          '[margin:0_0_4px]',
-          '[font-size:18px]',
-          '[font-weight:700]',
-          '[color:var(--text-primary)]',
-        )}
-      >
-        Security
-      </h3>
-      <p
-        className={cn(
-          '[margin:0_0_28px]',
-          '[font-size:14px]',
-          '[color:var(--text-secondary)]',
-        )}
-      >
-        Manage your account password and security settings.
-      </p>
-
-      {/* Account type badge */}
-      <div
-        className={cn(
-          '[display:flex]',
-          '[align-items:flex-start]',
-          '[gap:14px]',
-          '[padding:16px_18px]',
-          '[border-radius:14px]',
-          '[background:linear-gradient(135deg,var(--surface-sunken),#f0f9ff)]',
-          '[border:1px_solid_var(--border-default)]',
-        )}
-      >
-        <Shield size={18} color={CYAN} />
-        <div>
-          <p
-            className={cn(
-              '[margin:0_0_2px]',
-              '[font-weight:700]',
-              '[font-size:14px]',
-              '[color:var(--text-primary)]',
-            )}
-          >
-            {isSocial ? 'Social Login Account' : 'Email & Password Account'}
-          </p>
-          <p
-            className={cn(
-              '[margin:0]',
-              '[font-size:13px]',
-              '[color:var(--text-secondary)]',
-            )}
-          >
-            {isSocial
-              ? 'Your account is linked to Google. Password login is not available.'
-              : 'You can change your password below.'}
-          </p>
-        </div>
-      </div>
-
-      {isSocial ? (
-        <div
-          className={cn(
-            '[display:flex]',
-            '[align-items:flex-start]',
-            '[gap:14px]',
-            '[padding:16px_18px]',
-            '[border-radius:14px]',
-            '[background:linear-gradient(135deg,var(--surface-sunken),#f0f9ff)]',
-            '[border:1px_solid_var(--border-default)]',
-            '[background:linear-gradient(135deg,#f0f9ff,#f8faff)]',
-            '[border:1px_solid_rgba(0,215,255,0.15)]',
-            '[margin-top:20px]',
-          )}
-        >
-          <CheckCircle size={18} color={CYAN} />
-          <p
-            className={cn(
-              '[margin:0]',
-              '[font-size:14px]',
-              '[color:var(--text-secondary)]',
-            )}
-          >
-            Password management is handled by Google. To change your password,
-            visit your Google account settings.
-          </p>
-        </div>
-      ) : (
-        <form onSubmit={handleSave} className={cn('[margin-top:24px]')}>
-          <Field label="Current Password" required>
-            <PwdInput
-              value={current}
-              onChange={setCurrent}
-              show={showC}
-              onToggle={() => setShowC((v) => !v)}
-              placeholder="Enter current password"
-            />
-          </Field>
-          <Field label="New Password" required>
-            <PwdInput
-              value={newPwd}
-              onChange={setNewPwd}
-              show={showN}
-              onToggle={() => setShowN((v) => !v)}
-              placeholder="At least 8 characters"
-            />
-          </Field>
-          <Field label="Confirm New Password" required>
-            <PwdInput
-              value={confirm}
-              onChange={setConfirm}
-              show={showConf}
-              onToggle={() => setShowConf((v) => !v)}
-              placeholder="Re-enter new password"
-            />
-          </Field>
-
-          {error && <Alert type="error" msg={error} />}
-          {success && <Alert type="success" msg={success} />}
-
-          <button
-            type="submit"
-            disabled={saving}
-            className={cn(
-              '[display:inline-flex]',
-              '[align-items:center]',
-              '[gap:8px]',
-              '[padding:12px_28px]',
-              '[border-radius:14px]',
-              '[border:none]',
-              '[background:linear-gradient(135deg,#00d7ff,#0099bb)]',
-              '[color:#021418]',
-              '[font-size:14px]',
-              '[font-weight:800]',
-              '[cursor:pointer]',
-              '[box-shadow:0_6px_20px_rgba(0,215,255,0.25)]',
-              '[margin-top:4px]',
-            )}
-          >
-            {saving ? (
-              <>
-                <Loader2
-                  size={15}
-                  className={cn('[animation:spin_1s_linear_infinite]')}
-                />{' '}
-                Saving...
-              </>
-            ) : (
-              <>
-                <Lock size={15} /> Change Password
-              </>
-            )}
-          </button>
-        </form>
-      )}
-
-      {!isSocial && (
-        <div
-          className={cn(
-            '[margin-top:28px]',
-            '[display:flex]',
-            '[flex-direction:column]',
-            '[gap:16px]',
-          )}
-        >
-          <h4
-            className={cn(
-              '[margin:0]',
-              '[font-size:14px]',
-              '[font-weight:700]',
-              '[letter-spacing:0.04em]',
-              '[text-transform:uppercase]',
-              '[color:var(--text-tertiary)]',
-            )}
-          >
-            Two-factor authentication
-          </h4>
-          <MFAManager />
-
-          <h4
-            className={cn(
-              '[margin:8px_0_0]',
-              '[font-size:14px]',
-              '[font-weight:700]',
-              '[letter-spacing:0.04em]',
-              '[text-transform:uppercase]',
-              '[color:var(--text-tertiary)]',
-            )}
-          >
-            Active sessions
-          </h4>
-          <ActiveSessionsList />
-        </div>
-      )}
-    </div>
-  );
-}
 
 // ── Agency Tab ────────────────────────────────────────────────────────────────
 
@@ -895,32 +639,6 @@ function AgencyTab({ user, refreshAuth, navigate }) {
 
 // ── Shared small components ───────────────────────────────────────────────────
 
-function Field({ label, required, children }) {
-  const id = useId();
-  return (
-    <div className="mb-4 flex min-w-0 flex-col gap-2">
-      <label htmlFor={id} className="ds-field-label">
-        {label}
-        {required && <span className="ms-1 text-destructive">*</span>}
-      </label>
-      {isValidElement(children)
-        ? cloneElement(children, { id, required })
-        : children}
-    </div>
-  );
-}
-function PwdInput({ value, onChange, placeholder, id, required }) {
-  return (
-    <Input
-      id={id}
-      required={required}
-      type="password"
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder={placeholder}
-    />
-  );
-}
 function Alert({ type, msg }) {
   const isError = type === 'error';
   return (
