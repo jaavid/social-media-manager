@@ -780,3 +780,37 @@ Ravinta evidence includes the 96-pair light/dark state-compositing matrix and 16
 #115 is acceptance-complete and #180 uses its closure directive. #106 remains open for the exact #112 unknown-provider readiness/presentation acceptance dependency and required CI debt. #116 remains open for approved outlined fa/en lockups, authoritative naming/domain/handle/trademark evidence, native OS installation, unverified legacy contrast and exclusive provider-driven presentation. None of those criteria is falsely marked complete. Next priority is the necessary #112 sub-contract/bindings plus supplying the approved external brand assets/decisions and completing installation/legacy contrast evidence.
 
 Final rail-mark verification: a real primary-on-primary regression (rendered contrast 1:1) was reproduced by the stronger browser assertion before the fix. The existing monochrome variant now uses `--text-on-brand` on the primary button. Build, all 375 Jest tests and source checks pass after this change; the final brand/typography browser rerun verifies 49 cases without changing assertions or timeouts. Approved master geometry and route behavior are unchanged.
+
+## 2026-10-08 — refreshed main and historical review reconciliation
+
+The assessment above preserves its dated historical baselines. The latest main
+fetched during this batch is `6ac39d0ccca419ae4dc3922c967c1c5fa2a147a5`, after
+#177/#178/#179/#182/#183/#180/#181 merged and #115 closed. Earlier statements
+that these changes were unmerged are historical evidence, superseded by this
+paragraph, not deleted. No batch prerequisite PR has yet merged; branch tests are
+not post-merge-main evidence.
+
+[REVIEW_DEBT_AUDIT.md](REVIEW_DEBT_AUDIT.md) and the machine-readable inventory
+account for the actual81 historical PRs,90 inline threads,45 review summaries,
+82 top-level discussions and8 off-diff/nit findings. #184/#185/#186 own fixes;
+#187 owns disposition. Merged/outdated/resolved labels are not correction proof.
+
+The notification choice-label rollout introduced current migration drift;
+#188 adds the state-only0083 migration without identifier/schema/data renames.
+#189 fixes Celery5.6 inspection of built-in registration and its actual Docker CI
+passed. #195 restores the frontend required check using two complete browser
+shards: actual50c94b5 run37815447129 passed both shards and the aggregate. The
+same run still fails backend0083 drift and Docker missing celery.backend_cleanup
+on unmerged main. A full green CI result is not claimed.
+
+Security runs37738261803 and37760223845 on the same snapshot disagree because
+the scheduled history scan finds a public fixture in old0bc18d8 history. Decoded
+job logs and fixture provenance establish the cause; empty `--log-failed` output
+was not proof of a clean scan, a real leak or a license failure. No policy/baseline,
+secret exclusion or assertion is relaxed. Historical scheduled-scan remediation
+remains an explicit blocker under the batch's unchanged-policy constraint.
+
+Canonical #106/#112/#116 and #108/#113/#107/#50–#53 remain independent criterion
+work. #51 needs criterion-level verification after this batch, not tenancy
+rewrites. Approved wordmarks, legal/domain/handle approvals and native install
+certification remain outside offline proof; no unapproved brand assets generated.

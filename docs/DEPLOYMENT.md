@@ -92,3 +92,35 @@ Django و Celery روی stdout لاگ JSON می‌نویسند؛ `LOG_LEVEL=INFO
 python3 scripts/check_observability_stack.py http://localhost:3000
 docker compose exec -T app python - < scripts/check_runtime_privileges.py
 ```
+
+### Existing PostgreSQL volume during historical upgrades
+
+The unified stack's canonical key is `postgres_data`. Older Compose revisions used
+`pgdata`; changing a project-scoped key creates a different volume rather than
+moving data. Do not rename the current key blindly or run `down -v`.
+
+Before an in-place upgrade, the operator must identify the actual PostgreSQL
+container mount and Compose project name (read-only `docker inspect`), record the
+PostgreSQL major version, take a consistent backup with writes stopped and verify
+an isolated restore. If the verified existing volume has another name, use a
+local Compose override mapping the existing name explicitly:
+
+```yaml
+volumes:
+  postgres_data:
+    external: true
+    name: <verified-existing-volume-name>
+```
+
+Review `docker compose config` with that override before starting the upgraded
+stack. Keep the old volume and backup through application upgrade/rollback
+verification. This does not migrate incompatible PostgreSQL major versions or
+prove which volume a real deployment uses. Deployment-specific mount, backup and
+restore evidence is required; this audit performs no production volume action.
+
+For forwarded headers, the default `APP_BIND=127.0.0.1` expects a trusted outer
+proxy. The Arvan origin example overwrites the forwarded scheme/client IP and
+requires a firewall limiting origin access to trusted CDN/proxy ingress. Publishing
+`APP_BIND=0.0.0.0` without that perimeter does not establish proxy trust. Confirm
+the deployed bind/firewall/TLS path before enabling proxy IP trust; application
+opt-out strips the forwarded-IP headers consumed by legacy security readers.
