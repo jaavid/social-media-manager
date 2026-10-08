@@ -222,4 +222,3 @@ Sensitive specifications disabled trace/screenshot/video; fixture-only captures
 from existing public flows were not used to regenerate committed brand snapshots.
 These branch results are not post-merge main evidence and do not close #185, #187,
 #106 or #112. Historical review reconciliation remains in the batch ledger.
-
