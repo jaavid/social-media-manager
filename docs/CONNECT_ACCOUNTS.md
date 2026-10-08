@@ -18,6 +18,8 @@ Scopeهای فعلی در [oauth_views.py](../backend/social_stats/oauth_views.p
 
 - Meta: `pages_show_list`، `pages_read_engagement`، `pages_manage_metadata`، `instagram_basic`، `instagram_content_publish`، `instagram_manage_insights`، `read_insights`. حساب Instagram باید شرایط Graph API و اتصال Page را داشته باشد.
 - YouTube: `https://www.googleapis.com/auth/youtube.force-ssl` و `https://www.googleapis.com/auth/yt-analytics.readonly` به‌همراه `openid email profile`. Data API v3 و Analytics API را فعال کنید؛ در حالت Testing کاربر را به test users اضافه کنید. API key به‌تنهایی کافی نیست.
+  برای consent screen با user type خارجی و وضعیت **Testing**، Google refresh token را با عمر **۷ روز** صادر می‌کند. استثنا فقط زمانی است که تمام scopeهای درخواستی زیرمجموعهٔ `openid`، `userinfo.email` و `userinfo.profile` یا معادل OpenID Connect آن‌ها باشند؛ scopeهای YouTube بالا مشمول این استثنا نیستند. `access_type=offline` و consent دوباره، این محدودیت Testing را حذف نمی‌کنند. پس از انقضا، اتصال مجدد با رضایت کاربر لازم است؛ refresh خودکار دائمی را فرض نکنید.
+  برای استفادهٔ تولیدی، publishing status و الزامات verification همان scopeها را در Google Cloud بررسی کنید. حتی در Production، refresh token ممکن است به علت revoke توسط کاربر، عدم استفاده، محدودیت تعداد token یا سیاست سازمانی نامعتبر شود؛ Production تضمین عمر دائمی نیست. [مرجع رسمی Google: Refresh token expiration](https://developers.google.com/identity/protocols/oauth2#expiration) (بررسی‌شده در ۲۰۲۶-۱۰-۰۸).
 - Google Business: `https://www.googleapis.com/auth/business.manage` به‌همراه `openid email profile`؛ دسترسی Business Profile API لازم است.
 - LinkedIn: اتصال فعلی `openid profile email` می‌گیرد؛ این اتصال به‌تنهایی مجوز انتشار یا آمار سازمانی نیست. مجوز محصول/حساب باید متناسب با عملیات فراهم شود.
 
