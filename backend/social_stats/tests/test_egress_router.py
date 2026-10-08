@@ -1,7 +1,6 @@
 from unittest.mock import Mock, patch
 
 import requests
-from django.core.cache import cache
 from django.test import SimpleTestCase
 
 from social_stats.egress.router import (
@@ -62,6 +61,7 @@ class EgressRouterTests(SimpleTestCase):
                 'X-API-Gateway-Key': 'gateway-secret',
             },
             data={'chat_id': '@channel'},
+            allow_redirects=False,
         )
 
     @patch.dict('os.environ', {
