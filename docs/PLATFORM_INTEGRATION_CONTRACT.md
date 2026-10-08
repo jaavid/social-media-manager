@@ -240,4 +240,29 @@ returns it to draft, and stale approval revisions cannot execute.
 Apply migrations 0078–0079 before serving this API/UI version. They add local
 intent deduplication and per-account delivery keys without deleting existing logs.
 
-Manual credential normalization also applies at the authenticated connection API boundary. The server uses each validated AuthField normalization value before required-value checks; preserve fields retain intentional whitespace through encrypted credential persistence. String/type and maximum-length constraints remain. The UI and backend therefore share the field contract rather than inferring normalization from password input type.
+### HTTP fallback and OIDC token responses (review audit 2026-10-08)
+
+The shared egress router permits network fallback for GET/HEAD/OPTIONS. Other
+methods may use fallback only after Requests `ConnectTimeout` when the caller
+explicitly set `allow_redirects=False`. A connect timeout on a later redirect leg
+cannot prove that the original write was never sent. Read timeout, generic
+connection error and TLS error do not justify mutation replay. HTTP responses do
+not trigger fallback. An open direct circuit chooses the gateway before sending
+a new operation; it does not replay a previous uncertain operation. Provider
+clients retain their established timeout/network error contracts. A missing
+gateway propagates the original failure. Provider GET/list results do not prove
+the causal outcome of an earlier write.
+
+The OIDC authorization-code token POST never follows redirects and rejects every
+3xx response before reading access tokens or calling userinfo. Existing discovery,
+userinfo and explicit insecure-development URL policy remain unchanged.
+
+Gateway transport verification (2026-10-08, review batch): configured gateway
+URLs must use HTTPS and cannot contain URL credentials, query strings, or
+fragments. An empty setting still means no gateway. There is no implicit HTTP
+exemption for development. Gateway calls and credential-bearing diagnostic
+probes never follow redirects, including when a caller requests them. A 3xx
+response cannot establish successful gateway health. Invalid optional gateway
+configuration is reported as unavailable; auto routing can still use direct
+transport, while explicitly requested gateway transport fails before sending.
+These controls complement the ambiguous-write fallback boundary above.

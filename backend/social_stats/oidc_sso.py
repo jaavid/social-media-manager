@@ -206,7 +206,10 @@ def oidc_sso_callback(request):
             discovery['token_endpoint'],
             data=token_payload,
             timeout=8,
+            allow_redirects=False,
         )
+        if 300 <= token_response.status_code < 400:
+            return _frontend_error('Organization SSO sign-in failed. Please try again.')
         token_response.raise_for_status()
         access_token = token_response.json().get('access_token', '')
         if not access_token:
