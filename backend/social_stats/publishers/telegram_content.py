@@ -296,8 +296,10 @@ def poll(value, destination="channel"):
     if not isinstance(out["question"], str) or not 1 <= len(out["question"]) <= 300:
         invalid("Poll question needs 1–300 characters")
     options = out["options"]
-    if not isinstance(options, list) or not 1 <= len(options) <= 12:
-        invalid("Poll needs 1–12 answer options")
+    # Product editorial policy requires a choice, even though current Telegram
+    # Bot API sendPoll permits one option. Keep the provider's upper bound.
+    if not isinstance(options, list) or not 2 <= len(options) <= 12:
+        invalid("Poll needs 2–12 answer options")
     normalized = []
     for option in options:
         option = {"text": option} if isinstance(option, str) else option
