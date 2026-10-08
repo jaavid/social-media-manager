@@ -47,3 +47,18 @@ test('install metadata and assets are served with the declared dimensions', asyn
 test('explicit theme color matches the saved preference before hydration',async({browser})=>{
  const context=await browser.newContext({javaScriptEnabled:false,colorScheme:'light'});await context.addCookies([{name:'theme',value:'dark',url:base}]);const page=await context.newPage();await page.goto('/login');await expect(page.locator('html')).toHaveAttribute('data-theme','dark');await expect(page.locator('meta[name=theme-color]')).toHaveAttribute('content','#102B29');await context.close();
 });
+
+for (const theme of ['light','dark']) test(`canonical contrast matrix ${theme}`,async({page})=>{
+ await fixture(page,'en',theme);await page.goto('/admin/account-settings');
+ const surfaces=['--surface-page','--surface-card','--surface-elevated','--surface-sunken','--surface-hover'];
+ const text=['--text-primary','--text-secondary','--text-tertiary','--text-link'];
+ const states=['--success','--warning','--danger','--info'];
+ const keys=[...surfaces,...text,...states,...states.map(k=>`${k}-bg`),'--border-focus','--brand-primary','--brand-primary-hover','--brand-primary-active','--text-on-brand'];
+ const tokens=await page.evaluate(keys=>Object.fromEntries(keys.map(k=>[k,getComputedStyle(document.documentElement).getPropertyValue(k).trim()])),keys);
+ const rgb=value=>value.startsWith('#')?value.slice(1).match(/../g).map(v=>parseInt(v,16)):value.match(/[\d.]+/g).map(Number);
+ const blend=(foreground,background)=>{const a=rgb(foreground),b=rgb(background),opacity=a[3]??1;return '#'+a.slice(0,3).map((v,i)=>Math.round(v*opacity+b[i]*(1-opacity)).toString(16).padStart(2,'0')).join('');};
+ const rows=[];for(const bg of surfaces){for(const fg of text)rows.push({foreground:fg,background:bg,minimum:4.5,ratio:contrast(tokens[fg],tokens[bg])});for(const fg of states)rows.push({foreground:fg,background:`${fg}-bg over ${bg}`,minimum:4.5,ratio:contrast(tokens[fg],blend(tokens[`${fg}-bg`],tokens[bg]))});rows.push({foreground:'--border-focus',background:bg,minimum:3,ratio:contrast(tokens['--border-focus'],tokens[bg])});}
+ for(const bg of ['--brand-primary','--brand-primary-hover','--brand-primary-active'])rows.push({foreground:'--text-on-brand',background:bg,minimum:4.5,ratio:contrast(tokens['--text-on-brand'],tokens[bg])});
+ const fs=await import('node:fs/promises');await fs.writeFile(`e2e/evidence/brand/contrast-${theme}.json`,JSON.stringify({theme,scope:'canonical token combinations; excludes disabled text, legacy raw colors and native installation',rows},null,2)+'\n');
+ for(const row of rows)expect(row.ratio,`${row.foreground} over ${row.background}`).toBeGreaterThanOrEqual(row.minimum);
+});
