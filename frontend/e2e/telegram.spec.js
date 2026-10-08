@@ -20,7 +20,7 @@ async function setup(page, onWrite) {
       json = post;
     } else if (path.includes('/social-accounts/')) json = [{ id: 1, client: 1, platform: 'telegram', display_name: 'News', is_active: true }];
     else if (path.includes('/oauth/status/') || path.includes('/bot-channels/')) json = { telegram: { status: 'active' } };
-    else if (path.includes('/telegram-suggestions/')) json = [{ id: 1, account: 1, account_name: 'News', sender_name: 'Reader', content: 'Suggested post', state: 'received', provider_state: 'pending', proposal: { price: { amount: 10, currency: 'XTR' } }, media: {} }];
+    else if (path.includes('/telegram-suggestions/')) json = [{ id: 1, client: 1, account: 1, account_name: 'News', sender_name: 'Reader', content: 'Suggested post', state: 'received', provider_state: 'pending', proposal: { price: { amount: 10, currency: 'XTR' } }, media: {}, draft: null, created_at: '2026-10-08T10:00:00Z', updated_at: '2026-10-08T10:00:00Z' }];
     else if (/\/(workspaces|notifications|alerts|invitations|conversations|queues)\/$/.test(path)) json = [];
     return route.fulfill({ json });
   });

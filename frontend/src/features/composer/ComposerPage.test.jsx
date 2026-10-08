@@ -15,7 +15,7 @@ const stored = { id: 900, client: 7, title: '', content: 'Keep this content', me
   target_platforms: ['contract_example'], platform_overrides: {}, status: 'draft', scheduled_at: null };
 jest.mock('@/core/navigation', () => ({ useAppNavigate: () => mockNavigate, useAppSearchParams: () => [new URLSearchParams()], useAppParams: () => ({ id: mockId }), useAppLocation: () => ({ pathname: globalThis.window.location.pathname }) }));
 jest.mock('@/core/session', () => ({ useSession: () => ({ user: mockUser }) }));
-jest.mock('@/services/domains/composer', () => ({ composer: { get: jest.fn(), save: jest.fn(), command: jest.fn(), queues: jest.fn(), resolve: jest.fn() } }));
+jest.mock('@/services/domains/composer', () => ({ composer: { get: jest.fn(), save: jest.fn(), command: jest.fn(), queues: jest.fn(), resolve: jest.fn(), upload: jest.fn() } }));
 jest.mock('@/services/domains/connections', () => ({ connectionsAPI: { get: jest.fn() } }));
 jest.mock('@/components/ai/AIWriteButton', () => () => null);
 jest.mock('@/components/connections/composerExtensions', () => ({ composerExtensions: {} }));
@@ -256,4 +256,22 @@ test('initial post hydration never persists an empty recovery draft and later ed
     await waitFor(() => expect(screen.getByLabelText('Content')).toHaveValue('Synthetic unsaved edit'));
     expect(composer.save).not.toHaveBeenCalled();
   } finally { writes.mockRestore(); }
+});
+
+// Off-diff #96 review: active native editor already preserves the chosen mode.
+test('uploading two media items preserves an explicitly chosen album editor mode', async () => {
+  const provider = fixture.providers[0];
+  provider.capabilities.publish_image = 'supported';
+  provider.contract.publishing_modes.album = {
+    capability: 'publish_image', ui_extension: '',
+    constraints: { ...provider.contract.publishing_modes.text.constraints, status: 'supported', media_types: ['image', 'video'], min_items: 2, max_items: 10 },
+  };
+  composer.upload.mockImplementation(async (_workspace, file) => ({ id: file.name === 'first.png' ? 21 : 22, client: 7, mime_type: 'image/png', file_url: `https://example.test/${file.name}` }));
+  await compose();
+  const mode = screen.getByLabelText('Content mode');
+  fireEvent.change(mode, { target: { value: 'album' } });
+  fireEvent.change(screen.getByLabelText('Upload'), { target: { files: [new File(['public fixture'], 'first.png', { type: 'image/png' }), new File(['public fixture'], 'second.png', { type: 'image/png' })] } });
+  await waitFor(() => expect(composer.upload).toHaveBeenCalledTimes(2));
+  await waitFor(() => expect(screen.getByLabelText('Upload')).toBeEnabled());
+  expect(mode).toHaveValue('album');
 });
