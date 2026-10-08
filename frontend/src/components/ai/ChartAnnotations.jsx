@@ -1,3 +1,4 @@
+import { useLanguage } from '@/i18n';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -35,6 +36,7 @@ export default function ChartAnnotations({
   paragraphs = 2,
   compact = false,
 }) {
+  const { t: brandT } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [data, setData]       = useState(null);
   const [error, setError]     = useState('');
@@ -121,9 +123,7 @@ export default function ChartAnnotations({
             <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>
               What this data means
             </div>
-            <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
-              From Social Stats
-            </div>
+            <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{brandT('brand.from')}</div>
           </div>
         </div>
         <Button
@@ -142,8 +142,7 @@ export default function ChartAnnotations({
         <p style={{
           margin: 0, fontSize: 12, color: 'var(--text-tertiary)', lineHeight: 'var(--line-height-body)',
         }}>
-          Click <strong style={{ color: 'var(--brand-primary-hover)' }}>Explain</strong> to have Social Stats translate this chart in plain English.
-        </p>
+          Click <strong style={{ color: 'var(--brand-primary-hover)' }}>Explain</strong>{brandT('brand.explainSuffix')}</p>
       )}
 
       {error && (

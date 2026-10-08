@@ -38,7 +38,7 @@ export default function AIBadge({
   const resolvedLabel = label ?? (cached ? 'AI · cached' : 'AI-assisted');
   const resolvedTitle = title ?? (cached
     ? 'This was served from the AI cache — no new generation cost was incurred'
-    : 'This content was generated with Social Stats assistance');
+    : 'This content was generated with Ravinta assistance');
   const Icon = cached ? Database : Sparkles;
   if (variant === 'dot') {
     return (

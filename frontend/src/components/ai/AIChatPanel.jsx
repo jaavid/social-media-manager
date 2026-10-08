@@ -1,3 +1,4 @@
+import { useLanguage } from '@/i18n';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -18,7 +19,7 @@ import { useSession as useAuth } from '../../core/session';
 import toast from '../ui/toast';
 
 /**
- * AIChatPanel — slide-in right-side panel for Social Stats chat.
+ * AIChatPanel — slide-in right-side panel for Ravinta chat.
  *
  * Props:
  *   open      bool — whether the panel is visible
@@ -42,6 +43,7 @@ const QUICK_PROMPTS = [
 ];
 
 export default function AIChatPanel({ open, onClose, clientId }) {
+  const { t: brandT } = useLanguage();
   const { user } = useAuth();
   const [conversations, setConversations] = useState([]);
   const [activeId, setActiveId] = useState(null);
@@ -148,7 +150,7 @@ export default function AIChatPanel({ open, onClose, clientId }) {
         setConversations(list.data?.conversations || []);
       } catch {}
     } catch (e) {
-      const msg = e?.response?.data?.error || 'Social Stats is unavailable';
+      const msg = e?.response?.data?.error || 'Ravinta is unavailable';
       toast.error(msg);
     } finally {
       setSending(false);
@@ -191,7 +193,7 @@ export default function AIChatPanel({ open, onClose, clientId }) {
 
       <aside
         role="dialog"
-        aria-label="Social Stats chat"
+        aria-label={brandT('brand.chatLabel')}
         className="ai-chat-panel"
         style={{
           position: 'fixed',
@@ -222,9 +224,7 @@ export default function AIChatPanel({ open, onClose, clientId }) {
                 color: '#fff',
               }}>
                 <Sparkles size={13} strokeWidth={2.4} />
-              </span>
-              Social Stats
-            </span>
+              </span>{brandT('brand.name')}</span>
           )}
           <div style={{ flex: 1 }} />
           {!showHistory && (
@@ -479,6 +479,7 @@ function ConfirmationCard({ confirmation, onConfirm, onCancel }) {
 }
 
 function EmptyChat({ onPick }) {
+  const { t: brandT } = useLanguage();
   return (
     <div style={{ padding: '24px 8px' }}>
       <div style={{
@@ -494,9 +495,7 @@ function EmptyChat({ onPick }) {
         }}>
           <Sparkles size={22} strokeWidth={2} />
         </div>
-        <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>
-          Hi, I&apos;m Social Stats
-        </div>
+        <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>{brandT('brand.greeting')}</div>
         <p style={{ margin: '6px auto 0', maxWidth: 280, fontSize: 12, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>
           Ask me about your data, draft posts, reply to your inbox, or get a daily briefing.
         </p>

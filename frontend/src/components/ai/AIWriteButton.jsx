@@ -1,3 +1,4 @@
+import { useLanguage } from '@/i18n';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -63,6 +64,7 @@ export default function AIWriteButton({
   tone: initialTone = 'friendly',
   align = 'left',
 }) {
+  const { t: brandT } = useLanguage();
   const [open, setOpen] = useState(false);
   const [topic, setTopic] = useState('');
   const [tone, setTone] = useState(initialTone);
@@ -182,9 +184,7 @@ export default function AIWriteButton({
             <>
               <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 12 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-primary)', fontWeight: 600, fontSize: 14 }}>
-                  <Sparkles size={14} style={{ color: 'var(--brand-primary-hover)' }} />
-                  Write with Social Stats
-                </div>
+                  <Sparkles size={14} style={{ color: 'var(--brand-primary-hover)' }} />{brandT('brand.write')}</div>
                 <Button variant="ghost" size="sm" iconOnly icon={X} aria-label="Close" onClick={() => setOpen(false)} />
               </header>
 
@@ -254,7 +254,7 @@ export default function AIWriteButton({
                 style={{ marginTop: 14 }}
                 icon={Sparkles}
               >
-                {loading ? 'Social Stats is writing…' : 'Generate'}
+                {loading ? 'Ravinta is writing…' : 'Generate'}
               </Button>
               <p style={{ margin: '8px 0 0', fontSize: 11, color: 'var(--text-tertiary)', textAlign: 'center' }}>
                 Cmd+Enter to generate · Esc to close

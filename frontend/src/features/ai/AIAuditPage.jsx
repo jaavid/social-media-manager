@@ -1,3 +1,4 @@
+import { useLanguage } from '@/i18n';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -7,7 +8,7 @@
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
 /**
- * AIAuditPage — client-visible "What did Social Stats do for me?" feed.
+ * AIAuditPage — client-visible "What did Ravinta do for me?" feed.
  *
  * Shows every AI request scoped to the current client, recent first.
  * Includes a quota meter at the top (today's usage vs daily cap) and a
@@ -38,6 +39,7 @@ const STATUS_VARIANT = {
 };
 
 export default function AIAuditPage({ clientId: propClientId = null }) {
+  const { t: brandT } = useLanguage();
   const { user } = useAuth();
   const clientId = propClientId || user?.client_id || null;
 
@@ -64,7 +66,7 @@ export default function AIAuditPage({ clientId: propClientId = null }) {
   return (
     <div className="app-page app-page--lg">
       <PageHeader
-        title="What did Social Stats do for me?"
+        title={brandT('brand.auditTitle')}
         subtitle="Every AI request on this workspace account — for transparency + compliance."
         actions={(
           <Button variant="ghost" size="sm" icon={RefreshCw} onClick={load}>Refresh</Button>
@@ -151,7 +153,7 @@ export default function AIAuditPage({ clientId: propClientId = null }) {
             <EmptyState
               icon={Sparkles}
               title="No AI activity yet"
-              description="As you use Social Stats features, every request shows up here."
+              description={brandT('brand.auditEmpty')}
             />
           ) : (
             <div style={{ overflowX: 'auto' }}>
@@ -217,10 +219,7 @@ export default function AIAuditPage({ clientId: propClientId = null }) {
         fontSize: 12, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)',
       }}>
         <Sparkles size={12} style={{ color: 'var(--brand-primary-hover)', verticalAlign: -1 }} />
-        {' '}
-        SocialStats powers every request below. We log each call for compliance and
-        do not train on your data. AI-generated content is marked with a
-        <strong> ✨ AI-assisted</strong> badge in the UI. Sensitive verticals (medical,
+        {' '}{brandT('brand.auditNotice')}<strong> ✨ AI-assisted</strong> badge in the UI. Sensitive verticals (medical,
         legal, financial) include a regulatory disclaimer. Vendor-level disclosure is
         in our <a href="/privacy">Privacy Policy</a>.
       </p>

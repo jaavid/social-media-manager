@@ -19,7 +19,7 @@ FACEBOOK = {
     'title': 'Connect Facebook Page (Manual Setup)',
     'estimated_time': '5–10 minutes',
     'intro': (
-        'Social Stats is currently in app review with Meta. While that wraps up, you '
+        'Ravinta is currently in app review with Meta. While that wraps up, you '
         'can connect your Facebook Page using your own Meta Business account. '
         'Your tokens stay encrypted and only you can see them.'
     ),
@@ -40,7 +40,7 @@ FACEBOOK = {
         },
         {
             'title': 'Create a System User',
-            'description': 'Under Users → System Users, click "Add". Name it "Social Stats Integration", role: Admin. (System Users give long-lived tokens that don\'t expire — recommended.)',
+            'description': 'Under Users → System Users, click "Add". Name it "Ravinta Integration", role: Admin. (System Users give long-lived tokens that don\'t expire — recommended.)',
         },
         {
             'title': 'Assign your Page to the System User',
@@ -48,7 +48,7 @@ FACEBOOK = {
         },
         {
             'title': 'Generate the Page Access Token',
-            'description': 'With the System User selected, click "Generate New Token". Pick the Social Stats Meta App (or any app you control). Select these permissions and click Generate:',
+            'description': 'With the System User selected, click "Generate New Token". Pick the Ravinta Meta App (or any app you control). Select these permissions and click Generate:',
             'bullets': [
                 'pages_show_list',
                 'pages_read_engagement',
@@ -63,8 +63,8 @@ FACEBOOK = {
             'description': 'Open your Facebook Page → About tab → scroll to "Page Transparency". The Page ID is the long number under "ID".',
         },
         {
-            'title': 'Paste both into Social Stats below',
-            'description': 'Click "Save & Test Connection". Social Stats will verify the token works before saving.',
+            'title': 'Paste both into Ravinta below',
+            'description': 'Click "Save & Test Connection". Ravinta will verify the token works before saving.',
         },
     ],
     'fields': [
@@ -88,7 +88,7 @@ FACEBOOK = {
     'tips': [
         'System User tokens don\'t expire — best for production.',
         'If you used the Graph API Explorer instead, the token may expire in 60 days.',
-        'Social Stats encrypts your token at rest and only uses it to read insights.',
+        'Ravinta encrypts your token at rest and only uses it to read insights.',
     ],
 }
 
@@ -123,8 +123,8 @@ INSTAGRAM = {
             'description': 'Reuse the long-lived token you generated for the Facebook step. Both Facebook and Instagram share the same token.',
         },
         {
-            'title': 'Paste into Social Stats below',
-            'description': 'Social Stats will verify the token can read your Instagram insights before saving.',
+            'title': 'Paste into Ravinta below',
+            'description': 'Ravinta will verify the token can read your Instagram insights before saving.',
         },
     ],
     'fields': [
@@ -168,7 +168,7 @@ YOUTUBE = {
     'steps': [
         {
             'title': 'Create a Google Cloud project',
-            'description': 'Visit Google Cloud Console → New Project → name it "Social Stats-{YourCompany}".',
+            'description': 'Visit Google Cloud Console → New Project → name it "Ravinta-{YourCompany}".',
             'external_link': 'https://console.cloud.google.com/projectcreate',
             'cta': 'Open Google Cloud Console',
         },
@@ -191,7 +191,7 @@ YOUTUBE = {
         },
         {
             'title': 'Copy the Client ID and Client Secret',
-            'description': 'After creating, copy the OAuth Client ID (ends in apps.googleusercontent.com) and Client Secret. You\'ll paste them in Social Stats below.',
+            'description': 'After creating, copy the OAuth Client ID (ends in apps.googleusercontent.com) and Client Secret. You\'ll paste them in Ravinta below.',
         },
         {
             'title': 'Generate a refresh token in OAuth Playground',
@@ -214,7 +214,7 @@ YOUTUBE = {
             'cta': 'Open YouTube Studio',
         },
         {
-            'title': 'Paste all 4 values into Social Stats below',
+            'title': 'Paste all 4 values into Ravinta below',
             'description': 'API Key is optional (only needed for some legacy fallback queries).',
         },
     ],
@@ -263,7 +263,7 @@ YOUTUBE = {
     'tips': [
         'Keep your Cloud project under the same Google account that owns the channel.',
         'Refresh tokens last forever unless explicitly revoked.',
-        'Social Stats auto-refreshes the access token every hour using your refresh token.',
+        'Ravinta auto-refreshes the access token every hour using your refresh token.',
     ],
 }
 
@@ -274,7 +274,7 @@ LINKEDIN = {
     'estimated_time': '5–10 minutes',
     'intro': (
         'LinkedIn requires a developer app and a 60-day access token. '
-        'Social Stats will warn you 7 days before the token expires so you can refresh it.'
+        'Ravinta will warn you 7 days before the token expires so you can refresh it.'
     ),
     'requirements': [
         'You are an Admin of the LinkedIn Company Page',
@@ -301,15 +301,15 @@ LINKEDIN = {
         },
         {
             'title': 'Copy the access token',
-            'description': 'It\'s long (~200 chars). Tokens last 60 days — Social Stats will alert you 7 days before expiry.',
+            'description': 'It\'s long (~200 chars). Tokens last 60 days — Ravinta will alert you 7 days before expiry.',
         },
         {
             'title': 'Find your Organization ID',
             'description': 'On your Company Page admin view, the URL contains /company/{id}/admin/. The "id" is your Organization ID. It\'s a number.',
         },
         {
-            'title': 'Paste both into Social Stats below',
-            'description': 'Social Stats will verify the token can read your organization data before saving.',
+            'title': 'Paste both into Ravinta below',
+            'description': 'Ravinta will verify the token can read your organization data before saving.',
         },
     ],
     'fields': [
@@ -331,7 +331,7 @@ LINKEDIN = {
         },
     ],
     'tips': [
-        'LinkedIn tokens expire after 60 days — Social Stats alerts you 7 days before.',
+        'LinkedIn tokens expire after 60 days — Ravinta alerts you 7 days before.',
         'Token rotation: just regenerate the token in LinkedIn and paste it again.',
     ],
 }
@@ -385,8 +385,8 @@ GMB = {
             'cta': 'Open Business Profile',
         },
         {
-            'title': 'Paste all 5 values into Social Stats below',
-            'description': 'Social Stats will verify the location is reachable before saving.',
+            'title': 'Paste all 5 values into Ravinta below',
+            'description': 'Ravinta will verify the location is reachable before saving.',
         },
     ],
     'fields': [
@@ -432,8 +432,8 @@ GMB = {
         },
     ],
     'tips': [
-        'Refresh tokens persist forever; Social Stats refreshes the access token automatically.',
-        'If you have multiple locations, set up one PlatformCredential per Social Stats Client.',
+        'Refresh tokens persist forever; Ravinta refreshes the access token automatically.',
+        'If you have multiple locations, set up one PlatformCredential per Ravinta Client.',
     ],
 }
 

@@ -1,3 +1,4 @@
+import { useLanguage } from '@/i18n';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -23,6 +24,7 @@ import { useSession as useAuth } from '../../core/session';
  *   Esc            — close (handled by AIChatPanel's parent close)
  */
 export default function AIFloatingTrigger() {
+  const { t: brandT } = useLanguage();
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
 
@@ -50,8 +52,8 @@ export default function AIFloatingTrigger() {
           className="ai-floating-trigger"
           type="button"
           onClick={() => setOpen(true)}
-          aria-label="Open Social Stats (Cmd+J)"
-          title="Social Stats (⌘J)"
+          aria-label={brandT('brand.open')}
+          title={brandT('brand.shortcut')}
           style={{
             position: 'fixed',
             bottom: 'calc(20px + env(safe-area-inset-bottom))',

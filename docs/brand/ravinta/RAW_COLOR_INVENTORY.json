@@ -1,0 +1,1846 @@
+{
+  "scope": "Active source literal inventory; includes approved token definitions/fallbacks, provider metadata and legacy chart/state literals. This is not computed contrast certification or a runtime palette.",
+  "files": 142,
+  "occurrences": 1660,
+  "rows": [
+    {
+      "path": "frontend/src/features/CaptionWriterPage.jsx",
+      "occurrences": 82,
+      "colors": [
+        "#0077b5",
+        "#00d7ff",
+        "#00d7ff15",
+        "#0891b2",
+        "#15803d",
+        "#16a34a",
+        "#1877f2",
+        "#34a853",
+        "#4c1d95",
+        "#7f1d1d",
+        "#99eeff",
+        "#a5f3fc",
+        "#bbf7d0",
+        "#d97706",
+        "#dc2626",
+        "#e1306c",
+        "#e6fbff",
+        "#ecfeff",
+        "#f0fdf4",
+        "#f3e8ff",
+        "#f59e0b",
+        "#fbcfe8",
+        "#fde68a",
+        "#fdf2f8",
+        "#fecaca",
+        "#fef2f2",
+        "#ff0000",
+        "#fff",
+        "#fffbeb"
+      ]
+    },
+    {
+      "path": "frontend/src/styles/tokens.css",
+      "occurrences": 66,
+      "colors": [
+        "#0d2422",
+        "#0d302e",
+        "#102b29",
+        "#123d3a",
+        "#172a28",
+        "#173a35",
+        "#1a514b",
+        "#1c443e",
+        "#204a44",
+        "#21694b",
+        "#245c99",
+        "#49615c",
+        "#5b706b",
+        "#66857c",
+        "#76558c",
+        "#7c8799",
+        "#8a5700",
+        "#8ba49b",
+        "#8ddbae",
+        "#a0b9af",
+        "#a5cbfa",
+        "#a8b8b3",
+        "#b0322d",
+        "#b8cdc4",
+        "#c1dd50",
+        "#d6f268",
+        "#e0f78a",
+        "#e8efec",
+        "#eff4f2",
+        "#f4cf77",
+        "#f7f9f8",
+        "#ffa59c",
+        "#ffffff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/ROICalculatorPage.jsx",
+      "occurrences": 63,
+      "colors": [
+        "#00d7ff",
+        "#059669",
+        "#10b981",
+        "#1e293b",
+        "#2563eb",
+        "#a7f3d0",
+        "#bfdbfe",
+        "#d1fae5",
+        "#d97706",
+        "#dbeafe",
+        "#e5e7eb",
+        "#e6fbff",
+        "#ef4444",
+        "#eff6ff",
+        "#f1f5f9",
+        "#f59e0b",
+        "#f8fafc",
+        "#fecaca",
+        "#fee2e2",
+        "#fef3c7",
+        "#fff",
+        "#ffffff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/IntegrationsPage.jsx",
+      "occurrences": 60,
+      "colors": [
+        "#000000",
+        "#0061ff",
+        "#0084ff",
+        "#00a1e0",
+        "#00a8d8",
+        "#00c4cc",
+        "#00ccf5",
+        "#0a0e14",
+        "#0a66c2",
+        "#0f9d58",
+        "#10a37f",
+        "#10b981",
+        "#1877f2",
+        "#21b573",
+        "#22c55e",
+        "#25d366",
+        "#26a5e4",
+        "#34a853",
+        "#4285f4",
+        "#4a154b",
+        "#5865f2",
+        "#6b7280",
+        "#6d00cc",
+        "#7f54b3",
+        "#8b5cf6",
+        "#96bf48",
+        "#c8202c",
+        "#d97706",
+        "#e37400",
+        "#e4405f",
+        "#ea4335",
+        "#ea4b71",
+        "#ee672f",
+        "#f24e1e",
+        "#ff0000",
+        "#ff4f00",
+        "#ff7a59",
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/PostIdeasPage.jsx",
+      "occurrences": 57,
+      "colors": [
+        "#0077b5",
+        "#00d7ff",
+        "#155e75",
+        "#16a34a",
+        "#1877f2",
+        "#22c55e",
+        "#34a853",
+        "#4338ca",
+        "#bae6fd",
+        "#bfdbfe",
+        "#dbeafe",
+        "#dc2626",
+        "#e1306c",
+        "#e6fbff",
+        "#ec4899",
+        "#ecfeff",
+        "#eef2ff",
+        "#f0fdf4",
+        "#f59e0b",
+        "#fecaca",
+        "#fef2f2",
+        "#ff0000",
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/ClientOnboardingPage.jsx",
+      "occurrences": 54,
+      "colors": [
+        "#00d7ff",
+        "#021418",
+        "#0284c7",
+        "#0369a1",
+        "#042f3a",
+        "#0891b2",
+        "#0ea5e9",
+        "#0f766e",
+        "#166534",
+        "#16a34a",
+        "#22c55e",
+        "#34d399",
+        "#38bdf8",
+        "#67e8f9",
+        "#6b7280",
+        "#7dd3fc",
+        "#bae6fd",
+        "#be123c",
+        "#c2410c",
+        "#c7f3ff",
+        "#dbeafe",
+        "#dcfce7",
+        "#ecfeff",
+        "#eef2ff",
+        "#eefafe",
+        "#ef4444",
+        "#eff6ff",
+        "#effbff",
+        "#f0f9ff",
+        "#f0fdf4",
+        "#f8fdff",
+        "#fbfdff",
+        "#fecdd3",
+        "#fed7aa",
+        "#fff",
+        "#fff1f2",
+        "#fff7ed",
+        "#ffffff"
+      ]
+    },
+    {
+      "path": "frontend/src/components/ui/NotificationBell.jsx",
+      "occurrences": 40,
+      "colors": [
+        "#0f172a",
+        "#166534",
+        "#16a34a",
+        "#1e293b",
+        "#334155",
+        "#374151",
+        "#3b82f6",
+        "#6366f1",
+        "#64748b",
+        "#6d28d9",
+        "#7c3aed",
+        "#86efac",
+        "#94a3b8",
+        "#c2410c",
+        "#d97706",
+        "#dc2626",
+        "#dcfce7",
+        "#e8eef5",
+        "#ea580c",
+        "#ede9fe",
+        "#eef4f8",
+        "#ef4444",
+        "#eff7ff",
+        "#f7fbff",
+        "#f8fafc",
+        "#fca5a5",
+        "#fef2f2",
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/components/marketing/BentoPreviews.jsx",
+      "occurrences": 38,
+      "colors": [
+        "#00ccf5",
+        "#0a66c2",
+        "#0f172a",
+        "#1877f2",
+        "#25d366",
+        "#34d399",
+        "#64748b",
+        "#8b5cf6",
+        "#a78bfa",
+        "#e2e8f0",
+        "#e4405f",
+        "#f59e0b",
+        "#f8fafc",
+        "#fbbf24",
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/marketing/solutionPages.js",
+      "occurrences": 38,
+      "colors": [
+        "#00ccf5",
+        "#34d399",
+        "#8b5cf6",
+        "#a78bfa",
+        "#f472b6",
+        "#fbbf24"
+      ]
+    },
+    {
+      "path": "frontend/src/features/WhatsAppDashboard.jsx",
+      "occurrences": 36,
+      "colors": [
+        "#00a8d8",
+        "#00ccf5",
+        "#0891b2",
+        "#10b981",
+        "#15803d",
+        "#1d4ed8",
+        "#22c55e",
+        "#2563eb",
+        "#4338ca",
+        "#6366f1",
+        "#a16207",
+        "#b91c1c",
+        "#dbeafe",
+        "#dc2626",
+        "#dcfce7",
+        "#eef2ff",
+        "#f59e0b",
+        "#f6f8fc",
+        "#fee2e2",
+        "#fef3c7",
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/marketing/AgenciesShowcasePage.jsx",
+      "occurrences": 34,
+      "colors": [
+        "#00a8d8",
+        "#00ccf5",
+        "#0a0e14",
+        "#8b5cf6",
+        "#facc15",
+        "#fbbf24",
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/workspaces/AllClientsPage.jsx",
+      "occurrences": 34,
+      "colors": [
+        "#0099bb",
+        "#00d7ff22",
+        "#0369a1",
+        "#15803d",
+        "#16a34a",
+        "#4c1d95",
+        "#6d28d9",
+        "#7c3aed",
+        "#7c3aed22",
+        "#d97706",
+        "#dc2626",
+        "#dcfce7",
+        "#f0f9ff",
+        "#f5f0ff",
+        "#faf5ff",
+        "#fee2e2",
+        "#fef3c7",
+        "#fff5f5"
+      ]
+    },
+    {
+      "path": "frontend/src/components/ui/StatCard.jsx",
+      "occurrences": 29,
+      "colors": [
+        "#00ccf5",
+        "#059669",
+        "#0891b2",
+        "#22c55e",
+        "#22d3ee",
+        "#2563eb",
+        "#34d399",
+        "#4ade80",
+        "#60a5fa",
+        "#6366f1",
+        "#64748b",
+        "#818cf8",
+        "#8b5cf6",
+        "#94a3b8",
+        "#a78bfa",
+        "#ef4444",
+        "#f59e0b",
+        "#f87171",
+        "#fcd34d",
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/components/ui/CompetitorSection.jsx",
+      "occurrences": 28,
+      "colors": [
+        "#00d7ff",
+        "#0369a1",
+        "#042f3a",
+        "#0ea5e9",
+        "#0f766e",
+        "#38bdf8",
+        "#94dfff",
+        "#bae6fd",
+        "#c7f3ff",
+        "#cbd5e1",
+        "#dbe4ee",
+        "#dc2626",
+        "#ecfeff",
+        "#eef2ff",
+        "#ef4444",
+        "#f8fafc",
+        "#f8fbff",
+        "#f8fdff",
+        "#fbfdff",
+        "#fecaca",
+        "#fff5f5",
+        "#ffffff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/HomePage.jsx",
+      "occurrences": 28,
+      "colors": [
+        "#00a8d8",
+        "#00ccf5",
+        "#0a0e14",
+        "#34d399",
+        "#8b5cf6",
+        "#a78bfa",
+        "#f472b6",
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/components/bot/nodeCatalog.js",
+      "occurrences": 25,
+      "colors": [
+        "#10b981",
+        "#3b82f6",
+        "#8b5cf6",
+        "#ec4899",
+        "#f59e0b"
+      ]
+    },
+    {
+      "path": "frontend/src/components/ui/SocialPlatformIcon.jsx",
+      "occurrences": 25,
+      "colors": [
+        "#0a66c2",
+        "#1877f2",
+        "#34a853",
+        "#4285f4",
+        "#515bd4",
+        "#64748b",
+        "#8134af",
+        "#dd2a7b",
+        "#ea4335",
+        "#f58529",
+        "#fbbc04",
+        "#fbbc05",
+        "#ff0000",
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/WhatsAppCampaignsPage.jsx",
+      "occurrences": 25,
+      "colors": [
+        "#00a8d8",
+        "#00ccf5",
+        "#10b981",
+        "#15803d",
+        "#1d4ed8",
+        "#a16207",
+        "#b91c1c",
+        "#bfdbfe",
+        "#dbeafe",
+        "#dc2626",
+        "#dcfce7",
+        "#eff6ff",
+        "#fecaca",
+        "#fee2e2",
+        "#fef2f2",
+        "#fef3c7",
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/components/calendar/PostFormDrawer.jsx",
+      "occurrences": 24,
+      "colors": [
+        "#10b981",
+        "#1e40af",
+        "#2563eb",
+        "#64748b",
+        "#b91c1c",
+        "#bfdbfe",
+        "#dc2626",
+        "#ef4444",
+        "#eff6ff",
+        "#f59e0b",
+        "#fecaca",
+        "#fef2f2",
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/components/ui/AIInsightCard.jsx",
+      "occurrences": 24,
+      "colors": [
+        "#16a34a",
+        "#1e293b",
+        "#374151",
+        "#64748b",
+        "#6d28d9",
+        "#7c3aed",
+        "#94a3b8",
+        "#a78bfa",
+        "#c4b5fd",
+        "#e2d9f3",
+        "#e9d5ff",
+        "#ede9fe",
+        "#f3e8ff",
+        "#f5f3ff",
+        "#faf5ff",
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/components/calendar/CalendarGrid.jsx",
+      "occurrences": 23,
+      "colors": [
+        "#1e293b",
+        "#2563eb",
+        "#64748b",
+        "#94a3b8",
+        "#cbd5e1",
+        "#dbeafe",
+        "#e2e8f0",
+        "#eff6ff",
+        "#f1f5f9",
+        "#f8fafc",
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/components/calendar/PostDrawer.jsx",
+      "occurrences": 22,
+      "colors": [
+        "#059669",
+        "#2563eb",
+        "#64748b",
+        "#92400e",
+        "#d1fae5",
+        "#dbeafe",
+        "#ef4444",
+        "#f1f5f9",
+        "#fde68a",
+        "#fecaca",
+        "#fee2e2",
+        "#fef2f2",
+        "#fff",
+        "#fffbeb"
+      ]
+    },
+    {
+      "path": "frontend/src/components/marketing/AnimatedDashboardMockup.jsx",
+      "occurrences": 22,
+      "colors": [
+        "#00ccf5",
+        "#0a0e14",
+        "#0d1218",
+        "#10b981",
+        "#1877f2",
+        "#25d366",
+        "#28c840",
+        "#8b5cf6",
+        "#a78bfa",
+        "#e4405f",
+        "#febc2e",
+        "#ff0000",
+        "#ff5f57",
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/PendingDashboard.jsx",
+      "occurrences": 22,
+      "colors": [
+        "#0099bb",
+        "#00d7ff",
+        "#166534",
+        "#7c3aed",
+        "#86efac",
+        "#dc2626",
+        "#dcfce7",
+        "#e8edf2",
+        "#ef4444",
+        "#f0fdf4",
+        "#fca5a5",
+        "#fef2f2",
+        "#ffffff"
+      ]
+    },
+    {
+      "path": "frontend/src/services/platforms.js",
+      "occurrences": 22,
+      "colors": [
+        "#00a884",
+        "#0a66c2",
+        "#1877f2",
+        "#229ed9",
+        "#34a853",
+        "#64748b",
+        "#e1306c",
+        "#e6f4ea",
+        "#e7f5fc",
+        "#e7f8f3",
+        "#e8f0f9",
+        "#ebf3ff",
+        "#ed145b",
+        "#f1f5f9",
+        "#f58220",
+        "#fde8ef",
+        "#fde8f0",
+        "#ff0000",
+        "#ffe9e9",
+        "#fff3e8"
+      ]
+    },
+    {
+      "path": "frontend/src/components/ui/BestPostWidget.jsx",
+      "occurrences": 20,
+      "colors": [
+        "#16a34a",
+        "#2563eb",
+        "#374151",
+        "#6366f1",
+        "#8b5cf6",
+        "#92400e",
+        "#94a3b8",
+        "#d97706",
+        "#dc2626",
+        "#dcfce7",
+        "#ec4899",
+        "#ef4444",
+        "#f1f5f9",
+        "#f59e0b",
+        "#fbcfe8",
+        "#fee2e2",
+        "#fef3c7",
+        "#ff0000",
+        "#fff1c2"
+      ]
+    },
+    {
+      "path": "frontend/src/features/WhatsAppContactsPage.jsx",
+      "occurrences": 20,
+      "colors": [
+        "#00a8d8",
+        "#00ccf5",
+        "#10b981",
+        "#15803d",
+        "#1d4ed8",
+        "#a16207",
+        "#b91c1c",
+        "#bfdbfe",
+        "#dc2626",
+        "#dcfce7",
+        "#eff6ff",
+        "#fecaca",
+        "#fee2e2",
+        "#fef2f2",
+        "#fef3c7",
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/WhatsAppTemplatesPage.jsx",
+      "occurrences": 20,
+      "colors": [
+        "#00a8d8",
+        "#00ccf5",
+        "#10b981",
+        "#15803d",
+        "#667781",
+        "#a16207",
+        "#b91c1c",
+        "#dc2626",
+        "#dcf8c6",
+        "#dcfce7",
+        "#fecaca",
+        "#fee2e2",
+        "#fef2f2",
+        "#fef3c7",
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/marketing/productPages.js",
+      "occurrences": 20,
+      "colors": [
+        "#00ccf5",
+        "#25d366",
+        "#34d399",
+        "#8b5cf6",
+        "#a78bfa",
+        "#f472b6",
+        "#fbbf24"
+      ]
+    },
+    {
+      "path": "frontend/src/components/calendar/PostPill.jsx",
+      "occurrences": 19,
+      "colors": [
+        "#0f172a",
+        "#10b981",
+        "#1e293b",
+        "#3b82f6",
+        "#64748b",
+        "#94a3b8",
+        "#cbd5e1",
+        "#e2e8f0",
+        "#ef4444",
+        "#f1f5f9",
+        "#f8fafc",
+        "#fecaca",
+        "#fef2f2",
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/AlertsPage.jsx",
+      "occurrences": 19,
+      "colors": [
+        "#00d7ff",
+        "#059669",
+        "#9333ea",
+        "#d97706",
+        "#dc2626",
+        "#e6fbff",
+        "#ea580c",
+        "#f0fdf4",
+        "#faf5ff",
+        "#fef2f2",
+        "#fff",
+        "#fff7ed",
+        "#fffbeb"
+      ]
+    },
+    {
+      "path": "frontend/src/features/CalendarPage.jsx",
+      "occurrences": 19,
+      "colors": [
+        "#007a9a",
+        "#00d7ff",
+        "#059669",
+        "#d1fae5",
+        "#e6fbff",
+        "#ef4444",
+        "#f1f5f9",
+        "#fecaca",
+        "#fee2e2",
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/components/ui/OnboardingChecklist.jsx",
+      "occurrences": 18,
+      "colors": [
+        "#16a34a",
+        "#22c55e",
+        "#2563eb",
+        "#6366f1",
+        "#8b5cf6",
+        "#e0e7ff",
+        "#e5e7eb",
+        "#ec4899",
+        "#ede9fe",
+        "#ef4444",
+        "#f59e0b"
+      ]
+    },
+    {
+      "path": "frontend/src/features/WhatsAppSettingsPage.jsx",
+      "occurrences": 18,
+      "colors": [
+        "#00a8d8",
+        "#00ccf5",
+        "#10b981",
+        "#15803d",
+        "#b91c1c",
+        "#bbf7d0",
+        "#dc2626",
+        "#dcfce7",
+        "#f0fdf4",
+        "#fecaca",
+        "#fef2f2",
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/marketing/agencyProfiles.js",
+      "occurrences": 18,
+      "colors": [
+        "#0066ff",
+        "#00ccf5",
+        "#059669",
+        "#10b981",
+        "#6d28d9",
+        "#8b5cf6",
+        "#d97706",
+        "#db2777",
+        "#dc2626",
+        "#ef4444",
+        "#f472b6",
+        "#f59e0b"
+      ]
+    },
+    {
+      "path": "frontend/src/components/ui/GMBWidget.jsx",
+      "occurrences": 17,
+      "colors": [
+        "#16a34a",
+        "#2563eb",
+        "#374151",
+        "#4285f4",
+        "#bfdbfe",
+        "#d1d5db",
+        "#dc2626",
+        "#dcfce7",
+        "#eff6ff",
+        "#f59e0b",
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/WhatsAppInboxPage.jsx",
+      "occurrences": 17,
+      "colors": [
+        "#00a8d8",
+        "#00ccf5",
+        "#10b981",
+        "#15803d",
+        "#3b82f6",
+        "#667781",
+        "#a16207",
+        "#dc2626",
+        "#dcfce7",
+        "#fde68a",
+        "#fef3c7",
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/marketing/AgencyShowcasePage.jsx",
+      "occurrences": 17,
+      "colors": [
+        "#00ccf5",
+        "#0a0e14",
+        "#facc15",
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/components/ui/AlertBell.jsx",
+      "occurrences": 16,
+      "colors": [
+        "#16a34a",
+        "#374151",
+        "#6366f1",
+        "#6d28d9",
+        "#7c3aed",
+        "#c2410c",
+        "#d97706",
+        "#dc2626",
+        "#e5e7eb",
+        "#ea580c",
+        "#ede9fe",
+        "#f0f4ff",
+        "#f8fafc",
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/DataDeletionPage.jsx",
+      "occurrences": 16,
+      "colors": [
+        "#007a9a",
+        "#99eeff",
+        "#e6fbff",
+        "#fafcff"
+      ]
+    },
+    {
+      "path": "frontend/src/components/FacebookConnectModal.jsx",
+      "occurrences": 15,
+      "colors": [
+        "#0f172a",
+        "#166fe5",
+        "#1877f2",
+        "#2563eb",
+        "#b91c1c",
+        "#bfdbfe",
+        "#cbd5e1",
+        "#e2e8f0",
+        "#ef4444",
+        "#fecaca",
+        "#fef2f2",
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/components/ui/ROIFunnel.jsx",
+      "occurrences": 15,
+      "colors": [
+        "#059669",
+        "#0f172a",
+        "#2563eb",
+        "#64748b",
+        "#7c3aed",
+        "#cbd5e1",
+        "#d1fae5",
+        "#d97706",
+        "#dbeafe",
+        "#ede9fe",
+        "#ef4444",
+        "#fef3c7"
+      ]
+    },
+    {
+      "path": "frontend/src/styles/theme.js",
+      "occurrences": 15,
+      "colors": [
+        "#009ec0",
+        "#00b8da",
+        "#0f172a",
+        "#16a34a",
+        "#475569",
+        "#4f46e5",
+        "#94a3b8",
+        "#dc2626",
+        "#e0f9ff",
+        "#e2e8f0",
+        "#eef2ff",
+        "#f0f4f9",
+        "#f59e0b",
+        "#ffffff"
+      ]
+    },
+    {
+      "path": "frontend/src/components/ui/GoalTracker.jsx",
+      "occurrences": 14,
+      "colors": [
+        "#16a34a",
+        "#22c55e",
+        "#2563eb",
+        "#6366f1",
+        "#d97706",
+        "#dbeafe",
+        "#dc2626",
+        "#dcfce7",
+        "#e5e7eb",
+        "#ef4444",
+        "#f59e0b",
+        "#fee2e2",
+        "#fef3c7"
+      ]
+    },
+    {
+      "path": "frontend/src/components/ui/DateRangePicker.jsx",
+      "occurrences": 13,
+      "colors": [
+        "#00ccf5",
+        "#0d0d0d",
+        "#0f172a",
+        "#475569",
+        "#94a3b8",
+        "#cbd5e1",
+        "#e2e8f0",
+        "#f1f5f9",
+        "#f8fafc",
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/settings/SettingsPage.jsx",
+      "occurrences": 13,
+      "colors": [
+        "#021418",
+        "#042f3a",
+        "#0f766e",
+        "#111827",
+        "#6b7280",
+        "#ecfeff"
+      ]
+    },
+    {
+      "path": "frontend/src/styles/legacy.css",
+      "occurrences": 13,
+      "colors": [
+        "#1a212c",
+        "#232c39",
+        "#2563eb",
+        "#7c3aed",
+        "#94a3b8",
+        "#cbd5e1",
+        "#e2e8f0",
+        "#f1f5f9"
+      ]
+    },
+    {
+      "path": "frontend/src/components/calendar/CalendarStats.jsx",
+      "occurrences": 12,
+      "colors": [
+        "#10b981",
+        "#2563eb",
+        "#64748b",
+        "#ef4444",
+        "#f59e0b",
+        "#fef2f2"
+      ]
+    },
+    {
+      "path": "frontend/src/features/CustomersPage.jsx",
+      "occurrences": 12,
+      "colors": [
+        "#00a8d8",
+        "#00ccf5",
+        "#0a0e14",
+        "#10b981",
+        "#8b5cf6",
+        "#a78bfa",
+        "#f472b6",
+        "#f59e0b",
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/management/ManagementPage.jsx",
+      "occurrences": 12,
+      "colors": [
+        "#00d7ff",
+        "#15803d",
+        "#dcfce7",
+        "#e6fbff",
+        "#f3e8ff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/marketing/CaseStudyPage.jsx",
+      "occurrences": 12,
+      "colors": [
+        "#00a8d8",
+        "#0a0e14",
+        "#8b5cf6",
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/AdminOnboardingPage.jsx",
+      "occurrences": 11,
+      "colors": [
+        "#007a9a",
+        "#00d7ff",
+        "#16a34a",
+        "#99eeff",
+        "#e6fbff",
+        "#eef2f7"
+      ]
+    },
+    {
+      "path": "frontend/src/components/marketing/CTASection.jsx",
+      "occurrences": 10,
+      "colors": [
+        "#00a8d8",
+        "#00ccf5",
+        "#0a0e14",
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/FeaturesPage.jsx",
+      "occurrences": 10,
+      "colors": [
+        "#10b981",
+        "#3b82f6",
+        "#8b5cf6",
+        "#ef4444",
+        "#f59e0b",
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/components/BotChannelConnectModal.jsx",
+      "occurrences": 9,
+      "colors": [
+        "#0f172a",
+        "#64748b",
+        "#b91c1c",
+        "#cbd5e1",
+        "#fef2f2",
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/EditClientPage.jsx",
+      "occurrences": 9,
+      "colors": [
+        "#00d7ff",
+        "#16a34a",
+        "#dc2626",
+        "#dcfce7",
+        "#ef4444",
+        "#fee2e2",
+        "#fef2f2"
+      ]
+    },
+    {
+      "path": "frontend/src/features/HelpCenterPage.jsx",
+      "occurrences": 9,
+      "colors": [
+        "#00ccf5",
+        "#0891b2",
+        "#10b981",
+        "#3b82f6",
+        "#6366f1",
+        "#8b5cf6",
+        "#ef4444",
+        "#f59e0b",
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/marketing/ProductPage.jsx",
+      "occurrences": 9,
+      "colors": [
+        "#00a8d8",
+        "#00ccf5",
+        "#0a0e14",
+        "#8b5cf6",
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/marketing/SolutionPage.jsx",
+      "occurrences": 9,
+      "colors": [
+        "#00a8d8",
+        "#00ccf5",
+        "#0a0e14",
+        "#8b5cf6",
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/components/ui/ProgressBar.jsx",
+      "occurrences": 8,
+      "colors": [
+        "#10b981",
+        "#34d399",
+        "#3b82f6",
+        "#60a5fa",
+        "#ef4444",
+        "#f59e0b",
+        "#f87171",
+        "#fcd34d"
+      ]
+    },
+    {
+      "path": "frontend/src/features/bots/BotConversationDetailPage.jsx",
+      "occurrences": 8,
+      "colors": [
+        "#075e54",
+        "#1f2c34",
+        "#dcf8c6",
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/components/ApiConnectivityPanel.jsx",
+      "occurrences": 7,
+      "colors": [
+        "#15803d",
+        "#b45309",
+        "#b91c1c",
+        "#fef2f2"
+      ]
+    },
+    {
+      "path": "frontend/src/components/calendar/UpcomingPosts.jsx",
+      "occurrences": 7,
+      "colors": [
+        "#0f172a",
+        "#374151",
+        "#64748b",
+        "#94a3b8",
+        "#e2e8f0",
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/components/home/DashboardMockup.jsx",
+      "occurrences": 7,
+      "colors": [
+        "#00ccf5",
+        "#10b981",
+        "#ef4444",
+        "#f59e0b",
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/components/ui/Confetti.jsx",
+      "occurrences": 7,
+      "colors": [
+        "#00a8d8",
+        "#00ccf5",
+        "#10b981",
+        "#3b82f6",
+        "#8b5cf6",
+        "#ef4444",
+        "#f59e0b"
+      ]
+    },
+    {
+      "path": "frontend/src/features/ContentCalculatorPage.jsx",
+      "occurrences": 7,
+      "colors": [
+        "#00d7ff",
+        "#059669",
+        "#e6fbff"
+      ]
+    },
+    {
+      "path": "frontend/src/components/ui/MetricChart.jsx",
+      "occurrences": 6,
+      "colors": [
+        "#00ccf5",
+        "#10b981",
+        "#3b82f6",
+        "#8b5cf6",
+        "#ef4444",
+        "#f59e0b"
+      ]
+    },
+    {
+      "path": "frontend/src/features/ai/AIStudio.jsx",
+      "occurrences": 6,
+      "colors": [
+        "#0891b2",
+        "#10b981",
+        "#8b5cf6",
+        "#f59e0b",
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/growth/CompetitorsPage.jsx",
+      "occurrences": 6,
+      "colors": [
+        "#00ccf5",
+        "#10b981",
+        "#3b82f6",
+        "#8b5cf6",
+        "#ef4444",
+        "#f59e0b"
+      ]
+    },
+    {
+      "path": "frontend/src/features/marketing/ComingSoonPage.jsx",
+      "occurrences": 6,
+      "colors": [
+        "#00a8d8",
+        "#00ccf5",
+        "#0a0e14",
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/components/ai/AIChatPanel.jsx",
+      "occurrences": 5,
+      "colors": [
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/components/calendar/HeatmapCalendar.jsx",
+      "occurrences": 5,
+      "colors": [
+        "#2563eb",
+        "#60a5fa",
+        "#64748b",
+        "#bfdbfe",
+        "#f1f5f9"
+      ]
+    },
+    {
+      "path": "frontend/src/components/calendar/NoteTooltip.jsx",
+      "occurrences": 5,
+      "colors": [
+        "#0f172a",
+        "#2563eb",
+        "#475569",
+        "#94a3b8",
+        "#f8fafc"
+      ]
+    },
+    {
+      "path": "frontend/src/components/charts/Charts.jsx",
+      "occurrences": 5,
+      "colors": [
+        "#22c55e",
+        "#2563eb",
+        "#6366f1",
+        "#ef4444",
+        "#f59e0b"
+      ]
+    },
+    {
+      "path": "frontend/src/components/marketing/FeatureBento.jsx",
+      "occurrences": 5,
+      "colors": [
+        "#00ccf5",
+        "#34d399",
+        "#a78bfa",
+        "#f472b6",
+        "#fbbf24"
+      ]
+    },
+    {
+      "path": "frontend/src/components/marketing/TestimonialMasonry.jsx",
+      "occurrences": 5,
+      "colors": [
+        "#00ccf5",
+        "#8b5cf6",
+        "#fbbf24",
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/components/mobile/BottomSheet.jsx",
+      "occurrences": 5,
+      "colors": [
+        "#0f172a",
+        "#64748b",
+        "#cbd5e1",
+        "#e2e8f0",
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/components/mobile/SwipeableCard.jsx",
+      "occurrences": 5,
+      "colors": [
+        "#16a34a",
+        "#dc2626",
+        "#dcfce7",
+        "#fee2e2",
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/components/ui/Avatar.jsx",
+      "occurrences": 5,
+      "colors": [
+        "#10b981",
+        "#94a3b8",
+        "#ef4444",
+        "#f59e0b",
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/SecurityPage.jsx",
+      "occurrences": 5,
+      "colors": [
+        "#10b981",
+        "#3b82f6",
+        "#8b5cf6",
+        "#f59e0b",
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/marketing/blogPosts.js",
+      "occurrences": 5,
+      "colors": [
+        "#10b981",
+        "#22c55e",
+        "#8b5cf6",
+        "#ec4899",
+        "#f59e0b"
+      ]
+    },
+    {
+      "path": "frontend/src/app/layout.jsx",
+      "occurrences": 4,
+      "colors": [
+        "#102b29",
+        "#f7f9f8"
+      ]
+    },
+    {
+      "path": "frontend/src/components/bot/NodeInspector.jsx",
+      "occurrences": 4,
+      "colors": [
+        "#075e54",
+        "#1f2c34",
+        "#dcf8c6",
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/components/bot/TestModeDrawer.jsx",
+      "occurrences": 4,
+      "colors": [
+        "#1f2c34",
+        "#dcf8c6",
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/components/marketing/HomeUseCaseTabs.jsx",
+      "occurrences": 4,
+      "colors": [
+        "#00a8d8",
+        "#00ccf5",
+        "#0a0e14"
+      ]
+    },
+    {
+      "path": "frontend/src/features/AuthCallbackPage.jsx",
+      "occurrences": 4,
+      "colors": [
+        "#00d7ff",
+        "#dc2626",
+        "#fef2f2"
+      ]
+    },
+    {
+      "path": "frontend/src/features/growth/AudienceInsightsPage.jsx",
+      "occurrences": 4,
+      "colors": [
+        "#00ccf5",
+        "#22c55e",
+        "#2563eb",
+        "#8b5cf6"
+      ]
+    },
+    {
+      "path": "frontend/src/features/leads/LeadDetailPage.jsx",
+      "occurrences": 4,
+      "colors": [
+        "#1f2c34",
+        "#dcf8c6",
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/components/marketing/AnimatedChat.jsx",
+      "occurrences": 3,
+      "colors": [
+        "#00ccf5",
+        "#8b5cf6",
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/components/ui/BrandIcon.jsx",
+      "occurrences": 3,
+      "colors": [
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/AboutPage.jsx",
+      "occurrences": 3,
+      "colors": [
+        "#ef4444",
+        "#f59e0b",
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/NoAccessPage.jsx",
+      "occurrences": 3,
+      "colors": [
+        "#00d7ff",
+        "#dc2626",
+        "#fef2f2"
+      ]
+    },
+    {
+      "path": "frontend/src/features/end-user/ApprovalsPage.jsx",
+      "occurrences": 3,
+      "colors": [
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/end-user/EndUserShell.jsx",
+      "occurrences": 3,
+      "colors": [
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/marketing/caseStudies.js",
+      "occurrences": 3,
+      "colors": [
+        "#00ccf5",
+        "#8b5cf6",
+        "#f472b6"
+      ]
+    },
+    {
+      "path": "frontend/src/features/messaging/CampaignDetailPage.jsx",
+      "occurrences": 3,
+      "colors": [
+        "#0891b2",
+        "#10b981",
+        "#ef4444"
+      ]
+    },
+    {
+      "path": "frontend/src/services/demoData.js",
+      "occurrences": 3,
+      "colors": [
+        "#10b981",
+        "#2563eb",
+        "#f59e0b"
+      ]
+    },
+    {
+      "path": "frontend/src/components/marketing/ComparisonTable.jsx",
+      "occurrences": 2,
+      "colors": [
+        "#00ccf5"
+      ]
+    },
+    {
+      "path": "frontend/src/components/marketing/MeshGradient.jsx",
+      "occurrences": 2,
+      "colors": [
+        "#0a0e14"
+      ]
+    },
+    {
+      "path": "frontend/src/components/ui/BrandLogo.jsx",
+      "occurrences": 2,
+      "colors": [
+        "#123d3a",
+        "#d6f268"
+      ]
+    },
+    {
+      "path": "frontend/src/components/ui/Logo.jsx",
+      "occurrences": 2,
+      "colors": [
+        "#000000",
+        "#ffffff"
+      ]
+    },
+    {
+      "path": "frontend/src/components/ui/PlatformTabs.jsx",
+      "occurrences": 2,
+      "colors": [
+        "#6366f1",
+        "#64748b"
+      ]
+    },
+    {
+      "path": "frontend/src/features/BlogIndexPage.jsx",
+      "occurrences": 2,
+      "colors": [
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/MyPostsPage.jsx",
+      "occurrences": 2,
+      "colors": [
+        "#00d7ff",
+        "#eef2f7"
+      ]
+    },
+    {
+      "path": "frontend/src/features/bots/BotSettingsPage.jsx",
+      "occurrences": 2,
+      "colors": [
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/end-user/EndUserSignupPage.jsx",
+      "occurrences": 2,
+      "colors": [
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/end-user/MyAgencyPage.jsx",
+      "occurrences": 2,
+      "colors": [
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/marketplace/AgencyInviteResponsePage.jsx",
+      "occurrences": 2,
+      "colors": [
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/marketplace/ManageInvitePage.jsx",
+      "occurrences": 2,
+      "colors": [
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/video/VideoStudioPage.jsx",
+      "occurrences": 2,
+      "colors": [
+        "#000",
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/components/ai/AIBadge.jsx",
+      "occurrences": 1,
+      "colors": [
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/components/ai/AIFloatingTrigger.jsx",
+      "occurrences": 1,
+      "colors": [
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/components/ai/AILoading.jsx",
+      "occurrences": 1,
+      "colors": [
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/components/ai/ChartAnnotations.jsx",
+      "occurrences": 1,
+      "colors": [
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/components/ai/TodayBriefing.jsx",
+      "occurrences": 1,
+      "colors": [
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/components/legal/CookieBanner.jsx",
+      "occurrences": 1,
+      "colors": [
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/components/marketplace/InviteAgencyModal.jsx",
+      "occurrences": 1,
+      "colors": [
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/components/marketplace/SendManageRequestModal.jsx",
+      "occurrences": 1,
+      "colors": [
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/components/marketplace/WriteReviewModal.jsx",
+      "occurrences": 1,
+      "colors": [
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/components/mobile/PullToRefresh.jsx",
+      "occurrences": 1,
+      "colors": [
+        "#00b8da"
+      ]
+    },
+    {
+      "path": "frontend/src/components/ui/AccountTypeBadge.jsx",
+      "occurrences": 1,
+      "colors": [
+        "#7c3aed"
+      ]
+    },
+    {
+      "path": "frontend/src/components/ui/Checkbox.jsx",
+      "occurrences": 1,
+      "colors": [
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/components/ui/KeyboardShortcut.jsx",
+      "occurrences": 1,
+      "colors": [
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/components/ui/Switch.jsx",
+      "occurrences": 1,
+      "colors": [
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/OAuthCallbackPage.jsx",
+      "occurrences": 1,
+      "colors": [
+        "#00d7ff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/admin/AdminTrustQueuePage.jsx",
+      "occurrences": 1,
+      "colors": [
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/ads/AdsComingSoon.jsx",
+      "occurrences": 1,
+      "colors": [
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/agency/AgencyMarketplaceProfilePage.jsx",
+      "occurrences": 1,
+      "colors": [
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/ai/AIChatHistoryPage.jsx",
+      "occurrences": 1,
+      "colors": [
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/bots/BotAnalyticsPage.jsx",
+      "occurrences": 1,
+      "colors": [
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/bots/BotFlowEditorPage.jsx",
+      "occurrences": 1,
+      "colors": [
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/bots/BotFlowsListPage.jsx",
+      "occurrences": 1,
+      "colors": [
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/bots/HandoffQueuePage.jsx",
+      "occurrences": 1,
+      "colors": [
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/bots/TemplatesGalleryPage.jsx",
+      "occurrences": 1,
+      "colors": [
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/composer/MediaLibraryPage.jsx",
+      "occurrences": 1,
+      "colors": [
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/ctwa/CTWACampaignDetailPage.jsx",
+      "occurrences": 1,
+      "colors": [
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/ctwa/CTWACampaignsPage.jsx",
+      "occurrences": 1,
+      "colors": [
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/end-user/EndUserDashboard.jsx",
+      "occurrences": 1,
+      "colors": [
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/end-user/NotificationPreferencesPage.jsx",
+      "occurrences": 1,
+      "colors": [
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/leads/LeadsPage.jsx",
+      "occurrences": 1,
+      "colors": [
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/features/marketplace/AgencyProfilePage.jsx",
+      "occurrences": 1,
+      "colors": [
+        "#fff"
+      ]
+    },
+    {
+      "path": "frontend/src/services/exportPDF.js",
+      "occurrences": 1,
+      "colors": [
+        "#ffffff"
+      ]
+    }
+  ]
+}

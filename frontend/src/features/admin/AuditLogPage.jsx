@@ -1,3 +1,4 @@
+import { useLanguage } from '@/i18n';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -22,6 +23,7 @@ const RESULT_VARIANT = {
 };
 
 export default function AuditLogPage() {
+  const { t: brandT } = useLanguage();
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState({ action: '', result: '', search: '' });
@@ -44,7 +46,7 @@ export default function AuditLogPage() {
     <div style={{ paddingBottom: 32 }}>
       <PageHeader
         title="Audit log"
-        subtitle="Every write action Social Stats performed on your behalf"
+        subtitle="Every write action Ravinta performed on your behalf"
       />
 
       <div style={{ padding: '0 24px' }}>
@@ -83,7 +85,7 @@ export default function AuditLogPage() {
             <EmptyState
               icon={FileText}
               title="No audit entries yet"
-              description="Once Social Stats publishes a post, sends a reply, or fires an automation, it'll show up here."
+              description={brandT('brand.activityEmpty')}
             />
           </Card>
         )}

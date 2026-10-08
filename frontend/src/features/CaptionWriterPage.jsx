@@ -1,3 +1,4 @@
+import { useLanguage } from '@/i18n';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -329,6 +330,7 @@ const histStyles = {
 
 // ── Main page ──────────────────────────────────────────────────────────────────
 export default function CaptionWriterPage({ defaultTab = 'caption' }) {
+  const { t: brandT } = useLanguage();
   const { user } = useAuth();
   const isAdmin = user?.role === 'superadmin' || user?.role === 'staff';
   const { workspaces: clients } = useWorkspaces();
@@ -761,9 +763,7 @@ export default function CaptionWriterPage({ defaultTab = 'caption' }) {
               {capLoading && (
                 <div>
                   <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 20, textAlign: 'center' }}>
-                    <Loader2 size={14} style={{ animation: 'spin .8s linear infinite', verticalAlign: 'middle', marginRight: 6 }} />
-                    Social Stats is writing your captions…
-                  </p>
+                    <Loader2 size={14} style={{ animation: 'spin .8s linear infinite', verticalAlign: 'middle', marginRight: 6 }} />{brandT('brand.writingCaptions')}</p>
                   {[1, 2, 3].map(i => (
                     <div key={i} style={{ border: '1px solid var(--border-default)', borderRadius: 16, padding: 18, marginBottom: 16 }}>
                       <Skeleton height={20} width={120} mb={16} />
@@ -845,9 +845,7 @@ export default function CaptionWriterPage({ defaultTab = 'caption' }) {
               {hashLoading && (
                 <div>
                   <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 20, textAlign: 'center' }}>
-                    <Loader2 size={14} style={{ animation: 'spin .8s linear infinite', verticalAlign: 'middle', marginRight: 6 }} />
-                    Social Stats is researching hashtags…
-                  </p>
+                    <Loader2 size={14} style={{ animation: 'spin .8s linear infinite', verticalAlign: 'middle', marginRight: 6 }} />{brandT('brand.researchingHashtags')}</p>
                   {[1, 2, 3, 4].map(i => (
                     <div key={i} style={{ border: '1px solid var(--border-default)', borderRadius: 14, padding: 16, marginBottom: 12 }}>
                       <Skeleton height={18} width={100} mb={12} />

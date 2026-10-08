@@ -9,7 +9,7 @@
 import { Sparkles } from 'lucide-react';
 
 /**
- * AILoading — the canonical "Social Stats is thinking…" shimmer used by every
+ * AILoading — the canonical "Ravinta is thinking…" shimmer used by every
  * AI surface that performs an async generation (chat, writer, insights, etc).
  *
  * Variants:
@@ -18,7 +18,7 @@ import { Sparkles } from 'lucide-react';
  *            'inline'            — a small inline label "✨ Generating…"
  *
  * Props:
- *   label:    visible label (default "Social Stats is thinking…")
+ *   label:    visible label (default "Ravinta is thinking…")
  *   height:   bar height in px (shimmer only) — default 18
  *   width:    bar width — default '100%'
  *
@@ -26,7 +26,7 @@ import { Sparkles } from 'lucide-react';
  */
 export default function AILoading({
   variant = 'shimmer',
-  label = 'Social Stats is thinking…',
+  label = 'Ravinta is thinking…',
   height = 18,
   width = '100%',
   style,

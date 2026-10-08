@@ -91,7 +91,7 @@ _THIRD_PARTY = [
     ('google',   'Google integration (YouTube + GMB)'),
     ('linkedin', 'LinkedIn integration'),
     ('pinbot',   'WhatsApp (Pinbot.ai)'),
-    ('ai',       'Social Stats'),
+    ('ai',       'Ravinta'),
 ]
 
 

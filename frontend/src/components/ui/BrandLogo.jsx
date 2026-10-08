@@ -6,19 +6,21 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
+const BRAND_ACCESSIBLE_NAME = 'Ravinta';
 /** Ravinta logo renderers. The geometry mirrors the brand SVG master. */
 
-function MarkSvg({ size = 40, inverted = false }) {
+function MarkSvg({ size = 40, inverted = false, decorative = false, monochrome }) {
   return (
     <svg
-      width={size}
-      height={size}
+      width={Math.max(24, size)}
+      height={Math.max(24, size)}
       viewBox="0 0 96 96"
-      role="img"
-      aria-label="Ravinta"
-      style={{ display: 'block', flexShrink: 0 }}
+      role={decorative ? undefined : "img"}
+      aria-label={decorative ? undefined : BRAND_ACCESSIBLE_NAME}
+      aria-hidden={decorative || undefined}
+      style={{ display: 'block', flexShrink: 0, transform: 'none', direction: 'ltr' }}
     >
-      <g fill={inverted ? '#D6F268' : 'var(--brand-primary, #123D3A)'}>
+      <g fill={monochrome || (inverted ? 'var(--brand-signal, #D6F268)' : 'var(--brand-primary, #123D3A)')}>
         <rect x="12" y="18" width="56" height="12" rx="6" />
         <rect x="12" y="42" width="72" height="12" rx="6" />
         <rect x="12" y="66" width="56" height="12" rx="6" />
@@ -27,11 +29,15 @@ function MarkSvg({ size = 40, inverted = false }) {
   );
 }
 
-function Wordmark({ height = 22, color = 'currentColor' }) {
+function Wordmark({ height = 22, color = 'currentColor', decorative = false }) {
   return (
     <span
-      role="img"
-      aria-label="Ravinta"
+      lang="en"
+      dir="ltr"
+      data-wordmark-status="text-fallback"
+      role={decorative ? undefined : "img"}
+      aria-label={decorative ? undefined : BRAND_ACCESSIBLE_NAME}
+      aria-hidden={decorative || undefined}
       style={{
         display: 'inline-flex',
         alignItems: 'center',
@@ -39,7 +45,8 @@ function Wordmark({ height = 22, color = 'currentColor' }) {
         fontWeight: 800,
         fontSize: Math.round(height * 0.86),
         letterSpacing: '0.08em',
-        lineHeight: 1,
+        lineHeight: 1.2,
+        direction: 'ltr',
         color,
         whiteSpace: 'nowrap',
         userSelect: 'none',
@@ -50,8 +57,8 @@ function Wordmark({ height = 22, color = 'currentColor' }) {
   );
 }
 
-export function BrandMark({ size = 40, className, style }) {
-  return <span className={className} style={{ display: 'inline-flex', ...style }}><MarkSvg size={size} /></span>;
+export function BrandMark({ size = 40, className, style, monochrome }) {
+  return <span className={className} style={{ display: 'inline-flex', ...style }}><MarkSvg size={size} monochrome={monochrome} /></span>;
 }
 
 export function BrandMarkInverted({ size = 40, className, style }) {
@@ -59,23 +66,23 @@ export function BrandMarkInverted({ size = 40, className, style }) {
 }
 
 export function BrandWordmark({ height = 22, className, style }) {
-  return <span className={className} style={{ display: 'inline-flex', height, ...style }}><Wordmark height={height} /></span>;
+  return <span className={className} style={{ display: 'inline-flex', minHeight: height, ...style }}><Wordmark height={height} /></span>;
 }
 
-export function BrandLogoHorizontal({ height = 36, className, style }) {
+export function BrandLogoHorizontal({ height = 36, className, style, inverted = false }) {
   return (
-    <span className={className} style={{ display: 'inline-flex', alignItems: 'center', gap: Math.round(height * 0.32), height, ...style }}>
-      <MarkSvg size={Math.round(height)} />
-      <Wordmark height={Math.round(height * 0.7)} />
+    <span role="img" aria-label={BRAND_ACCESSIBLE_NAME} className={className} style={{ display: 'inline-flex', alignItems: 'center', gap: Math.round(height * 0.32), minHeight: height, direction: 'ltr', ...style }}>
+      <MarkSvg size={Math.round(height)} decorative inverted={inverted} />
+      {height >= 32 && <Wordmark height={Math.round(height * 0.7)} decorative color={inverted ? 'var(--brand-signal)' : 'currentColor'} />}
     </span>
   );
 }
 
 export function BrandLogoStacked({ height = 100, className, style }) {
   return (
-    <span className={className} style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: Math.round(height * 0.12), height, ...style }}>
-      <MarkSvg size={Math.round(height * 0.6)} />
-      <Wordmark height={Math.round(height * 0.22)} />
+    <span role="img" aria-label={BRAND_ACCESSIBLE_NAME} className={className} style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: Math.round(height * 0.12), minHeight: height, direction: 'ltr', ...style }}>
+      <MarkSvg size={Math.round(height * 0.6)} decorative />
+      {height >= 80 && <Wordmark height={Math.round(height * 0.22)} decorative />}
     </span>
   );
 }

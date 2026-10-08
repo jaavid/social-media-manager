@@ -960,7 +960,7 @@ function Onboarding({ identity, enabled }) {
       {refreshFailed && <p role="alert">{t('onboarding.sessionFailed')} <Button onClick={continueAfterKnownCompletion}>{t('recovery.retry')}</Button></p>}
       <PageHeader
         title="Complete Your Profile"
-        subtitle="Set up your business profile to get the most out of Social Stats"
+        subtitle="Set up your business profile to get the most out of Ravinta"
       />
 
       {(!clientId || profile.data) && <>

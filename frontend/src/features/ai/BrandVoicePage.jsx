@@ -162,7 +162,7 @@ export default function BrandVoicePage({ clientId: propClientId = null }) {
     <div className="app-page app-page--lg">
       <PageHeader
         title="Brand Voice"
-        subtitle="Train Social Stats on your past posts so every generation sounds like you"
+        subtitle="Train Ravinta on your past posts so every generation sounds like you"
         actions={(
           <Badge variant={statusInfo.variant} size="md" icon={trained ? CheckCircle : Sparkles}>
             {statusInfo.label}
@@ -251,7 +251,7 @@ export default function BrandVoicePage({ clientId: propClientId = null }) {
             size="lg" icon={Wand2} fullWidth loading={training}
             style={{ marginTop: 16 }}
           >
-            {training ? 'Social Stats is studying your voice…' : (trained ? 'Re-train brand voice' : 'Train brand voice')}
+            {training ? 'Ravinta is studying your voice…' : (trained ? 'Re-train brand voice' : 'Train brand voice')}
           </Button>
 
           {profile?.training_status === 'failed' && profile.training_error && (

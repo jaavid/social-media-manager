@@ -12,17 +12,21 @@ import '../styles/tailwind.css';
 import '../styles/i18n.css';
 
 export const metadata = {
-  title: { default: 'راوینتا؛ از ایده تا اثرگذاری', template: '%s · Ravinta' },
+  title: { default: 'راوینتا؛ از ایده تا اثر', template: '%s · Ravinta' },
   description: 'برنامه‌ریزی، تولید، تأیید، انتشار و سنجش حضور دیجیتال در یک فضای کاری مشترک.',
   metadataBase: process.env.NEXT_PUBLIC_SITE_URL ? new URL(process.env.NEXT_PUBLIC_SITE_URL) : undefined,
   manifest: '/manifest.json',
-  icons: { icon: '/icons/icon-192.png', apple: '/apple-touch-icon.png' },
+  icons: { icon: [{ url: '/favicon.ico', sizes: '16x16 32x32 48x48' }, { url: '/favicon.png', type: 'image/png', sizes: '32x32' }], apple: '/apple-touch-icon.png' },
 };
-export const viewport = {
-  width: 'device-width', initialScale: 1, viewportFit: 'cover',
-  themeColor: [{ media: '(prefers-color-scheme: light)', color: '#F7F9F8' },
-    { media: '(prefers-color-scheme: dark)', color: '#102B29' }],
-};
+export async function generateViewport() {
+  const preference = (await cookies()).get('theme')?.value;
+  return {
+    width: 'device-width', initialScale: 1, viewportFit: 'cover',
+    themeColor: preference === 'system'
+      ? [{ media: '(prefers-color-scheme: light)', color: '#F7F9F8' }, { media: '(prefers-color-scheme: dark)', color: '#102B29' }]
+      : preference === 'dark' ? '#102B29' : '#F7F9F8',
+  };
+}
 const arabicFont = localFont({ src: '../assets/fonts/NotoSansArabic.woff2', weight: '100 900',
   variable: '--font-product-arabic', display: 'swap', fallback: ['Arial', 'sans-serif'] });
 const latinFont = localFont({ src: '../assets/fonts/NotoSans.woff2', weight: '100 900',
@@ -34,6 +38,8 @@ const bootstrap = `try {
   document.documentElement.dataset.theme = dark ? 'dark' : 'light';
   document.documentElement.classList.toggle('dark', dark);
   document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+  var canvas = getComputedStyle(document.documentElement).getPropertyValue('--surface-page').trim();
+  if (canvas) document.querySelectorAll('meta[name="theme-color"]').forEach(function(meta) { meta.setAttribute('content', canvas); });
 } catch (_) {}`;
 export default async function RootLayout({ children }) {
   const language = await requestLanguage();

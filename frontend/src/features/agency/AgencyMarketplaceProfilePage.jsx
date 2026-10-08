@@ -1,3 +1,4 @@
+import { useLanguage } from '@/i18n';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -24,6 +25,7 @@ import { agencyAPI, authAPI, verificationAPI } from '../../services/api';
 import toast from '../../components/ui/toast';
 
 export default function AgencyMarketplaceProfilePage() {
+  const { t: brandT } = useLanguage();
   const [slug,    setSlug]    = useState(null);
   const [profile, setProfile] = useState(null);
   const [draft,   setDraft]   = useState(null);
@@ -117,9 +119,7 @@ export default function AgencyMarketplaceProfilePage() {
           <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
             Marketplace profile
           </h1>
-          <p style={{ margin: '4px 0 0', color: 'var(--text-secondary)', fontSize: 14 }}>
-            How you appear to potential clients in the Social Stats marketplace.
-          </p>
+          <p style={{ margin: '4px 0 0', color: 'var(--text-secondary)', fontSize: 14 }}>{brandT('brand.marketplaceProfile')}</p>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <Link to={`/marketplace/${slug}`} style={btnGhost} target="_blank" rel="noreferrer">

@@ -559,12 +559,13 @@ function SetupForm({ form, setForm, isAdmin, error, businessTypeOptions, monthOp
 // ── Loading screen ────────────────────────────────────────────────────────────
 
 function LoadingScreen({ steps, currentStep }) {
+  const { t: brandT } = useLanguage();
   return (
     <div style={styles.loadingWrap}>
       <div style={styles.loadingCard}>
         <div style={styles.loadingSpinner} />
         <h2 style={styles.loadingTitle}>Building your content calendar…</h2>
-        <p style={styles.loadingSub}>Social Stats is crafting personalised post ideas for your business</p>
+        <p style={styles.loadingSub}>{brandT('brand.postIdeas')}</p>
         <div style={styles.loadingSteps}>
           {steps.map((s, i) => (
             <div key={s} style={{

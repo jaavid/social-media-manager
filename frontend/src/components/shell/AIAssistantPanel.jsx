@@ -1,3 +1,4 @@
+import { useLanguage } from '@/i18n';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -141,6 +142,7 @@ function FloatingLauncher({ onClick, active }) {
 
 /* ── Panel (modal-ish) ───────────────────────────────────────────────── */
 function Panel({ tab, setTab, onClose }) {
+  const { t: brandT } = useLanguage();
   return (
     <div
       role="dialog"
@@ -205,9 +207,7 @@ function Panel({ tab, setTab, onClose }) {
               <Sparkles size={14} />
             </span>
             <div>
-              <div className={cn('[font-size:14px]', '[font-weight:600]')}>
-                Social Stats
-              </div>
+              <div className={cn('[font-size:14px]', '[font-weight:600]')}>{brandT('brand.name')}</div>
               <div
                 className={cn(
                   '[font-size:11px]',

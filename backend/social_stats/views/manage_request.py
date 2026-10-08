@@ -127,7 +127,7 @@ def _validate_permissions_payload(payload) -> dict:
 def _send_manage_request_email(req: ManageRequest):
     agency_name = req.agency.name
     link = f"{FRONTEND_URL}/invite/{req.token}"
-    subject = f"{agency_name} wants to manage your social media on Social Stats"
+    subject = f"{agency_name} wants to manage your social media on Ravinta"
 
     granted_keys = sorted([k for k, v in (req.proposed_permissions or {}).items() if v])
     perm_chips = ''.join(
@@ -140,7 +140,7 @@ def _send_manage_request_email(req: ManageRequest):
 
     greeting = (
         f'<strong style="color:#0f172a;">{agency_name}</strong> would like to help manage your '
-        'social media accounts on Social Stats. You stay in control — you can pause or terminate at any time.'
+        'social media accounts on Ravinta. You stay in control — you can pause or terminate at any time.'
     )
     body_html = (
         f'<div style="background:linear-gradient(135deg,#f0f9ff,#f8faff);border:1px solid rgba(0,215,255,0.18);'
@@ -153,7 +153,7 @@ def _send_manage_request_email(req: ManageRequest):
         f'</div>'
     )
     plain = (
-        f"{agency_name} would like to manage your social media accounts on Social Stats.\n\n"
+        f"{agency_name} would like to manage your social media accounts on Ravinta.\n\n"
         f'Message: {req.proposed_message or "(none)"}\n\n'
         f'Review and respond: {link}\n\n'
         f'This invitation expires in 7 days. You can pause or terminate at any time after accepting.\n'

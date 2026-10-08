@@ -140,7 +140,7 @@ def _build_export_zip(user) -> tuple[bytes, dict]:
             'export_requests.json', 'deletion_requests.json', 'README.txt',
         ],
         'note': (
-            'This archive contains personal data Social Stats holds about you. '
+            'This archive contains personal data Ravinta holds about you. '
             'Workspace content (posts, leads, messages) is included only when '
             'you are the workspace owner. Connected platform tokens are '
             'NOT included for security.'
@@ -165,13 +165,13 @@ def _json(obj) -> str:
 
 def _readme_text(user, manifest: dict) -> str:
     return (
-        f'Social Stats — personal data export\n'
+        f'Ravinta — personal data export\n'
         f'-----------------------------\n'
         f'Subject: {user.email or user.username}\n'
         f'Generated: {manifest["export_generated_at"]}\n\n'
         f'Files in this archive:\n'
         + '\n'.join(f'  • {f}' for f in manifest['files'])
-        + '\n\nQuestions? Contact your Social Stats administrator.\n'
+        + '\n\nQuestions? Contact your Ravinta administrator.\n'
     )
 
 
@@ -182,16 +182,16 @@ def _email_export_link(user, req, manifest: dict) -> None:
     link = f'{frontend}/privacy/download/{req.download_token.hex}/'
     body = (
         f'Hi {user.first_name or user.username},\n\n'
-        f'Your Social Stats personal-data export is ready. Download link (expires '
+        f'Your Ravinta personal-data export is ready. Download link (expires '
         f'in 7 days):\n\n'
         f'  {link}\n\n'
         f'Archive size: {req.archive_size_bytes:,} bytes\n'
         f'Files: {", ".join(manifest["files"])}\n\n'
-        f'If you did not request this export, contact your Social Stats administrator immediately.\n'
+        f'If you did not request this export, contact your Ravinta administrator immediately.\n'
     )
     try:
         send_mail(
-            '[Social Stats] Your data export is ready',
+            '[Ravinta] Your data export is ready',
             body,
             getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@example.com'),
             [user.email],

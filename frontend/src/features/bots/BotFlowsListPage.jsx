@@ -1,3 +1,4 @@
+import { useLanguage } from '@/i18n';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -271,6 +272,7 @@ function Empty({ templates, onCreate }) {
 }
 
 function CreateModal({ onClose, onCreated }) {
+  const { t: brandT } = useLanguage();
   const [mode, setMode] = useState('blank'); // 'blank' | 'ai'
 
   // Blank-flow state
@@ -411,8 +413,7 @@ function CreateModal({ onClose, onCreated }) {
               borderRadius: 'var(--radius-sm)',
               display: 'flex', alignItems: 'center', gap: 6,
             }}>
-              <Sparkles size={12} /> Social Stats drafts the flow. You can edit every step in the visual editor.
-            </p>
+              <Sparkles size={12} />{brandT('brand.flowHelp')}</p>
             {aiWarning && (
               <p style={{
                 margin: 0, padding: '8px 10px', fontSize: 11,

@@ -1,3 +1,4 @@
+import { useLanguage } from '@/i18n';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -28,6 +29,7 @@ import { safeHtml } from '../../utils/sanitize';
  *   }
  */
 export default function StaticContentPage({ contentKey, fallbackTitle, eyebrow }) {
+  const { t: brandT } = useLanguage();
   const [doc, setDoc] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -91,7 +93,7 @@ export default function StaticContentPage({ contentKey, fallbackTitle, eyebrow }
     >
       {doc.content?.footer_link_label && doc.content?.footer_link_url && (
         <p style={{ marginTop: 28, paddingTop: 20, borderTop: '1px solid var(--border-subtle)', fontSize: 12, color: 'var(--text-tertiary)' }}>
-          © {new Date().getFullYear()} SocialStats ·{' '}
+          © {new Date().getFullYear()}{brandT('brand.footer')}{' '}
           <a href={doc.content.footer_link_url} style={{ color: 'var(--text-link)' }}>
             {doc.content.footer_link_label}
           </a>

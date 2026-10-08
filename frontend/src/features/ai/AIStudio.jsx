@@ -1,3 +1,4 @@
+import { useLanguage } from '@/i18n';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -7,7 +8,7 @@
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
 /**
- * AIStudio — central hub for every AI feature in Social Stats.
+ * AIStudio — central hub for every AI feature in Ravinta.
  *
  * Card grid linking to:
  *   - Brand Voice
@@ -50,13 +51,13 @@ const FEATURE_GROUPS = [
     label: 'Understand',
     items: [
       { id: 'insights',     title: 'AI Insights',          icon: BarChart3, body: 'Actionable insights from your data.',         to: '/insights',     accent: 'var(--brand-primary)' },
-      { id: 'brand-voice',  title: 'Brand Voice',          icon: Mic,       body: 'Train Social Stats on your past posts.',            to: '/brand-voice',  accent: '#8b5cf6' },
+      { id: 'brand-voice',  title: 'Brand Voice',          icon: Mic,       body: 'Train Ravinta on your past posts.',            to: '/brand-voice',  accent: '#8b5cf6' },
     ],
   },
   {
     label: 'Chat',
     items: [
-      { id: 'chat-history', title: 'Chat History',         icon: MessageSquare, body: 'Past conversations with Social Stats.',     to: '/chat-history', accent: 'var(--brand-primary-hover)' },
+      { id: 'chat-history', title: 'Chat History',         icon: MessageSquare, body: 'Past conversations with Ravinta.',     to: '/chat-history', accent: 'var(--brand-primary-hover)' },
     ],
   },
 ];
@@ -67,6 +68,7 @@ const ADMIN_ITEMS = [
 
 
 export default function AIStudio() {
+  const { t: brandT } = useLanguage();
   const { user } = useAuth();
   const isAdmin = user?.role === 'superadmin' || user?.role === 'staff';
   const basePath = isAdmin ? '/admin/analytics' : '/dashboard/analytics';
@@ -74,9 +76,9 @@ export default function AIStudio() {
   return (
     <div className="app-page app-page--lg">
       <PageHeader
-        title="Social Stats Studio"
-        subtitle="Every Social Stats surface in one place"
-        eyebrow="✨ Powered by Social Stats"
+        title={brandT('brand.studio')}
+        subtitle="Every Ravinta surface in one place"
+        eyebrow="✨ Powered by Ravinta"
       />
 
       {FEATURE_GROUPS.map((group) => (
@@ -115,8 +117,7 @@ export default function AIStudio() {
           </span>
           <div style={{ minWidth: 0, flex: 1 }}>
             <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
-              Press <kbd style={kbdStyle}>⌘ J</kbd> from anywhere to chat with Social Stats
-            </div>
+              Press <kbd style={kbdStyle}>⌘ J</kbd>{brandT('brand.chatShortcut')}</div>
             <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>
               The chat assistant can pull your metrics, draft posts, search your inbox, and schedule actions —
               all with confirmation gates on anything that touches live data.

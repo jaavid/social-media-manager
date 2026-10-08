@@ -109,7 +109,7 @@ export function buildSoftwareApplication({ name, description, image, ratingValue
   return {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
-    name: name ? `Social Stats — ${name}` : 'Social Stats',
+    name: name ? `Ravinta — ${name}` : 'Ravinta',
     description,
     applicationCategory: 'BusinessApplication',
     operatingSystem: 'Web, iOS, Android',

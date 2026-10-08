@@ -1,3 +1,4 @@
+import { useLanguage } from '@/i18n';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -85,6 +86,7 @@ function defaultPerms() {
 }
 
 export default function InviteAgencyModal({ open, onClose, targetAgency = null, onSent }) {
+  const { t: brandT } = useLanguage();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
@@ -190,10 +192,7 @@ export default function InviteAgencyModal({ open, onClose, targetAgency = null, 
                 placeholder="hello@theiragency.com  or  their-agency-slug"
                 style={inputStyle}
               />
-              <p style={hintText}>
-                If the agency is already on Social Stats, use their slug. Otherwise, their email — we'll send them
-                an invitation to join Social Stats and accept your request.
-              </p>
+              <p style={hintText}>{brandT('brand.inviteHelp')}</p>
             </div>
           )}
 

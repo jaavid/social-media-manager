@@ -261,7 +261,7 @@ test('AI panel fits the resized mobile viewport and closes back above navigation
   await session(page);
   await page.goto('/admin/analytics/media');
   await page.locator('.ai-floating-trigger').click();
-  const panel = page.getByRole('dialog', { name: 'Social Stats chat' });
+  const panel = page.getByRole('dialog', { name: 'Ravinta chat' });
   await expect(panel).toBeVisible();
   await page.setViewportSize({ width: 390, height: 580 });
   const rect = await panel.boundingBox();

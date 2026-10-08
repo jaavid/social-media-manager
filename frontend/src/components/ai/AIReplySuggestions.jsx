@@ -1,3 +1,4 @@
+import { useLanguage } from '@/i18n';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -18,14 +19,14 @@ import toast from '../ui/toast';
  * AIReplySuggestions — three AI-suggested reply chips that sit above any
  * reply box (Inbox, comments, reviews).
  *
- * Pass either a Social Stats `messageId` / `conversationId` OR raw `messageText`.
+ * Pass either a Ravinta `messageId` / `conversationId` OR raw `messageText`.
  * Click a chip to call `onPick(text)` — typically wired to set the reply
  * input's value. The recommended suggestion is highlighted with brand cyan.
  *
  * Props:
  *   clientId        required for tenant-scoped AI calls
- *   messageId       (optional) Social Stats Message id — preferred input
- *   conversationId  (optional) Social Stats Conversation id (uses last inbound msg)
+ *   messageId       (optional) Ravinta Message id — preferred input
+ *   conversationId  (optional) Ravinta Conversation id (uses last inbound msg)
  *   messageText     (optional) raw text (fallback when ids not available)
  *   platform        platform slug (whatsapp / instagram / facebook / linkedin / ...)
  *   senderName      optional first name of the customer (improves replies)
@@ -50,6 +51,7 @@ export default function AIReplySuggestions({
   onPick,
   autoLoad = true,
 }) {
+  const { t: brandT } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
   const [summary, setSummary] = useState('');
@@ -110,9 +112,7 @@ export default function AIReplySuggestions({
         letterSpacing: '0.06em', textTransform: 'uppercase',
         color: 'var(--text-tertiary)',
       }}>
-        <Sparkles size={11} style={{ color: 'var(--brand-primary-hover)' }} />
-        Social Stats · suggested replies
-      </span>
+        <Sparkles size={11} style={{ color: 'var(--brand-primary-hover)' }} />{brandT('brand.replies')}</span>
       <button
         type="button"
         onClick={load}

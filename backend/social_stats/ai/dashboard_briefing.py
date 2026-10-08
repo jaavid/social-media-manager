@@ -131,7 +131,7 @@ def _build_system_prompt(ctx: AIContextProvider, facts: dict) -> str:
     """System message — tone + structural constraints."""
     voice_text = ctx.as_prompt_fragment()
     base = (
-        'You are the dashboard briefing writer for a marketing OS called Social Stats. '
+        'You are the dashboard briefing writer for a marketing OS called Ravinta. '
         'Write a short, scannable briefing for the workspace owner — '
         '4 to 5 bullet points, each one line, each starting with "• ". '
         'Stick strictly to facts in the data block. No questions, no calls to action, '

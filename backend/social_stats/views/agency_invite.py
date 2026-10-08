@@ -132,7 +132,7 @@ def _send_invite_email(inv: AgencyInviteFromUser):
         return
     inviter_name = inv.inviter_user.get_full_name() or inv.inviter_user.email
     link = f"{FRONTEND_URL}/agency-invite/{inv.token}"
-    subject = f"{inviter_name} ({inv.client.company}) wants you to manage their social on Social Stats"
+    subject = f"{inviter_name} ({inv.client.company}) wants you to manage their social on Ravinta"
 
     granted = sorted([k for k, v in (inv.proposed_permissions or {}).items() if v])
     perm_chips = ''.join(
@@ -146,7 +146,7 @@ def _send_invite_email(inv: AgencyInviteFromUser):
     greeting = (
         f'<strong style="color:#0f172a;">{inviter_name}</strong> from '
         f'<strong style="color:#0f172a;">{inv.client.company}</strong> would like '
-        f'your agency to manage their social media on Social Stats.'
+        f'your agency to manage their social media on Ravinta.'
     )
     body_html = (
         f'<div style="background:linear-gradient(135deg,#f0f9ff,#f8faff);border:1px solid rgba(0,215,255,0.18);'
@@ -159,7 +159,7 @@ def _send_invite_email(inv: AgencyInviteFromUser):
         f'</div>'
     )
     plain = (
-        f'{inviter_name} from {inv.client.company} would like your agency to manage their social on SocialStats.\n\n'
+        f'{inviter_name} from {inv.client.company} would like your agency to manage their social on Ravinta.\n\n'
         f'Message: {inv.message or "(none)"}\n\n'
         f'Review and respond: {link}\n\n'
         f'This invitation expires in 7 days.\n'
@@ -315,7 +315,7 @@ def accept_agency_invite(request, token):
     agency = inv.target_agency
     if not agency:
         return Response({
-            'error': 'this invite was sent to an email — sign up your agency on Social Stats first, then re-open this link from your account',
+            'error': 'this invite was sent to an email — sign up your agency on Ravinta first, then re-open this link from your account',
         }, status=409)
 
     membership = AgencyMembership.objects.filter(

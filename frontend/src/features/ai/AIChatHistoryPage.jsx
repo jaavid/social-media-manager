@@ -7,7 +7,7 @@
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
 /**
- * AIChatHistoryPage — full-page browser for past Social Stats conversations.
+ * AIChatHistoryPage — full-page browser for past Ravinta conversations.
  *
  * Left: searchable list of conversations (active + archived toggle).
  * Right: selected conversation with all messages.
@@ -89,7 +89,7 @@ export default function AIChatHistoryPage() {
     <div className="app-page app-page--lg">
       <PageHeader
         title="Chat History"
-        subtitle="Past conversations with Social Stats"
+        subtitle="Past conversations with Ravinta"
         actions={(
           <Button
             size="sm" variant="ghost"
@@ -133,7 +133,7 @@ export default function AIChatHistoryPage() {
               <EmptyState
                 icon={MessageSquare}
                 title={showArchived ? 'No archived chats' : 'No conversations yet'}
-                description={showArchived ? null : 'Press ⌘J anywhere to start a chat with Social Stats.'}
+                description={showArchived ? null : 'Press ⌘J anywhere to start a chat with Ravinta.'}
                 compact
               />
             ) : (
