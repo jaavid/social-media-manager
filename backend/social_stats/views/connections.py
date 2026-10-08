@@ -149,9 +149,12 @@ def connection(request, workspace_id, platform):
         values = {}
         for field in fields:
             value = request.data.get(field.key, '')
-            if not isinstance(value, str) or len(value) > 2048 or (field.required and not value.strip()):
+            if not isinstance(value, str) or len(value) > 2048:
                 return Response({'code': 'invalid_request'}, status=400)
-            values[field.key] = value.strip()
+            value = value.strip() if field.normalization == 'trim' else value
+            if field.required and not value:
+                return Response({'code': 'invalid_request'}, status=400)
+            values[field.key] = value
         if 'api_key' in values:
             values.setdefault('token', values['api_key'])
         credential, _ = ConnectionService().connect(

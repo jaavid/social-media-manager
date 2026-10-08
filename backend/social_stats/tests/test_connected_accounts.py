@@ -211,3 +211,18 @@ class ConnectedAccountsTests(FixtureRegistration, TestCase):
         self.assertNotIn('PRIVATE-FIRST', str(response.json()))
         self.assertNotIn('PRIVATE-FIRST', '\n'.join(logs.output))
         self.assertEqual(self.item()['accounts'][0]['health']['state'], 'ready')
+
+    def test_connection_endpoint_applies_field_normalization_without_trimming_secrets(self):
+        from dataclasses import replace
+        manifest = replace(self.provider.manifest, auth_fields=tuple(
+            replace(field, normalization='trim' if field.key == 'destination_id' else 'preserve')
+            for field in self.provider.manifest.auth_fields))
+        token = ' public-fixture-intentional-whitespace '
+        with patch.object(type(self.provider), 'manifest', manifest):
+            response = self.api.post(self.provider_url + f'?account_id={self.first.social_account_id}',
+                                     {'token': token, 'destination_id': ' first '})
+        self.assertEqual(response.status_code, 201)
+        self.first.refresh_from_db()
+        self.assertEqual(self.first.access_token, token)
+        self.assertEqual(self.first.platform_user_id, 'first')
+        self.assertNotIn(token, str(response.data))

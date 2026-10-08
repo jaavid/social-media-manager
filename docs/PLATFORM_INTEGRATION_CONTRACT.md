@@ -239,3 +239,5 @@ returns it to draft, and stale approval revisions cannot execute.
 
 Apply migrations 0078–0079 before serving this API/UI version. They add local
 intent deduplication and per-account delivery keys without deleting existing logs.
+
+Manual credential normalization also applies at the authenticated connection API boundary. The server uses each validated AuthField normalization value before required-value checks; preserve fields retain intentional whitespace through encrypted credential persistence. String/type and maximum-length constraints remain. The UI and backend therefore share the field contract rather than inferring normalization from password input type.
