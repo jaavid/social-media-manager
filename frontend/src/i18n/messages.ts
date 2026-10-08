@@ -938,6 +938,7 @@ const accountsFa = {
 const commonFa = {
   'common.search': 'جست‌وجو…',
   'common.new': 'جدید',
+  'common.whatsNew': 'تازه‌ها',
   'common.today': 'امروز',
   'common.all': 'همه',
   'common.loading': 'در حال بارگذاری…',
@@ -983,6 +984,7 @@ const commonFa = {
 const commonEn = {
   "common.search": "Search…",
   "common.new": "New",
+  "common.whatsNew": "What's new",
   "common.today": "Today",
   "common.all": "All",
   "common.loading": "Loading…",

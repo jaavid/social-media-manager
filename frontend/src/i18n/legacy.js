@@ -12,6 +12,9 @@ export const workspaceCopyAliases = {
   "Switch to client": "Switch to workspace"
 };
 const faRaw = {
+  'navigation': 'ناوبری',
+  'bottom tabs': 'زبانه‌های پایین',
+  'Back': 'بازگشت',
   'Media preview unavailable': 'پیش‌نمایش رسانه در دسترس نیست',
   'Loading media…': 'در حال دریافت رسانه…',
   'Suggested photo': 'عکس پیشنهادی',

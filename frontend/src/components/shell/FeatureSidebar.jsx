@@ -68,7 +68,7 @@ export default function FeatureSidebar({
   const navSet = NAV_SETS[module] || NAV_SETS.analytics;
   return (
     <aside
-      aria-label={`${tr(navSet.label)} navigation`}
+      aria-label={`${tr(navSet.label)} ${tr('navigation')}`}
       className={cn(
         'ds-feature-sidebar',
         '[position:fixed]',
