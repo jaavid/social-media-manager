@@ -112,7 +112,7 @@ def _send_email(user: User, subject: str, title: str, body: str, cta_url: str = 
         greeting=title,
         body_html=body_html,
         cta_url=cta_url or frontend,
-        cta_label=cta_label or 'Open SocialStats',
+        cta_label=cta_label or 'Open Ravinta',
         expiry_note='',
         frontend_url=frontend,
     )

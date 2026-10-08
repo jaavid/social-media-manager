@@ -11,16 +11,25 @@ describe('Ravinta logo', () => {
     expect(container.querySelector('rect[x="12"][y="42"][width="72"]')).toBeInTheDocument();
   });
 
-  it('uses the approved uppercase Latin wordmark', () => {
+  it('labels the composite once and identifies the provisional text fallback', () => {
     render(<Logo variant="horizontal" />);
 
     expect(screen.getByText('RAVINTA')).toBeInTheDocument();
-    expect(screen.getAllByRole('img', { name: 'Ravinta' })).toHaveLength(2);
+    expect(screen.getAllByRole('img', { name: 'Ravinta' })).toHaveLength(1);
+    expect(screen.getByText('RAVINTA')).toHaveAttribute('data-wordmark-status', 'text-fallback');
   });
 
   it('uses the signal color for the inverted mark', () => {
     const { container } = render(<Logo variant="mark-inverted" />);
 
-    expect(container.querySelector('g')).toHaveAttribute('fill', '#D6F268');
+    expect(container.querySelector('g')).toHaveAttribute('fill', 'var(--brand-signal, #D6F268)');
   });
+});
+
+it('keeps the mark unmirrored in RTL and omits the text fallback below lockup size', () => {
+  const { container } = render(<div dir="rtl"><Logo variant="horizontal" height={24} /></div>);
+  expect(screen.getAllByRole('img', { name: 'Ravinta' })).toHaveLength(1);
+  expect(screen.queryByText('RAVINTA')).not.toBeInTheDocument();
+  expect(container.querySelector('svg')).toHaveStyle({ transform: 'none', direction: 'ltr' });
+  expect(container.querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
 });

@@ -163,7 +163,7 @@ def _notify_lead_captured(executor, lead) -> None:
         },
         cta_url=f'{frontend}/admin/leads/{lead.id}',
         cta_label='Open lead',
-        email_subject=f'[Social Stats] New lead: {contact_label}',
+        email_subject=f'[Ravinta] New lead: {contact_label}',
     )
 
 

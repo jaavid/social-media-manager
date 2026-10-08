@@ -1,3 +1,4 @@
+import { useLanguage } from '@/i18n';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -46,6 +47,7 @@ const TYPE_ICON = {
 
 
 export default function TodayBriefing({ clientId, basePath = '/dashboard' }) {
+  const { t: brandT } = useLanguage();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -70,7 +72,7 @@ export default function TodayBriefing({ clientId, basePath = '/dashboard' }) {
       const persisted = r.data?.persisted || 0;
       const note = r.data?.note;
       if (note) toast(note, { icon: 'ℹ️' });
-      else if (persisted) toast.success(`Social Stats surfaced ${persisted} new insight${persisted === 1 ? '' : 's'}`);
+      else if (persisted) toast.success(brandT('brand.insightsFound', { count: persisted }));
       load();
     } catch (e) {
       const msg = e?.response?.data?.error || 'AI is unavailable right now';
@@ -101,9 +103,7 @@ export default function TodayBriefing({ clientId, basePath = '/dashboard' }) {
             <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
               Today&apos;s briefing
             </div>
-            <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
-              From Social Stats · most recent insights
-            </div>
+            <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{brandT('brand.latestInsights')}</div>
           </div>
         </div>
         <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
@@ -133,7 +133,7 @@ export default function TodayBriefing({ clientId, basePath = '/dashboard' }) {
           padding: '12px 4px', fontSize: 13, color: 'var(--text-secondary)',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
         }}>
-          <span>No insights yet — give Social Stats a moment to study your data.</span>
+          <span>{brandT('brand.noInsights')}</span>
           <Button size="xs" icon={Sparkles} onClick={refresh} loading={refreshing}>Generate</Button>
         </div>
       ) : (

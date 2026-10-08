@@ -446,7 +446,7 @@ def _post_reply(ctx: dict, text: str) -> None:
                 conversation=conv,
                 platform_message_id=getattr(result, 'platform_post_id', '') or '',
                 direction='outbound',
-                author_name='Social Stats automation',
+                author_name='Ravinta automation',
                 content=text,
                 sent_at=timezone.now(),
                 replied_at=timezone.now(),

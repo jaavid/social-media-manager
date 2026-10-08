@@ -46,7 +46,7 @@ export default function EndUserDashboard() {
           <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>{tr("Hi,")} {firstName} 👋
           </h1>
           <p style={{ margin: '4px 0 0', color: 'var(--text-secondary)', fontSize: 14 }}>
-            {workspace ? <>{tr("Here's what's happening with")} <strong style={{ color: 'var(--text-primary)' }}>{workspace.company || workspace.name}</strong>.</> : tr("Welcome to Social Stats.")}
+            {workspace ? <>{tr("Here's what's happening with")} <strong style={{ color: 'var(--text-primary)' }}>{workspace.company || workspace.name}</strong>.</> : tr("Welcome to Ravinta.")}
           </p>
         </div>
         {workspace && (

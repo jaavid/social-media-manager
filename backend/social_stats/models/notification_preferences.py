@@ -51,7 +51,7 @@ SMART_NOTIFICATION_EVENT_CHOICES = [
     ('relation_resumed',   'A client resumed your access'),
     ('agency_disconnected',     'A client disconnected from your agency'),
     ('client_account_deleted',  'A client deleted their account'),
-    ('client_joined',           'Your invited client joined Social Stats'),
+    ('client_joined',           'Your invited client joined Ravinta'),
 ]
 
 NOTIFICATION_CHANNEL_CHOICES = [
@@ -85,5 +85,3 @@ class NotificationPreference(models.Model):
 # ════════════════════════════════════════════════════════════════════════
 # AI Infrastructure — added in the AI build-out
 # ════════════════════════════════════════════════════════════════════════
-
-

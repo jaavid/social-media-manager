@@ -1,0 +1,23 @@
+# Ravinta rollout status
+
+This records repository evidence, not legal clearance. BRAND.md specifies Ravinta / راوینتا and the Latin fallback RAVINTA; README and palette.json still describe the name as proposed. The approved geometric master is `assets/app-icon.svg` and its 96-unit mark geometry. No approved outlined Persian or Latin wordmark is present. BrandLogo labels its existing text fallback as provisional; no generated concept image or invented final lockup replaces it. Domain, handle and trademark availability have not been verified.
+
+## Independent implementation
+
+Visible product/auth/navigation/marketing/AI descriptions, metadata and notification/email product names use Ravinta. Backend subjects/default display sender names change while existing mail addresses and action links remain compatible. Logo variants share the master geometry, canonical brand/signal tokens and clearance; they have one accessible name, retain direction in RTL and hide the fallback wordmark below minimum lockup sizes.
+
+`frontend/scripts/generate-brand-assets.cjs` deterministically exports the approved app master through existing Sharp (no added dependency). Any/maskable 192/512 exports are distinct; foreground stays in the central 80% safe circle. Apple 180, PNG favicon 32, ICO 16/32/48 and a mark-only 1200×630 OG export are supplied. No unapproved wordmark is rasterized. Manifest identity is `/`; native browser/OS installation is not certified by checking manifest and file dimensions. ClientRuntime's previously retired service worker remains retired; no offline capability is invented.
+
+Root title/template, approved tagline, manifest, favicon/Apple/OG and canvas theme-color are consistent. Explicit light/dark cookies work before JavaScript; system uses OS media queries. After switching, theme-color reads the existing canonical CSS canvas rather than a parallel runtime palette. Canonical URLs use the existing configured site origin where available, not an invented Ravinta domain.
+
+## Compatibility exceptions
+
+Copyright/author notices, repository/package names, Python app/DB/schema/API identifiers, `socialstats.*` cookies/storage and migration cache prefixes retain their technical names. Existing external links/handles, example mail domains, export compatibility filenames and legacy service-worker cleanup names remain unchanged unless real authorized replacements are provided. A visible external URL containing socialstats is not evidence that a Ravinta domain/handle is available. Legacy dictionary lookup keys remain only when a consumer needs compatibility; current visible text is translated under semantic keys.
+
+## Remaining acceptance work
+
+- Deliver and approve final outlined Persian/Latin wordmarks; settle proposed name and provide authoritative domain/handle/trademark decisions.
+- #112 owns provider-driven presentation/capability provenance. `services/platforms.js`, `useLookups`' PLATFORM_LIST filter and the named Settings/Onboarding/PostIdeas/MyPosts consumers retain compatibility catalogues; this batch does not certify exclusive backend-driven provider presentation.
+- Browser contrast checks cover canonical foreground/secondary/primary hover/active/focus pairs in light/dark. They do not certify every legacy raw-color page. A complete product contrast/raw-brand-color inventory and actual browser/OS install exercise remain acceptance work.
+
+Therefore #116 remains open. Safe synthetic fa/en, RTL/LTR, light/dark 360/768/1440 evidence and asset tests are attached to its rollout PR. No legal availability or final-wordmark approval is claimed.

@@ -117,7 +117,7 @@ export default function EndUserShell({ children }) {
         }}>
           <Sparkles size={13} strokeWidth={2.4} />
         </span>
-        <strong style={{ fontSize: 14, color: 'var(--text-primary)' }}>{tr("Social Stats")}</strong>
+        <strong style={{ fontSize: 14, color: 'var(--text-primary)' }}>{tr("Ravinta")}</strong>
       </header>
 
       {/* Backdrop */}
@@ -172,7 +172,7 @@ export default function EndUserShell({ children }) {
             <Sparkles size={14} strokeWidth={2.4} />
           </span>
           <div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>{tr("Social Stats")}</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>{tr("Ravinta")}</div>
             <div style={{ fontSize: 10, color: 'var(--text-tertiary)' }}>{tr("Personal account")}</div>
           </div>
         </div>

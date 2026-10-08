@@ -34,6 +34,12 @@ export default function Logo({
   style,
 }) {
   switch (variant) {
+    case 'mark-white':
+      return <BrandMark size={size ?? 40} className={className} style={style} monochrome="#FFFFFF" />;
+    case 'mark-black':
+      return <BrandMark size={size ?? 40} className={className} style={style} monochrome="#000000" />;
+    case 'horizontal-inverted':
+      return <BrandLogoHorizontal height={height ?? 36} className={className} style={style} inverted />;
     case 'mark':
       return <BrandMark          size={size ?? 40}  className={className} style={style} />;
     case 'mark-inverted':

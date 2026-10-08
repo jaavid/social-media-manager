@@ -29,7 +29,7 @@ from social_stats.models import UserProfile, Client, ClientInvitation
 from social_stats.views.social_auth import _make_jwt
 
 FRONTEND_URL   = getattr(settings, 'FRONTEND_URL', 'http://localhost:3000')
-FROM_EMAIL     = getattr(settings, 'DEFAULT_FROM_EMAIL', 'Social Stats <noreply@example.com>')
+FROM_EMAIL     = getattr(settings, 'DEFAULT_FROM_EMAIL', 'Ravinta <noreply@example.com>')
 
 
 # ── Get / Update profile ──────────────────────────────────────────────────────
@@ -245,9 +245,9 @@ def _email_template(title, greeting, body_html, cta_url, cta_label, note, info_c
         <tr><td style="background:linear-gradient(90deg,#00d7ff,#0099bb);height:4px;font-size:0;">&nbsp;</td></tr>
         <tr>
           <td style="padding:32px 40px 24px;text-align:center;background:#ffffff;">
-            <img src="{FRONTEND_URL}/favicon.png" alt="Social Stats" width="52" height="52"
+            <img src="{FRONTEND_URL}/favicon.png" alt="Ravinta" width="52" height="52"
                  style="border-radius:14px;display:inline-block;box-shadow:0 4px 16px rgba(0,215,255,0.25);margin-bottom:14px;" /><br>
-            <span style="font-size:22px;font-weight:800;color:#0f172a;letter-spacing:-0.04em;">Social Stats</span><span style="font-size:22px;font-weight:800;color:#00b8d9;letter-spacing:-0.04em;">.ai</span>
+            <span style="font-size:22px;font-weight:800;color:#0f172a;letter-spacing:-0.04em;">Ravinta</span>
           </td>
         </tr>
         <tr><td style="padding:0 40px;"><div style="height:1px;background:linear-gradient(90deg,transparent,rgba(0,215,255,0.2),transparent);"></div></td></tr>
@@ -267,7 +267,7 @@ def _email_template(title, greeting, body_html, cta_url, cta_label, note, info_c
         </tr>
         <tr>
           <td style="background:linear-gradient(135deg,#f8fafc,#f0f9ff);padding:20px 40px;text-align:center;border-top:1px solid rgba(0,215,255,0.1);">
-            <p style="margin:0;font-size:12px;color:#94a3b8;">&copy; 2026 <strong style="color:#64748b;">Social Stats.ai</strong> &mdash; Automation Intelligence Platform</p>
+            <p style="margin:0;font-size:12px;color:#94a3b8;">&copy; 2026 <strong style="color:#64748b;">Ravinta</strong> &mdash; From idea to impact</p>
           </td>
         </tr>
       </table>
@@ -287,17 +287,17 @@ def send_invitation_accepted_email(client_user, agency_name, agency_email):
     </div>"""
     html = _email_template(
         title        = 'You\'re connected!',
-        greeting     = f'Hi <strong style="color:#0f172a;">{name}</strong>, your account is now connected to <strong style="color:#0f172a;">{agency_name}</strong> on SocialStats. They can now manage your analytics and reports.',
+        greeting     = f'Hi <strong style="color:#0f172a;">{name}</strong>, your account is now connected to <strong style="color:#0f172a;">{agency_name}</strong> on Ravinta. They can now manage your analytics and reports.',
         body_html    = '',
         cta_url      = f'{FRONTEND_URL}/dashboard',
         cta_label    = 'Go to Dashboard',
         note         = 'You can disconnect from your agency at any time from your Account Settings.',
         info_card_html = info,
     )
-    plain = f"Hi {name},\n\nYour Social Stats account is now connected to {agency_name} ({agency_email}).\n\nGo to your dashboard: {FRONTEND_URL}/dashboard"
+    plain = f"Hi {name},\n\nYour Ravinta account is now connected to {agency_name} ({agency_email}).\n\nGo to your dashboard: {FRONTEND_URL}/dashboard"
     try:
         send_mail(
-            f'You\'re now connected to {agency_name} on Social Stats',
+            f'You\'re now connected to {agency_name} on Ravinta',
             plain, FROM_EMAIL, [client_user.email],
             html_message=html, fail_silently=True,
         )
@@ -306,7 +306,7 @@ def send_invitation_accepted_email(client_user, agency_name, agency_email):
 
 
 def _send_account_deleted_email_to_agency(agency_user, agency_name, client_name, client_email, reason):
-    """Email to agency when their client deletes their Social Stats account."""
+    """Email to agency when their client deletes their Ravinta account."""
     name = agency_user.first_name or agency_user.email.split('@')[0]
     reason_html = f'<p style="margin:8px 0 0;font-size:13px;color:#64748b;"><strong>Reason:</strong> {reason}</p>' if reason else ''
     info = f"""<div style="background:linear-gradient(135deg,#fff5f5,#fff0f0);border:1px solid rgba(220,38,38,0.15);border-radius:14px;padding:20px 24px;margin:0 0 24px;">
@@ -317,17 +317,17 @@ def _send_account_deleted_email_to_agency(agency_user, agency_name, client_name,
     </div>"""
     html = _email_template(
         title        = 'A client deleted their account',
-        greeting     = f'Hi <strong style="color:#0f172a;">{name}</strong>, we\'re letting you know that a client has permanently deleted their Social Stats account.',
-        body_html    = '<p style="font-size:14px;color:#64748b;line-height:1.7;margin:0 0 20px;">Their account and all associated data have been permanently removed from Social Stats. You can no longer access their analytics or reports.</p>',
+        greeting     = f'Hi <strong style="color:#0f172a;">{name}</strong>, we\'re letting you know that a client has permanently deleted their Ravinta account.',
+        body_html    = '<p style="font-size:14px;color:#64748b;line-height:1.7;margin:0 0 20px;">Their account and all associated data have been permanently removed from Ravinta. You can no longer access their analytics or reports.</p>',
         cta_url      = f'{FRONTEND_URL}/admin/clients',
         cta_label    = 'View Clients',
         note         = 'This action is permanent and cannot be undone.',
         info_card_html = info,
     )
-    plain = f"Hi {name},\n\n{client_name} ({client_email}) has permanently deleted their Social Stats account.\n\nReason: {reason or 'Not provided'}\n\nAll their data has been removed."
+    plain = f"Hi {name},\n\n{client_name} ({client_email}) has permanently deleted their Ravinta account.\n\nReason: {reason or 'Not provided'}\n\nAll their data has been removed."
     try:
         send_mail(
-            f'{client_name} deleted their SocialStats account',
+            f'{client_name} deleted their Ravinta account',
             plain, FROM_EMAIL, [agency_user.email],
             html_message=html, fail_silently=True,
         )
@@ -345,14 +345,14 @@ def _send_disconnect_email_to_agency(agency_user, agency_name, client_name, clie
     </div>"""
     html = _email_template(
         title        = 'A client has disconnected',
-        greeting     = f'Hi <strong style="color:#0f172a;">{name}</strong>, we\'re letting you know that a client has removed your agency\'s access to their Social Stats account.',
+        greeting     = f'Hi <strong style="color:#0f172a;">{name}</strong>, we\'re letting you know that a client has removed your agency\'s access to their Ravinta account.',
         body_html    = '<p style="font-size:14px;color:#64748b;line-height:1.7;margin:0 0 20px;">Their data and connected accounts are no longer accessible to your agency. You can send them a new invitation if needed.</p>',
         cta_url      = f'{FRONTEND_URL}/admin/clients',
         cta_label    = 'View Clients',
         note         = 'If you believe this was a mistake, you can reach out to the client directly and send a new invitation from your dashboard.',
         info_card_html = info,
     )
-    plain = f"Hi {name},\n\n{client_name} ({client_email}) has disconnected from your agency on Social Stats.\n\nYou can send them a new invitation from your dashboard: {FRONTEND_URL}/admin/clients"
+    plain = f"Hi {name},\n\n{client_name} ({client_email}) has disconnected from your agency on Ravinta.\n\nYou can send them a new invitation from your dashboard: {FRONTEND_URL}/admin/clients"
     try:
         send_mail(
             f'{client_name} has disconnected from your agency',
@@ -393,7 +393,7 @@ def delete_account(request):
             _dispatch(
                 agency_user,
                 event_type='client_account_deleted',
-                title=f'{client_name} deleted their Social Stats account',
+                title=f'{client_name} deleted their Ravinta account',
                 body=reason or 'No reason provided.',
                 data={'client_email': client_email, 'event': 'account_deleted'},
                 channels=['in_app'],

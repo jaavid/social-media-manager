@@ -1137,7 +1137,7 @@ export default function AllClientsPage({ onSelectClient }) {
                 icon: <Mail size={16} />,
                 color: '#0369a1',
                 label: '2. Workspace Owner Signs Up',
-                desc: 'The workspace owner receives an email, signs up on Social Stats, and verifies their account.',
+                desc: 'The workspace owner receives an email, signs up on Ravinta, and verifies their account.',
               },
               {
                 icon: <Building2 size={16} />,

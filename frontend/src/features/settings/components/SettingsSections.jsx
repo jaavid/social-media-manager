@@ -47,6 +47,7 @@ export function NotificationsSection() {
 // ─────────────────────────────────────────────────────────────────────────
 const DENSITY_KEY = 'socialstats_density';
 export function AppearanceSection() {
+  const { t: brandT } = useLanguage();
   const { preference, setTheme } = useTheme();
   const [density, setDensity] = useState(() => {
     try {
@@ -66,7 +67,7 @@ export function AppearanceSection() {
   return (
     <SectionContainer
       title="Appearance"
-      description="Customise how Social Stats looks and feels."
+      description={brandT('brand.appearanceHelp')}
     >
       <Card padding="md">
         <div

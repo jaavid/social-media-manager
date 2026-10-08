@@ -35,7 +35,7 @@ def deliver_reply(target, text, actor):
         raise ProviderError('Invalid reply identifier', code='invalid_response')
     if conversation:
         message = Message.objects.create(conversation=target, platform_message_id=message_id,
-            direction='outbound', author_name=actor.get_full_name() or actor.email or 'Social Stats',
+            direction='outbound', author_name=actor.get_full_name() or actor.email or 'Ravinta',
             author_handle=actor.email or '', content=text, sent_at=timezone.now(), replied_at=timezone.now(),
             sentiment=last_inbound.sentiment if last_inbound else 'unknown', sent_by=actor)
         target.last_message_preview = text[:500]

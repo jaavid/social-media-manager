@@ -32,6 +32,8 @@ function apply(theme: ResolvedTheme) {
   document.documentElement.dataset.theme = theme;
   document.documentElement.classList.toggle('dark', theme === 'dark');
   document.documentElement.style.colorScheme = theme;
+  const canvas = getComputedStyle(document.documentElement).getPropertyValue('--surface-page').trim();
+  if (canvas) document.querySelectorAll('meta[name="theme-color"]').forEach(meta => meta.setAttribute('content', canvas));
 }
 const ThemeContext = createContext<Theme | null>(null);
 export function ThemeProvider({ children, initialPreference }: PropsWithChildren<{ initialPreference?: ThemePreference }>) {

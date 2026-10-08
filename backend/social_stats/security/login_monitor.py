@@ -74,10 +74,10 @@ def notify_new_login(*, user, context: dict) -> None:
         frontend = getattr(settings, 'FRONTEND_URL', 'http://localhost:3000')
 
         when = timezone.now().strftime('%Y-%m-%d %H:%M UTC')
-        subject = '[Social Stats] New login to your account'
+        subject = '[Ravinta] New login to your account'
         body = (
             f'Hi {user.first_name or user.username},\n\n'
-            f'We detected a new sign-in to your Social Stats account at {when}.\n\n'
+            f'We detected a new sign-in to your Ravinta account at {when}.\n\n'
             f'  IP address : {context.get("ip") or "unknown"}\n'
             f'  Browser    : {context.get("browser") or "unknown"} on {context.get("os") or "unknown"}\n'
             f'  Device     : {context.get("device") or "unknown"}\n\n'
@@ -85,8 +85,8 @@ def notify_new_login(*, user, context: dict) -> None:
             f'If you don\'t recognise this sign-in:\n'
             f'  1. Change your password immediately: {frontend}/u/settings/security\n'
             f'  2. Review and revoke active sessions on the same page\n'
-            f'  3. Contact your Social Stats administrator\n\n'
-            f'— Social Stats Security'
+            f'  3. Contact your Ravinta administrator\n\n'
+            f'— Ravinta Security'
         )
         send_mail(subject, body, from_email, [user.email], fail_silently=True)
     except Exception:

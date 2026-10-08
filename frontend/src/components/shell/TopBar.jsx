@@ -214,7 +214,7 @@ function normalizeWorkspaces(user) {
   return [
     {
       id: 'current',
-      name: user?.company || user?.organization || user?.name || 'Social Stats',
+      name: user?.company || user?.organization || user?.name || 'Ravinta',
       subtitle: user?.email || 'Social workspace',
       current: true,
       path: null,

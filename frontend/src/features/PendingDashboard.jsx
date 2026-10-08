@@ -1,3 +1,4 @@
+import { useLanguage } from '@/i18n';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -22,6 +23,7 @@ const BG    = 'var(--surface-page)';
 const WHITE = '#ffffff';
 
 export default function PendingDashboard() {
+  const { t: brandT } = useLanguage();
   const { user, logout, refreshAuth } = useAuth();
   const navigate = useNavigate();
 
@@ -108,7 +110,7 @@ export default function PendingDashboard() {
           <div style={s.avatar}>{(user?.name || user?.email || 'U')[0].toUpperCase()}</div>
           <div>
             <h1 style={s.welcomeTitle}>Welcome{user?.name ? `, ${user.name}` : ''}!</h1>
-            <p style={s.welcomeSub}>Choose how you'd like to use Social Stats.</p>
+            <p style={s.welcomeSub}>{brandT('brand.chooseUse')}</p>
           </div>
         </div>
 

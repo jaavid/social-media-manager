@@ -78,7 +78,7 @@ def handle_human_handoff(executor, node):
                 },
                 cta_url=f'{frontend}/admin/conversations/{conv.id}',
                 cta_label='Open conversation',
-                email_subject=f'[Social Stats] Handoff from {contact_label}',
+                email_subject=f'[Ravinta] Handoff from {contact_label}',
             )
         except Exception:
             logger.exception('handoff notification failed')
