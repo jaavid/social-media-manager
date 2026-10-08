@@ -23,6 +23,7 @@ import { QK } from '@/services/queryClient';
 import { useLanguage } from '@/i18n';
 import DataState from '@/components/ui/DataState';
 import { AccountScope, useAccountRead, useCheckedAction, ReadState, WriteState } from './components/accountRecovery';
+import { sameJsonValue } from '@/lib/jsonAcknowledgment';
 import { parseBusiness } from '@/lib/settingsRecovery';
 import Badge from '@/components/ui/Badge';
 import { useLookups } from '../../hooks/useData';
@@ -773,7 +774,7 @@ function SettingsBody({ clientId: propClientId, identity, enabled }) {
         if (result[field] !== captured[field]) throw new Error('Invalid business acknowledgment');
       }
       for (const field of ['business_subcategories', 'target_locations', 'brand_assets']) {
-        if (JSON.stringify(result[field]) !== JSON.stringify(captured[field])) throw new Error('Invalid business acknowledgment');
+        if (!sameJsonValue(result[field], captured[field])) throw new Error('Invalid business acknowledgment');
       }
       if (captured.profile_image && (!result.profile_image || result.profile_image === resource.data.profile_image)) throw new Error('Invalid photo acknowledgment');
       return result;

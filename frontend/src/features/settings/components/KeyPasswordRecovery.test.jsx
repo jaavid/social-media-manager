@@ -4,6 +4,7 @@ import APIKeysSection from './APIKeysSection';
 import PasswordSection from './PasswordSection';
 import { apiKeysAPI, profileAPI } from '@/services/domains/identity';
 import { enMessages as mockMessages } from '@/i18n/messages';
+import { AxiosError } from 'axios';
 let mockUser;
 jest.mock('@/core/session', () => ({ useSession: () => ({ user: mockUser, status: 'authenticated' }) }));
 jest.mock('@/i18n', () => ({ useLanguage: () => ({ t: key => mockMessages[key], tr: value => value }) }));
@@ -43,4 +44,27 @@ test('malformed password outcome retains input, locks duplicate and offers no fa
 });
 test('social profile disables password only', async () => {
   profileAPI.get.mockResolvedValue({ data: { id: 1, is_social: true } }); setup(PasswordSection); await screen.findByText(mockMessages['password.social']); expect(screen.queryByLabelText(mockMessages['password.current'])).not.toBeInTheDocument();
+});
+test.each([400, 500])('password HTTP %s preserves input and keeps provider body private', async status => {
+  const error = new AxiosError('Request failed');
+  error.response = { status, data: { detail: 'private upstream fixture', new_password: ['private validation fixture'] } };
+  profileAPI.changePassword.mockRejectedValue(error);
+  setup(PasswordSection);
+  await screen.findByLabelText(mockMessages['password.current']);
+  input('password.current', 'fixture-current');
+  input('password.new', 'fixture-new');
+  input('password.confirm', 'fixture-new');
+  click('password.submit');
+  await screen.findByText(mockMessages[status === 400 ? 'password.rejected' : 'password.unknown']);
+  expect(screen.queryByText(/private .* fixture/)).not.toBeInTheDocument();
+  expect(screen.getByLabelText(mockMessages['password.new'])).toHaveValue('fixture-new');
+  if (status === 500) click('password.submit');
+  expect(profileAPI.changePassword).toHaveBeenCalledTimes(1);
+  input('password.current', 'fixture-corrected');
+  if (status === 400) {
+    expect(screen.queryByText(mockMessages['password.rejected'])).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: mockMessages['password.submit'] })).toBeEnabled();
+  } else {
+    expect(screen.getByRole('button', { name: mockMessages['password.submit'] })).toBeDisabled();
+  }
 });

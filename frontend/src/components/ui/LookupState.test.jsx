@@ -34,3 +34,18 @@ test('a failed refresh of an empty snapshot never announces a new empty result',
   expect(screen.queryByText('No reference options were returned. Your existing data is preserved.')).not.toBeInTheDocument();
   expect(screen.getByText(/previously loaded data/i)).toBeInTheDocument();
 });
+
+test.each(['error', 'paused', 'denied', 'pending'])('no compatibility fallback for %s reads', state => {
+  const value = { ...resource([]), data: undefined, lookups: {} };
+  value.query.isError = state === 'error'; value.query.isPaused = state === 'paused'; value.query.isPending = state === 'pending';
+  value.denied = state === 'denied'; value.failure = { status: state === 'denied' ? 403 : 503 };
+  render(<LookupState resource={value} />);
+  expect(screen.queryByText(/This form uses existing compatibility choices/)).not.toBeInTheDocument();
+});
+test('valid compatibility snapshot can show fallback, but a failed refresh cannot', () => {
+  const value = { ...resource([]), data: { categories: ['fixture'] }, lookups: {} };
+  const view = render(<LookupState resource={value} />);
+  expect(screen.getByText(/This form uses existing compatibility choices/)).toBeInTheDocument();
+  view.rerender(<LookupState resource={{ ...value, query: { ...value.query, isError: true }, failure: { status: 503 } }} />);
+  expect(screen.queryByText(/This form uses existing compatibility choices/)).not.toBeInTheDocument();
+});
