@@ -1,3 +1,4 @@
+import LookupState from '@/components/ui/LookupState';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -84,7 +85,8 @@ function classifyPostType(pt, topic) {
 export default function PostIdeasPage({ clientId: propClientId = null }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
-  const { lookups } = useLookups();
+  const lookupResource = useLookups();
+  const { lookups } = lookupResource;
   const { workspaces: clients } = useWorkspaces();
 
   const businessTypeOptions = lookups.business_types?.map(item => ({ value: item.key, label: item.label })) || BUSINESS_TYPES;
@@ -358,7 +360,7 @@ export default function PostIdeasPage({ clientId: propClientId = null }) {
   // ── Render ───────────────────────────────────────────────────────────────────
 
   return (
-    <div className="app-page app-page--wide">
+    <div className="app-page app-page--wide"><LookupState resource={lookupResource} />
       <PageHeader
         title="Post Ideas Generator"
         subtitle="AI-powered content calendar for the full month"

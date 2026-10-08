@@ -1,3 +1,4 @@
+import LookupState from '@/components/ui/LookupState';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -72,7 +73,8 @@ export default function ClientOnboardingPage() {
   const connections = useQuery({ queryKey: QK.connections(Number(clientId)),
     queryFn: ({ signal }) => connectionsAPI.get(Number(clientId), signal),
     enabled: Boolean(clientId), retry: false });
-  const { lookups } = useLookups();
+  const lookupResource = useLookups();
+  const { lookups } = lookupResource;
 
   const businessCategoryOptions = (lookups.business_categories || BUSINESS_CATEGORIES.map((label) => ({
     key: label.toLowerCase().replace(/[^a-z0-9]+/gi, '_'),
@@ -947,6 +949,7 @@ export default function ClientOnboardingPage() {
 
   return (
     <div className="app-page app-page--content app-page--lg">
+      <LookupState resource={lookupResource} />
       <PageHeader
         title="Complete Your Profile"
         subtitle="Set up your business profile to get the most out of Social Stats"

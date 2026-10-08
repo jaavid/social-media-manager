@@ -78,7 +78,7 @@ export const publicReportAPI = {
 };
 
 export const lookupsAPI = {
-  get: () => publicApi.get('/public/lookups/'),
+  get: (signal) => publicApi.get('/public/lookups/', { signal }),
 };
 
 export const contentAPI = {

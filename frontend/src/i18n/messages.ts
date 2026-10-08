@@ -1069,6 +1069,15 @@ const whatsappFa = {
   'whatsapp.inbox.send': 'ارسال پیام',
 } as const;
 export const enMessages = {
+  "posts.workspace": "Workspace",
+  "posts.chooseWorkspace": "Choose an authorized workspace to read posts.",
+  "posts.empty": "No synced posts yet.",
+  "posts.reader": "Post collection status",
+  "posts.connections": "Connection status",
+  "lookup.title": "Reference options",
+  "lookup.empty": "No reference options were returned. Your existing data is preserved.",
+  "lookup.partial": "Some provider choices cannot be selected in this form. Your input and available choices are preserved.",
+  "lookup.fallback": "This form uses existing compatibility choices. They do not establish provider capabilities.",
   "bot.match.exact": "Exact match (whole message equals a keyword)",
   "bot.match.contains": "Contains a keyword",
   "bot.match.regex": "Regex pattern",
@@ -1308,6 +1317,15 @@ export const enMessages = {
  ...whatsappEn, ...composerEn, ...accountsEn, ...commonEn, ...marketingEn, ...catalogEn } as const;
 export type MessageKey = keyof typeof enMessages;
 export const faMessages = {
+  "posts.workspace": "فضای کاری",
+  "posts.chooseWorkspace": "برای خواندن پست‌ها یک فضای کاری مجاز را انتخاب کنید.",
+  "posts.empty": "هنوز پستی همگام نشده است.",
+  "posts.reader": "وضعیت فهرست پست‌ها",
+  "posts.connections": "وضعیت اتصال‌ها",
+  "lookup.title": "گزینه‌های مرجع",
+  "lookup.empty": "گزینهٔ مرجعی برگردانده نشد. داده‌های موجود شما حفظ می‌شوند.",
+  "lookup.partial": "بعضی گزینه‌های شبکه در این فرم قابل انتخاب نیستند. ورودی شما و گزینه‌های قابل انتخاب حفظ می‌شوند.",
+  "lookup.fallback": "این فرم از گزینه‌های سازگاری موجود استفاده می‌کند؛ این فهرست اثبات قابلیت شبکه‌ها نیست.",
   "bot.match.exact": "تطبیق دقیق پیام با کلیدواژه",
   "bot.match.contains": "وجود کلیدواژه در پیام",
   "bot.match.regex": "الگوی عبارت منظم",

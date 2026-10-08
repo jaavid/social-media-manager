@@ -12,6 +12,8 @@ import { apiError } from '@/services/http/errors';
 import { useState, useEffect, useCallback } from 'react';
 import { workspacesAPI, oauthAPI, overviewAPI, syncLogsAPI, goalsAPI, lookupsAPI } from '../services/api';
 import useNotificationFeed from './useNotificationFeed';
+import { useAccountRead } from '@/components/ui/accountRecovery';
+import { parseOAuthStatus, parseLookups } from '@/lib/auxiliaryRecovery';
 import { parseSyncLogs } from '@/lib/recoveryCollections';
 import { PLATFORM_LIST } from '../services/platforms';
 import { format, subDays } from 'date-fns';
@@ -24,6 +26,7 @@ export function useDateRange(defaultDays = 30) {
   return [range, setRange];
 }
 
+const privateIdentity = user => [user?.id, user?.role, user?.account_type, user?.workspace_id, user?.client_id];
 function privateSnapshot(query) {
   return query.error && [401, 403, 404].includes(apiError(query.error).status) ? undefined : query.data;
 }
@@ -34,17 +37,17 @@ function collection(wire) {
 }
 export function useWorkspaces() {
   const { user } = useSession();
-  const query = useQuery({ queryKey: ['workspaces.list', user?.id, user?.workspace_id, user?.client_id], retry: false,
+  const query = useQuery({ queryKey: ['workspaces.list', privateIdentity(user)], retry: false,
     queryFn: async ({ signal }) => collection((await workspacesAPI.list(undefined, signal)).data) });
   const clients = privateSnapshot(query) || [];
-  return { workspaces: clients, clients, loading: query.isPending, refreshing: query.isFetching && !!query.data,
+  return { query, data: privateSnapshot(query), failure: apiError(query.error), denied: [401, 403, 404].includes(apiError(query.error).status), workspaces: clients, clients, loading: query.isPending, refreshing: query.isFetching && !!query.data,
     error: query.error, offline: query.fetchStatus === 'paused', refetch: query.refetch };
 }
 
 export function useWorkspaceSummary(clientId, range, platform) {
   const { user } = useSession();
   const params = { ...range, ...(platform && platform !== 'all' ? { platform } : {}) };
-  const query = useQuery({ queryKey: ['workspace.summary', user?.id, clientId, params], enabled: !!clientId, retry: false,
+  const query = useQuery({ queryKey: ['workspace.summary', privateIdentity(user), clientId, params], enabled: !!clientId, retry: false,
     queryFn: async ({ signal }) => {
       const data = (await workspacesAPI.summary(clientId, params, signal)).data;
       if (!data || typeof data !== 'object' || !data.client || !data.totals || !Array.isArray(data.by_platform)) throw new Error('Invalid summary');
@@ -56,7 +59,7 @@ export function useWorkspaceSummary(clientId, range, platform) {
 export function useTimeseries(clientId, range, platform) {
   const { user } = useSession();
   const params = { ...range, ...(platform && platform !== 'all' ? { platform } : {}) };
-  const query = useQuery({ queryKey: ['workspace.timeseries', user?.id, clientId, params], enabled: !!clientId, retry: false,
+  const query = useQuery({ queryKey: ['workspace.timeseries', privateIdentity(user), clientId, params], enabled: !!clientId, retry: false,
     queryFn: async ({ signal }) => collection((await workspacesAPI.timeseries(clientId, params, signal)).data) });
   return { data: privateSnapshot(query) || [], loading: !!clientId && query.isPending, refreshing: query.isFetching && !!query.data, error: query.error, offline: query.fetchStatus === 'paused', refetch: query.refetch };
 }
@@ -64,7 +67,7 @@ export function useTimeseries(clientId, range, platform) {
 export function usePosts(clientId, platform, range, pageSize = 20, accountId = null) {
   const { user } = useSession();
   const params = { ...range, ...(platform && platform !== 'all' ? { platform } : {}), ...(accountId ? { social_account: accountId } : {}) };
-  const query = useInfiniteQuery({ queryKey: ['workspace.posts', user?.id, clientId, params, pageSize], enabled: !!clientId,
+  const query = useInfiniteQuery({ queryKey: ['workspace.posts', privateIdentity(user), clientId, params, pageSize], enabled: !!clientId,
     initialPageParam: 0, retry: false,
     queryFn: async ({ signal, pageParam }) => {
       const wire = (await workspacesAPI.posts(clientId, { ...params, limit: pageSize, offset: pageParam }, signal)).data;
@@ -77,27 +80,15 @@ export function usePosts(clientId, platform, range, pageSize = 20, accountId = n
   });
   const data = privateSnapshot(query);
   const posts = data?.pages.flatMap(page => page.results) || [];
-  return { posts, total: data?.pages[0]?.total ?? null, datasetCount: data?.pages[0]?.dataset_count ?? null, hasMore: !!query.hasNextPage, loading: !!clientId && query.isPending,
+  return { query, data, failure: apiError(query.error), denied: [401, 403, 404].includes(apiError(query.error).status), posts, total: data?.pages[0]?.total ?? null, datasetCount: data?.pages[0]?.dataset_count ?? null, hasMore: !!data && !!query.hasNextPage, loading: !!clientId && query.isPending,
     loadingMore: query.isFetchingNextPage, loadMore: query.fetchNextPage, refreshing: query.isFetching && !!data, offline: query.fetchStatus === 'paused',
     error: query.error, refetch: query.refetch };
 }
 
 export function useOAuthStatus(clientId) {
-  const [status, setStatus]   = useState({});
-  const [loading, setLoading] = useState(false);
-
-  const fetch = useCallback(async () => {
-    if (!clientId) return;
-    try {
-      setLoading(true);
-      const res = await oauthAPI.status(clientId);
-      setStatus(res.data);
-    } catch (e) { console.error(e); }
-    finally { setLoading(false); }
-  }, [clientId]);
-
-  useEffect(() => { fetch(); }, [fetch]);
-  return { status, loading, refetch: fetch };
+  const { user, status: session } = useSession();
+  const resource = useAccountRead('oauth-status', [user?.id, user?.role, user?.account_type, user?.workspace_id, user?.client_id, clientId], session === 'authenticated' && !!clientId, signal => oauthAPI.status(clientId, signal), parseOAuthStatus);
+  return { ...resource, status: resource.data || {}, loading: resource.query.isPending, refetch: resource.query.refetch };
 }
 
 export function useOverview(range) {
@@ -173,31 +164,11 @@ export function useAlerts(clientId, options = {}) {
 }
 
 export function useLookups() {
-  const [lookups, setLookups] = useState({});
-  const [loading, setLoading] = useState(true);
-
-  const fetch = useCallback(async () => {
-    try {
-      setLoading(true);
-      const res = await lookupsAPI.get();
-      const data = res.data || {};
-
-      if (Array.isArray(data.platforms)) {
-        data.platforms = data.platforms
-          .filter(item => PLATFORM_LIST.includes(item.key))
-          .sort((a, b) => PLATFORM_LIST.indexOf(a.key) - PLATFORM_LIST.indexOf(b.key));
-      }
-
-      setLookups(data);
-    } catch (e) {
-      console.error('Failed to load lookups:', e);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => { fetch(); }, [fetch]);
-  return { lookups, loading, refetch: fetch };
+  const query = useQuery({ queryKey: ['public.lookups'], queryFn: async ({ signal }) => parseLookups((await lookupsAPI.get(signal)).data) });
+  const failure = apiError(query.error), denied = [401, 403, 404].includes(failure.status);
+  const data = denied ? undefined : query.data;
+  const lookups = data ? { ...data, ...(data.platforms ? { platforms: data.platforms.filter(item => PLATFORM_LIST.includes(item.key)).sort((a, b) => PLATFORM_LIST.indexOf(a.key) - PLATFORM_LIST.indexOf(b.key)) } : {}) } : {};
+  return { query, failure, denied, data, lookups, loading: query.isPending, refetch: query.refetch };
 }
 
 // Compatibility hooks for existing feature modules.

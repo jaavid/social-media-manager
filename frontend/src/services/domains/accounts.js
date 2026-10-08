@@ -112,7 +112,7 @@ export const workspacesAPI = {
 export const clientsAPI = workspacesAPI;
 
 export const oauthAPI = {
-  status:     (clientId)           => api.get(`/oauth/status/${clientId}/`),
+  status:     (clientId, signal)   => api.get(`/oauth/status/${clientId}/`, { signal }),
   disconnect: (clientId, platform) => api.delete(`/oauth/disconnect/${clientId}/${platform}/`),
   // Connect URLs (redirect browser directly)
   facebookUrl: (clientId)           => `${apiBaseUrl()}/oauth/facebook/start/${clientId}/`,
