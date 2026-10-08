@@ -49,7 +49,9 @@ class TelegramProvider(BotPlatformProvider):
                 for key, item in value.items():
                     if key == 'media' and isinstance(item, str) and item.startswith('asset:'):
                         urls = resolve_media(post, [item])
-                        if urls == [item]:
+                        if (not isinstance(urls, (list, tuple)) or len(urls) != 1
+                                or not isinstance(urls[0], str) or not urls[0].strip()
+                                or urls[0] == item):
                             raise PublishError('Media asset is missing from this workspace', code='media_invalid')
                         value[key] = urls[0]
                     else:

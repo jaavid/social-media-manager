@@ -52,3 +52,28 @@ Copy into a child issue of #113 and into its implementation PR. Link
 
 PR validation should name commands, passed results and any genuine limitations.
 Offline fixture tests alone cannot qualify a real provider as beta or active.
+# Telegram/Bale review boundaries (2026-10-08)
+
+The active Telegram provider resolves rich/album `asset:` media in
+`platforms/providers/telegram.py:prepare_publish`; an unavailable, empty or
+malformed resolver result must raise the stable `media_invalid` PublishError.
+The composer serializer's active typed-intent/options boundary already rejects
+non-object Telegram overrides with HTTP 400; regression coverage verifies that
+existing behavior rather than restoring the historical serializer path.
+
+Telegram poll options use the product's editorial minimum of two and the current
+provider maximum of twelve. The official [sendPoll contract](https://core.telegram.org/bots/api#sendpoll)
+currently permits **1–12**, so the product minimum is intentionally stricter and
+must not be described as a Telegram API rejection. Question/answer and quiz bounds
+remain unchanged. Telegram [sendMediaGroup](https://core.telegram.org/bots/api#sendmediagroup)
+documents 2–10 items and media captions up to 1024 characters. The independently
+checked [Bale documentation](https://docs.bale.ai) specifies 0–1024 for InputMedia
+captions; its fetched sendMediaGroup table did not independently state the numeric
+2–10 bound. Existing Bale product limits/photo-only supported capability remain
+conservative product policy, not proof of an identical Telegram API.
+
+Historical non-integer error-code and single-image carousel findings are already
+handled by `_bot_api_client` and `_bot_publisher`; regression tests preserve the
+safe error and sendPhoto behavior. This branch does not complete legacy reconnect,
+suggestion UI/permissions or provider-specific criterion reconciliation in #186.
+Checks on an unmerged branch do not constitute post-merge main verification.
