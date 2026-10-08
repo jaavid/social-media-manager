@@ -72,14 +72,16 @@
               "title_en": "Test credential",
               "title_fa": "اعتبار آزمایشی",
               "secret": true,
-              "required": true
+              "required": true,
+              "normalization": "preserve"
             },
             {
               "key": "destination_id",
               "title_en": "Destination ID",
               "title_fa": "شناسه مقصد",
               "secret": false,
-              "required": true
+              "required": true,
+              "normalization": "preserve"
             }
           ],
           "start_path": ""

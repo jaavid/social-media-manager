@@ -31,7 +31,8 @@ export default function PlatformConnectModal({ open, provider, account, workspac
     setPending(true);
     setError(null);
     try {
-      await connectionsAPI.connect(workspaceId, provider.key, values, account?.id);
+      const normalized = Object.fromEntries(fields.map(field => [field.key, field.normalization === 'trim' ? (values[field.key] || '').trim() : (values[field.key] || '')]));
+      await connectionsAPI.connect(workspaceId, provider.key, normalized, account?.id);
       if (!alive.current) return;
       onConnected?.();
       onClose?.();
