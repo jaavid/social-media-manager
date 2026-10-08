@@ -5,7 +5,7 @@ const base=process.env.E2E_BASE_URL || 'http://127.0.0.1:3000';
 const oauth=Object.fromEntries(['facebook','instagram','youtube','linkedin','google_my_business'].map(key=>[key,{status:'not_connected',last_successful_sync:null,accounts:[]}]));
 const post={id:1,platform:'facebook',caption:'Synthetic post',likes:0,comments:0,impressions:0,video_views:0};
 async function fixture(page, family, staff=false, locale='en', theme='light') {
- const state={status:0,malformed:false,background:false,role:staff?'staff':'client',requests:0,delay:0};
+ const state={status:0,malformed:false,background:false,role:staff?'staff':'client',requests:0,delay:0,lookupRows:[]};
  await page.context().addCookies([{name:'socialstats.language',value:locale,url:base},{name:'theme',value:theme,url:base}]);
  await page.addInitScript(language=>{localStorage.setItem('socialstats.language',language);localStorage.setItem('socialstats_cookie_choice',JSON.stringify({version:'2024-11-01',choices:{essential:true,functional:true}}));},locale);
  await page.routeWebSocket('**/ws/**',socket=>socket.close());
@@ -17,7 +17,7 @@ async function fixture(page, family, staff=false, locale='en', theme='light') {
   if(matched){state.requests++;if(state.delay)await new Promise(resolve=>setTimeout(resolve,state.delay));if(state.status)return route.fulfill({status:state.status,json:{}});if(state.malformed)return route.fulfill({json:family==='lookups'?[]:{}});}
   if(/\/workspaces\/\d+\/posts\/$/.test(path))return route.fulfill({json:{results:[{...post,id:path.includes('/8/')?8:1,caption:path.includes('/8/')?'New workspace post':post.caption}],total:1,dataset_count:1,has_more:false}});
   if(/\/oauth\/status\/\d+\/$/.test(path))return route.fulfill({json:{...oauth,facebook:{...oauth.facebook,status:'active',connected_at:'2026-10-07T10:00:00Z',expires_at:null,account_name:'Fixture'}}});
-  if(path==='/api/public/lookups/')return route.fulfill({json:{platforms:[]}});
+  if(path==='/api/public/lookups/')return route.fulfill({json:{platforms:state.lookupRows}});
   if(path==='/api/workspaces/')return route.fulfill({json:[{id:7,name:'Synthetic workspace'},{id:8,name:'Second workspace'}]});
   return route.fulfill({json:[]});
  });return state;
@@ -45,4 +45,30 @@ for (const [locale,theme,width] of [['fa','dark',360],['en','light',1440]]) test
  const state=await fixture(page,'posts',false,locale,theme);state.status=503;await page.setViewportSize({width,height:900});await page.goto('/dashboard/analytics/posts');
  if(!process.env.E2E_UI_BASELINE)await expect(page.getByRole('region',{name:(locale==='fa'?fa:en)['posts.reader']}).getByRole('button',{name:(locale==='fa'?fa:en)['recovery.retry'],exact:true})).toBeVisible();else await page.waitForTimeout(1200);
  await page.screenshot({path:`e2e/evidence/auxiliary/posts-${process.env.E2E_UI_BASELINE?'before':'after'}-${locale}-${theme}-${width}.png`,fullPage:true});
+});
+
+for(const onlyUnknown of [false,true])test(`lookup ${onlyUnknown?'fully':'partly'} omitted choices report partial data without clearing healthy posts`,async({page})=>{
+ const state=await fixture(page,'lookups');
+ const row=(key,label)=>({key,label,value:key,parent_key:'',sort_order:0,metadata:{}});
+ state.lookupRows=onlyUnknown?[row('future_fixture','Unmapped fixture')]:[row('facebook','Reference Facebook'),row('future_fixture','Unmapped fixture')];
+ await page.goto('/dashboard/analytics/posts');
+ const area=page.getByRole('region',{name:en['lookup.title'],exact:true});
+ await expect(area.getByRole('status')).toHaveText(en['lookup.partial']);
+ await expect(page.getByText('Synthetic post',{exact:true})).toBeVisible();
+ await expect(area.getByText(en['lookup.fallback'],{exact:true})).toHaveCount(0);
+ await expect(area.getByText(en['lookup.empty'],{exact:true})).toHaveCount(0);
+ await expect(page.getByRole('tab',{name:/Unmapped fixture/})).toHaveCount(0);
+ if(!onlyUnknown)await expect(page.getByRole('tab',{name:/Reference Facebook/})).toBeVisible();
+});
+
+test('empty references remain local and a failed background read cannot claim a fresh empty result',async({page,context})=>{
+ const state=await fixture(page,'lookups');await page.goto('/dashboard/analytics/posts');
+ const area=page.getByRole('region',{name:en['lookup.title'],exact:true});
+ await expect(area.getByText(en['lookup.empty'],{exact:true})).toBeVisible();
+ await expect(page.getByText('Synthetic post',{exact:true})).toBeVisible();
+ await page.clock.install();await page.clock.fastForward(31000);state.status=503;
+ await context.setOffline(true);await context.setOffline(false);
+ await expect(area.getByText(en['recovery.stale'],{exact:true})).toBeVisible();
+ await expect(area.getByText(en['lookup.empty'],{exact:true})).toHaveCount(0);
+ await expect(page.getByText('Synthetic post',{exact:true})).toBeVisible();
 });
