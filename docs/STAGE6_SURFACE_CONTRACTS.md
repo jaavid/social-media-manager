@@ -190,11 +190,35 @@ account-deletion migration. SecurityTab/AgencyTab and their raw controls/errors
 remain owned by settings maintainers and require their own failure/focus evidence.
 The services/api compatibility export remains until those consumers migrate.
 Existing shell, theme, session QueryClient and Modal primitives are reused.
+# Review regression verification — 2026-10-08
 
-### Telegram review recovery (2026-10-08, review batch; branch evidence)
+This section supplements the historical evidence below. The fetched post-merge
+main for this batch is `6ac39d0ccca419ae4dc3922c967c1c5fa2a147a5`.
 
-Suggestion readers share a scoped generation across initial reads, decision refreshes and reconnect. A validated decision acknowledgment remains visible when its following read fails; it is never replayed because of that read failure. Unknown decisions remain locked until a new authoritative row proves a reconciled state. Workspace/account changes discard old readers and local acknowledgments; denial suppresses cached rows. Malformed rows do not become an empty inbox.
+- Disabled account readers expose neither cached private data nor an authorization
+  denial, and do not fetch through their exposed refresh action. Enabling the reader
+  uses the current identity/workspace key. HTTP 401/403/404 remain distinct failures.
+- Lookup fallback requires a valid parsed reader result and an enabled, successful,
+  unpaused reader. Initial or background failure cannot produce healthy fallback.
+- Structured settings acknowledgments compare JSON objects independently of key
+  order, including nested objects. Arrays retain order; missing, null, type and
+  value differences remain unequal. Malformed values never acknowledge a write.
+- Session reconciliation requires a new parsed network read in the current scope,
+  not a cached `isSuccess` result returned after a cancelled refetch. Observed
+  session status is not proof that a particular revoke caused it.
+- Existing password 400 rejection and clearing-on-edit behavior is regression
+  tested; 5xx and malformed acknowledgments remain unknown and prohibit replay.
+  Raw upstream validation/detail bodies are not presented to the user.
+- The actual AuthProvider plus Protected route exits a verified immediate delete
+  after session invalidation. The historical post-logout guard allegation was not
+  reproduced; unmount protection remains. Existing logout-failure recovery retries
+  logout only, never DELETE.
 
-Telegram settings send destination_context only when its typed flat DTO changes. Ordinary flags do not provoke destination revalidation. A malformed/transport/server write response is an unknown outcome; GET does not prove causation or authorize automatic POST replay. Existing assistant defaults and workspace/account query scopes remain in force.
-
-Suggestions authorize each unique account once rather than each suggestion. The row's workspace must match its account workspace, and account overrides still deny access. This is a bounded query reduction, not a tenant-policy rewrite. Public fixture browser tests cover fa/en, RTL/LTR, light/dark,360/768/1440, keyboard focus and reduced motion with all provider side effects mocked and captures disabled.
+Evidence on this branch: 403 Jest tests; 77 production-browser tests across touched
+settings/inbox flows; normal and mismatched production proxy checks; build,
+typecheck, lint, i18n, architecture and Next independence checks. The explicit
+Playwright project URL differed from E2E_BASE_URL for the inbox cookie regression.
+Sensitive specifications disabled trace/screenshot/video; fixture-only captures
+from existing public flows were not used to regenerate committed brand snapshots.
+These branch results are not post-merge main evidence and do not close #185, #187,
+#106 or #112. Historical review reconciliation remains in the batch ledger.

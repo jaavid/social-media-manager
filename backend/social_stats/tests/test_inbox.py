@@ -13,7 +13,6 @@ from unittest.mock import MagicMock, patch
 
 from django.contrib.auth.models import User
 from django.test import TestCase, override_settings
-from django.urls import reverse
 from django.utils import timezone
 from rest_framework.test import APIClient
 
@@ -343,6 +342,43 @@ class ReplyActionTests(TestCase):
 # ══════════════════════════════════════════════════════════════════════
 # Inbox stats
 # ══════════════════════════════════════════════════════════════════════
+    def test_approved_reply_records_selected_credential_expiry_in_shared_path(self):
+        from types import SimpleNamespace
+        from social_stats.approval_executors import _exec_reply
+        from social_stats.models import SocialAccount
+        from social_stats.publishers import TokenExpiredError
+        other = SocialAccount.objects.create(client=self.client_obj, platform='facebook', external_id='neighbor')
+        neighbor = PlatformCredential.objects.create(client=self.client_obj, platform='facebook', social_account=other, access_token='fixture-neighbor')
+        approval = SimpleNamespace(client=self.client_obj, requested_by=self.user, edited_payload=None,
+            payload={'conversation_id': self.conv.pk, 'text': 'public fixture reply'})
+        with patch('social_stats.publishers.facebook.FacebookPublisher.reply_to_comment', side_effect=TokenExpiredError()):
+            success, _, details = _exec_reply(approval)
+        self.assertFalse(success)
+        self.assertEqual(details['code'], 'token_expired')
+        credential = PlatformCredential.objects.get(social_account=self.conv.social_account)
+        self.assertEqual(credential.auth_failure_code, 'token_expired')
+        neighbor.refresh_from_db()
+        self.assertTrue(neighbor.is_active)
+        self.assertEqual(neighbor.auth_failure_code, '')
+
+    def test_shared_reply_outage_does_not_expire_credential_and_missing_is_guarded(self):
+        from social_stats.platforms.engagement import deliver_reply
+        from social_stats.publishers.base import PublishError
+        for code in ('network_error', 'timeout', 'provider_error'):
+            with self.subTest(code=code), patch('social_stats.publishers.facebook.FacebookPublisher.reply_to_comment', side_effect=PublishError('fixture outage', code=code)):
+                with self.assertRaises(PublishError):
+                    deliver_reply(self.conv, 'public fixture reply', self.user)
+            credential = PlatformCredential.objects.get(social_account=self.conv.social_account)
+            self.assertTrue(credential.is_active)
+            self.assertEqual(credential.auth_failure_code, '')
+        credential.delete()
+        with patch('social_stats.publishers.facebook.FacebookPublisher.reply_to_comment') as provider:
+            with self.assertRaises(PublishError) as error:
+                deliver_reply(self.conv, 'public fixture reply', self.user)
+            self.assertEqual(error.exception.code, 'not_connected')
+            provider.assert_not_called()
+
+
 class InboxStatsTests(TestCase):
     def setUp(self):
         self.client_obj = Client.objects.create(name='Acme', company='Acme Inc',
