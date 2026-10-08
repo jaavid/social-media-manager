@@ -45,7 +45,7 @@ class DeploymentRuntimeTests(TestCase):
     def test_each_worker_must_register_event_tasks(self, inspect):
         complete = list(current_app.tasks)
         event = 'social_stats.events.publisher.run_event_handler'
-        inspect.return_value.registered.return_value = {
+        inspect.return_value._request.return_value = {
             'healthy': complete, 'broken': [name for name in complete if name != event],
         }
         with self.assertRaisesMessage(CommandError, f'broken: missing tasks: {event}'):
@@ -53,13 +53,13 @@ class DeploymentRuntimeTests(TestCase):
 
     @patch('social_stats.management.commands.check_deployment_runtime.current_app.control.inspect')
     def test_no_response_missing_worker_and_broker_error_fail_safely(self, inspect):
-        inspect.return_value.registered.return_value = None
+        inspect.return_value._request.return_value = None
         with self.assertRaisesMessage(CommandError, 'No Celery workers responded'):
             self.run_check()
-        inspect.return_value.registered.return_value = {'healthy': list(current_app.tasks)}
+        inspect.return_value._request.return_value = {'healthy': list(current_app.tasks)}
         with self.assertRaisesMessage(CommandError, 'Workers did not respond: absent'):
             self.run_check(worker=['healthy', 'absent'])
-        inspect.return_value.registered.side_effect = RuntimeError('redis://user:private-value@host')
+        inspect.return_value._request.side_effect = RuntimeError('redis://user:private-value@host')
         with self.assertRaisesMessage(CommandError, 'Cannot inspect Celery workers') as error:
             self.run_check()
         self.assertNotIn('private-value', str(error.exception))
@@ -71,8 +71,9 @@ class DeploymentRuntimeTests(TestCase):
         with self.assertRaisesMessage(CommandError, 'missing.enabled.task'):
             self.run_check()
         PeriodicTask.objects.update(enabled=False)
-        inspect.return_value.registered.return_value = {'healthy': list(current_app.tasks)}
+        inspect.return_value._request.return_value = {'healthy': list(current_app.tasks)}
         self.assertEqual(self.run_check()['workers_checked'], ['healthy'])
+        inspect.return_value._request.assert_called_with('registered', builtins=True)
 
     def _clocked(self):
         from django.utils import timezone
@@ -102,3 +103,16 @@ class DeploymentRuntimeTests(TestCase):
             response.data = data
             with self.assertRaises(CommandError):
                 oauth_endpoint_report()
+
+    @patch('social_stats.management.commands.check_deployment_runtime.current_app.control.inspect')
+    def test_builtin_cleanup_is_required_on_running_worker(self, inspect):
+        PeriodicTask.objects.create(name='cleanup', task='celery.backend_cleanup',
+                                    one_off=True, clocked=self._clocked())
+        inspect.return_value._request.return_value = {
+            'worker': [name for name in current_app.tasks if name != 'celery.backend_cleanup'],
+        }
+        with self.assertRaisesMessage(CommandError, 'missing tasks: celery.backend_cleanup'):
+            self.run_check()
+        inspect.return_value._request.assert_called_once_with('registered', builtins=True)
+        inspect.return_value._request.return_value = {'worker': list(current_app.tasks)}
+        self.assertEqual(self.run_check()['workers_checked'], ['worker'])

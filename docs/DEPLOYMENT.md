@@ -92,3 +92,13 @@ Django و Celery روی stdout لاگ JSON می‌نویسند؛ `LOG_LEVEL=INFO
 python3 scripts/check_observability_stack.py http://localhost:3000
 docker compose exec -T app python - < scripts/check_runtime_privileges.py
 ```
+
+### Celery built-in task inspection
+
+The runtime check requests the complete worker registry, including built-in tasks.
+Celery 5.6's default `inspect registered` hides `celery.*`; it cannot establish that
+an enabled database schedule for `celery.backend_cleanup` is missing. The check
+still fails if that task is genuinely absent on any responding worker. Its pinned
+Celery request adapter supplies `builtins=True`; source and real-worker regression
+checks cover this protocol. This corrects the false failure on main `6ac39d0` in
+Tests run 37738261838; it does not change worker startup, schedules or timeouts.
