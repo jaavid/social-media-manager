@@ -142,7 +142,7 @@ export default function PostFormDrawer({ date, post, isOpen, onClose, onSave, cl
       setStatus('draft');
       setNotes('');
       if (date) {
-        const selectedDate = date instanceof Date ? date : new Date(date);
+        const selectedDate = new Date(date);
         selectedDate.setHours(10, 0, 0, 0);
         setScheduledAt(toLocalDateTime(selectedDate));
       } else {

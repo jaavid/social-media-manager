@@ -1,0 +1,20 @@
+import {test,expect} from '@playwright/test';
+import {connectionFixture} from '../src/services/__fixtures__/connections';
+test.use({trace:'off',screenshot:'off',video:'off'});
+for(const language of ['fa','en'])for(const theme of ['light','dark'])for(const width of [360,768,1440])test(`legacy review ${language}/${theme}/${width}`,async({page},info)=>{
+ const fa=language==='fa';const origin=new URL(info.project.use.baseURL).origin;await page.context().addCookies([{name:'socialstats.language',value:language,url:origin},{name:'theme',value:theme,url:origin}]);
+ await page.addInitScript(()=>localStorage.setItem('socialstats_cookie_choice',JSON.stringify({version:'2024-11-01',choices:{essential:true,functional:true}})));await page.setViewportSize({width,height:950});await page.emulateMedia({reducedMotion:'reduce',colorScheme:theme});
+ const date=new Date().toISOString().slice(0,10),post={id:17,client:7,platform:'telegram',post_type:'text',status:'published',title:'Public calendar post',caption:'Public calendar content',published_at:`${date}T10:00:00Z`,impressions:1200,reach:2000000,performance_score:0};
+ await page.routeWebSocket('**/ws/**',s=>s.close());await page.route('**/api/**',route=>{const p=new URL(route.request().url()).pathname;
+ if(p.endsWith('/auth/session/'))return route.fulfill({json:{authenticated:true,csrfToken:'public-fixture'}});
+ if(p.endsWith('/auth/me/'))return route.fulfill({json:{id:1,role:'client',account_type:'legacy',client_id:7,workspace_id:7,permissions:{}}});
+ if(p==='/api/workspaces/')return route.fulfill({json:[{id:7,name:'Public fixture',company:'Public fixture'}]});
+ if(p.includes('/connections/'))return route.fulfill({json:connectionFixture()});
+ if(p==='/api/calendar/posts/')return route.fulfill({json:{[date]:[post]}});
+ if(p.includes('/search/unified/'))return route.fulfill({json:{total:1,posts:[{id:19,title:'Public draft',status:'draft',deep_link:'/public-fixture'}],leads:[],contacts:[],conversations:[]}});
+ return route.fulfill({json:[]});});await page.goto('/dashboard/analytics/calendar?view=list');await expect(page.getByText('Public calendar post',{exact:true}).filter({visible:true}).first()).toBeVisible();const view=page.getByRole('button',{name:fa?'مشاهده':'View',exact:true});await view.focus();await page.keyboard.press('Enter');
+ const compact=new Intl.NumberFormat(fa?'fa-IR':'en-US',{notation:'compact',maximumFractionDigits:1});await expect(page.getByText(compact.format(1200).replace(/\u00a0/g,' '),{exact:true})).toBeVisible();await expect(page.getByText(compact.format(2000000).replace(/\u00a0/g,' '),{exact:true})).toBeVisible();await page.getByRole('button',{name:fa?'بستن':'Close',exact:true}).filter({visible:true}).first().click();
+ if(width===360)await expect(page.getByRole('navigation',{name:fa?'تحلیل و آمار زبانه‌های پایین':'Analytics bottom tabs'})).toBeVisible();
+ await page.keyboard.press('Control+k');const dialog=page.getByRole('dialog',{name:fa?'پالت فرمان':'Command palette'});await expect(dialog).toBeVisible();const input=dialog.getByRole('combobox');await input.fill('Public');await expect(dialog.getByText(fa?'پست · پیش‌نویس':'Post · draft',{exact:true})).toBeVisible();await page.keyboard.press('Escape');await expect(dialog).toHaveCount(0);
+ await page.goto('/dashboard/analytics/synclogs');if(width===1440){await expect(page.locator('header').getByText(fa?'گزارش همگام‌سازی':'Sync Logs',{exact:true})).toHaveCount(1);await expect(page.locator('.ds-whats-new')).toHaveAttribute('aria-label',fa?'تازه‌ها':"What's new");}else{await expect(page.locator('.ds-whats-new')).toHaveCount(0);}await expect(page.locator('html')).toHaveAttribute('dir',fa?'rtl':'ltr');
+});

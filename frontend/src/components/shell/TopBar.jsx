@@ -105,7 +105,7 @@ export default function TopBar({ basePath, onOpenPalette }) {
         target="_blank"
         rel="noopener noreferrer"
         className="ds-whats-new hidden items-center gap-1.5 rounded-full border border-primary/15 bg-primary/10 px-2.5 py-1.5 text-[11px] font-semibold text-primary no-underline transition hover:bg-primary/15 2xl:inline-flex"
-        aria-label={t('common.new', "What's new")}
+        aria-label={t('common.whatsNew', "What's new")}
       >
         <Sparkles size={11} />
         {t('common.new', 'New')}
@@ -251,6 +251,7 @@ function buildBreadcrumbs(pathname, basePath) {
   return out;
 }
 function humanize(seg) {
+  if (seg === 'synclogs') return 'Sync Logs';
   if (/^\d+$/.test(seg)) return `#${seg}`;
   return seg.replace(/-|_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
