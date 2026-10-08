@@ -142,8 +142,9 @@ def outbound_request(
     ``gateway``
         Always use the gateway and fail if it is not configured.
     ``auto``
-        Prefer direct. Fall back to gateway only after a DNS/connect/TLS/timeout
-        style network exception. A short cache-backed circuit avoids repeating a
+        Prefer direct. Safe read methods may fall back after network errors.
+        Writes fall back only on ConnectTimeout with redirects explicitly disabled;
+        other failures may follow a completed write and must propagate. A short cache-backed circuit avoids repeating a
         known-bad direct connection on every Celery task.
 
     ``gateway_path``/``gateway_headers`` are only applied to the gateway leg.
@@ -187,8 +188,11 @@ def outbound_request(
         response = _send_direct(method, url, **kwargs)
         clear_direct_circuit(service)
         return _annotate(response, service=service, route='direct', started=started)
-    except NETWORK_ERRORS:
-        if not gateway_url():
+    except NETWORK_ERRORS as error:
+        safe_read = method.upper() in {'GET', 'HEAD', 'OPTIONS'}
+        before_send = (isinstance(error, requests.ConnectTimeout)
+                       and kwargs.get('allow_redirects') is False)
+        if not (safe_read or before_send) or not gateway_url():
             raise
         mark_direct_unhealthy(service)
 

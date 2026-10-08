@@ -223,3 +223,20 @@ returns it to draft, and stale approval revisions cannot execute.
 
 Apply migrations 0078–0079 before serving this API/UI version. They add local
 intent deduplication and per-account delivery keys without deleting existing logs.
+
+### HTTP fallback and OIDC token responses (review audit 2026-10-08)
+
+The shared egress router permits network fallback for GET/HEAD/OPTIONS. Other
+methods may use fallback only after Requests `ConnectTimeout` when the caller
+explicitly set `allow_redirects=False`. A connect timeout on a later redirect leg
+cannot prove that the original write was never sent. Read timeout, generic
+connection error and TLS error do not justify mutation replay. HTTP responses do
+not trigger fallback. An open direct circuit chooses the gateway before sending
+a new operation; it does not replay a previous uncertain operation. Provider
+clients retain their established timeout/network error contracts. A missing
+gateway propagates the original failure. Provider GET/list results do not prove
+the causal outcome of an earlier write.
+
+The OIDC authorization-code token POST never follows redirects and rejects every
+3xx response before reading access tokens or calling userinfo. Existing discovery,
+userinfo and explicit insecure-development URL policy remain unchanged.
