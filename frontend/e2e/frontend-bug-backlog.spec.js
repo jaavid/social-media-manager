@@ -156,11 +156,11 @@ test('account settings saves to the shared server matrix and webhooks cannot cla
   } });
   await page.goto('/admin/account-settings');
   await page.locator('main').getByRole('button', { name: 'Notifications', exact: true }).click();
-  await page.getByRole('switch', { name: 'Post published · Email' }).click();
-  await page.getByRole('button', { name: 'Save', exact: true }).click();
+  await page.getByRole('checkbox', { name: 'Post published · Email' }).check();
+  await page.getByRole('button', { name: 'Save preferences', exact: true }).click();
   await expect.poll(() => writes).toBe(1);
   await page.reload(); await page.locator('main').getByRole('button', { name: 'Notifications', exact: true }).click();
-  await expect(page.getByRole('switch', { name: 'Post published · Email' })).toHaveAttribute('aria-checked', 'true');
+  await expect(page.getByRole('checkbox', { name: 'Post published · Email' })).toBeChecked();
   await page.getByRole('button', { name: /Webhooks/ }).click();
   await expect(page.getByText('Webhook delivery is not available yet.')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Add', exact: true })).toHaveCount(0);

@@ -15,7 +15,7 @@ export const captionAPI = {
 
 export const postIdeasAPI = {
   generate:      (data)              => api.post('/ai/post-ideas/', data),
-  getHistory:    (params)            => api.get('/ai/post-ideas/', { params }),
+  getHistory:    (params, signal)    => api.get('/ai/post-ideas/', { params, signal }),
   approveAll:    (id)                => api.post(`/ai/post-ideas/${id}/approve-all/`),
   addToCalendar: (id, data)          => api.post(`/ai/post-ideas/${id}/add-to-calendar/`, data),
   updateIdea:    (id, ideaId, data)  => api.patch(`/ai/post-ideas/${id}/ideas/${ideaId}/`, data),

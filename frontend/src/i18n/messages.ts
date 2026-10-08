@@ -1069,6 +1069,21 @@ const whatsappFa = {
   'whatsapp.inbox.send': 'ارسال پیام',
 } as const;
 export const enMessages = {
+  "ideas.empty": "No previous calendars exist in this workspace.",
+  "onboarding.profile": "Workspace onboarding data",
+  "ideas.editDate": "Edit scheduled date",
+  "ideas.editTopic": "Edit topic",
+  "ideas.editCaption": "Edit caption direction",
+  "ideas.saveEdit": "Save edit",
+
+  "onboarding.createFirst": "Complete setup creates the workspace. Progress cannot be saved before a workspace exists.",
+  "onboarding.uncertain": "The write outcome is unknown. A checked profile read observes current values, not which request wrote them. Creating an unknown workspace cannot be confirmed without its identity. No mutation is replayed. Review current state before a separate action.",
+  "onboarding.sessionFailed": "Setup was acknowledged, but the account refresh failed. Retry only the account read; setup is not submitted again.",
+
+  "ideas.history": "Calendar history",
+  "ideas.uncertain": "The request outcome is unknown. A checked history read observes current state, but cannot prove which request created or changed a calendar. No operation is replayed. Review the current state before authorizing a separate action.",
+  "ideas.acknowledge": "I reviewed current state; allow a separate action",
+
   "posts.workspace": "Workspace",
   "posts.chooseWorkspace": "Choose an authorized workspace to read posts.",
   "posts.empty": "No synced posts yet.",
@@ -1317,6 +1332,21 @@ export const enMessages = {
  ...whatsappEn, ...composerEn, ...accountsEn, ...commonEn, ...marketingEn, ...catalogEn } as const;
 export type MessageKey = keyof typeof enMessages;
 export const faMessages = {
+  "ideas.empty": "تقویم قبلی در این فضای کاری وجود ندارد.",
+  "onboarding.profile": "اطلاعات راه‌اندازی فضای کاری",
+  "ideas.editDate": "ویرایش تاریخ زمان‌بندی",
+  "ideas.editTopic": "ویرایش موضوع",
+  "ideas.editCaption": "ویرایش راهنمای متن",
+  "ideas.saveEdit": "ذخیرهٔ ویرایش",
+
+  "onboarding.createFirst": "تکمیل راه‌اندازی فضای کاری را می‌سازد. پیش از وجود فضای کاری، ذخیرهٔ پیشرفت ممکن نیست.",
+  "onboarding.uncertain": "نتیجهٔ ذخیره نامعلوم است. خواندن معتبر مشخصات مقادیر فعلی را نشان می‌دهد، نه اینکه کدام درخواست آن‌ها را نوشته است. ساخت فضای کاری نامعلوم بدون شناسهٔ آن قابل تأیید نیست. عملیات تکرار نمی‌شود. پیش از عملیات مستقل وضعیت فعلی را بررسی کنید.",
+  "onboarding.sessionFailed": "راه‌اندازی تأیید شد، اما بازخوانی حساب ناموفق بود. فقط خواندن حساب را تکرار کنید؛ راه‌اندازی دوباره ارسال نمی‌شود.",
+
+  "ideas.history": "تاریخچهٔ تقویم",
+  "ideas.uncertain": "نتیجهٔ درخواست نامعلوم است. خواندن معتبر تاریخچه وضعیت فعلی را نشان می‌دهد، اما ثابت نمی‌کند کدام درخواست تقویم را ساخته یا تغییر داده است. عملیات تکرار نمی‌شود. پیش از اجازهٔ عملیات مستقل، وضعیت فعلی را بررسی کنید.",
+  "ideas.acknowledge": "وضعیت فعلی را بررسی کردم؛ اجازهٔ عملیات مستقل",
+
   "posts.workspace": "فضای کاری",
   "posts.chooseWorkspace": "برای خواندن پست‌ها یک فضای کاری مجاز را انتخاب کنید.",
   "posts.empty": "هنوز پستی همگام نشده است.",

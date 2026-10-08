@@ -1,3 +1,8 @@
+import { AccountScope, ReadState, WriteState, useAccountRead, useCheckedAction } from '@/components/ui/accountRecovery';
+import { parseIdea, parseIdeaSet, parseIdeaHistory, parseApproved, parseCalendarAdded } from '@/lib/ideaRecovery';
+import Button from '@/components/ui/Button';
+import DataState from '@/components/ui/DataState';
+import { useLanguage } from '@/i18n';
 import LookupState from '@/components/ui/LookupState';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
@@ -83,6 +88,11 @@ function classifyPostType(pt, topic) {
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function PostIdeasPage({ clientId: propClientId = null }) {
+  const [search] = useSearchParams();
+  return <AccountScope>{(identity, enabled, key) => enabled && <IdeasAccount key={`${key}:${propClientId}:${search.get('client')}`} identity={identity} propClientId={propClientId} />}</AccountScope>;
+}
+function IdeasAccount({ identity, propClientId }) {
+  const { t } = useLanguage();
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
   const lookupResource = useLookups();
@@ -121,9 +131,13 @@ export default function PostIdeasPage({ clientId: propClientId = null }) {
   const [loadStep, setLoadStep] = useState(0);
   const [error, setError]       = useState('');
   const [ideaSet, setIdeaSet]   = useState(null);     // current result
-  const [history, setHistory]   = useState([]);
+  const historyResource = useAccountRead('idea-history', [...identity, clientId], Boolean(clientId), signal => postIdeasAPI.getHistory({ client_id: clientId }, signal), parseIdeaHistory);
+  const history = historyResource.data || [];
+  const action = useCheckedAction();
+  const [observed, setObserved] = useState(false);
   const [editingIdea, setEditingIdea] = useState(null); // { id, field, value }
-  const [saving, setSaving]           = useState(false);
+  const saving = action.locked;
+  const historyFocus = useRef(null);
   const [calMsg, setCalMsg]           = useState('');
   const loadTimer = useRef(null);
 
@@ -136,40 +150,8 @@ export default function PostIdeasPage({ clientId: propClientId = null }) {
     setSearchParams(next, { replace: true });
   }, [searchParams, setSearchParams]);
 
-  useEffect(() => {
-    if (!clientId && !isAdmin && user?.client_id) {
-      setSelectedClientId(user.client_id);
-    }
-  }, [user, isAdmin, clientId]);
-
-  useEffect(() => {
-    if (parsedClientId && parsedClientId !== clientId) {
-      setSelectedClientId(parsedClientId);
-    }
-  }, [parsedClientId, clientId]);
-
-  useEffect(() => {
-    setForm(f => {
-      const nextClientId = clientId || '';
-      return f.client_id === nextClientId ? f : { ...f, client_id: nextClientId };
-    });
-  }, [clientId]);
-
   // ── Load history ────────────────────────────────────────────────────────────
-  const loadHistory = useCallback(async () => {
-    const params = {};
-    if (!isAdmin && user?.client_id) params.client_id = user.client_id;
-    else if (clientId)                params.client_id = clientId;
-    if (!params.client_id) return;
-    try {
-      const res = await postIdeasAPI.getHistory(params);
-      setHistory(res.data);
-    } catch {
-      // silently ignore
-    }
-  }, [isAdmin, user, clientId]);
-
-  useEffect(() => { loadHistory(); }, [loadHistory]);
+  const loadHistory = () => historyResource.query.refetch();
 
   // ── Loading animation ────────────────────────────────────────────────────────
   useEffect(() => {
@@ -195,23 +177,18 @@ export default function PostIdeasPage({ clientId: propClientId = null }) {
 
     const payload = {
       ...form,
-      client_id: isAdmin ? form.client_id : user?.client_id,
+      client_id: clientId,
     };
     if (!payload.client_id) return setError('Workspace ID is required.');
 
-    setStep('loading');
-    try {
-      const res = await postIdeasAPI.generate(payload);
-      setIdeaSet(res.data);
-      setStep('results');
-      loadHistory();
-    } catch (e) {
-      const msg = e.response?.data?.error
-        || Object.values(e.response?.data?.errors || {}).flat().join(' ')
-        || 'Generation failed. Please try again.';
-      setError(msg);
-      setStep('form');
-    }
+    await action.run(async () => {
+      setStep('loading');
+      try {
+        const result = parseIdeaSet((await postIdeasAPI.generate(payload)).data);
+        if (result.month !== payload.month || result.year !== payload.year) throw new Error('Invalid ideas response');
+        return result;
+      } finally { if (action.alive.current) setStep('form'); }
+    }, result => { setIdeaSet(result); setStep('results'); loadHistory(); });
   };
 
   // ── Load from history ────────────────────────────────────────────────────────
@@ -232,90 +209,33 @@ export default function PostIdeasPage({ clientId: propClientId = null }) {
   };
 
   // ── Approve / unapprove ──────────────────────────────────────────────────────
-  const toggleApprove = async (idea) => {
-    if (!ideaSet) return;
-    try {
-      const res = await postIdeasAPI.updateIdea(ideaSet.id, idea.id, {
-        is_approved: !idea.is_approved,
-      });
-      setIdeaSet(prev => ({
-        ...prev,
-        ideas: prev.ideas.map(i => i.id === idea.id ? { ...i, ...res.data } : i),
-      }));
-    } catch { /* ignore */ }
-  };
-
-  const handleApproveAll = async () => {
-    if (!ideaSet) return;
-    try {
-      await postIdeasAPI.approveAll(ideaSet.id);
-      setIdeaSet(prev => ({
-        ...prev,
-        ideas: prev.ideas.map(i => ({ ...i, is_approved: true })),
-      }));
-    } catch { /* ignore */ }
-  };
-
-  // ── Inline edit ──────────────────────────────────────────────────────────────
-  const startEdit = (idea, field) => {
-    setEditingIdea({ id: idea.id, field, value: idea[field] });
-  };
-
-  const commitEdit = async () => {
+  const updateIdea = (idea, fields, finish) => action.run(async () => {
+    const result = parseIdea((await postIdeasAPI.updateIdea(ideaSet.id, idea.id, fields)).data);
+    if (result.id !== idea.id || Object.entries(fields).some(([key, value]) => result[key] !== value)) throw new Error('Invalid idea acknowledgment');
+    return result;
+  }, result => { setIdeaSet(prev => ({ ...prev, ideas: prev.ideas.map(row => row.id === result.id ? { ...row, ...result } : row) })); finish?.(); });
+  const toggleApprove = idea => ideaSet && updateIdea(idea, { is_approved: !idea.is_approved });
+  const handleApproveAll = () => ideaSet && action.run(async () => {
+    const result = (await postIdeasAPI.approveAll(ideaSet.id)).data;
+    parseApproved(result, ideaSet.ideas.length); return result;
+  }, () => setIdeaSet(prev => ({ ...prev, ideas: prev.ideas.map(row => ({ ...row, is_approved: true })) })));
+  const startEdit = (idea, field) => setEditingIdea({ id: idea.id, field, value: idea[field] });
+  const commitEdit = () => {
     if (!editingIdea || !ideaSet) return;
-    setSaving(true);
-    try {
-      const res = await postIdeasAPI.updateIdea(ideaSet.id, editingIdea.id, {
-        [editingIdea.field]: editingIdea.value,
-      });
-      setIdeaSet(prev => ({
-        ...prev,
-        ideas: prev.ideas.map(i => i.id === editingIdea.id ? { ...i, ...res.data } : i),
-      }));
-    } catch { /* ignore */ }
-    setSaving(false);
-    setEditingIdea(null);
+    const idea = ideaSet.ideas.find(row => row.id === editingIdea.id);
+    return updateIdea(idea, { [editingIdea.field]: editingIdea.value }, () => setEditingIdea(null));
   };
-
-  // ── Add to calendar ──────────────────────────────────────────────────────────
-  const handleAddToCalendar = async (ideaIds = null) => {
-    if (!ideaSet) return;
-    setCalMsg('');
-    setSaving(true);
-    try {
-      const body = ideaIds ? { idea_ids: ideaIds } : {};
-      const res  = await postIdeasAPI.addToCalendar(ideaSet.id, body);
-      setCalMsg(res.data.message);
-      // Refresh idea statuses
-      const history = await postIdeasAPI.getHistory({
-        client_id: ideaSet.ideas[0] ? undefined : null,
-        month: ideaSet.month,
-        year:  ideaSet.year,
-      });
-      const updated = (history.data || []).find(s => s.id === ideaSet.id);
-      if (updated) setIdeaSet(updated);
-    } catch (e) {
-      setCalMsg(e.response?.data?.error || 'Failed to add to calendar.');
+  const addCalendar = body => ideaSet && action.run(async () => parseCalendarAdded((await postIdeasAPI.addToCalendar(ideaSet.id, body)).data), async result => {
+    setCalMsg(result.message);
+    // A known acknowledgment and a later checked read are separate outcomes.
+    const refreshed = await loadHistory();
+    if (refreshed.isSuccess && action.alive.current) {
+      const current = refreshed.data.find(row => row.id === ideaSet.id);
+      if (current) setIdeaSet(current);
     }
-    setSaving(false);
-  };
-
-  const handleAddAllToCalendar = async () => {
-    if (!ideaSet) return;
-    setCalMsg('');
-    setSaving(true);
-    try {
-      const res = await postIdeasAPI.addToCalendar(ideaSet.id, { approve_all: true });
-      setCalMsg(res.data.message);
-      setIdeaSet(prev => ({
-        ...prev,
-        ideas: prev.ideas.map(i => ({ ...i, is_approved: true, is_added_to_calendar: true })),
-      }));
-    } catch (e) {
-      setCalMsg(e.response?.data?.error || 'Failed to add to calendar.');
-    }
-    setSaving(false);
-  };
+  });
+  const handleAddToCalendar = (ideaIds = null) => addCalendar(ideaIds ? { idea_ids: ideaIds } : {});
+  const handleAddAllToCalendar = () => addCalendar({ approve_all: true });
 
   // ── Derived stats ────────────────────────────────────────────────────────────
   const datedIdeas = ideaSet
@@ -361,6 +281,9 @@ export default function PostIdeasPage({ clientId: propClientId = null }) {
 
   return (
     <div className="app-page app-page--wide"><LookupState resource={lookupResource} />
+      {clientId && <section ref={historyFocus} tabIndex={-1} aria-label={t('ideas.history')}><ReadState resource={historyResource} refresh={loadHistory} returnFocusRef={historyFocus} />{historyResource.data?.length === 0 && <DataState compact state="empty" title={t('ideas.empty')} />}</section>}
+      <WriteState action={action} uncertainKey="ideas.uncertain" recover={async () => { const result = await loadHistory(); if (result.isSuccess) { setObserved(true); const current = result.data.find(row => row.id === ideaSet?.id); if (current) setIdeaSet(current); } }} />
+      {action.uncertain && observed && <Button onClick={() => { action.verified(); setObserved(false); }}>{t('ideas.acknowledge')}</Button>}
       <PageHeader
         title="Post Ideas Generator"
         subtitle="AI-powered content calendar for the full month"
@@ -368,9 +291,12 @@ export default function PostIdeasPage({ clientId: propClientId = null }) {
           <div style={styles.pageHeaderActions}>
             {showClientSelector && (
               <select
+                aria-label={t('posts.workspace')}
                 value={clientId || ''}
                 onChange={e => {
                   const nextClientId = e.target.value ? parseInt(e.target.value, 10) : null;
+                  action.invalidate();
+                  setIdeaSet(null); setEditingIdea(null); setObserved(false); setStep('form');
                   setSelectedClientId(nextClientId);
                   updateSearch({ client: nextClientId });
                 }}
@@ -382,8 +308,8 @@ export default function PostIdeasPage({ clientId: propClientId = null }) {
                 ))}
               </select>
             )}
-            {step === 'results' && (
-              <button onClick={() => { setStep('form'); setError(''); }} style={styles.newBtn}>
+            {step === 'results' && !historyResource.denied && (
+              <button disabled={action.locked} onClick={() => { setStep('form'); setError(''); }} style={styles.newBtn}>
                 + New Calendar
               </button>
             )}
@@ -401,7 +327,7 @@ export default function PostIdeasPage({ clientId: propClientId = null }) {
         </div>
       )}
 
-      {step === 'form' && clientId && (
+      {step === 'form' && clientId && !historyResource.denied && !action.denied && (
         <SetupForm
           form={form}
           setForm={setForm}
@@ -411,6 +337,7 @@ export default function PostIdeasPage({ clientId: propClientId = null }) {
           monthOptions={monthOptions}
           platformOptions={platformOptions}
           onGenerate={handleGenerate}
+          locked={action.locked}
           history={history}
           onLoadHistory={loadFromHistory}
           togglePlatform={togglePlatform}
@@ -421,7 +348,7 @@ export default function PostIdeasPage({ clientId: propClientId = null }) {
         <LoadingScreen steps={LOADING_STEPS} currentStep={loadStep} />
       )}
 
-      {step === 'results' && ideaSet && clientId && (
+      {step === 'results' && ideaSet && clientId && !historyResource.denied && !action.denied && (
         <ResultsView
           ideaSet={ideaSet}
           datedIdeas={datedIdeas}
@@ -451,7 +378,7 @@ export default function PostIdeasPage({ clientId: propClientId = null }) {
 
 // ── Setup Form ────────────────────────────────────────────────────────────────
 
-function SetupForm({ form, setForm, isAdmin, error, businessTypeOptions, monthOptions, platformOptions, onGenerate, history, onLoadHistory, togglePlatform }) {
+function SetupForm({ form, setForm, isAdmin, error, businessTypeOptions, monthOptions, platformOptions, onGenerate, history, onLoadHistory, togglePlatform, locked }) {
   const now = new Date();
 
   const yearOptions = [now.getFullYear(), now.getFullYear() + 1];
@@ -465,8 +392,8 @@ function SetupForm({ form, setForm, isAdmin, error, businessTypeOptions, monthOp
         <div className="ai-form-row" style={styles.formGrid}>
           {/* Business Type */}
           <div style={styles.formField}>
-            <label style={styles.label}>Business Type *</label>
-            <select
+            <label id="ideas-field-1" style={styles.label}>Business Type *</label>
+            <select aria-labelledby="ideas-field-1"
               value={form.business_type}
               onChange={e => setForm(f => ({ ...f, business_type: e.target.value }))}
               style={styles.select}
@@ -480,8 +407,8 @@ function SetupForm({ form, setForm, isAdmin, error, businessTypeOptions, monthOp
 
           {/* Location */}
           <div style={styles.formField}>
-            <label style={styles.label}>Location</label>
-            <input
+            <label id="ideas-field-2" style={styles.label}>Location</label>
+            <input aria-labelledby="ideas-field-2"
               type="text"
               placeholder="e.g. Mumbai, India"
               value={form.location}
@@ -492,8 +419,8 @@ function SetupForm({ form, setForm, isAdmin, error, businessTypeOptions, monthOp
 
           {/* Target Audience */}
           <div style={{ ...styles.formField, gridColumn: '1 / -1' }}>
-            <label style={styles.label}>Target Audience</label>
-            <input
+            <label id="ideas-field-3" style={styles.label}>Target Audience</label>
+            <input aria-labelledby="ideas-field-3"
               type="text"
               placeholder="e.g. Young professionals 25-35 in Mumbai"
               value={form.target_audience}
@@ -504,8 +431,8 @@ function SetupForm({ form, setForm, isAdmin, error, businessTypeOptions, monthOp
 
           {/* Month */}
           <div style={styles.formField}>
-            <label style={styles.label}>Month *</label>
-            <select
+            <label id="ideas-field-4" style={styles.label}>Month *</label>
+            <select aria-labelledby="ideas-field-4"
               value={form.month}
               onChange={e => setForm(f => ({ ...f, month: Number(e.target.value) }))}
               style={styles.select}
@@ -518,8 +445,8 @@ function SetupForm({ form, setForm, isAdmin, error, businessTypeOptions, monthOp
 
           {/* Year */}
           <div style={styles.formField}>
-            <label style={styles.label}>Year *</label>
-            <select
+            <label id="ideas-field-5" style={styles.label}>Year *</label>
+            <select aria-labelledby="ideas-field-5"
               value={form.year}
               onChange={e => setForm(f => ({ ...f, year: Number(e.target.value) }))}
               style={styles.select}
@@ -576,8 +503,8 @@ function SetupForm({ form, setForm, isAdmin, error, businessTypeOptions, monthOp
 
           {/* Upcoming Events */}
           <div style={{ ...styles.formField, gridColumn: '1 / -1' }}>
-            <label style={styles.label}>Upcoming Events / Promotions</label>
-            <textarea
+            <label id="ideas-field-6" style={styles.label}>Upcoming Events / Promotions</label>
+            <textarea aria-labelledby="ideas-field-6"
               placeholder="e.g. Diwali on Oct 20, New menu launching Nov 1, Anniversary sale last week of month"
               value={form.upcoming_events}
               onChange={e => setForm(f => ({ ...f, upcoming_events: e.target.value }))}
@@ -591,7 +518,7 @@ function SetupForm({ form, setForm, isAdmin, error, businessTypeOptions, monthOp
 
         <button
           type="button"
-          onClick={onGenerate}
+          disabled={locked} onClick={onGenerate}
           style={styles.generateBtn}
         >
           ✨ Generate My Content Calendar
@@ -682,13 +609,13 @@ function ResultsView({
             <div style={styles.strategyNote}>{ideaSet.strategy_notes}</div>
           </div>
           <div style={styles.headerActions}>
-            <button onClick={onApproveAll} style={styles.actionBtnOutline}>
+            <button disabled={saving} onClick={onApproveAll} style={styles.actionBtnOutline}>
               ✓ Approve All
             </button>
             <button onClick={onAddAllToCalendar} disabled={saving} style={styles.actionBtnOutline}>
               📅 Add All to Calendar
             </button>
-            <button onClick={onRegenerate} style={styles.actionBtnOutline}>
+            <button disabled={saving} onClick={onRegenerate} style={styles.actionBtnOutline}>
               🔄 Regenerate
             </button>
           </div>
@@ -820,6 +747,7 @@ function ResultsView({
 
 function IdeaCard({ idea, platformOptions, editingIdea, saving, onToggleApprove, onAddToCalendar, onStartEdit, onCommitEdit, setEditingIdea }) {
   const [captionOpen, setCaptionOpen] = useState(false);
+  const { t } = useLanguage();
   const isEditingTopic    = editingIdea?.id === idea.id && editingIdea?.field === 'topic';
   const isEditingCaption  = editingIdea?.id === idea.id && editingIdea?.field === 'caption_hint';
 
@@ -854,11 +782,13 @@ function IdeaCard({ idea, platformOptions, editingIdea, saving, onToggleApprove,
       <div style={styles.dateRow}>
         <input
           type="date"
-          value={idea.scheduled_date || ''}
+          aria-label={t('ideas.editDate')}
+          disabled={saving}
+          value={editingIdea?.id === idea.id && editingIdea.field === 'scheduled_date' ? editingIdea.value : idea.scheduled_date || ''}
           onChange={(e) => setEditingIdea({ id: idea.id, field: 'scheduled_date', value: e.target.value })}
-          onBlur={onCommitEdit}
           style={styles.dateInput}
         />
+        {editingIdea?.id === idea.id && editingIdea.field === 'scheduled_date' && <Button disabled={saving} onClick={onCommitEdit}>{t('ideas.saveEdit')}</Button>}
         <span style={styles.dateHint}>Set the date this post should land on the calendar</span>
       </div>
 
@@ -868,21 +798,24 @@ function IdeaCard({ idea, platformOptions, editingIdea, saving, onToggleApprove,
           <div style={styles.inlineEditWrap}>
             <input
               autoFocus
+              aria-label={t('ideas.editTopic')}
+              disabled={saving}
               style={styles.inlineInput}
               value={editingIdea.value}
               onChange={e => setEditingIdea(prev => ({ ...prev, value: e.target.value }))}
-              onBlur={onCommitEdit}
               onKeyDown={e => { if (e.key === 'Enter') onCommitEdit(); if (e.key === 'Escape') setEditingIdea(null); }}
             />
+            <Button disabled={saving} onClick={onCommitEdit}>{t('ideas.saveEdit')}</Button>
           </div>
         ) : (
-          <div
+          <button type="button"
+            aria-label={t('ideas.editTopic')}
             style={styles.topicText}
-            onDoubleClick={() => onStartEdit(idea, 'topic')}
-            title="Double-click to edit"
+            onClick={() => onStartEdit(idea, 'topic')}
+            title={t('ideas.editTopic')}
           >
             {idea.topic}
-          </div>
+          </button>
         )}
       </div>
 
@@ -900,21 +833,24 @@ function IdeaCard({ idea, platformOptions, editingIdea, saving, onToggleApprove,
             <div style={styles.inlineEditWrap}>
               <textarea
                 autoFocus
+                aria-label={t('ideas.editCaption')}
+                disabled={saving}
                 rows={3}
                 style={{ ...styles.inlineInput, resize: 'vertical' }}
                 value={editingIdea.value}
                 onChange={e => setEditingIdea(prev => ({ ...prev, value: e.target.value }))}
-                onBlur={onCommitEdit}
-              />
+                />
+              <Button disabled={saving} onClick={onCommitEdit}>{t('ideas.saveEdit')}</Button>
             </div>
           ) : (
-            <div
+            <button type="button"
+              aria-label={t('ideas.editCaption')}
               style={styles.captionText}
-              onDoubleClick={() => onStartEdit(idea, 'caption_hint')}
-              title="Double-click to edit"
+              onClick={() => onStartEdit(idea, 'caption_hint')}
+              title={t('ideas.editCaption')}
             >
               {idea.caption_hint}
-            </div>
+            </button>
           )
         )}
       </div>
@@ -936,6 +872,7 @@ function IdeaCard({ idea, platformOptions, editingIdea, saving, onToggleApprove,
           <>
             <button
               type="button"
+              disabled={saving}
               onClick={() => onToggleApprove(idea)}
               style={{
                 ...styles.cardBtn,
