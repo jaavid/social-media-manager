@@ -93,7 +93,7 @@ function InboxWorkspace({ workspaceId, reviewsOnly }) {
       <Input aria-label={t('engagement.search')} value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} />
       <Button disabled={!allowed || resource.loading} onClick={resource.refetch}>{t('engagement.refresh')}</Button>
     </div>
-    {selected && <EngagementExtensions names={selected.provider.contract.ui_extensions} accountId={selected.account.id} />}
+    {selected && <EngagementExtensions names={selected.provider.contract.ui_extensions} accountId={selected.account.id} workspaceId={workspaceId} />}
     {accounts.length === 0 ? <DataState state="empty" title={t('engagement.unavailable')} /> : !selected ? <DataState state="empty" title={t('engagement.account')} /> :
       <InboxContent key={scope} resource={resource} scope={scope} params={params} selected={selected} type={type} metadataCurrent={!metadata.error} />}
     {allowed && resource.pagination && <div className="mt-4 flex gap-3">

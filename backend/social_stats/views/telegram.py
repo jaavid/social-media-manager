@@ -8,6 +8,7 @@ import time
 from django.http import HttpResponse
 from django.contrib.auth.models import User
 from django.db import transaction
+from django.db.models import F
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import serializers, viewsets
@@ -282,16 +283,20 @@ class TelegramSuggestionViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         qs = TelegramSuggestion.objects.filter(
-            client__in=accessible_workspaces(self.request.user)
-        ).select_related("account__client")
+            client__in=accessible_workspaces(self.request.user),
+            account__client_id=F('client_id'),
+        ).select_related("account__client", "conversation")
         if self.request.query_params.get("account"):
             qs = qs.filter(account_id=self.request.query_params["account"])
+        accounts = SocialAccount.objects.filter(
+            pk__in=qs.values('account_id')
+        ).select_related('client')
         return qs.filter(
-            pk__in=[
-                s.pk
-                for s in qs
+            account_id__in=[
+                account.pk
+                for account in accounts
                 if evaluate(
-                    self.request.user, s.client, "view_inbox", account=s.account
+                    self.request.user, account.client, "view_inbox", account=account
                 ).allowed
             ]
         ).order_by("-created_at")

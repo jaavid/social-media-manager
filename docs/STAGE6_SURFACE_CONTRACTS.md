@@ -190,3 +190,11 @@ account-deletion migration. SecurityTab/AgencyTab and their raw controls/errors
 remain owned by settings maintainers and require their own failure/focus evidence.
 The services/api compatibility export remains until those consumers migrate.
 Existing shell, theme, session QueryClient and Modal primitives are reused.
+
+### Telegram review recovery (2026-10-08, review batch; branch evidence)
+
+Suggestion readers share a scoped generation across initial reads, decision refreshes and reconnect. A validated decision acknowledgment remains visible when its following read fails; it is never replayed because of that read failure. Unknown decisions remain locked until a new authoritative row proves a reconciled state. Workspace/account changes discard old readers and local acknowledgments; denial suppresses cached rows. Malformed rows do not become an empty inbox.
+
+Telegram settings send destination_context only when its typed flat DTO changes. Ordinary flags do not provoke destination revalidation. A malformed/transport/server write response is an unknown outcome; GET does not prove causation or authorize automatic POST replay. Existing assistant defaults and workspace/account query scopes remain in force.
+
+Suggestions authorize each unique account once rather than each suggestion. The row's workspace must match its account workspace, and account overrides still deny access. This is a bounded query reduction, not a tenant-policy rewrite. Public fixture browser tests cover fa/en, RTL/LTR, light/dark,360/768/1440, keyboard focus and reduced motion with all provider side effects mocked and captures disabled.

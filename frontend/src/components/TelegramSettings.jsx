@@ -1,18 +1,28 @@
 import { useLanguage } from "../i18n";
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { api } from '@/services/http/client';
 import { apiError } from '@/services/http/errors';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { parseTelegramSettings, sameDestination } from '@/lib/telegramSettings';
 import { QK } from '@/services/queryClient';
 import DataState from '@/components/ui/DataState';
 import Card from './ui/Card';
 import Button from './ui/Button';
 export default function TelegramSettings({ workspaceId, accountId }) {
+  if (!Number.isSafeInteger(Number(workspaceId)) || Number(workspaceId) <= 0
+      || !Number.isSafeInteger(Number(accountId)) || Number(accountId) <= 0) return null;
+  return <ScopedTelegramSettings key={`${workspaceId}:${accountId}`} workspaceId={workspaceId} accountId={accountId} />;
+}
+function ScopedTelegramSettings({ workspaceId, accountId }) {
   const {
     tr, t
   } = useLanguage();
   const [draft, setDraft] = useState(null);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState(null);
+  const [uncertain, setUncertain] = useState(false);
+  const lock = useRef(false), alive = useRef(false);
+  const client = useQueryClient();
+  useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
   const [pending, setPending] = useState(false);
   const [saved, setSaved] = useState(false);
   const [telegramUser, setTelegramUser] = useState('');
@@ -21,38 +31,54 @@ export default function TelegramSettings({ workspaceId, accountId }) {
     queryKey: QK.connectionExtension(workspaceId, accountId, 'telegram_settings'),
     queryFn: async ({ signal }) => {
       const { data } = await api.get(`/telegram-accounts/${accountId}/settings/`, { signal });
-      if (!data || typeof data !== 'object' || Array.isArray(data) || typeof data.rich_enabled !== 'boolean'
-          || typeof data.assistant_enabled !== 'boolean' || !data.destination_context
-          || typeof data.destination_context !== 'object') throw new Error('Invalid settings response');
-      return data;
+      return parseTelegramSettings(data);
     },
     retry: false,
   });
   const settings = draft || query.data;
   const setSettings = setDraft;
   const act = async (path, body) => {
-    if (pending) return;
-    setError(false); setSaved(false); setPending(true);
+    if (lock.current || uncertain || !alive.current) return;
+    lock.current = true;
+    setError(null); setSaved(false); setPending(true);
     try {
-      await api.post(`/telegram-accounts/${accountId}/${path}/`, body);
+      const response = await api.post(`/telegram-accounts/${accountId}/${path}/`, body);
+      if (!alive.current) return;
+      if (response.status !== 200) throw new Error('Invalid acknowledgment');
+      if (path === 'settings') {
+        const acknowledged = parseTelegramSettings(response.data);
+        for (const field of ['assistant_enabled', 'rich_enabled', 'assistant_rich']) {
+          if (acknowledged[field] !== body[field]) throw new Error('Settings not acknowledged');
+        }
+        if ('destination_context' in body && !sameDestination(body.destination_context, acknowledged.destination_context)) throw new Error('Destination not acknowledged');
+        client.setQueryData(QK.connectionExtension(workspaceId, accountId, 'telegram_settings'), acknowledged);
+        setDraft(null); void query.refetch();
+      } else if (path === 'webhook') {
+        if (response.data?.enabled !== true || typeof response.data.url !== 'string' || !response.data.url.startsWith('https://')) throw new Error('Invalid acknowledgment');
+      } else if (response.data?.linked !== true) throw new Error('Invalid acknowledgment');
       setSaved(true);
-      if (path === 'settings') { setDraft(null); void query.refetch(); }
-    } catch {
-      setError(true);
-    } finally { setPending(false); }
+    } catch (failure) {
+      if (!alive.current) return;
+      const reason = apiError(failure);
+      const unknown = !reason.status || reason.status >= 500 || ['timeout', 'network_error', 'invalid_response'].includes(reason.code);
+      setUncertain(unknown);
+      setError(unknown ? 'connections.unknownMutation' : 'connections.mutationFailed');
+    } finally { lock.current = false; if (alive.current) setPending(false); }
   };
-  const failed = apiError(query.error).status === 403 ? 'forbidden' : 'error';
+  const readStatus = apiError(query.error).status;
+  const denied = [401, 403, 404].includes(readStatus);
+  const failed = [401, 403].includes(readStatus) ? 'forbidden' : 'error';
   if (query.isPending) return <DataState compact state="loading" title={t('connections.loading')} />;
-  if ((query.isError && !query.data) || failed === 'forbidden') return <DataState compact state={failed}
-    title={t(failed === 'forbidden' ? 'connections.forbidden' : 'connections.failed')}
+  if ((query.isError && !query.data) || denied) return <DataState compact state={failed}
+    title={t(readStatus === 404 ? 'recovery.notFound' : failed === 'forbidden' ? 'connections.forbidden' : 'connections.failed')}
     action={<Button onClick={() => query.refetch()}>{t('connections.retry')}</Button>} />;
   const context = settings?.destination_context || {};
   const type = context.destination_type || 'channel';
   return <Card padding="md" className="mt-5"><Card.Header title={tr("Telegram topics and assistant")} />
     {query.isError && <DataState compact state="partial" title={t('connections.partial')} action={<Button onClick={() => query.refetch()}>{t('connections.retry')}</Button>} />}
-    {error && <DataState compact state="error" title={t('connections.mutationFailed')} />}
+    {error && <DataState compact state="error" title={t(error)} />}
     {saved && <p role="status">{tr('Saved')}</p>}
-    {settings && <fieldset disabled={pending} className="border-0 p-0" style={{
+    {settings && <fieldset disabled={pending || uncertain} className="border-0 p-0" style={{
       display: 'grid',
       gap: 8,
       marginTop: 12
@@ -90,13 +116,13 @@ export default function TelegramSettings({ workspaceId, accountId }) {
           assistant_rich: e.target.checked
         })} />{tr("Use rich assistant drafts")}</label>
       <Button onClick={() => act('settings', {
-        destination_context: context,
+        ...(!sameDestination(context, query.data.destination_context) ? { destination_context: context } : {}),
         assistant_enabled: settings.assistant_enabled,
         rich_enabled: settings.rich_enabled,
         assistant_rich: settings.assistant_rich
       })}>{tr("Save Telegram settings")}</Button>
       <Button onClick={() => act('webhook', {})}>{tr("Configure secure webhook")}</Button>
-      <p>{tr("Webhook:")}{settings.webhook_enabled ? 'enabled' : 'disabled'}{tr(". Last update:")}{settings.last_update_at || 'none'}</p>
+      <p>{tr("Webhook:")}{tr(settings.webhook_enabled ? 'enabled' : 'disabled')}{'. '}{tr("Last update:")}{settings.last_update_at || tr('none')}</p>
       <p>{tr("Assistant access requires an explicit Telegram identity link to an authorized application user.")}</p>
       <label>{tr("Telegram user ID")}<input value={telegramUser} onChange={e => setTelegramUser(e.target.value)} /></label>
       <label>{tr("Application user ID")}<input value={appUser} onChange={e => setAppUser(e.target.value)} /></label>
