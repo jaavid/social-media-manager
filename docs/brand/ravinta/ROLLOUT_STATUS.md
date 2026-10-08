@@ -23,3 +23,5 @@ Copyright/author notices, repository/package names, Python app/DB/schema/API ide
 Therefore #116 remains open. Safe synthetic fa/en, RTL/LTR, light/dark 360/768/1440 evidence and asset tests are attached to its rollout PR. No legal availability or final-wordmark approval is claimed.
 
 The existing semantic-contract browser test additionally verifies 162 canonical pairs across light/dark/system-dark, including essential control borders, focus, destructive foreground and primary hover/active states. Actual ratios are recorded in frontend/e2e/evidence/brand/semantic-contrast.json. These checks do not claim certification of every legacy page or native installation.
+
+Final rendered-contrast regression: the module-rail mark previously filled its primary-colored button with the same primary color (ratio 1:1). ModuleRail now uses the existing monochrome variant with canonical `--text-on-brand`; approved geometry, accessible name and routing stay unchanged. The brand matrix checks the actual SVG fill against its button background at ≥3:1 in light/dark, alongside the existing token checks. Updated synthetic captures show the visible mark.

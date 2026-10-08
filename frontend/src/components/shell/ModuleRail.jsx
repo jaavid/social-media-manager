@@ -73,7 +73,7 @@ export default function ModuleRail({
           '[justify-content:center]',
         )}
       >
-        <BrandMark size={22} />
+        <BrandMark size={22} monochrome="var(--text-on-brand)" />
       </button>
 
       <Divider />
