@@ -32,7 +32,18 @@ NETWORK_ERRORS = (
 
 
 def gateway_url() -> str:
-    return os.getenv('API_GATEWAY_URL', '').strip().rstrip('/')
+    value = os.getenv('API_GATEWAY_URL', '').strip().rstrip('/')
+    if value:
+        try:
+            parsed = urlparse(value)
+            parsed.port
+        except ValueError:
+            raise ValueError('API_GATEWAY_URL is invalid') from None
+        if (parsed.scheme != 'https' or not parsed.hostname or parsed.username is not None
+                or parsed.password is not None or parsed.query or parsed.fragment
+                or any(character.isspace() for character in value)):
+            raise ValueError('API_GATEWAY_URL must be an HTTPS origin or base path')
+    return value
 
 
 def gateway_key() -> str:
@@ -100,6 +111,8 @@ def _send_gateway(
     gateway_headers: dict | None = None,
     **kwargs,
 ):
+    # Custom secret headers survive Requests redirects; never follow them.
+    kwargs['allow_redirects'] = False
     headers = dict(kwargs.pop('headers', {}) or {})
     headers.update(gateway_headers or {})
     key = gateway_key()
@@ -172,8 +185,13 @@ def outbound_request(
         )
         return _annotate(response, service=service, route='gateway', started=started)
 
+    # Invalid optional gateway configuration cannot block an available direct route.
+    try:
+        available_gateway = bool(gateway_url())
+    except ValueError:
+        available_gateway = False
     # auto
-    if direct_circuit_open(service) and gateway_url():
+    if direct_circuit_open(service) and available_gateway:
         started = time.monotonic()
         response = _send_gateway(
             service, method, url,
@@ -192,7 +210,7 @@ def outbound_request(
         safe_read = method.upper() in {'GET', 'HEAD', 'OPTIONS'}
         before_send = (isinstance(error, requests.ConnectTimeout)
                        and kwargs.get('allow_redirects') is False)
-        if not (safe_read or before_send) or not gateway_url():
+        if not (safe_read or before_send) or not available_gateway:
             raise
         mark_direct_unhealthy(service)
 

@@ -240,3 +240,13 @@ the causal outcome of an earlier write.
 The OIDC authorization-code token POST never follows redirects and rejects every
 3xx response before reading access tokens or calling userinfo. Existing discovery,
 userinfo and explicit insecure-development URL policy remain unchanged.
+
+Gateway transport verification (2026-10-08, review batch): configured gateway
+URLs must use HTTPS and cannot contain URL credentials, query strings, or
+fragments. An empty setting still means no gateway. There is no implicit HTTP
+exemption for development. Gateway calls and credential-bearing diagnostic
+probes never follow redirects, including when a caller requests them. A 3xx
+response cannot establish successful gateway health. Invalid optional gateway
+configuration is reported as unavailable; auto routing can still use direct
+transport, while explicitly requested gateway transport fails before sending.
+These controls complement the ambiguous-write fallback boundary above.
