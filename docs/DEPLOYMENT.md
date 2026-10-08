@@ -124,3 +124,12 @@ requires a firewall limiting origin access to trusted CDN/proxy ingress. Publish
 `APP_BIND=0.0.0.0` without that perimeter does not establish proxy trust. Confirm
 the deployed bind/firewall/TLS path before enabling proxy IP trust; application
 opt-out strips the forwarded-IP headers consumed by legacy security readers.
+### Celery built-in task inspection
+
+The runtime check requests the complete worker registry, including built-in tasks.
+Celery 5.6's default `inspect registered` hides `celery.*`; it cannot establish that
+an enabled database schedule for `celery.backend_cleanup` is missing. The check
+still fails if that task is genuinely absent on any responding worker. Its pinned
+Celery request adapter supplies `builtins=True`; source and real-worker regression
+checks cover this protocol. This corrects the false failure on main `6ac39d0` in
+Tests run 37738261838; it does not change worker startup, schedules or timeouts.

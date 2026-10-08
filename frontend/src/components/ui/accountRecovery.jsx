@@ -29,12 +29,13 @@ export function useAccountRead(name, identity, enabled, read, parse) {
     queryFn: async ({ signal }) => parse((await read(signal)).data),
   });
   const failure = apiError(query.error);
-  const denied = !enabled || [401, 403, 404].includes(failure.status);
+  const denied = enabled && [401, 403, 404].includes(failure.status);
   return {
-    query,
+    enabled,
+    query: enabled ? query : { ...query, data: undefined, refetch: async () => ({ ...query, data: undefined, isSuccess: false }) },
     failure,
     denied,
-    data: denied ? undefined : query.data,
+    data: !enabled || denied ? undefined : query.data,
     commit: async (update) => {
       await client.cancelQueries({ queryKey, exact: true });
       client.setQueryData(queryKey, update);
@@ -108,6 +109,7 @@ export function useCheckedAction() {
 export function ReadState({ resource, refresh, busy = false, returnFocusRef }) {
   const { t } = useLanguage();
   const { query, failure, denied, data } = resource;
+  if (resource.enabled === false) return null;
   const state = denied
     ? failure.status === 404
       ? 'not-found'

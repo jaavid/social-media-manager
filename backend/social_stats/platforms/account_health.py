@@ -1,5 +1,6 @@
 """Account health projection of the runtime provider result and scoped sync logs."""
 from datetime import timedelta
+from collections.abc import Mapping
 
 from django.conf import settings
 from django.utils import timezone
@@ -17,10 +18,12 @@ def connection_health(provider, credential):
     if account is None:
         # Legacy unattached credentials cannot pass the runtime account boundary.
         return HealthResult(False, 'unknown', 'account_required')
-    destination = DestinationContext(
-        account.pk, account.client_id,
-        kind=account.metadata.get('destination_type', provider.manifest.destination_types[0]),
-    )
+    if not isinstance(account.metadata, Mapping):
+        return HealthResult(False, 'unknown', 'health_unavailable')
+    kind = account.metadata.get('destination_type', provider.manifest.destination_types[0])
+    if not isinstance(kind, str) or kind not in provider.manifest.destination_types:
+        return HealthResult(False, 'unknown', 'health_unavailable')
+    destination = DestinationContext(account.pk, account.client_id, kind=kind)
     try:
         result = ProviderExecution(provider, credential, destination).call('health')
         # Only stable codes are public; provider messages are never UI payloads.

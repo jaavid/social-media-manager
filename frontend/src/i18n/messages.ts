@@ -938,6 +938,7 @@ const accountsFa = {
 const commonFa = {
   'common.search': 'جست‌وجو…',
   'common.new': 'جدید',
+  'common.whatsNew': 'تازه‌ها',
   'common.today': 'امروز',
   'common.all': 'همه',
   'common.loading': 'در حال بارگذاری…',
@@ -983,6 +984,7 @@ const commonFa = {
 const commonEn = {
   "common.search": "Search…",
   "common.new": "New",
+  "common.whatsNew": "What's new",
   "common.today": "Today",
   "common.all": "All",
   "common.loading": "Loading…",
@@ -1073,6 +1075,11 @@ const whatsappFa = {
   'whatsapp.inbox.send': 'ارسال پیام',
 } as const;
 export const enMessages = {
+  "connections.unknownMutation": "The outcome is unknown. Do not repeat this operation; review its status.",
+  "suggestions.empty": "No suggestions for this account.",
+  "suggestions.accepted": "Decision acknowledged. Refresh does not repeat it.",
+  "suggestions.pendingApproval": "Submitted for approval. The decision has not been executed.",
+  "suggestions.unknown": "Decision outcome is unknown. Do not submit it again; review its status.",
   "ideas.empty": "No previous calendars exist in this workspace.",
   "onboarding.profile": "Workspace onboarding data",
   "ideas.editDate": "Edit scheduled date",
@@ -1367,6 +1374,11 @@ export const enMessages = {
  ...whatsappEn, ...composerEn, ...accountsEn, ...commonEn, ...marketingEn, ...catalogEn } as const;
 export type MessageKey = keyof typeof enMessages;
 export const faMessages = {
+  "connections.unknownMutation": "نتیجه نامعلوم است. عملیات را تکرار نکنید؛ وضعیت آن را بررسی کنید.",
+  "suggestions.empty": "پیشنهادی برای این حساب وجود ندارد.",
+  "suggestions.accepted": "تصمیم تأیید شد. به‌روزرسانی آن را تکرار نمی‌کند.",
+  "suggestions.pendingApproval": "برای تأیید ارسال شد. تصمیم هنوز اجرا نشده است.",
+  "suggestions.unknown": "نتیجهٔ تصمیم نامعلوم است. دوباره ارسال نکنید؛ وضعیت آن را بررسی کنید.",
   "ideas.empty": "تقویم قبلی در این فضای کاری وجود ندارد.",
   "onboarding.profile": "اطلاعات راه‌اندازی فضای کاری",
   "ideas.editDate": "ویرایش تاریخ زمان‌بندی",

@@ -1,0 +1,23 @@
+import { render, screen, fireEvent } from '@testing-library/react';
+import MobileNav from './MobileNav';
+import TopBar from './TopBar';
+import PostDrawer from '../calendar/PostDrawer';
+import CommandPalette from './CommandPalette';
+import FeatureSidebar from './FeatureSidebar';
+import {translateRaw} from '../../i18n';
+jest.mock('../../core/navigation', () => ({AppNavLink:({to,children})=><a href={to}>{children}</a>,AppLink:({to,children,...props})=><a href={to} {...props}>{children}</a>,useAppLocation:()=>({pathname:'/workspace/analytics/synclogs'}),useAppNavigate:()=>jest.fn()}));
+jest.mock('../../core/session',()=>({useSession:()=>({user:{id:1,role:'client'},can:()=>true})}));
+jest.mock('../ui/ThemeToggle',()=>()=>null);
+jest.mock('../ui/LanguageToggle',()=>()=>null);
+jest.mock('../ui/NotificationBell',()=>()=>null);
+jest.mock('../../i18n',()=>{const real=jest.requireActual('../../i18n');return{...real,useLanguage:()=>({isPersian:true,tr:value=>real.translateRaw(value,'fa'),t:(key,fallback)=>real.faMessages[key]||fallback,formatDate:()=> 'Public date',formatNumber:(value,options)=>real.formatUiNumber(value,'fa',options)})};});
+test('Persian mobile navigation has a fully localized accessible label',()=>{render(<MobileNav module="analytics" basePath="/workspace"/>);expect(screen.getByRole('navigation')).toHaveAccessibleName('تحلیل و آمار زبانه‌های پایین');});
+test('Persian top bar names Sync Logs and the What is new action distinctly',()=>{render(<TopBar basePath="/workspace" onOpenPalette={jest.fn()}/>);expect(screen.getByText('گزارش همگام‌سازی')).toBeInTheDocument();expect(screen.getByRole('link',{name:'تازه‌ها'})).toBeInTheDocument();});
+test('published metrics use Persian compact number formatting',()=>{render(<PostDrawer isOpen post={{id:1,platform:'telegram',status:'published',impressions:1200,reach:2000000}} onClose={jest.fn()}/>);expect(screen.getByText((_,element)=>element.children.length===0&&element.textContent===new Intl.NumberFormat('fa-IR',{notation:'compact',maximumFractionDigits:1}).format(1200))).toBeInTheDocument();expect(screen.getByText((_,element)=>element.children.length===0&&element.textContent===new Intl.NumberFormat('fa-IR',{notation:'compact',maximumFractionDigits:1}).format(2000000))).toBeInTheDocument();});
+jest.mock('../../hooks/useData',()=>({useWorkspaces:()=>({workspaces:[]})}));
+jest.mock('../../hooks/useUnifiedSearch',()=>({__esModule:true,default:()=>({results:{total:1,posts:[{id:17,title:'Public draft',status:'draft',deep_link:'/public-fixture'}]},isFetching:false,debouncedQuery:'public'})}));
+beforeAll(()=>{global.ResizeObserver=class {observe(){} unobserve(){} disconnect(){}};HTMLElement.prototype.scrollIntoView=jest.fn();});
+test('command search localizes draft status without changing its value',()=>{render(<CommandPalette open onOpenChange={jest.fn()} basePath="/workspace"/>);fireEvent.change(screen.getByRole('combobox'),{target:{value:'Public'}});expect(screen.getByText('پست · پیش‌نویس')).toBeInTheDocument();});
+test('the retained Back action has Persian copy',()=>{expect(translateRaw('Back','fa')).toBe('بازگشت');});
+
+test('Persian feature navigation suffix is localized',()=>{render(<FeatureSidebar module="analytics" basePath="/workspace"/>);expect(screen.getByRole('complementary')).toHaveAccessibleName('تحلیل و آمار ناوبری');});

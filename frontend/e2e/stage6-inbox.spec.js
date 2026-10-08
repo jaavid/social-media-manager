@@ -5,7 +5,8 @@ async function setup(page, language = 'en', theme = 'light') {
   const wire = connectionFixture(); wire.providers[0].capabilities.inbox = 'supported';
   const rows = [{ id: 1, client: 7, platform: 'contract_example', social_account: 10, contact_name: 'Inbox fixture', type: 'dm', messages: [] }];
   const state = { wire, rows, failure: null, replyFailure: null, writes: 0 };
-  await page.context().addCookies([{ name: 'socialstats.language', value: language, url: test.info().project.use.baseURL || process.env.E2E_BASE_URL || 'http://127.0.0.1:3000' }, { name: 'theme', value: theme, url: process.env.E2E_BASE_URL || 'http://127.0.0.1:3000' }]);
+  const origin = test.info().project.use.baseURL || process.env.E2E_BASE_URL || 'http://127.0.0.1:3000';
+  await page.context().addCookies([{ name: 'socialstats.language', value: language, url: origin }, { name: 'theme', value: theme, url: origin }]);
   await page.addInitScript(() => localStorage.setItem('socialstats_cookie_choice', JSON.stringify({ version: '2024-11-01', choices: { essential: true, functional: true } })));
   await page.route('**/api/**', async route => {
     const path = new URL(route.request().url()).pathname;

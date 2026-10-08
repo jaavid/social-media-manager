@@ -32,10 +32,16 @@ export default function ActiveSessionsList() {
 }
 function SessionList({ identity, enabled }) {
   const { t, formatDate } = useLanguage();
+  const successfulRead = useRef(0);
   const query = useQuery({
     queryKey: ['account-sessions', identity],
     enabled,
-    queryFn: async ({ signal }) => parseSessions((await sessionsAPI.list(signal)).data),
+    queryFn: async ({ signal }) => {
+      const rows = parseSessions((await sessionsAPI.list(signal)).data);
+      if (signal.aborted) throw new Error('Session read cancelled');
+      successfulRead.current++;
+      return rows;
+    },
   });
   const failure = apiError(query.error);
   const denied = !enabled || [401, 403, 404].includes(failure.status);
@@ -58,9 +64,11 @@ function SessionList({ identity, enabled }) {
     };
   }, []);
   const refresh = async () => {
+    const previousRead = successfulRead.current;
     const result = await query.refetch();
-    if (!alive.current || !result.isSuccess) return;
-    // A verified read is required before retrying an ambiguous revocation.
+    if (!alive.current || !result.isSuccess || result.isPaused || result.fetchStatus !== 'idle' || successfulRead.current === previousRead) return;
+    // Cached success after cancellation is not an authoritative read-back.
+    // A newly parsed response can unlock a manual retry; it does not prove causation.
     setUncertain(false);
     if (
       target !== null &&

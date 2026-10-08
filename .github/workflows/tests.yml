@@ -108,8 +108,12 @@ jobs:
           TEST_RUNTIME_METRICS_REDIS_URL: redis://localhost:6379/15
         run: python manage.py test social_stats.tests --verbosity=1
 
-  frontend:
-    name: Frontend — build + Jest tests
+  frontend_checks:
+    name: Frontend — production contracts (browser shard ${{ matrix.browser_shard }}/2)
+    strategy:
+      fail-fast: false
+      matrix:
+        browser_shard: [1, 2]
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -173,7 +177,19 @@ jobs:
         env:
           CI: "true"
         run: |
-          npm run test:next
+          npm run test:next -- --shard=${{ matrix.browser_shard }}/2
+
+  frontend:
+    name: Frontend — build + Jest tests
+    needs: frontend_checks
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    steps:
+      - name: Require both complete production-contract shards
+        env:
+          SHARD_RESULT: ${{ needs.frontend_checks.result }}
+        run: test "$SHARD_RESULT" = success
 
   docker:
     name: Docker — unified stack boots

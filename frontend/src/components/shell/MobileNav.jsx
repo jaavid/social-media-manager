@@ -22,7 +22,7 @@ export default function MobileNav({ module, basePath }) {
   return (
     <nav
       className="mobile-bottom-nav ds-mobile-nav fixed inset-x-3 bottom-3 z-150 flex h-16 items-stretch overflow-x-auto rounded-2xl border border-border/70 bg-card/92 px-1.5 pb-[env(safe-area-inset-bottom)] shadow-xl backdrop-blur-2xl"
-      aria-label={`${tr(module === 'analytics' ? 'Analytics' : module === 'messaging' ? 'Messaging' : 'Ads')} bottom tabs`}
+      aria-label={`${tr(module === 'analytics' ? 'Analytics' : module === 'messaging' ? 'Messaging' : 'Ads')} ${tr('bottom tabs')}`}
     >
       {tabs.map((tab) => {
         const to = `${basePath}/${module}${tab.path}`;

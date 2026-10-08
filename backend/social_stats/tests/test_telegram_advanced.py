@@ -270,6 +270,23 @@ class TelegramFixture(TestCase):
 
 
 class TelegramIntegrationTests(TelegramFixture):
+    def test_nonobject_telegram_override_is_serializer_4xx_not_a_crash(self):
+        from social_stats.serializers.composer import UnifiedPostSerializer
+
+        for override in ('malformed', ['malformed'], 4, True):
+            with self.subTest(override=override):
+                serializer = UnifiedPostSerializer(data={
+                    'client': self.workspace.pk, 'media_type': 'text',
+                    'content': 'public fixture', 'target_platforms': ['telegram'],
+                    'platform_overrides': {'telegram': override},
+                })
+                self.assertFalse(serializer.is_valid())
+                self.assertEqual(str(serializer.errors['code'][0]), 'invalid_request')
+                from rest_framework.exceptions import ValidationError
+                with self.assertRaises(ValidationError) as caught:
+                    serializer.is_valid(raise_exception=True)
+                self.assertEqual(caught.exception.status_code, 400)
+
     @patch("social_stats.telegram_tasks.ingest_update.delay")
     def test_webhook_secret_replay_and_isolation(self, delay):
         api = APIClient()

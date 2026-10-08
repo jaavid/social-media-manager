@@ -82,3 +82,28 @@ class ClientIPResolverTests(SimpleTestCase):
             '203.0.113.77',
         )
         self.assertEqual(get_client_ip_address(request), '203.0.113.77')
+
+    @override_settings(TRUST_PROXY_CLIENT_IP=False)
+    def test_untrusted_forwarding_cannot_bypass_api_key_allowlist_or_login_throttle(self):
+        from types import SimpleNamespace
+        from social_stats.security.api_keys import _client_ip, verify_ip
+        from social_stats.security.throttles import LoginIPThrottle
+        remote, forged = '198.51.100.44', '203.0.113.7'
+        request = self.factory.get('/', REMOTE_ADDR=remote, HTTP_AR_REAL_IP=forged,
+                                   HTTP_X_REAL_IP=forged, HTTP_X_FORWARDED_FOR=forged)
+        RequestIDMiddleware(lambda req: HttpResponse('ok'))(request)
+        self.assertEqual(_client_ip(request), remote)
+        self.assertFalse(verify_ip(SimpleNamespace(ip_allowlist=[forged]), _client_ip(request)))
+        self.assertEqual(LoginIPThrottle().get_cache_key(request, None), f'throttle_login_ip_{remote}')
+        for header in ['HTTP_AR_REAL_IP', 'HTTP_X_REAL_IP', 'HTTP_X_FORWARDED_FOR']:
+            self.assertNotIn(header, request.META)
+
+    @override_settings(TRUST_PROXY_CLIENT_IP=False)
+    def test_missing_peer_address_cannot_leave_attacker_throttle_identity(self):
+        from social_stats.security.api_keys import _client_ip
+        from social_stats.security.throttles import LoginIPThrottle
+        request = self.factory.get('/', HTTP_X_FORWARDED_FOR='203.0.113.7')
+        request.META.pop('REMOTE_ADDR', None)
+        RequestIDMiddleware(lambda req: HttpResponse('ok'))(request)
+        self.assertIsNone(_client_ip(request))
+        self.assertIsNone(LoginIPThrottle().get_cache_key(request, None))

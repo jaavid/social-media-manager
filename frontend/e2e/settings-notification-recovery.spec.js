@@ -7,8 +7,8 @@ const business = { id: 7, name: 'Fixture', company: 'Synthetic workspace', email
 const alert = { id: 4, message: 'Synthetic alert', alert_type: 'sync_failed', is_read: false, created_at: stamp, client_name: 'Synthetic workspace', platform: '' };
 const paths = { agency: '/api/profile/agency/', business: '/api/workspaces/7/', preferences: '/api/notifications/preferences/', alerts: '/api/alerts/' };
 async function fixture(page, family, language = 'en', theme = 'light') {
-  const base = process.env.E2E_BASE_URL || 'http://127.0.0.1:3000';
-  const state = { status: 0, malformed: false, writeStatus: 0, malformedWrite: false, writes: 0, delay: 0, user: 1, workspace: 7, bodies: { agency: { connected: true, agency_name: 'Synthetic agency', agency_email: 'agency@example.test', agency_since: null }, business, preferences, alerts: [alert] } };
+  const base = test.info().project.use.baseURL || process.env.E2E_BASE_URL || 'http://127.0.0.1:3000';
+  const state = { status: 0, malformed: false, writeStatus: 0, malformedWrite: false, writes: 0, writeBody: null, delay: 0, user: 1, workspace: 7, bodies: { agency: { connected: true, agency_name: 'Synthetic agency', agency_email: 'agency@example.test', agency_since: null }, business, preferences, alerts: [alert] } };
   await page.context().addCookies([{ name: 'socialstats.language', value: language, url: base }, { name: 'theme', value: theme, url: base }]);
   await page.addInitScript(locale => { localStorage.setItem('socialstats.language', locale); localStorage.setItem('socialstats_cookie_choice', JSON.stringify({ version: '2024-11-01', choices: { essential: true, functional: true } })); }, language);
   await page.routeWebSocket('**/ws/**', socket => socket.close());
@@ -20,7 +20,7 @@ async function fixture(page, family, language = 'en', theme = 'light') {
     if (path === '/api/profile/') return route.fulfill({ json: { id: state.user, first_name: 'Fixture', last_name: 'User', email: 'fixture@example.test', avatar: null } });
     if (req.method() !== 'GET' && (path === paths[family] || path === '/api/profile/disconnect-agency/' || /\/alerts\/.*mark.*\/$/.test(path))) {
       state.writes++; if (state.delay) await new Promise(resolve => setTimeout(resolve, state.delay));
-      const dto = family === 'agency' ? { detail: 'Successfully disconnected from agency.', session: true } : family === 'preferences' ? { updated: 1 } : family === 'business' ? business : { status: 'ok' };
+      const dto = family === 'agency' ? { detail: 'Successfully disconnected from agency.', session: true } : family === 'preferences' ? { updated: 1 } : family === 'business' ? state.writeBody || business : { status: 'ok' };
       return route.fulfill(state.writeStatus ? { status: state.writeStatus, json: {} } : { json: state.malformedWrite ? {} : dto });
     }
     if (path === paths[family]) {
@@ -86,4 +86,16 @@ test('slow preferences reader exposes status while shell stays usable', async ({
   const area = await open(page, 'preferences'); await expect(area.getByRole('status')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Settings', exact: true })).toBeVisible();
   await expect(area.getByRole('checkbox')).toBeVisible();
+});
+
+test('business acknowledgment accepts nested jsonb key reordering without unlocking unknown outcomes', async ({ page }) => {
+  const state = await fixture(page, 'business');
+  state.bodies.business = { ...business, brand_assets: { colors: { primary: 'fixture-a', secondary: 'fixture-b' }, entries: [{ z: 1, a: true }] } };
+  state.writeBody = { ...business, brand_assets: { entries: [{ a: true, z: 1 }], colors: { secondary: 'fixture-b', primary: 'fixture-a' } } };
+  const area = await open(page, 'business');
+  await expect(area.getByLabel('Your Name', { exact: true })).toHaveValue('Fixture');
+  await area.getByRole('button', { name: 'Save Changes', exact: true }).click();
+  await expect(area.getByText(en['account.saved'])).toBeVisible();
+  await expect(area.getByText(en['account.uncertain'])).toHaveCount(0);
+  expect(state.writes).toBe(1);
 });

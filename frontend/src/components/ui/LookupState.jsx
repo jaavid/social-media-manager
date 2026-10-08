@@ -11,6 +11,6 @@ export default function LookupState({ resource }) {
     <ReadState resource={resource} refresh={resource.refetch} returnFocusRef={focus} />
     {partial && <DataState compact state="partial" title={t('lookup.partial')} />}
     {empty && !resource.query.isPending && !resource.query.isError && !resource.query.isPaused && <DataState compact state="empty" title={t('lookup.empty')} />}
-    {!Array.isArray(resource.lookups?.platforms) && !resource.query.isPending && <p role="status">{t('lookup.fallback')}</p>}
+    {!Array.isArray(resource.lookups?.platforms) && resource.data !== undefined && !resource.denied && resource.enabled !== false && !resource.query.isPending && !resource.query.isError && !resource.query.isPaused && <p role="status">{t('lookup.fallback')}</p>}
   </section>;
 }

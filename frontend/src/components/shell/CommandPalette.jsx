@@ -273,7 +273,7 @@ function SearchResultGroups({ results, onPick }) {
               item={{
                 id: `s-post-${p.id}`,
                 label: p.title || p.preview || tr('Untitled post'),
-                hint: `${tr('Post')} · ${p.status || 'draft'}`,
+                hint: `${tr('Post')} · ${tr(p.status || 'draft')}`,
                 icon: FileType,
               }}
               onSelect={() => onPick(`s-post-${p.id}`, p.deep_link)}

@@ -32,7 +32,16 @@ class ConnectionService:
             if result.destination_type not in provider.manifest.destination_types:
                 raise ProviderError('Invalid destination type', code='invalid_response')
             metadata = {**metadata, 'destination_type': result.destination_type}
-        if target and target.external_id != str(external_id):
+        legacy_identity = None
+        if provider.manifest.key == 'telegram':
+            destination = result.data.get('destination', {}) if isinstance(result.data, dict) else {}
+            chat = destination.get('chat_id') if isinstance(destination, dict) else None
+            bot = result.account_id
+            if (isinstance(chat, int) and not isinstance(chat, bool) and chat != 0
+                    and isinstance(bot, str) and bot.isdecimal() and int(bot) > 0
+                    and str(external_id) == str(chat)):
+                legacy_identity = f'{bot}:{chat}'
+        if target and target.external_id != str(external_id) and target.external_id != legacy_identity:
             raise ProviderError('Select the original account to reconnect', code='account_mismatch')
         if not external_id:
             raise ProviderError('Provider identity is missing', code='invalid_response')
@@ -47,13 +56,42 @@ class ConnectionService:
         with transaction.atomic():
             # Serialize reconnects and legacy credential attachment within a workspace.
             type(client).objects.select_for_update().get(pk=client.pk)
+            if target is not None:
+                target = SocialAccount.objects.select_for_update().filter(pk=target.pk, client=client, platform=platform).first()
+                if target is None:
+                    raise ProviderError('Account scope changed', code='scope_denied')
+                if target.external_id not in {str(external_id), legacy_identity}:
+                    raise ProviderError('Account identity changed', code='account_mismatch')
             existing = SocialAccount.objects.filter(client=client, platform=platform, external_id=str(external_id)).first()
-            if authorize_account and not authorize_account(existing):
+            reconciled = None
+            if legacy_identity:
+                historical = SocialAccount.objects.select_for_update().filter(client=client, platform=platform, external_id=legacy_identity).first()
+                if historical and target is None:
+                    raise ProviderError('Select the original account to reconnect', code='account_required')
+                if target and target.external_id == legacy_identity:
+                    if historical is None or historical.pk != target.pk or existing is not None:
+                        raise ProviderError('Account identity conflict', code='account_mismatch')
+                    attached = PlatformCredential.objects.select_for_update().filter(
+                        social_account=historical, client=client, platform=platform,
+                        platform_user_id__in=[str(external_id), result.destination_id],
+                    ).first()
+                    if attached is None:
+                        raise ProviderError('Original credential identity is missing', code='account_mismatch')
+                    reconciled = historical
+            if authorize_account and not authorize_account(reconciled or existing):
                 raise ProviderError('Account permission denied', code='permission_denied')
-            account, _ = SocialAccount.objects.update_or_create(
-                client=client, platform=platform, external_id=str(external_id),
-                defaults={'display_name': display_name, 'is_active': True, 'metadata': metadata},
-            )
+            if reconciled is not None:
+                account = reconciled
+                account.external_id = str(external_id)
+                account.display_name = display_name
+                account.is_active = True
+                account.metadata = metadata
+                account.save()
+            else:
+                account, _ = SocialAccount.objects.update_or_create(
+                    client=client, platform=platform, external_id=str(external_id),
+                    defaults={'display_name': display_name, 'is_active': True, 'metadata': metadata},
+                )
             defaults = {
                 'auth_failure_code': '',
                 'client': client, 'platform': platform, 'access_token': result.access_token,
@@ -61,10 +99,16 @@ class ConnectionService:
                 'page_name': result.account_name, 'scope': result.scope, 'is_active': True,
                 'auth_method': 'manual_token', 'expires_at': result.expires_at,
             }
-            legacy = PlatformCredential.objects.filter(
+            attached_exists = PlatformCredential.objects.filter(social_account=account).exists()
+            legacy_query = PlatformCredential.objects.filter(
                 client=client, platform=platform, social_account__isnull=True,
-            ).first()
-            if legacy and not PlatformCredential.objects.filter(social_account=account).exists():
+            )
+            if platform == 'telegram' and not attached_exists:
+                legacy_query = legacy_query.filter(platform_user_id__in=[str(external_id), result.destination_id])
+                if legacy_query.count() > 1:
+                    raise ProviderError('Select the original credential to reconnect', code='account_required')
+            legacy = legacy_query.first() if not attached_exists else None
+            if legacy is not None:
                 legacy.social_account = account
                 for key, value in defaults.items():
                     setattr(legacy, key, value)

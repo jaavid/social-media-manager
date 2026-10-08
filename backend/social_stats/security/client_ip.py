@@ -92,13 +92,19 @@ def normalize_request_client_ip(request) -> Optional[str]:
     the first X-Forwarded-For value observe the same canonical client address.
     The original forwarding chain is kept after the canonical first element.
     """
+    trusted = proxy_ip_trust_enabled()
+    if not trusted:
+        # Legacy security consumers read these headers directly. Opt-out must
+        # remove them before even the missing-peer early return.
+        for header in ('HTTP_AR_REAL_IP', 'HTTP_X_REAL_IP', 'HTTP_X_FORWARDED_FOR'):
+            request.META.pop(header, None)
     client_ip = get_client_ip(request)
     if not client_ip:
         return None
 
     request.client_ip = client_ip
 
-    if not proxy_ip_trust_enabled():
+    if not trusted:
         return client_ip
 
     request.META['REMOTE_ADDR'] = client_ip
