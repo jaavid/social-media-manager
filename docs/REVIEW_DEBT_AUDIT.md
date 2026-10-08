@@ -136,7 +136,7 @@ Merge order: #188/#189/#195 → security/account prerequisites #190/#193/#196 �
 | [#5](https://github.com/jaavid/social-media-manager/pull/5#pullrequestreview-5344978230) | Sidebar accessible suffix — frontend/src/components/shell/FeatureSidebar.jsx:aria-label | #185 / live | Historical sidebar suffix is now navigation; still untranslated. PR #1995303f7e; baseline red then8 focused tests pass; 12 final production browser cases pass |
 | [#5](https://github.com/jaavid/social-media-manager/pull/5#pullrequestreview-5344978230) | Command menu list memoization nit — frontend/src/components/shell/CommandPalette.jsx:buildPages/buildActions/buildLinks | #107 / needs-reproduction | Current item lists built on render; no measured performance regression or functional loss. Profiling belongs to #107; no speculative memo/refactor in this batch |
 | [#5](https://github.com/jaavid/social-media-manager/pull/5#pullrequestreview-5344978230) | Back dictionary entry — frontend/src/i18n/legacy.js:faRaw | #185 / live | PR #1995303f7e adds existing Back compatibility key, explicit Persian copy test passes |
-| [#5](https://github.com/jaavid/social-media-manager/pull/5#pullrequestreview-5344978230) | Independent Persian calendar-day assertion — frontend/src/utils/persianCalendar.test.js; frontend/e2e/typography.spec.js | #187 / #106 / already-fixed-needs-verification | Current independent known Persian date/range unit tests passed in final382 Jest; no source-identical formatter test or broad snapshot regeneration |
+| [#5](https://github.com/jaavid/social-media-manager/pull/5#pullrequestreview-5344978230) | Independent Persian calendar-day assertion — frontend/src/utils/persianCalendar.test.js; frontend/e2e/typography.spec.js | #187 / #106 / already-fixed-needs-verification | Current independent known Persian date/range unit tests passed in final383 Jest; no source-identical formatter test or broad snapshot regeneration |
 | [#71](https://github.com/jaavid/social-media-manager/pull/71#pullrequestreview-5388416111) | Readiness retry after failure — frontend/src/components/ConnectedAccounts.jsx:query/error/retry | #112 / #187 / superseded | 1e95327 scoped connection collection replaces separate disabled OAuth-readiness reader; error offers existing retry and preserves valid rows; ConnectedAccounts retry tests passed in380 #193 Jest |
 | [#83](https://github.com/jaavid/social-media-manager/pull/83#pullrequestreview-5392421666) | Business Information scope before scheduled sync dispatch — backend/social_stats/tasks.py:sync_gmb/_active_credential | #112 / needs-reproduction | Current scoped credential resolver blocks accountless rows; sync_gmb still requests Business Information for location and accepts provider status. OAuth consent readiness includes business.manage. Grant-specific insufficient-scope/mock HTTP403 behavior needs targeted criterion verification; no active sandbox/provider claim or full PLAT-001 work in this batch |
 | [#96](https://github.com/jaavid/social-media-manager/pull/96#pullrequestreview-5401607854) | Album mode after media upload — frontend/src/features/composer/ComposerPage.jsx:upload callback | #186 / superseded | 72c4230 native editor preserves chosen mode; PR #197 actual Composer two-upload test passes in394 full Jest, no editor reset fix repeated |
@@ -149,3 +149,106 @@ Fresh-main90 relevant backend tests passed for multi-account legacy-history isol
 All provider writes, deletes/revokes and credentials in tests are mocked or isolated public fixtures. Sensitive specs disable trace/video/screenshots. No broad brand/font snapshots are regenerated or retained. Full pre-commit baseline has271 Ruff findings; touched hooks pass without changing baseline policy. Frontend lint retains404 known findings and architecture7 known findings,0 new violations.
 
 Originating-review replies are posted only with the stated fixing/superseding commit/PR and meaningful test. Main-live fixes stay unresolved until merged-main verification; genuinely verified existing fixes may resolve. Permission failures and reply URLs are recorded below after execution. No unrelated ping, Slack/email or automatic merge is authorized/performed.
+
+## Final verification and review receipts (2026-10-08 UTC)
+
+The reconciliation head52cbe98 full backend suite passed699 tests with3 existing skips. Freshly fetched main remains6ac39d0; no batch PR merged and no post-batch-merge verification claimed. All90 originating inline threads received an evidence-bearing reply.16 previously open, current-main verified threads were resolved;43 were already resolved before the batch.29 main-live and2 externally blocked threads remain open. All5 review-summary discussions received disposition replies. A temporary CLI HTTP401 interrupted posting, then recovered; no outstanding reply or resolution permission failure.
+
+| Originating PR | Verified review reply | Resolution |
+| --- | --- | --- |
+| #1 | [reply](https://github.com/jaavid/social-media-manager/pull/1#discussion_r4222463575) | resolved after current-main proof |
+| #1 | [reply](https://github.com/jaavid/social-media-manager/pull/1#discussion_r4222463823) | resolved after current-main proof |
+| #1 | [reply](https://github.com/jaavid/social-media-manager/pull/1#discussion_r4222464058) | resolved after current-main proof |
+| #3 | [reply](https://github.com/jaavid/social-media-manager/pull/3#discussion_r4222464271) | left open: unmerged fix/external evidence |
+| #3 | [reply](https://github.com/jaavid/social-media-manager/pull/3#discussion_r4222464513) | left open: unmerged fix/external evidence |
+| #3 | [reply](https://github.com/jaavid/social-media-manager/pull/3#discussion_r4222464761) | left open: unmerged fix/external evidence |
+| #5 | [reply](https://github.com/jaavid/social-media-manager/pull/5#discussion_r4222465008) | left open: unmerged fix/external evidence |
+| #5 | [reply](https://github.com/jaavid/social-media-manager/pull/5#discussion_r4222465286) | left open: unmerged fix/external evidence |
+| #5 | [reply](https://github.com/jaavid/social-media-manager/pull/5#discussion_r4222465564) | left open: unmerged fix/external evidence |
+| #5 | [reply](https://github.com/jaavid/social-media-manager/pull/5#discussion_r4222465796) | left open: unmerged fix/external evidence |
+| #5 | [reply](https://github.com/jaavid/social-media-manager/pull/5#discussion_r4222466042) | left open: unmerged fix/external evidence |
+| #5 | [reply](https://github.com/jaavid/social-media-manager/pull/5#discussion_r4222466286) | left open: unmerged fix/external evidence |
+| #5 | [reply](https://github.com/jaavid/social-media-manager/pull/5#discussion_r4222466529) | resolved after current-main proof |
+| #6 | [reply](https://github.com/jaavid/social-media-manager/pull/6#discussion_r4222466755) | resolved after current-main proof |
+| #6 | [reply](https://github.com/jaavid/social-media-manager/pull/6#discussion_r4222467062) | resolved after current-main proof |
+| #9 | [reply](https://github.com/jaavid/social-media-manager/pull/9#discussion_r4222467280) | resolved after current-main proof |
+| #9 | [reply](https://github.com/jaavid/social-media-manager/pull/9#discussion_r4222467554) | left open: unmerged fix/external evidence |
+| #9 | [reply](https://github.com/jaavid/social-media-manager/pull/9#discussion_r4222467809) | left open: unmerged fix/external evidence |
+| #9 | [reply](https://github.com/jaavid/social-media-manager/pull/9#discussion_r4222468105) | resolved after current-main proof |
+| #14 | [reply](https://github.com/jaavid/social-media-manager/pull/14#discussion_r4222468428) | left open: unmerged fix/external evidence |
+| #19 | [reply](https://github.com/jaavid/social-media-manager/pull/19#discussion_r4222468679) | previously resolved |
+| #19 | [reply](https://github.com/jaavid/social-media-manager/pull/19#discussion_r4222468952) | previously resolved |
+| #19 | [reply](https://github.com/jaavid/social-media-manager/pull/19#discussion_r4222469187) | previously resolved |
+| #19 | [reply](https://github.com/jaavid/social-media-manager/pull/19#discussion_r4222469415) | previously resolved |
+| #19 | [reply](https://github.com/jaavid/social-media-manager/pull/19#discussion_r4222469677) | previously resolved |
+| #21 | [reply](https://github.com/jaavid/social-media-manager/pull/21#discussion_r4222469928) | previously resolved |
+| #21 | [reply](https://github.com/jaavid/social-media-manager/pull/21#discussion_r4222470194) | previously resolved |
+| #21 | [reply](https://github.com/jaavid/social-media-manager/pull/21#discussion_r4222470438) | previously resolved |
+| #21 | [reply](https://github.com/jaavid/social-media-manager/pull/21#discussion_r4222470660) | previously resolved |
+| #21 | [reply](https://github.com/jaavid/social-media-manager/pull/21#discussion_r4222470889) | previously resolved |
+| #22 | [reply](https://github.com/jaavid/social-media-manager/pull/22#discussion_r4222471110) | resolved after current-main proof |
+| #23 | [reply](https://github.com/jaavid/social-media-manager/pull/23#discussion_r4222471361) | previously resolved |
+| #26 | [reply](https://github.com/jaavid/social-media-manager/pull/26#discussion_r4222471693) | resolved after current-main proof |
+| #28 | [reply](https://github.com/jaavid/social-media-manager/pull/28#discussion_r4222471990) | left open: unmerged fix/external evidence |
+| #71 | [reply](https://github.com/jaavid/social-media-manager/pull/71#discussion_r4222472297) | previously resolved |
+| #71 | [reply](https://github.com/jaavid/social-media-manager/pull/71#discussion_r4222472525) | previously resolved |
+| #71 | [reply](https://github.com/jaavid/social-media-manager/pull/71#discussion_r4222472787) | previously resolved |
+| #71 | [reply](https://github.com/jaavid/social-media-manager/pull/71#discussion_r4222473030) | previously resolved |
+| #71 | [reply](https://github.com/jaavid/social-media-manager/pull/71#discussion_r4222520962) | previously resolved |
+| #71 | [reply](https://github.com/jaavid/social-media-manager/pull/71#discussion_r4222521239) | previously resolved |
+| #71 | [reply](https://github.com/jaavid/social-media-manager/pull/71#discussion_r4222521510) | previously resolved |
+| #71 | [reply](https://github.com/jaavid/social-media-manager/pull/71#discussion_r4222521781) | previously resolved |
+| #71 | [reply](https://github.com/jaavid/social-media-manager/pull/71#discussion_r4222522043) | previously resolved |
+| #71 | [reply](https://github.com/jaavid/social-media-manager/pull/71#discussion_r4222522288) | previously resolved |
+| #71 | [reply](https://github.com/jaavid/social-media-manager/pull/71#discussion_r4222522601) | previously resolved |
+| #83 | [reply](https://github.com/jaavid/social-media-manager/pull/83#discussion_r4222522952) | previously resolved |
+| #83 | [reply](https://github.com/jaavid/social-media-manager/pull/83#discussion_r4222523283) | previously resolved |
+| #83 | [reply](https://github.com/jaavid/social-media-manager/pull/83#discussion_r4222523552) | previously resolved |
+| #83 | [reply](https://github.com/jaavid/social-media-manager/pull/83#discussion_r4222523790) | previously resolved |
+| #83 | [reply](https://github.com/jaavid/social-media-manager/pull/83#discussion_r4222524084) | previously resolved |
+| #85 | [reply](https://github.com/jaavid/social-media-manager/pull/85#discussion_r4222524372) | previously resolved |
+| #85 | [reply](https://github.com/jaavid/social-media-manager/pull/85#discussion_r4222524625) | previously resolved |
+| #85 | [reply](https://github.com/jaavid/social-media-manager/pull/85#discussion_r4222524912) | previously resolved |
+| #85 | [reply](https://github.com/jaavid/social-media-manager/pull/85#discussion_r4222525153) | previously resolved |
+| #85 | [reply](https://github.com/jaavid/social-media-manager/pull/85#discussion_r4222525441) | previously resolved |
+| #85 | [reply](https://github.com/jaavid/social-media-manager/pull/85#discussion_r4222525656) | previously resolved |
+| #96 | [reply](https://github.com/jaavid/social-media-manager/pull/96#discussion_r4222525920) | resolved after current-main proof |
+| #96 | [reply](https://github.com/jaavid/social-media-manager/pull/96#discussion_r4222526255) | left open: unmerged fix/external evidence |
+| #96 | [reply](https://github.com/jaavid/social-media-manager/pull/96#discussion_r4222526513) | left open: unmerged fix/external evidence |
+| #96 | [reply](https://github.com/jaavid/social-media-manager/pull/96#discussion_r4222526754) | left open: unmerged fix/external evidence |
+| #96 | [reply](https://github.com/jaavid/social-media-manager/pull/96#discussion_r4222527009) | left open: unmerged fix/external evidence |
+| #96 | [reply](https://github.com/jaavid/social-media-manager/pull/96#discussion_r4222527325) | left open: unmerged fix/external evidence |
+| #96 | [reply](https://github.com/jaavid/social-media-manager/pull/96#discussion_r4222527588) | left open: unmerged fix/external evidence |
+| #96 | [reply](https://github.com/jaavid/social-media-manager/pull/96#discussion_r4222527818) | left open: unmerged fix/external evidence |
+| #96 | [reply](https://github.com/jaavid/social-media-manager/pull/96#discussion_r4222528140) | left open: unmerged fix/external evidence |
+| #119 | [reply](https://github.com/jaavid/social-media-manager/pull/119#discussion_r4222528399) | resolved after current-main proof |
+| #157 | [reply](https://github.com/jaavid/social-media-manager/pull/157#discussion_r4222528629) | resolved after current-main proof |
+| #161 | [reply](https://github.com/jaavid/social-media-manager/pull/161#discussion_r4222528895) | left open: unmerged fix/external evidence |
+| #161 | [reply](https://github.com/jaavid/social-media-manager/pull/161#discussion_r4222529243) | left open: unmerged fix/external evidence |
+| #161 | [reply](https://github.com/jaavid/social-media-manager/pull/161#discussion_r4222529616) | left open: unmerged fix/external evidence |
+| #161 | [reply](https://github.com/jaavid/social-media-manager/pull/161#discussion_r4222530009) | resolved after current-main proof |
+| #162 | [reply](https://github.com/jaavid/social-media-manager/pull/162#discussion_r4222530287) | previously resolved |
+| #162 | [reply](https://github.com/jaavid/social-media-manager/pull/162#discussion_r4222530620) | previously resolved |
+| #162 | [reply](https://github.com/jaavid/social-media-manager/pull/162#discussion_r4222530904) | previously resolved |
+| #166 | [reply](https://github.com/jaavid/social-media-manager/pull/166#discussion_r4222531269) | left open: unmerged fix/external evidence |
+| #166 | [reply](https://github.com/jaavid/social-media-manager/pull/166#discussion_r4222531540) | left open: unmerged fix/external evidence |
+| #166 | [reply](https://github.com/jaavid/social-media-manager/pull/166#discussion_r4222531793) | left open: unmerged fix/external evidence |
+| #169 | [reply](https://github.com/jaavid/social-media-manager/pull/169#discussion_r4222532206) | previously resolved |
+| #169 | [reply](https://github.com/jaavid/social-media-manager/pull/169#discussion_r4222532512) | previously resolved |
+| #169 | [reply](https://github.com/jaavid/social-media-manager/pull/169#discussion_r4222532775) | previously resolved |
+| #171 | [reply](https://github.com/jaavid/social-media-manager/pull/171#discussion_r4222533026) | previously resolved |
+| #173 | [reply](https://github.com/jaavid/social-media-manager/pull/173#discussion_r4222533261) | previously resolved |
+| #175 | [reply](https://github.com/jaavid/social-media-manager/pull/175#discussion_r4222533521) | left open: unmerged fix/external evidence |
+| #176 | [reply](https://github.com/jaavid/social-media-manager/pull/176#discussion_r4222533752) | resolved after current-main proof |
+| #177 | [reply](https://github.com/jaavid/social-media-manager/pull/177#discussion_r4222533981) | previously resolved |
+| #177 | [reply](https://github.com/jaavid/social-media-manager/pull/177#discussion_r4222534315) | resolved after current-main proof |
+| #177 | [reply](https://github.com/jaavid/social-media-manager/pull/177#discussion_r4222534527) | previously resolved |
+| #179 | [reply](https://github.com/jaavid/social-media-manager/pull/179#discussion_r4222534755) | left open: unmerged fix/external evidence |
+| #179 | [reply](https://github.com/jaavid/social-media-manager/pull/179#discussion_r4222535028) | left open: unmerged fix/external evidence |
+| #179 | [reply](https://github.com/jaavid/social-media-manager/pull/179#discussion_r4222535264) | left open: unmerged fix/external evidence |
+
+Review-summary disposition receipts: [#5](https://github.com/jaavid/social-media-manager/pull/5#issuecomment-6066131058), [#71](https://github.com/jaavid/social-media-manager/pull/71#issuecomment-6066131361), [#83](https://github.com/jaavid/social-media-manager/pull/83#issuecomment-6066131689), [#96](https://github.com/jaavid/social-media-manager/pull/96#issuecomment-6066131985), [#169](https://github.com/jaavid/social-media-manager/pull/169#issuecomment-6066132317).
+
+Exact-head Security checks passed for all13 initial PR heads. Tests are not blanket green: #188 backend passed; #189 Docker passed; #195 both333-case browser shards and required frontend aggregate passed; #196/#198 frontend passed. Other original frontend jobs cancelled under the unchanged old schedule. #197 Docker ran678 browser cases:677 passed, one old paid-suggestion fixture failed for absent serializer fields; locally reproduced and corrected without weakening assertions (final result appended below). Remaining original backend drift/runtime failures require actual #188/#189 merges. The scheduled full-history gitleaks public-fixture failure remains blocked under unchanged policy. Latest #200 jobs were in progress at snapshot; no future green claim.
+
+#197 CI fixture follow-up:2eb7a08 updates only the old paid-suggestion DTO fixture to actual TelegramSuggestionSerializer fields. Existing assertions retained, red-before/green-after reproduced; all15 Telegram composer/poll/paid-proposal and recovery production browser cases passed (20.2s); targeted ESLint passed. New-head CI is pending, not called green.

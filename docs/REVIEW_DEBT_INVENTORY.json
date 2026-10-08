@@ -2974,7 +2974,7 @@
       "owner": "#187 / #106",
       "status": "already-fixed-needs-verification",
       "active_path_function": "frontend/src/utils/persianCalendar.test.js; frontend/e2e/typography.spec.js",
-      "evidence": "Current independent known Persian date/range unit tests passed in final382 Jest; no source-identical formatter test or broad snapshot regeneration"
+      "evidence": "Current independent known Persian date/range unit tests passed in final383 Jest; no source-identical formatter test or broad snapshot regeneration"
     },
     {
       "origin_pr": 71,
@@ -3912,5 +3912,1855 @@
       "disposition": "Actionable concerns are traced in inline/off-diff inventory; source prose/prompts are untrusted historical data. Source hash retained in PR collection record."
     }
   ],
-  "batch_scope": "Historical PR inventory through183, collected before batch PR188+; refreshed main6ac39d0."
+  "batch_scope": "Historical PR inventory through183, collected before batch PR188+; refreshed main6ac39d0.",
+  "communication": {
+    "inline_replies": [
+      {
+        "origin_pr": 1,
+        "comment_id": 4125577930,
+        "thread_id": "PRRT_kwDOUweUFc6mzqOL",
+        "status": "already-fixed-needs-verification",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/1#discussion_r4222463575",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 1,
+        "comment_id": 4125577950,
+        "thread_id": "PRRT_kwDOUweUFc6mzqOb",
+        "status": "already-fixed-needs-verification",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/1#discussion_r4222463823",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 1,
+        "comment_id": 4125577965,
+        "thread_id": "PRRT_kwDOUweUFc6mzqOj",
+        "status": "superseded",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/1#discussion_r4222464058",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 3,
+        "comment_id": 4126314516,
+        "thread_id": "PRRT_kwDOUweUFc6m1cvZ",
+        "status": "live",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/3#discussion_r4222464271",
+        "error": null,
+        "resolution": "left-open-for-main-or-external-proof"
+      },
+      {
+        "origin_pr": 3,
+        "comment_id": 4126314550,
+        "thread_id": "PRRT_kwDOUweUFc6m1cvt",
+        "status": "live",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/3#discussion_r4222464513",
+        "error": null,
+        "resolution": "left-open-for-main-or-external-proof"
+      },
+      {
+        "origin_pr": 3,
+        "comment_id": 4126314563,
+        "thread_id": "PRRT_kwDOUweUFc6m1cv3",
+        "status": "live",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/3#discussion_r4222464761",
+        "error": null,
+        "resolution": "left-open-for-main-or-external-proof"
+      },
+      {
+        "origin_pr": 5,
+        "comment_id": 4127294818,
+        "thread_id": "PRRT_kwDOUweUFc6m3vOL",
+        "status": "live",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/5#discussion_r4222465008",
+        "error": null,
+        "resolution": "left-open-for-main-or-external-proof"
+      },
+      {
+        "origin_pr": 5,
+        "comment_id": 4127294842,
+        "thread_id": "PRRT_kwDOUweUFc6m3vOZ",
+        "status": "live",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/5#discussion_r4222465286",
+        "error": null,
+        "resolution": "left-open-for-main-or-external-proof"
+      },
+      {
+        "origin_pr": 5,
+        "comment_id": 4127294850,
+        "thread_id": "PRRT_kwDOUweUFc6m3vOe",
+        "status": "live",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/5#discussion_r4222465564",
+        "error": null,
+        "resolution": "left-open-for-main-or-external-proof"
+      },
+      {
+        "origin_pr": 5,
+        "comment_id": 4127294858,
+        "thread_id": "PRRT_kwDOUweUFc6m3vOk",
+        "status": "live",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/5#discussion_r4222465796",
+        "error": null,
+        "resolution": "left-open-for-main-or-external-proof"
+      },
+      {
+        "origin_pr": 5,
+        "comment_id": 4127294867,
+        "thread_id": "PRRT_kwDOUweUFc6m3vOp",
+        "status": "live",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/5#discussion_r4222466042",
+        "error": null,
+        "resolution": "left-open-for-main-or-external-proof"
+      },
+      {
+        "origin_pr": 5,
+        "comment_id": 4127294871,
+        "thread_id": "PRRT_kwDOUweUFc6m3vOr",
+        "status": "live",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/5#discussion_r4222466286",
+        "error": null,
+        "resolution": "left-open-for-main-or-external-proof"
+      },
+      {
+        "origin_pr": 5,
+        "comment_id": 4127294881,
+        "thread_id": "PRRT_kwDOUweUFc6m3vOu",
+        "status": "superseded",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/5#discussion_r4222466529",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 6,
+        "comment_id": 4129687355,
+        "thread_id": "PRRT_kwDOUweUFc6m9ftG",
+        "status": "superseded",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/6#discussion_r4222466755",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 6,
+        "comment_id": 4129687366,
+        "thread_id": "PRRT_kwDOUweUFc6m9ftO",
+        "status": "already-fixed-needs-verification",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/6#discussion_r4222467062",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 9,
+        "comment_id": 4130206284,
+        "thread_id": "PRRT_kwDOUweUFc6m-wf1",
+        "status": "superseded",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/9#discussion_r4222467280",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 9,
+        "comment_id": 4130206307,
+        "thread_id": "PRRT_kwDOUweUFc6m-wgD",
+        "status": "externally-blocked",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/9#discussion_r4222467554",
+        "error": null,
+        "resolution": "left-open-for-main-or-external-proof"
+      },
+      {
+        "origin_pr": 9,
+        "comment_id": 4130206312,
+        "thread_id": "PRRT_kwDOUweUFc6m-wgH",
+        "status": "externally-blocked",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/9#discussion_r4222467809",
+        "error": null,
+        "resolution": "left-open-for-main-or-external-proof"
+      },
+      {
+        "origin_pr": 9,
+        "comment_id": 4130206322,
+        "thread_id": "PRRT_kwDOUweUFc6m-wgN",
+        "status": "superseded",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/9#discussion_r4222468105",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 14,
+        "comment_id": 4147054787,
+        "thread_id": "PRRT_kwDOUweUFc6nn708",
+        "status": "live",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/14#discussion_r4222468428",
+        "error": null,
+        "resolution": "left-open-for-main-or-external-proof"
+      },
+      {
+        "origin_pr": 19,
+        "comment_id": 4151876345,
+        "thread_id": "PRRT_kwDOUweUFc6nzkla",
+        "status": "already-fixed-needs-verification",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/19#discussion_r4222468679",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 19,
+        "comment_id": 4151876351,
+        "thread_id": "PRRT_kwDOUweUFc6nzkld",
+        "status": "superseded",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/19#discussion_r4222468952",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 19,
+        "comment_id": 4151876364,
+        "thread_id": "PRRT_kwDOUweUFc6nzklm",
+        "status": "superseded",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/19#discussion_r4222469187",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 19,
+        "comment_id": 4151876373,
+        "thread_id": "PRRT_kwDOUweUFc6nzklt",
+        "status": "superseded",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/19#discussion_r4222469415",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 19,
+        "comment_id": 4151876376,
+        "thread_id": "PRRT_kwDOUweUFc6nzklw",
+        "status": "superseded",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/19#discussion_r4222469677",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 21,
+        "comment_id": 4151551388,
+        "thread_id": "PRRT_kwDOUweUFc6nyyM-",
+        "status": "superseded",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/21#discussion_r4222469928",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 21,
+        "comment_id": 4151551397,
+        "thread_id": "PRRT_kwDOUweUFc6nyyNF",
+        "status": "already-fixed-needs-verification",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/21#discussion_r4222470194",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 21,
+        "comment_id": 4151551404,
+        "thread_id": "PRRT_kwDOUweUFc6nyyNK",
+        "status": "already-fixed-needs-verification",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/21#discussion_r4222470438",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 21,
+        "comment_id": 4152529247,
+        "thread_id": "PRRT_kwDOUweUFc6n1Lwg",
+        "status": "already-fixed-needs-verification",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/21#discussion_r4222470660",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 21,
+        "comment_id": 4152529255,
+        "thread_id": "PRRT_kwDOUweUFc6n1Lwk",
+        "status": "already-fixed-needs-verification",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/21#discussion_r4222470889",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 22,
+        "comment_id": 4156694513,
+        "thread_id": "PRRT_kwDOUweUFc6n_gub",
+        "status": "superseded",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/22#discussion_r4222471110",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 23,
+        "comment_id": 4157454186,
+        "thread_id": "PRRT_kwDOUweUFc6oBW_v",
+        "status": "already-fixed-needs-verification",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/23#discussion_r4222471361",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 26,
+        "comment_id": 4159268712,
+        "thread_id": "PRRT_kwDOUweUFc6oF2Pp",
+        "status": "superseded",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/26#discussion_r4222471693",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 28,
+        "comment_id": 4160130463,
+        "thread_id": "PRRT_kwDOUweUFc6oH-Nl",
+        "status": "live",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/28#discussion_r4222471990",
+        "error": null,
+        "resolution": "left-open-for-main-or-external-proof"
+      },
+      {
+        "origin_pr": 71,
+        "comment_id": 4162654601,
+        "thread_id": "PRRT_kwDOUweUFc6oODcH",
+        "status": "already-fixed-needs-verification",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/71#discussion_r4222472297",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 71,
+        "comment_id": 4162654604,
+        "thread_id": "PRRT_kwDOUweUFc6oODcJ",
+        "status": "already-fixed-needs-verification",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/71#discussion_r4222472525",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 71,
+        "comment_id": 4162654607,
+        "thread_id": "PRRT_kwDOUweUFc6oODcL",
+        "status": "superseded",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/71#discussion_r4222472787",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 71,
+        "comment_id": 4162654610,
+        "thread_id": "PRRT_kwDOUweUFc6oODcN",
+        "status": "superseded",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/71#discussion_r4222473030",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 71,
+        "comment_id": 4162654617,
+        "thread_id": "PRRT_kwDOUweUFc6oODcT",
+        "status": "superseded",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/71#discussion_r4222520962",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 71,
+        "comment_id": 4162654621,
+        "thread_id": "PRRT_kwDOUweUFc6oODcX",
+        "status": "superseded",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/71#discussion_r4222521239",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 71,
+        "comment_id": 4162654625,
+        "thread_id": "PRRT_kwDOUweUFc6oODca",
+        "status": "superseded",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/71#discussion_r4222521510",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 71,
+        "comment_id": 4162654628,
+        "thread_id": "PRRT_kwDOUweUFc6oODcd",
+        "status": "superseded",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/71#discussion_r4222521781",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 71,
+        "comment_id": 4162957664,
+        "thread_id": "PRRT_kwDOUweUFc6oOx7V",
+        "status": "superseded",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/71#discussion_r4222522043",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 71,
+        "comment_id": 4162957667,
+        "thread_id": "PRRT_kwDOUweUFc6oOx7Y",
+        "status": "superseded",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/71#discussion_r4222522288",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 71,
+        "comment_id": 4162957671,
+        "thread_id": "PRRT_kwDOUweUFc6oOx7b",
+        "status": "superseded",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/71#discussion_r4222522601",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 83,
+        "comment_id": 4163716985,
+        "thread_id": "PRRT_kwDOUweUFc6oQnGP",
+        "status": "already-fixed-needs-verification",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/83#discussion_r4222522952",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 83,
+        "comment_id": 4163716994,
+        "thread_id": "PRRT_kwDOUweUFc6oQnGW",
+        "status": "already-fixed-needs-verification",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/83#discussion_r4222523283",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 83,
+        "comment_id": 4163716999,
+        "thread_id": "PRRT_kwDOUweUFc6oQnGY",
+        "status": "already-fixed-needs-verification",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/83#discussion_r4222523552",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 83,
+        "comment_id": 4166210708,
+        "thread_id": "PRRT_kwDOUweUFc6oWsXK",
+        "status": "already-fixed-needs-verification",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/83#discussion_r4222523790",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 83,
+        "comment_id": 4166210722,
+        "thread_id": "PRRT_kwDOUweUFc6oWsXR",
+        "status": "already-fixed-needs-verification",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/83#discussion_r4222524084",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 85,
+        "comment_id": 4167494588,
+        "thread_id": "PRRT_kwDOUweUFc6oZ0YL",
+        "status": "already-fixed-needs-verification",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/85#discussion_r4222524372",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 85,
+        "comment_id": 4167494593,
+        "thread_id": "PRRT_kwDOUweUFc6oZ0YP",
+        "status": "already-fixed-needs-verification",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/85#discussion_r4222524625",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 85,
+        "comment_id": 4167494611,
+        "thread_id": "PRRT_kwDOUweUFc6oZ0Yb",
+        "status": "already-fixed-needs-verification",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/85#discussion_r4222524912",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 85,
+        "comment_id": 4167494624,
+        "thread_id": "PRRT_kwDOUweUFc6oZ0Yh",
+        "status": "already-fixed-needs-verification",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/85#discussion_r4222525153",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 85,
+        "comment_id": 4167494631,
+        "thread_id": "PRRT_kwDOUweUFc6oZ0Yo",
+        "status": "already-fixed-needs-verification",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/85#discussion_r4222525441",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 85,
+        "comment_id": 4167494640,
+        "thread_id": "PRRT_kwDOUweUFc6oZ0Yv",
+        "status": "already-fixed-needs-verification",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/85#discussion_r4222525656",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 96,
+        "comment_id": 4173880463,
+        "thread_id": "PRRT_kwDOUweUFc6opTNz",
+        "status": "already-fixed-needs-verification",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/96#discussion_r4222525920",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 96,
+        "comment_id": 4173880470,
+        "thread_id": "PRRT_kwDOUweUFc6opTN4",
+        "status": "live",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/96#discussion_r4222526255",
+        "error": null,
+        "resolution": "left-open-for-main-or-external-proof"
+      },
+      {
+        "origin_pr": 96,
+        "comment_id": 4173880478,
+        "thread_id": "PRRT_kwDOUweUFc6opTN_",
+        "status": "live",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/96#discussion_r4222526513",
+        "error": null,
+        "resolution": "left-open-for-main-or-external-proof"
+      },
+      {
+        "origin_pr": 96,
+        "comment_id": 4173880483,
+        "thread_id": "PRRT_kwDOUweUFc6opTOE",
+        "status": "live",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/96#discussion_r4222526754",
+        "error": null,
+        "resolution": "left-open-for-main-or-external-proof"
+      },
+      {
+        "origin_pr": 96,
+        "comment_id": 4173880494,
+        "thread_id": "PRRT_kwDOUweUFc6opTON",
+        "status": "live",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/96#discussion_r4222527009",
+        "error": null,
+        "resolution": "left-open-for-main-or-external-proof"
+      },
+      {
+        "origin_pr": 96,
+        "comment_id": 4173880501,
+        "thread_id": "PRRT_kwDOUweUFc6opTOT",
+        "status": "live",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/96#discussion_r4222527325",
+        "error": null,
+        "resolution": "left-open-for-main-or-external-proof"
+      },
+      {
+        "origin_pr": 96,
+        "comment_id": 4173880505,
+        "thread_id": "PRRT_kwDOUweUFc6opTOV",
+        "status": "live",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/96#discussion_r4222527588",
+        "error": null,
+        "resolution": "left-open-for-main-or-external-proof"
+      },
+      {
+        "origin_pr": 96,
+        "comment_id": 4173880508,
+        "thread_id": "PRRT_kwDOUweUFc6opTOX",
+        "status": "live",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/96#discussion_r4222527818",
+        "error": null,
+        "resolution": "left-open-for-main-or-external-proof"
+      },
+      {
+        "origin_pr": 96,
+        "comment_id": 4173880514,
+        "thread_id": "PRRT_kwDOUweUFc6opTOb",
+        "status": "live",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/96#discussion_r4222528140",
+        "error": null,
+        "resolution": "left-open-for-main-or-external-proof"
+      },
+      {
+        "origin_pr": 119,
+        "comment_id": 4178445679,
+        "thread_id": "PRRT_kwDOUweUFc6o0Zjr",
+        "status": "already-fixed-needs-verification",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/119#discussion_r4222528399",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 157,
+        "comment_id": 4186951625,
+        "thread_id": "PRRT_kwDOUweUFc6pJVQa",
+        "status": "superseded",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/157#discussion_r4222528629",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 161,
+        "comment_id": 4189091732,
+        "thread_id": "PRRT_kwDOUweUFc6pOh3S",
+        "status": "live",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/161#discussion_r4222528895",
+        "error": null,
+        "resolution": "left-open-for-main-or-external-proof"
+      },
+      {
+        "origin_pr": 161,
+        "comment_id": 4189091769,
+        "thread_id": "PRRT_kwDOUweUFc6pOh3o",
+        "status": "live",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/161#discussion_r4222529243",
+        "error": null,
+        "resolution": "left-open-for-main-or-external-proof"
+      },
+      {
+        "origin_pr": 161,
+        "comment_id": 4189091786,
+        "thread_id": "PRRT_kwDOUweUFc6pOh3y",
+        "status": "live",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/161#discussion_r4222529616",
+        "error": null,
+        "resolution": "left-open-for-main-or-external-proof"
+      },
+      {
+        "origin_pr": 161,
+        "comment_id": 4189091796,
+        "thread_id": "PRRT_kwDOUweUFc6pOh36",
+        "status": "already-fixed-needs-verification",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/161#discussion_r4222530009",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 162,
+        "comment_id": 4191681274,
+        "thread_id": "PRRT_kwDOUweUFc6pUxUp",
+        "status": "already-fixed-needs-verification",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/162#discussion_r4222530287",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 162,
+        "comment_id": 4191681277,
+        "thread_id": "PRRT_kwDOUweUFc6pUxUr",
+        "status": "already-fixed-needs-verification",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/162#discussion_r4222530620",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 162,
+        "comment_id": 4191681290,
+        "thread_id": "PRRT_kwDOUweUFc6pUxUz",
+        "status": "already-fixed-needs-verification",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/162#discussion_r4222530904",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 166,
+        "comment_id": 4198368288,
+        "thread_id": "PRRT_kwDOUweUFc6plJg2",
+        "status": "live",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/166#discussion_r4222531269",
+        "error": null,
+        "resolution": "left-open-for-main-or-external-proof"
+      },
+      {
+        "origin_pr": 166,
+        "comment_id": 4198368296,
+        "thread_id": "PRRT_kwDOUweUFc6plJg7",
+        "status": "live",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/166#discussion_r4222531540",
+        "error": null,
+        "resolution": "left-open-for-main-or-external-proof"
+      },
+      {
+        "origin_pr": 166,
+        "comment_id": 4198368320,
+        "thread_id": "PRRT_kwDOUweUFc6plJhK",
+        "status": "live",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/166#discussion_r4222531793",
+        "error": null,
+        "resolution": "left-open-for-main-or-external-proof"
+      },
+      {
+        "origin_pr": 169,
+        "comment_id": 4203406459,
+        "thread_id": "PRRT_kwDOUweUFc6pxNWL",
+        "status": "already-fixed-needs-verification",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/169#discussion_r4222532206",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 169,
+        "comment_id": 4203406467,
+        "thread_id": "PRRT_kwDOUweUFc6pxNWP",
+        "status": "already-fixed-needs-verification",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/169#discussion_r4222532512",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 169,
+        "comment_id": 4203406473,
+        "thread_id": "PRRT_kwDOUweUFc6pxNWS",
+        "status": "already-fixed-needs-verification",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/169#discussion_r4222532775",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 171,
+        "comment_id": 4205421958,
+        "thread_id": "PRRT_kwDOUweUFc6p2KrB",
+        "status": "already-fixed-needs-verification",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/171#discussion_r4222533026",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 173,
+        "comment_id": 4207411724,
+        "thread_id": "PRRT_kwDOUweUFc6p7EiB",
+        "status": "already-fixed-needs-verification",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/173#discussion_r4222533261",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 175,
+        "comment_id": 4208960570,
+        "thread_id": "PRRT_kwDOUweUFc6p-2xW",
+        "status": "live",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/175#discussion_r4222533521",
+        "error": null,
+        "resolution": "left-open-for-main-or-external-proof"
+      },
+      {
+        "origin_pr": 176,
+        "comment_id": 4209746860,
+        "thread_id": "PRRT_kwDOUweUFc6qAwK6",
+        "status": "superseded",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/176#discussion_r4222533752",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 177,
+        "comment_id": 4211511657,
+        "thread_id": "PRRT_kwDOUweUFc6qFBgY",
+        "status": "already-fixed-needs-verification",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/177#discussion_r4222533981",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 177,
+        "comment_id": 4211511680,
+        "thread_id": "PRRT_kwDOUweUFc6qFBgl",
+        "status": "already-fixed-needs-verification",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/177#discussion_r4222534315",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 177,
+        "comment_id": 4211511685,
+        "thread_id": "PRRT_kwDOUweUFc6qFBgp",
+        "status": "already-fixed-needs-verification",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/177#discussion_r4222534527",
+        "error": null,
+        "resolution": "existing-main-proof-eligible"
+      },
+      {
+        "origin_pr": 179,
+        "comment_id": 4215527260,
+        "thread_id": "PRRT_kwDOUweUFc6qOd9Q",
+        "status": "live",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/179#discussion_r4222534755",
+        "error": null,
+        "resolution": "left-open-for-main-or-external-proof"
+      },
+      {
+        "origin_pr": 179,
+        "comment_id": 4215527299,
+        "thread_id": "PRRT_kwDOUweUFc6qOd9t",
+        "status": "live",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/179#discussion_r4222535028",
+        "error": null,
+        "resolution": "left-open-for-main-or-external-proof"
+      },
+      {
+        "origin_pr": 179,
+        "comment_id": 4215527317,
+        "thread_id": "PRRT_kwDOUweUFc6qOd93",
+        "status": "live",
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/179#discussion_r4222535264",
+        "error": null,
+        "resolution": "left-open-for-main-or-external-proof"
+      }
+    ],
+    "historical_auth_failure": {
+      "action": "inline reply resumed after temporary HTTP401",
+      "recovered": true,
+      "pending": false
+    },
+    "thread_resolution": [
+      {
+        "thread_id": "PRRT_kwDOUweUFc6mzqOL",
+        "origin_pr": 1,
+        "already_resolved": false,
+        "error": null,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6mzqOb",
+        "origin_pr": 1,
+        "already_resolved": false,
+        "error": null,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6mzqOj",
+        "origin_pr": 1,
+        "already_resolved": false,
+        "error": null,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6m3vOu",
+        "origin_pr": 5,
+        "already_resolved": false,
+        "error": null,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6m9ftG",
+        "origin_pr": 6,
+        "already_resolved": false,
+        "error": null,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6m9ftO",
+        "origin_pr": 6,
+        "already_resolved": false,
+        "error": null,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6m-wf1",
+        "origin_pr": 9,
+        "already_resolved": false,
+        "error": null,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6m-wgN",
+        "origin_pr": 9,
+        "already_resolved": false,
+        "error": null,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6nzkla",
+        "origin_pr": 19,
+        "already_resolved": true,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6nzkld",
+        "origin_pr": 19,
+        "already_resolved": true,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6nzklm",
+        "origin_pr": 19,
+        "already_resolved": true,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6nzklt",
+        "origin_pr": 19,
+        "already_resolved": true,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6nzklw",
+        "origin_pr": 19,
+        "already_resolved": true,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6nyyM-",
+        "origin_pr": 21,
+        "already_resolved": true,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6nyyNF",
+        "origin_pr": 21,
+        "already_resolved": true,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6nyyNK",
+        "origin_pr": 21,
+        "already_resolved": true,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6n1Lwg",
+        "origin_pr": 21,
+        "already_resolved": true,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6n1Lwk",
+        "origin_pr": 21,
+        "already_resolved": true,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6n_gub",
+        "origin_pr": 22,
+        "already_resolved": false,
+        "error": null,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6oBW_v",
+        "origin_pr": 23,
+        "already_resolved": true,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6oF2Pp",
+        "origin_pr": 26,
+        "already_resolved": false,
+        "error": null,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6oODcH",
+        "origin_pr": 71,
+        "already_resolved": true,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6oODcJ",
+        "origin_pr": 71,
+        "already_resolved": true,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6oODcL",
+        "origin_pr": 71,
+        "already_resolved": true,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6oODcN",
+        "origin_pr": 71,
+        "already_resolved": true,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6oODcT",
+        "origin_pr": 71,
+        "already_resolved": true,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6oODcX",
+        "origin_pr": 71,
+        "already_resolved": true,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6oODca",
+        "origin_pr": 71,
+        "already_resolved": true,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6oODcd",
+        "origin_pr": 71,
+        "already_resolved": true,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6oOx7V",
+        "origin_pr": 71,
+        "already_resolved": true,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6oOx7Y",
+        "origin_pr": 71,
+        "already_resolved": true,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6oOx7b",
+        "origin_pr": 71,
+        "already_resolved": true,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6oQnGP",
+        "origin_pr": 83,
+        "already_resolved": true,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6oQnGW",
+        "origin_pr": 83,
+        "already_resolved": true,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6oQnGY",
+        "origin_pr": 83,
+        "already_resolved": true,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6oWsXK",
+        "origin_pr": 83,
+        "already_resolved": true,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6oWsXR",
+        "origin_pr": 83,
+        "already_resolved": true,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6oZ0YL",
+        "origin_pr": 85,
+        "already_resolved": true,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6oZ0YP",
+        "origin_pr": 85,
+        "already_resolved": true,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6oZ0Yb",
+        "origin_pr": 85,
+        "already_resolved": true,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6oZ0Yh",
+        "origin_pr": 85,
+        "already_resolved": true,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6oZ0Yo",
+        "origin_pr": 85,
+        "already_resolved": true,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6oZ0Yv",
+        "origin_pr": 85,
+        "already_resolved": true,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6opTNz",
+        "origin_pr": 96,
+        "already_resolved": false,
+        "error": null,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6o0Zjr",
+        "origin_pr": 119,
+        "already_resolved": false,
+        "error": null,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6pJVQa",
+        "origin_pr": 157,
+        "already_resolved": false,
+        "error": null,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6pOh36",
+        "origin_pr": 161,
+        "already_resolved": false,
+        "error": null,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6pUxUp",
+        "origin_pr": 162,
+        "already_resolved": true,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6pUxUr",
+        "origin_pr": 162,
+        "already_resolved": true,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6pUxUz",
+        "origin_pr": 162,
+        "already_resolved": true,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6pxNWL",
+        "origin_pr": 169,
+        "already_resolved": true,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6pxNWP",
+        "origin_pr": 169,
+        "already_resolved": true,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6pxNWS",
+        "origin_pr": 169,
+        "already_resolved": true,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6p2KrB",
+        "origin_pr": 171,
+        "already_resolved": true,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6p7EiB",
+        "origin_pr": 173,
+        "already_resolved": true,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6qAwK6",
+        "origin_pr": 176,
+        "already_resolved": false,
+        "error": null,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6qFBgY",
+        "origin_pr": 177,
+        "already_resolved": true,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6qFBgl",
+        "origin_pr": 177,
+        "already_resolved": false,
+        "error": null,
+        "resolved": true
+      },
+      {
+        "thread_id": "PRRT_kwDOUweUFc6qFBgp",
+        "origin_pr": 177,
+        "already_resolved": true,
+        "resolved": true
+      }
+    ],
+    "offdiff_replies": [
+      {
+        "origin_pr": 5,
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/5#issuecomment-6066131058",
+        "error": null
+      },
+      {
+        "origin_pr": 71,
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/71#issuecomment-6066131361",
+        "error": null
+      },
+      {
+        "origin_pr": 83,
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/83#issuecomment-6066131689",
+        "error": null
+      },
+      {
+        "origin_pr": 96,
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/96#issuecomment-6066131985",
+        "error": null
+      },
+      {
+        "origin_pr": 169,
+        "reply_url": "https://github.com/jaavid/social-media-manager/pull/169#issuecomment-6066132317",
+        "error": null
+      }
+    ],
+    "summary": {
+      "inline_reply_count": 90,
+      "new_resolved": 16,
+      "previously_resolved": 43,
+      "permission_failures": 0
+    }
+  },
+  "final_validation": {
+    "backend_full": {
+      "tests": 699,
+      "skipped": 3,
+      "result": "passed",
+      "head": "52cbe98"
+    },
+    "latest_main": "6ac39d0ccca419ae4dc3922c967c1c5fa2a147a5",
+    "post_batch_merge_verified": false,
+    "ci_snapshot": [
+      {
+        "pr": 188,
+        "head": "840c642f982ed18c4ee8ee8bfb19917dd7d88174",
+        "state": "open",
+        "runs": [
+          {
+            "id": 37769079978,
+            "name": "Tests",
+            "status": "completed",
+            "conclusion": "cancelled",
+            "jobs": [
+              {
+                "id": 113283844845,
+                "name": "Backend — Django tests",
+                "conclusion": "success",
+                "status": "completed",
+                "failed_steps": []
+              },
+              {
+                "id": 113283845059,
+                "name": "Frontend — build + Jest tests",
+                "conclusion": "cancelled",
+                "status": "completed",
+                "failed_steps": []
+              },
+              {
+                "id": 113283845221,
+                "name": "Docker — unified stack boots",
+                "conclusion": "failure",
+                "status": "completed",
+                "failed_steps": [
+                  "Verify supervised processes and Celery periodic tasks"
+                ]
+              }
+            ]
+          },
+          {
+            "id": 37769080070,
+            "name": "Security scans",
+            "status": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "pr": 189,
+        "head": "615fb53b04ebb94accd4bd3c9fecd8eaa43200d7",
+        "state": "open",
+        "runs": [
+          {
+            "id": 37769781936,
+            "name": "Tests",
+            "status": "completed",
+            "conclusion": "failure",
+            "jobs": [
+              {
+                "id": 113286221121,
+                "name": "Docker — unified stack boots",
+                "conclusion": "success",
+                "status": "completed",
+                "failed_steps": []
+              },
+              {
+                "id": 113286221266,
+                "name": "Frontend — build + Jest tests",
+                "conclusion": "cancelled",
+                "status": "completed",
+                "failed_steps": []
+              },
+              {
+                "id": 113286221292,
+                "name": "Backend — Django tests",
+                "conclusion": "failure",
+                "status": "completed",
+                "failed_steps": [
+                  "Check migration drift"
+                ]
+              }
+            ]
+          },
+          {
+            "id": 37769781927,
+            "name": "Security scans",
+            "status": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "pr": 190,
+        "head": "cb801e5aa5338867b76fd4be31adeca02e01b163",
+        "state": "open",
+        "runs": [
+          {
+            "id": 37815447018,
+            "name": "Security scans",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "id": 37815447213,
+            "name": "Tests",
+            "status": "completed",
+            "conclusion": "failure",
+            "jobs": [
+              {
+                "id": 113442780981,
+                "name": "Backend — Django tests",
+                "conclusion": "failure",
+                "status": "completed",
+                "failed_steps": [
+                  "Check migration drift"
+                ]
+              },
+              {
+                "id": 113442781141,
+                "name": "Docker — unified stack boots",
+                "conclusion": "failure",
+                "status": "completed",
+                "failed_steps": [
+                  "Verify supervised processes and Celery periodic tasks"
+                ]
+              },
+              {
+                "id": 113442781301,
+                "name": "Frontend — build + Jest tests",
+                "conclusion": "cancelled",
+                "status": "completed",
+                "failed_steps": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "pr": 191,
+        "head": "f412ffaaf6c751ee5327a78b7c3150718ec0a776",
+        "state": "open",
+        "runs": [
+          {
+            "id": 37772258106,
+            "name": "Security scans",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "id": 37772258059,
+            "name": "Tests",
+            "status": "completed",
+            "conclusion": "failure",
+            "jobs": [
+              {
+                "id": 113294448253,
+                "name": "Frontend — build + Jest tests",
+                "conclusion": "cancelled",
+                "status": "completed",
+                "failed_steps": []
+              },
+              {
+                "id": 113294448436,
+                "name": "Docker — unified stack boots",
+                "conclusion": "failure",
+                "status": "completed",
+                "failed_steps": [
+                  "Verify supervised processes and Celery periodic tasks"
+                ]
+              },
+              {
+                "id": 113294448583,
+                "name": "Backend — Django tests",
+                "conclusion": "failure",
+                "status": "completed",
+                "failed_steps": [
+                  "Check migration drift"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "pr": 192,
+        "head": "a422ea4b4ea0e8fc4185afb92d6c43a98d1ef953",
+        "state": "open",
+        "runs": [
+          {
+            "id": 37772387191,
+            "name": "Security scans",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "id": 37772387156,
+            "name": "Tests",
+            "status": "completed",
+            "conclusion": "failure",
+            "jobs": [
+              {
+                "id": 113295317526,
+                "name": "Frontend — build + Jest tests",
+                "conclusion": "cancelled",
+                "status": "completed",
+                "failed_steps": []
+              },
+              {
+                "id": 113295317971,
+                "name": "Docker — unified stack boots",
+                "conclusion": "failure",
+                "status": "completed",
+                "failed_steps": [
+                  "Verify supervised processes and Celery periodic tasks"
+                ]
+              },
+              {
+                "id": 113295318056,
+                "name": "Backend — Django tests",
+                "conclusion": "failure",
+                "status": "completed",
+                "failed_steps": [
+                  "Check migration drift"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "pr": 193,
+        "head": "ca0df090ae706c97ebb73ea9d148a5b9b4a8ce65",
+        "state": "open",
+        "runs": [
+          {
+            "id": 37817546555,
+            "name": "Security scans",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "id": 37817546003,
+            "name": "Tests",
+            "status": "completed",
+            "conclusion": "failure",
+            "jobs": [
+              {
+                "id": 113449916899,
+                "name": "Backend — Django tests",
+                "conclusion": "failure",
+                "status": "completed",
+                "failed_steps": [
+                  "Check migration drift"
+                ]
+              },
+              {
+                "id": 113449917180,
+                "name": "Frontend — build + Jest tests",
+                "conclusion": "cancelled",
+                "status": "completed",
+                "failed_steps": []
+              },
+              {
+                "id": 113449917350,
+                "name": "Docker — unified stack boots",
+                "conclusion": "failure",
+                "status": "completed",
+                "failed_steps": [
+                  "Verify supervised processes and Celery periodic tasks"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "pr": 194,
+        "head": "ee185a845ebffb05b39e1063a5408fa2cc1dd520",
+        "state": "open",
+        "runs": [
+          {
+            "id": 37773482409,
+            "name": "Security scans",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "id": 37773482370,
+            "name": "Tests",
+            "status": "completed",
+            "conclusion": "failure",
+            "jobs": [
+              {
+                "id": 113298501285,
+                "name": "Backend — Django tests",
+                "conclusion": "failure",
+                "status": "completed",
+                "failed_steps": [
+                  "Check migration drift"
+                ]
+              },
+              {
+                "id": 113298501667,
+                "name": "Frontend — build + Jest tests",
+                "conclusion": "cancelled",
+                "status": "completed",
+                "failed_steps": []
+              },
+              {
+                "id": 113298501690,
+                "name": "Docker — unified stack boots",
+                "conclusion": "failure",
+                "status": "completed",
+                "failed_steps": [
+                  "Verify supervised processes and Celery periodic tasks"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "pr": 195,
+        "head": "50c94b5932fd4b84ad3f9c11c093a55de5abab22",
+        "state": "open",
+        "runs": [
+          {
+            "id": 37815447177,
+            "name": "Security scans",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "id": 37815447129,
+            "name": "Tests",
+            "status": "completed",
+            "conclusion": "failure",
+            "jobs": [
+              {
+                "id": 113442779309,
+                "name": "Backend — Django tests",
+                "conclusion": "failure",
+                "status": "completed",
+                "failed_steps": [
+                  "Check migration drift"
+                ]
+              },
+              {
+                "id": 113442779483,
+                "name": "Frontend — production contracts (browser shard 1/2)",
+                "conclusion": "success",
+                "status": "completed",
+                "failed_steps": []
+              },
+              {
+                "id": 113442779537,
+                "name": "Frontend — production contracts (browser shard 2/2)",
+                "conclusion": "success",
+                "status": "completed",
+                "failed_steps": []
+              },
+              {
+                "id": 113442779643,
+                "name": "Docker — unified stack boots",
+                "conclusion": "failure",
+                "status": "completed",
+                "failed_steps": [
+                  "Verify supervised processes and Celery periodic tasks"
+                ]
+              },
+              {
+                "id": 113445601148,
+                "name": "Frontend — build + Jest tests",
+                "conclusion": "success",
+                "status": "completed",
+                "failed_steps": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "pr": 196,
+        "head": "5e939b71083df317bcd03a873b62e34d1c560858",
+        "state": "open",
+        "runs": [
+          {
+            "id": 37815223536,
+            "name": "Security scans",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "id": 37815223412,
+            "name": "Tests",
+            "status": "completed",
+            "conclusion": "failure",
+            "jobs": [
+              {
+                "id": 113442012745,
+                "name": "Docker — unified stack boots",
+                "conclusion": "failure",
+                "status": "completed",
+                "failed_steps": [
+                  "Verify supervised processes and Celery periodic tasks"
+                ]
+              },
+              {
+                "id": 113442012884,
+                "name": "Frontend — build + Jest tests",
+                "conclusion": "success",
+                "status": "completed",
+                "failed_steps": []
+              },
+              {
+                "id": 113442013339,
+                "name": "Backend — Django tests",
+                "conclusion": "failure",
+                "status": "completed",
+                "failed_steps": [
+                  "Check migration drift"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "pr": 197,
+        "head": "3373142252c95ae1aae7924ea591abcb0eec46bb",
+        "state": "open",
+        "runs": [
+          {
+            "id": 37816325239,
+            "name": "Security scans",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "id": 37816324925,
+            "name": "Tests",
+            "status": "completed",
+            "conclusion": "failure",
+            "jobs": [
+              {
+                "id": 113445778532,
+                "name": "Backend — Django tests",
+                "conclusion": "failure",
+                "status": "completed",
+                "failed_steps": [
+                  "Check migration drift"
+                ]
+              },
+              {
+                "id": 113445778731,
+                "name": "Docker — unified stack boots",
+                "conclusion": "failure",
+                "status": "completed",
+                "failed_steps": [
+                  "Browser parity through the unified production ingress"
+                ]
+              },
+              {
+                "id": 113445778779,
+                "name": "Frontend — build + Jest tests",
+                "conclusion": "cancelled",
+                "status": "completed",
+                "failed_steps": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "pr": 198,
+        "head": "f303a304180a155576c4fdecac8564cdfcef5480",
+        "state": "open",
+        "runs": [
+          {
+            "id": 37817465601,
+            "name": "Security scans",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "id": 37817465332,
+            "name": "Tests",
+            "status": "completed",
+            "conclusion": "failure",
+            "jobs": [
+              {
+                "id": 113449645803,
+                "name": "Frontend — build + Jest tests",
+                "conclusion": "success",
+                "status": "completed",
+                "failed_steps": []
+              },
+              {
+                "id": 113449646108,
+                "name": "Docker — unified stack boots",
+                "conclusion": "failure",
+                "status": "completed",
+                "failed_steps": [
+                  "Verify supervised processes and Celery periodic tasks"
+                ]
+              },
+              {
+                "id": 113449646235,
+                "name": "Backend — Django tests",
+                "conclusion": "failure",
+                "status": "completed",
+                "failed_steps": [
+                  "Check migration drift"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "pr": 199,
+        "head": "5303f7ea19caccbc309d58612e7ac55811cb89bd",
+        "state": "open",
+        "runs": [
+          {
+            "id": 37820378967,
+            "name": "Security scans",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "id": 37820378978,
+            "name": "Tests",
+            "status": "completed",
+            "conclusion": "failure",
+            "jobs": [
+              {
+                "id": 113459574274,
+                "name": "Docker — unified stack boots",
+                "conclusion": "failure",
+                "status": "completed",
+                "failed_steps": [
+                  "Verify supervised processes and Celery periodic tasks"
+                ]
+              },
+              {
+                "id": 113459574681,
+                "name": "Frontend — build + Jest tests",
+                "conclusion": "cancelled",
+                "status": "completed",
+                "failed_steps": []
+              },
+              {
+                "id": 113459574801,
+                "name": "Backend — Django tests",
+                "conclusion": "failure",
+                "status": "completed",
+                "failed_steps": [
+                  "Check migration drift"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "pr": 200,
+        "head": "52cbe9838b6ebe20af06745b80ab10f226f78662",
+        "state": "open",
+        "runs": [
+          {
+            "id": 37821129266,
+            "name": "Tests",
+            "status": "in_progress",
+            "conclusion": null,
+            "jobs": [
+              {
+                "id": 113462148353,
+                "name": "Frontend — build + Jest tests",
+                "conclusion": null,
+                "status": "in_progress",
+                "failed_steps": []
+              },
+              {
+                "id": 113462148580,
+                "name": "Docker — unified stack boots",
+                "conclusion": null,
+                "status": "in_progress",
+                "failed_steps": []
+              },
+              {
+                "id": 113462148709,
+                "name": "Backend — Django tests",
+                "conclusion": "failure",
+                "status": "completed",
+                "failed_steps": [
+                  "Check migration drift"
+                ]
+              }
+            ]
+          },
+          {
+            "id": 37821129057,
+            "name": "Security scans",
+            "status": "completed",
+            "conclusion": "success"
+          }
+        ]
+      }
+    ],
+    "suggestions_ci_regression": {
+      "run": 37816324925,
+      "job": 113445778731,
+      "tests": 678,
+      "passed": 677,
+      "failed": "Old paid-suggestion fixture omitted serializer client/draft/updated_at; red locally, corrected in2eb7a08,15 production browser cases passed without weakening assertions",
+      "policy_weakened": false
+    }
+  }
 }
