@@ -33,6 +33,11 @@ test('admin workspace selector and route navigation scope badge requests', async
   liveSocket.send(JSON.stringify({ type: 'composer.post_failed', workspace_id: 99, data: { title: 'Current workspace event' } }));
   await expect(page.getByText('Publish failed: Current workspace event', { exact: true })).toBeVisible();
   await expect(page.getByText('Publish failed: Foreign workspace event', { exact: true })).toHaveCount(0);
+  await page.goto('/admin/analytics/analytics?workspace=42');
+  await expect.poll(() => counts.at(-1)).toBe(42);
+  await selector.selectOption('99');
+  await expect(page).toHaveURL(/workspace=99/);
+  await expect.poll(() => counts.at(-1)).toBe(99);
   await page.getByRole('combobox', { name: 'Workspace', exact: true }).click();
   await page.getByRole('listbox', { name: 'Workspace', exact: true }).getByRole('option', { name: 'Workspace C', exact: true }).click();
   await expect(page).toHaveURL(/\/admin\/workspace\/70$/);

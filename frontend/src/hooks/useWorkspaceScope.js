@@ -40,7 +40,7 @@ export default function useWorkspaceScope() {
   const params = useAppParams();
   const { pathname } = useAppLocation();
   const selected = useAppStore(s => s.workspaceSelection);
-  const [search] = useAppSearchParams();
+  const [search, setSearch] = useAppSearchParams();
   const pathWorkspace = pathname.match(/^\/admin\/(?:workspace|client)\/([^/]+)/)?.[1];
   const route = params.workspaceId ?? params.clientId ?? pathWorkspace ?? (search.has('workspace') ? search.get('workspace') : undefined);
   const candidate = route ?? (selected?.owner === user?.id && selected?.path === pathname ? selected.id : undefined);
@@ -58,7 +58,24 @@ export default function useWorkspaceScope() {
   const workspaceId = resolveWorkspace({ user, status, route,
     selection: selected?.owner === user?.id && selected?.path === pathname ? selected.id : undefined,
     owner: selected?.owner, path: pathname, allowed: access.isError ? [] : access.data });
-  return { workspaceId, key: JSON.stringify([status, user?.id, workspaceId]), user, pathname };
+  const selectWorkspace = value => {
+    if (!user || status !== 'authenticated') return;
+    const id = normalizeWorkspaceId(value);
+    if (id === null && value !== '' && value !== null) return;
+    if (search.has('workspace')) {
+      const next = new URLSearchParams(search);
+      if (id === null) next.delete('workspace');
+      else next.set('workspace', String(id));
+      // The URL is authoritative here; do not also persist a competing choice.
+      if (selected?.owner === user.id && selected.path === pathname) {
+        useAppStore.setState({ workspaceSelection: null });
+      }
+      setSearch(next, { replace: true });
+    } else {
+      useAppStore.getState().selectWorkspace(id, user.id, pathname);
+    }
+  };
+  return { selectWorkspace, workspaceId, key: JSON.stringify([status, user?.id, workspaceId]), user, pathname };
 }
 
 export function useScopedBadgeCount(key) {

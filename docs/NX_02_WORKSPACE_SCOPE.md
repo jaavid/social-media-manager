@@ -30,8 +30,8 @@ scope: the backend previously returned zero when no workspace was resolved;
 now the frontend skips that request and displays zero badges. No arbitrary
 first workspace is selected for multi-workspace identities.
 
-Only identity-owned, pathname-local explicit choices persist. Route scope is
-not copied to storage. Old unowned `currentClientId` storage is ignored by the
+Only identity-owned, pathname-local explicit choices persist. When a workspace query parameter exists, feature selectors update that URL
+parameter and preserve other parameters. Route scope is not copied to storage. Old unowned `currentClientId` storage is ignored by the
 resolver. Legacy store setters remain for compatibility and have no active UI
 consumers. Logout and cross-tab invalidation reset the store. QueryClient
 replacement on identity changes remains unchanged. Scope-tagged badge reads

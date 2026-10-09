@@ -11,7 +11,6 @@ import { useQuery } from '@tanstack/react-query';
 import { useRealtime } from '@/hooks/useRealtime';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import useWorkspaceScope, { workspaceEventMatches } from '@/hooks/useWorkspaceScope';
-import { useAppStore } from '@/stores/appStore';
 import { useSession } from '@/core/session';
 import { useLanguage } from '@/i18n';
 import { connectionsAPI } from '@/services/domains/connections';
@@ -40,7 +39,7 @@ export default function AnalyticsSurface({ workspaceId: explicitWorkspace }) {
   const { t } = useLanguage();
   const scope = useWorkspaceScope();
   const chosen = scope.workspaceId ?? '';
-  const setChosen = id => useAppStore.getState().selectWorkspace(id, user.id, scope.pathname);
+  const setChosen = scope.selectWorkspace;
   const workspaceId =
     scope.workspaceId;
   const workspaces = useQuery({

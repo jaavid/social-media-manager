@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import useWorkspaceScope from './useWorkspaceScope';
@@ -70,11 +71,12 @@ test('cross-tab invalidation clears workspace selection and badge state', async 
 });
 
 function ScopeProbe() {
+  const [outcome, setOutcome] = useState('');
   const session = useAuth();
   const scope = useWorkspaceScope();
   if (!session) throw new Error('Missing provider');
-  return <><output>{scope.workspaceId ?? 'none'}</output>
-    <button onClick={() => void session.login('second@example.test', 'fixture').catch(() => {})}>Switch identity</button>
+  return <><output>{scope.workspaceId ?? 'none'}</output><span data-testid="login-outcome">{outcome}</span>
+    <button onClick={() => void session.login('second@example.test', 'fixture').then(() => setOutcome('resolved')).catch(() => setOutcome('rejected'))}>Switch identity</button>
     <button onClick={() => void session.logout().catch(() => {})}>Revoke</button></>;
 }
 test('pending login/logout pause workspace scope and account switching ignores A selection', async () => {
@@ -99,7 +101,7 @@ test('pending login/logout pause workspace scope and account switching ignores A
   view.unmount(); client.clear();
 });
 
-test('invalidation during login cannot refresh and restore the superseded identity', async () => {
+test.each([{}, { mfa_required: true, mfa_token: 'superseded' }])('invalidation rejects superseded login/MFA result %j', async result => {
   const client = new QueryClient({ defaultOptions: { queries: { gcTime: 0 } } });
   mockMe.mockResolvedValueOnce({ data: { ...user, workspace_id: 42 } } as Awaited<ReturnType<typeof authAPI.me>>);
   const view = render(<QueryClientProvider client={client}><AuthProvider><ScopeProbe /></AuthProvider></QueryClientProvider>);
@@ -108,8 +110,9 @@ test('invalidation during login cannot refresh and restore the superseded identi
   jest.mocked(authAPI.login).mockImplementationOnce(() => new Promise(resolve => { finish = resolve; }));
   fireEvent.click(screen.getByText('Switch identity'));
   act(() => { invalidateSession(); });
-  await act(async () => { finish({ data: {} } as Awaited<ReturnType<typeof authAPI.login>>); });
+  await act(async () => { finish({ data: result } as Awaited<ReturnType<typeof authAPI.login>>); });
   expect(mockMe).toHaveBeenCalledTimes(1);
+  expect(screen.getByTestId('login-outcome')).toHaveTextContent('rejected');
   expect(screen.getByRole('status')).toHaveTextContent('none');
   view.unmount(); client.clear();
 });

@@ -79,7 +79,7 @@ export function AuthProvider({ children, initialUser = null }: PropsWithChildren
   const failTransition = (current: number) => {
     if (current !== generation.current) return;
     setTransitioning(false);
-    setUser(null);
+    // Pause private scope while keeping the caller mounted to show/retry errors.
     setStatus('unavailable');
   };
   const login = async (email: string, password: string, termsAccepted?: boolean) => {
@@ -87,11 +87,11 @@ export function AuthProvider({ children, initialUser = null }: PropsWithChildren
     setTransitioning(true);
     try {
       const response = await authAPI.login(email, password, termsAccepted);
+      if (current !== generation.current) throw new Error('Session changed during authentication');
       if ('mfa_required' in response.data && response.data.mfa_required) {
-        if (current === generation.current) { setTransitioning(false); setUser(null); setStatus('anonymous'); }
+        setTransitioning(false); setUser(null); setStatus('anonymous');
         return { mfa_required: true as const, mfa_token: 'session' };
       }
-      if (current !== generation.current) throw new Error('Session changed during authentication');
       const next = await refreshUser();
       if (current !== generation.current) throw new Error('Session changed during authentication');
       notifySessionChanged();

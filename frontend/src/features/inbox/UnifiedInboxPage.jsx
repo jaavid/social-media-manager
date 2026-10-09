@@ -9,7 +9,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import useWorkspaceScope, { workspaceEventMatches } from '@/hooks/useWorkspaceScope';
-import { useAppStore } from '@/stores/appStore';
 import { useSession } from '@/core/session';
 import { useLanguage } from '@/i18n';
 import { connectionsAPI } from '@/services/domains/connections';
@@ -39,7 +38,7 @@ export default function UnifiedInboxPage({ reviewsOnly = false }) {
   const { t } = useLanguage();
   const scope = useWorkspaceScope();
   const chosenWorkspace = scope.workspaceId ?? '';
-  const chooseWorkspace = id => useAppStore.getState().selectWorkspace(id, user.id, scope.pathname);
+  const chooseWorkspace = scope.selectWorkspace;
   const workspaceId = scope.workspaceId;
   const workspaces = useQuery({ queryKey: ['engagement.workspaces', user?.id], enabled: !user?.workspace_id && !user?.client_id,
     queryFn: async () => { const r = await workspacesAPI.list(); const rows = r.data?.results || r.data;
