@@ -146,6 +146,9 @@ class PlatformManifest:
     oauth_start: str = ''
     icon: str = ''
     brand_color: str = ''
+    display_icon: str = '🔗'
+    caption_guidance: str = ''
+    hashtag_guidance: str = ''
     extensions: tuple[str, ...] = ()
     ui_extensions: tuple[str, ...] = ()
     inbound: str = 'none'

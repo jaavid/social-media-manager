@@ -13,22 +13,22 @@ from datetime import date as date_cls
 from django.utils import timezone
 from rest_framework import serializers
 
-from social_stats.models import CalendarPost, CalendarNote, PostingSchedule, PLATFORM_CHOICES
+from social_stats.models import CalendarPost, CalendarNote, PostingSchedule
 
-PLATFORM_META = {
-    'facebook':          {'label': 'Facebook',            'color': '#1877F2', 'icon': '📘'},
-    'instagram':         {'label': 'Instagram',           'color': '#E1306C', 'icon': '📸'},
-    'youtube':           {'label': 'YouTube',             'color': '#FF0000', 'icon': '▶️'},
-    'linkedin':          {'label': 'LinkedIn',            'color': '#0A66C2', 'icon': '💼'},
-    'google_my_business':{'label': 'Google My Business',  'color': '#34A853', 'icon': '🏢'},
-}
-
-PLATFORM_KEYS = list(PLATFORM_META.keys())
+from social_stats.platforms.catalogue import platform_metadata, platform_keys
 
 DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
 
+def validate_calendar_platform(value):
+    keys = platform_keys('scheduling')
+    if value not in keys:
+        raise serializers.ValidationError(f"Platform must be one of: {', '.join(keys)}")
+    return value
+
+
 class CalendarPostSerializer(serializers.ModelSerializer):
+    platform = serializers.CharField(max_length=30)
     # Computed read-only fields
     platform_label    = serializers.SerializerMethodField()
     platform_color    = serializers.SerializerMethodField()
@@ -58,13 +58,13 @@ class CalendarPostSerializer(serializers.ModelSerializer):
         ]
 
     def get_platform_label(self, obj):
-        return PLATFORM_META.get(obj.platform, {}).get('label', obj.platform)
+        return platform_metadata().get(obj.platform, {}).get('label', obj.platform)
 
     def get_platform_color(self, obj):
-        return PLATFORM_META.get(obj.platform, {}).get('color', '#64748B')
+        return platform_metadata().get(obj.platform, {}).get('color', '#64748B')
 
     def get_platform_icon(self, obj):
-        return PLATFORM_META.get(obj.platform, {}).get('icon', '🔗')
+        return platform_metadata().get(obj.platform, {}).get('icon', '🔗')
 
     def get_days_until(self, obj):
         target = obj.scheduled_at or obj.published_at
@@ -90,9 +90,7 @@ class CalendarPostSerializer(serializers.ModelSerializer):
         )
 
     def validate_platform(self, value):
-        if value not in PLATFORM_KEYS:
-            raise serializers.ValidationError(f"Platform must be one of: {', '.join(PLATFORM_KEYS)}")
-        return value
+        return validate_calendar_platform(value)
 
     def validate(self, data):
         status      = data.get('status', getattr(self.instance, 'status', None))
@@ -129,6 +127,7 @@ class CalendarNoteSerializer(serializers.ModelSerializer):
 
 
 class PostingScheduleSerializer(serializers.ModelSerializer):
+    platform = serializers.CharField(max_length=30)
     day_name = serializers.SerializerMethodField()
 
     class Meta:
@@ -144,6 +143,9 @@ class PostingScheduleSerializer(serializers.ModelSerializer):
             return DAY_NAMES[obj.day_of_week]
         except (IndexError, TypeError):
             return ''
+
+    def validate_platform(self, value):
+        return validate_calendar_platform(value)
 
     def validate_day_of_week(self, value):
         if value not in range(7):

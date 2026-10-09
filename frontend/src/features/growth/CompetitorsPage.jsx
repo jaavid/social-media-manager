@@ -1,3 +1,4 @@
+import { usePlatformOptions } from '@/services/platforms';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -21,7 +22,6 @@ import Badge from '../../components/ui/Badge';
 import EmptyState from '../../components/ui/EmptyState';
 import { competitorAPI } from '../../services/api';
 
-const PLATFORMS = ['facebook', 'instagram', 'youtube', 'linkedin', 'google_my_business'];
 
 export default function CompetitorsPage() {
   const [list, setList] = useState([]);
@@ -121,6 +121,7 @@ export default function CompetitorsPage() {
 
 /* ── Detail ─────────────────────────────────────────────────────────────── */
 function CompetitorDetail({ competitor, onChange }) {
+  const PLATFORMS = usePlatformOptions('analytics').map(p => p.key);
   const [timeline, setTimeline] = useState([]);
   const [posts, setPosts] = useState([]);
   const [insights, setInsights] = useState(null);
@@ -350,6 +351,7 @@ function InsightList({ title, items, variant }) {
 
 /* ── Create modal ──────────────────────────────────────────────────────── */
 function CreateCompetitorModal({ onClose, onCreated }) {
+  const PLATFORMS = usePlatformOptions('analytics').map(p => p.key);
   const [name, setName] = useState('');
   const [handles, setHandles] = useState({});
   const [saving, setSaving] = useState(false);

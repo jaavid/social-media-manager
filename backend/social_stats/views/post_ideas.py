@@ -40,13 +40,9 @@ SYSTEM_PROMPT = (
     "Return valid JSON only."
 )
 
-PLATFORM_MAP = {
-    'facebook':           'Facebook',
-    'instagram':          'Instagram',
-    'linkedin':           'LinkedIn',
-    'youtube':            'YouTube',
-    'google_my_business': 'Google My Business',
-}
+from social_stats.platforms.catalogue import platform_metadata
+
+PLATFORM_MAP = {key: item['label'] for key, item in platform_metadata().items()}
 
 CALENDAR_POST_TYPE_MAP = {
     'reel':      'reel',

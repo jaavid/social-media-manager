@@ -1,3 +1,4 @@
+import { usePlatformOptions, PLATFORMS as platformPresentation } from '@/services/platforms';
 import { AccountScope, ReadState, WriteState, useAccountRead, useCheckedAction } from '@/components/ui/accountRecovery';
 import { parseIdea, parseIdeaSet, parseIdeaHistory, parseApproved, parseCalendarAdded } from '@/lib/ideaRecovery';
 import Button from '@/components/ui/Button';
@@ -45,14 +46,6 @@ const BUSINESS_TYPES = [
   { value: 'other',       label: 'Other' },
 ];
 
-const PLATFORMS = [
-  { value: 'facebook',           label: 'Facebook' },
-  { value: 'instagram',          label: 'Instagram' },
-  { value: 'linkedin',           label: 'LinkedIn' },
-  { value: 'youtube',            label: 'YouTube' },
-  { value: 'google_my_business', label: 'GMB' },
-];
-
 const POSTS_PER_WEEK_OPTIONS = [
   { value: 1, label: '1 Post' },
   { value: 2, label: '2 Posts' },
@@ -60,14 +53,6 @@ const POSTS_PER_WEEK_OPTIONS = [
   { value: 4, label: '4 Posts' },
   { value: 5, label: '5 Posts' },
 ];
-
-const PLATFORM_COLORS = {
-  instagram:          '#e1306c',
-  facebook:           '#1877f2',
-  linkedin:           '#0077b5',
-  youtube:            '#ff0000',
-  google_my_business: '#34a853',
-};
 
 const LOADING_STEPS = [
   'Analyzing your business…',
@@ -92,7 +77,8 @@ export default function PostIdeasPage({ clientId: propClientId = null }) {
   return <AccountScope>{(identity, enabled, key) => enabled && <IdeasAccount key={`${key}:${propClientId}:${search.get('client')}`} identity={identity} propClientId={propClientId} />}</AccountScope>;
 }
 function IdeasAccount({ identity, propClientId }) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const registryOptions = usePlatformOptions('publish');
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
   const lookupResource = useLookups();
@@ -104,7 +90,7 @@ function IdeasAccount({ identity, propClientId }) {
     value: Number(item.key) || index + 1,
     label: item.label || String(item.key),
   })) || MONTHS.map((label, index) => ({ value: index + 1, label }));
-  const platformOptions = lookups.platforms?.map(item => ({ value: item.key, label: item.label })) || PLATFORMS;
+  const platformOptions = registryOptions.map(p => ({ ...p, label: language === 'fa' ? p.label_fa : p.label }));
   const isAdmin  = user?.role === 'superadmin' || user?.role === 'staff';
   const showClientSelector = isAdmin && !propClientId;
   const queryClientId = searchParams.get('client');
@@ -123,7 +109,7 @@ function IdeasAccount({ identity, propClientId }) {
     location:        '',
     target_audience: '',
     upcoming_events: '',
-    platforms:       ['facebook', 'instagram'],
+    platforms:       [],
     posts_per_week:  5,
   });
 
@@ -270,7 +256,7 @@ function IdeasAccount({ identity, propClientId }) {
         return Object.entries(counts).map(([name, value]) => ({
           name: name.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()),
           value,
-          fill: PLATFORM_COLORS[name] || '#00d7ff',
+          fill: platformPresentation[name]?.color || '#00d7ff',
         }));
       })()
     : [];
@@ -752,7 +738,7 @@ function IdeaCard({ idea, platformOptions, editingIdea, saving, onToggleApprove,
   const isEditingTopic    = editingIdea?.id === idea.id && editingIdea?.field === 'topic';
   const isEditingCaption  = editingIdea?.id === idea.id && editingIdea?.field === 'caption_hint';
 
-  const platformColor = PLATFORM_COLORS[idea.platform] || '#00d7ff';
+  const platformColor = platformPresentation[idea.platform]?.color || '#00d7ff';
   const platformLabel = platformOptions.find(p => p.value === idea.platform)?.label || idea.platform;
 
   let cardBorder = '1px solid var(--border-default)';

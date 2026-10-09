@@ -10,54 +10,14 @@ import { apiBaseUrl } from '../lib/runtime/config';
 import { persistentStorage } from '../lib/runtime/storage';
 
 import { useEffect, useState } from 'react';
-import platformCapabilities from './platformCapabilities.json';
+import platformCatalogue from './platformCatalogue.generated.json';
+import { legacyPlatformMap, platformColor, platformOptions } from './platformPresentation';
 import { oauthAPI } from './api';
 import { botChannelsAPI } from './botChannels';
 
-export const PLATFORMS = {
-  facebook: {
-    label: 'Facebook', shortLabel: 'Facebook', color: '#1877F2', bg: '#EBF3FF', maxText: 63206,
-    types: ['text','image','video','carousel','reel'],
-    metrics: ['impressions','reach','clicks','likes','followers','profile_views'],
-  },
-  instagram: {
-    label: 'Instagram', shortLabel: 'Instagram', color: '#E1306C', bg: '#FDE8F0', maxText: 2200,
-    types: ['image','video','carousel','reel','story'],
-    metrics: ['impressions','reach','clicks','likes','saves','video_views','followers'],
-  },
-  linkedin: {
-    label: 'LinkedIn', shortLabel: 'LinkedIn', color: '#0A66C2', bg: '#E8F0F9', maxText: 3000,
-    types: ['text','image','video','carousel'],
-    metrics: ['impressions','clicks','followers','engagement_rate'],
-  },
-  youtube: {
-    label: 'YouTube', shortLabel: 'YouTube', color: '#FF0000', bg: '#FFE9E9', maxText: 5000,
-    types: ['video','reel'],
-    metrics: ['video_views','impressions','likes','comments','shares','followers','ctr'],
-  },
-  google_my_business: {
-    label: 'Google Business Profile', shortLabel: 'GBP', color: '#34A853', bg: '#E6F4EA', maxText: 1500,
-    types: ['text','image'],
-    metrics: ['impressions','website_clicks','phone_calls','direction_requests'],
-  },
-  telegram: {
-    label: 'Telegram', shortLabel: 'Telegram', color: '#229ED9', bg: '#E7F5FC', maxText: 4096,
-    types: ['text','image','video','carousel','album','rich','poll'], metrics: [],
-  },
-  bale: {
-    label: 'Bale', shortLabel: 'Bale', color: '#00A884', bg: '#E7F8F3', maxText: 4096,
-    types: ['text','image','video','carousel'], metrics: [],
-  },
-  eitaa: {
-    label: 'Eitaa', shortLabel: 'Eitaa', color: '#F58220', bg: '#FFF3E8', maxText: 4096,
-    types: ['text','image','video'], metrics: [],
-  },
-  aparat: {
-    label: 'Aparat', shortLabel: 'Aparat', color: '#ED145B', bg: '#FDE8EF', maxText: 5000,
-    types: ['video'], metrics: [],
-  },
-};
-
+// Compatibility objects are derived, never independent platform declarations.
+export const PLATFORMS = legacyPlatformMap(platformCatalogue.platforms);
+const platformCapabilities = Object.fromEntries(platformCatalogue.platforms.map(p => [p.key, { label: p.titles.en, capabilities: p.capabilities, features: p.features }]));
 export const PLATFORM_LIST = Object.keys(PLATFORMS);
 export const PLATFORM_CAPABILITIES = platformCapabilities;
 export const ACTIVE_CAPABILITY_STATUSES = ['supported', 'beta'];
@@ -85,39 +45,10 @@ export function hasFeature(platform, feature, destinationType) {
   return Boolean(PLATFORM_CAPABILITIES[platform]?.features?.destinations?.[destinationType]?.[field]);
 }
 
-const FALLBACK_CATEGORIES = [
-  { key: 'messaging', order: 10, title_fa: 'پیام‌رسان‌ها', title_en: 'Messaging' },
-  { key: 'video', order: 20, title_fa: 'ویدئومحور', title_en: 'Video' },
-  { key: 'social_content', order: 30, title_fa: 'شبکه‌های اجتماعی محتوایی', title_en: 'Content social networks' },
-  { key: 'location', order: 40, title_fa: 'مکان‌محور', title_en: 'Location based' },
-  { key: 'general_social', order: 50, title_fa: 'شبکه‌های اجتماعی عمومی', title_en: 'General social networks' },
-  { key: 'professional', order: 60, title_fa: 'شبکه‌های حرفه‌ای', title_en: 'Professional networks' },
-];
+const FALLBACK_CATEGORIES = platformCatalogue.categories;
+const FALLBACK_PLATFORM_METADATA = platformCatalogue.platforms;
 
-const FALLBACK_PLATFORM_METADATA = [
-  ['telegram', 'تلگرام', 'Telegram', 'messaging', 'bot_token', 'active'],
-  ['bale', 'بله', 'Bale', 'messaging', 'bot_token', 'active'],
-  ['eitaa', 'ایتا', 'Eitaa', 'messaging', 'bot_token', 'experimental'],
-  ['youtube', 'یوتیوب', 'YouTube', 'video', 'oauth2', 'active'],
-  ['aparat', 'آپارات', 'Aparat', 'video', 'api_key', 'experimental'],
-  ['instagram', 'اینستاگرام', 'Instagram', 'social_content', 'oauth2', 'active'],
-  ['tiktok', 'تیک‌تاک', 'TikTok', 'social_content', 'oauth2', 'experimental'],
-  ['google_my_business', 'کسب‌وکار گوگل', 'Google Business Profile', 'location', 'oauth2', 'active'],
-  ['neshan', 'نشان', 'Neshan', 'location', 'api_key', 'experimental'],
-  ['facebook', 'فیس‌بوک', 'Facebook', 'general_social', 'oauth2', 'active'],
-  ['linkedin', 'لینکدین', 'LinkedIn', 'professional', 'oauth2', 'active'],
-].map(([key, fa, en, category, auth_type, rollout_status], index) => ({
-  key,
-  titles: { fa, en },
-  category,
-  order: (index + 1) * 10,
-  auth_type,
-  rollout_status,
-  capabilities: platformCapabilities[key]?.capabilities || {},
-  features: platformCapabilities[key]?.features || {},
-}));
-
-const STORAGE_KEY = 'platform-registry-v2';
+const STORAGE_KEY = 'platform-registry-v3';
 const listeners = new Set();
 const OAUTH_PROVIDER = {
   facebook: 'facebook',
@@ -159,6 +90,12 @@ let registryRequest = null;
 
 function publishRegistry(next) {
   runtimeRegistry = next;
+  const presentation = legacyPlatformMap(next.platforms);
+  for (const key of Object.keys(PLATFORMS)) delete PLATFORMS[key];
+  Object.assign(PLATFORMS, presentation);
+  PLATFORM_LIST.splice(0, PLATFORM_LIST.length, ...Object.keys(presentation));
+  for (const key of Object.keys(PLATFORM_CAPABILITIES)) delete PLATFORM_CAPABILITIES[key];
+  Object.assign(PLATFORM_CAPABILITIES, Object.fromEntries(next.platforms.map(p => [p.key, { capabilities: p.capabilities, features: p.features }])));
   syncUiPlatformRegistry();
   listeners.forEach(listener => listener(next));
   if (typeof window !== 'undefined') {
@@ -247,8 +184,8 @@ function connectionSchema(metadata) {
 }
 
 function uiPlatform(metadata) {
-  const legacy = PLATFORMS[metadata.key] || {};
-  const declaredTypes = legacy.types || Object.keys(MEDIA_CAPABILITY);
+  const legacy = legacyPlatformMap([metadata])[metadata.key] || {};
+  const declaredTypes = legacy.types?.length ? legacy.types : Object.keys(MEDIA_CAPABILITY);
   const supportedTypes = declaredTypes.filter(type => {
     const feature = { album: 'mixed_media_group', rich: 'rich_message', poll: 'polls' }[type];
     if (feature) return metadata.key === 'telegram' && enabledStatus(metadata.features?.support?.[feature]);
@@ -267,8 +204,8 @@ function uiPlatform(metadata) {
     authType: authTypeFor(metadata.auth_type),
     capabilityStatuses: metadata.capabilities || {},
     capabilities: supportedTypes,
-    color: legacy.color || '#64748B',
-    bg: legacy.bg || '#F1F5F9',
+    color: platformColor(metadata),
+    bg: `${platformColor(metadata)}15`,
     metrics: legacy.metrics || [],
     maxText: legacy.maxText || 5000,
     connection: connectionSchema(metadata),
@@ -468,4 +405,10 @@ export function getPlatformLabel(platform, { short = false } = {}) {
   const runtime = runtimeRegistry.platforms.find(item => item.key === platform);
   if (!runtime) return platform;
   return runtime.titles?.en || platform;
+}
+
+
+export function usePlatformOptions(capability) {
+  const { platforms } = usePlatformRegistry();
+  return platformOptions(capability, platforms);
 }

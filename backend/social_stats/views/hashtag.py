@@ -42,12 +42,9 @@ SYSTEM_PROMPT = (
     "Return valid JSON only."
 )
 
-PLATFORM_RULES = {
-    'instagram': 'Instagram: 20-30 hashtags, mix all tiers',
-    'facebook':  'Facebook: 3-5 hashtags maximum',
-    'linkedin':  'LinkedIn: 3-5 professional hashtags',
-    'youtube':   'YouTube: 5-10 in description',
-}
+from social_stats.platforms.catalogue import writing_guidance
+
+PLATFORM_RULES = writing_guidance('hashtag')
 
 
 # ── helpers ───────────────────────────────────────────────────────────────────

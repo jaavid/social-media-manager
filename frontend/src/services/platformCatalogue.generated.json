@@ -1,0 +1,1826 @@
+{
+  "categories": [
+    {
+      "key": "messaging",
+      "order": 10,
+      "title_fa": "پیام‌رسان‌ها",
+      "title_en": "Messaging"
+    },
+    {
+      "key": "video",
+      "order": 20,
+      "title_fa": "ویدئومحور",
+      "title_en": "Video"
+    },
+    {
+      "key": "social_content",
+      "order": 30,
+      "title_fa": "شبکه‌های اجتماعی محتوایی",
+      "title_en": "Content social networks"
+    },
+    {
+      "key": "location",
+      "order": 40,
+      "title_fa": "مکان‌محور",
+      "title_en": "Location based"
+    },
+    {
+      "key": "general_social",
+      "order": 50,
+      "title_fa": "شبکه‌های اجتماعی عمومی",
+      "title_en": "General social networks"
+    },
+    {
+      "key": "professional",
+      "order": 60,
+      "title_fa": "شبکه‌های حرفه‌ای",
+      "title_en": "Professional networks"
+    }
+  ],
+  "platforms": [
+    {
+      "key": "telegram",
+      "titles": {
+        "fa": "تلگرام",
+        "en": "Telegram"
+      },
+      "category": "messaging",
+      "order": 10,
+      "auth_type": "bot_token",
+      "rollout_status": "active",
+      "capabilities": {
+        "connection": "supported",
+        "disconnect": "supported",
+        "publish_text": "supported",
+        "publish_image": "supported",
+        "publish_video": "supported",
+        "scheduling": "supported",
+        "analytics": "not_available",
+        "inbox": "supported",
+        "comments": "not_available",
+        "reviews": "not_available",
+        "webhooks": "supported"
+      },
+      "features": {
+        "support": {
+          "media_group": "supported",
+          "mixed_media_group": "supported",
+          "rich_message": "supported",
+          "rich_slideshow": "supported",
+          "rich_collage": "supported",
+          "interactive_buttons": "supported",
+          "inbound_updates": "supported",
+          "channel_direct_messages": "supported",
+          "suggested_posts": "supported",
+          "forum_topics": "supported",
+          "streamed_drafts": "supported",
+          "polls": "supported"
+        },
+        "media_group": {
+          "min_items": 2,
+          "max_items": 10,
+          "media_types": [
+            "photo",
+            "video"
+          ],
+          "caption": "first_item",
+          "fallback": "single_image"
+        },
+        "destinations": {
+          "channel": {
+            "message_thread_id": false,
+            "direct_messages_topic_id": false,
+            "streamed_drafts": false
+          },
+          "group": {
+            "message_thread_id": false,
+            "direct_messages_topic_id": false,
+            "streamed_drafts": false
+          },
+          "supergroup": {
+            "message_thread_id": false,
+            "direct_messages_topic_id": false,
+            "streamed_drafts": false
+          },
+          "forum_supergroup": {
+            "message_thread_id": true,
+            "direct_messages_topic_id": false,
+            "streamed_drafts": false
+          },
+          "channel_direct_messages": {
+            "message_thread_id": false,
+            "direct_messages_topic_id": true,
+            "streamed_drafts": false
+          },
+          "private": {
+            "message_thread_id": false,
+            "direct_messages_topic_id": false,
+            "streamed_drafts": true
+          },
+          "private_forum": {
+            "message_thread_id": true,
+            "direct_messages_topic_id": false,
+            "streamed_drafts": true
+          }
+        },
+        "fallback": "explicit_only"
+      },
+      "contract": {
+        "version": 1,
+        "auth": {
+          "strategy": "bot_token",
+          "fields": [
+            {
+              "key": "token",
+              "title_en": "Bot token",
+              "title_fa": "توکن ربات",
+              "secret": true,
+              "required": true,
+              "normalization": "trim"
+            },
+            {
+              "key": "destination_id",
+              "title_en": "Destination ID",
+              "title_fa": "شناسه مقصد",
+              "secret": false,
+              "required": true,
+              "normalization": "trim"
+            }
+          ],
+          "start_path": ""
+        },
+        "destination_types": [
+          "channel",
+          "group",
+          "profile",
+          "business",
+          "location",
+          "topic"
+        ],
+        "publishing_modes": {
+          "text": {
+            "capability": "publish_text",
+            "constraints": {
+              "status": "supported",
+              "media_types": [
+                "text"
+              ],
+              "destination_types": [],
+              "scopes": [],
+              "min_items": null,
+              "max_items": null,
+              "max_bytes": null,
+              "max_characters": 4096,
+              "mime_types": [],
+              "aspect_min": null,
+              "aspect_max": null,
+              "max_seconds": null,
+              "max_width": null,
+              "min_width": null,
+              "min_height": null
+            },
+            "ui_extension": "telegram_composer"
+          },
+          "image": {
+            "capability": "publish_image",
+            "constraints": {
+              "status": "supported",
+              "media_types": [
+                "image"
+              ],
+              "destination_types": [],
+              "scopes": [],
+              "min_items": 1,
+              "max_items": 1,
+              "max_bytes": null,
+              "max_characters": 1024,
+              "mime_types": [],
+              "aspect_min": null,
+              "aspect_max": null,
+              "max_seconds": null,
+              "max_width": null,
+              "min_width": null,
+              "min_height": null
+            },
+            "ui_extension": "telegram_composer"
+          },
+          "video": {
+            "capability": "publish_video",
+            "constraints": {
+              "status": "supported",
+              "media_types": [
+                "video"
+              ],
+              "destination_types": [],
+              "scopes": [],
+              "min_items": 1,
+              "max_items": 1,
+              "max_bytes": null,
+              "max_characters": 1024,
+              "mime_types": [],
+              "aspect_min": null,
+              "aspect_max": null,
+              "max_seconds": null,
+              "max_width": null,
+              "min_width": null,
+              "min_height": null
+            },
+            "ui_extension": "telegram_composer"
+          },
+          "carousel": {
+            "capability": "publish_image",
+            "constraints": {
+              "status": "supported",
+              "media_types": [
+                "carousel"
+              ],
+              "destination_types": [],
+              "scopes": [],
+              "min_items": 1,
+              "max_items": 10,
+              "max_bytes": null,
+              "max_characters": 1024,
+              "mime_types": [],
+              "aspect_min": null,
+              "aspect_max": null,
+              "max_seconds": null,
+              "max_width": null,
+              "min_width": null,
+              "min_height": null
+            },
+            "ui_extension": "telegram_composer"
+          },
+          "album": {
+            "capability": "publish_image",
+            "constraints": {
+              "status": "supported",
+              "media_types": [
+                "album"
+              ],
+              "destination_types": [],
+              "scopes": [],
+              "min_items": null,
+              "max_items": 10,
+              "max_bytes": null,
+              "max_characters": 1024,
+              "mime_types": [],
+              "aspect_min": null,
+              "aspect_max": null,
+              "max_seconds": null,
+              "max_width": null,
+              "min_width": null,
+              "min_height": null
+            },
+            "ui_extension": "telegram_composer"
+          },
+          "rich": {
+            "capability": "publish_text",
+            "constraints": {
+              "status": "supported",
+              "media_types": [
+                "rich"
+              ],
+              "destination_types": [],
+              "scopes": [],
+              "min_items": null,
+              "max_items": null,
+              "max_bytes": null,
+              "max_characters": 4096,
+              "mime_types": [],
+              "aspect_min": null,
+              "aspect_max": null,
+              "max_seconds": null,
+              "max_width": null,
+              "min_width": null,
+              "min_height": null
+            },
+            "ui_extension": "telegram_composer"
+          },
+          "poll": {
+            "capability": "publish_text",
+            "constraints": {
+              "status": "supported",
+              "media_types": [
+                "poll"
+              ],
+              "destination_types": [],
+              "scopes": [],
+              "min_items": null,
+              "max_items": null,
+              "max_bytes": null,
+              "max_characters": 4096,
+              "mime_types": [],
+              "aspect_min": null,
+              "aspect_max": null,
+              "max_seconds": null,
+              "max_width": null,
+              "min_width": null,
+              "min_height": null
+            },
+            "ui_extension": "telegram_composer"
+          }
+        },
+        "constraints": {},
+        "brand": {
+          "icon": "telegram",
+          "color": "#229ED9"
+        },
+        "analytics": {
+          "metrics": [],
+          "sync_available": false
+        },
+        "inbound": "none",
+        "extensions": [],
+        "ui_extensions": [
+          "telegram_settings",
+          "telegram_composer",
+          "telegram_engagement"
+        ],
+        "resilience": {
+          "retry_after": true,
+          "max_attempts": 3,
+          "mutation_retry": "reconcile_first",
+          "idempotency": "local",
+          "reconciliation": "manual"
+        }
+      }
+    },
+    {
+      "key": "bale",
+      "titles": {
+        "fa": "بله",
+        "en": "Bale"
+      },
+      "category": "messaging",
+      "order": 20,
+      "auth_type": "bot_token",
+      "rollout_status": "active",
+      "capabilities": {
+        "connection": "supported",
+        "disconnect": "supported",
+        "publish_text": "supported",
+        "publish_image": "supported",
+        "publish_video": "supported",
+        "scheduling": "supported",
+        "analytics": "not_available",
+        "inbox": "planned",
+        "comments": "not_available",
+        "reviews": "not_available",
+        "webhooks": "planned"
+      },
+      "features": {
+        "support": {
+          "media_group": "supported",
+          "mixed_media_group": "not_available",
+          "rich_message": "not_available",
+          "rich_slideshow": "not_available",
+          "rich_collage": "not_available",
+          "interactive_buttons": "not_available",
+          "inbound_updates": "not_available",
+          "channel_direct_messages": "not_available",
+          "suggested_posts": "not_available",
+          "forum_topics": "not_available",
+          "streamed_drafts": "not_available",
+          "polls": "not_available"
+        },
+        "media_group": {
+          "min_items": 2,
+          "max_items": 10,
+          "media_types": [
+            "photo"
+          ],
+          "caption": "first_item",
+          "fallback": "single_image"
+        },
+        "destinations": {
+          "channel": {
+            "message_thread_id": false,
+            "direct_messages_topic_id": false,
+            "streamed_drafts": false
+          },
+          "group": {
+            "message_thread_id": false,
+            "direct_messages_topic_id": false,
+            "streamed_drafts": false
+          },
+          "supergroup": {
+            "message_thread_id": false,
+            "direct_messages_topic_id": false,
+            "streamed_drafts": false
+          },
+          "forum_supergroup": {
+            "message_thread_id": false,
+            "direct_messages_topic_id": false,
+            "streamed_drafts": false
+          },
+          "channel_direct_messages": {
+            "message_thread_id": false,
+            "direct_messages_topic_id": false,
+            "streamed_drafts": false
+          },
+          "private": {
+            "message_thread_id": false,
+            "direct_messages_topic_id": false,
+            "streamed_drafts": false
+          },
+          "private_forum": {
+            "message_thread_id": false,
+            "direct_messages_topic_id": false,
+            "streamed_drafts": false
+          }
+        },
+        "fallback": "explicit_only"
+      },
+      "contract": {
+        "version": 1,
+        "auth": {
+          "strategy": "bot_token",
+          "fields": [
+            {
+              "key": "token",
+              "title_en": "Bot token",
+              "title_fa": "توکن ربات",
+              "secret": true,
+              "required": true,
+              "normalization": "trim"
+            },
+            {
+              "key": "destination_id",
+              "title_en": "Destination ID",
+              "title_fa": "شناسه مقصد",
+              "secret": false,
+              "required": true,
+              "normalization": "trim"
+            }
+          ],
+          "start_path": ""
+        },
+        "destination_types": [
+          "channel",
+          "group",
+          "profile",
+          "business",
+          "location",
+          "topic"
+        ],
+        "publishing_modes": {
+          "text": {
+            "capability": "publish_text",
+            "constraints": {
+              "status": "supported",
+              "media_types": [
+                "text"
+              ],
+              "destination_types": [],
+              "scopes": [],
+              "min_items": null,
+              "max_items": null,
+              "max_bytes": null,
+              "max_characters": 4096,
+              "mime_types": [],
+              "aspect_min": null,
+              "aspect_max": null,
+              "max_seconds": null,
+              "max_width": null,
+              "min_width": null,
+              "min_height": null
+            },
+            "ui_extension": ""
+          },
+          "image": {
+            "capability": "publish_image",
+            "constraints": {
+              "status": "supported",
+              "media_types": [
+                "image"
+              ],
+              "destination_types": [],
+              "scopes": [],
+              "min_items": 1,
+              "max_items": 1,
+              "max_bytes": null,
+              "max_characters": 1024,
+              "mime_types": [],
+              "aspect_min": null,
+              "aspect_max": null,
+              "max_seconds": null,
+              "max_width": null,
+              "min_width": null,
+              "min_height": null
+            },
+            "ui_extension": ""
+          },
+          "video": {
+            "capability": "publish_video",
+            "constraints": {
+              "status": "supported",
+              "media_types": [
+                "video"
+              ],
+              "destination_types": [],
+              "scopes": [],
+              "min_items": 1,
+              "max_items": 1,
+              "max_bytes": null,
+              "max_characters": 1024,
+              "mime_types": [],
+              "aspect_min": null,
+              "aspect_max": null,
+              "max_seconds": null,
+              "max_width": null,
+              "min_width": null,
+              "min_height": null
+            },
+            "ui_extension": ""
+          },
+          "carousel": {
+            "capability": "publish_image",
+            "constraints": {
+              "status": "supported",
+              "media_types": [
+                "carousel"
+              ],
+              "destination_types": [],
+              "scopes": [],
+              "min_items": 1,
+              "max_items": 10,
+              "max_bytes": null,
+              "max_characters": 1024,
+              "mime_types": [],
+              "aspect_min": null,
+              "aspect_max": null,
+              "max_seconds": null,
+              "max_width": null,
+              "min_width": null,
+              "min_height": null
+            },
+            "ui_extension": ""
+          }
+        },
+        "constraints": {},
+        "brand": {
+          "icon": "bale",
+          "color": "#00A884"
+        },
+        "analytics": {
+          "metrics": [],
+          "sync_available": false
+        },
+        "inbound": "none",
+        "extensions": [],
+        "ui_extensions": [],
+        "resilience": {
+          "retry_after": true,
+          "max_attempts": 3,
+          "mutation_retry": "reconcile_first",
+          "idempotency": "local",
+          "reconciliation": "manual"
+        }
+      }
+    },
+    {
+      "key": "eitaa",
+      "titles": {
+        "fa": "ایتا",
+        "en": "Eitaa"
+      },
+      "category": "messaging",
+      "order": 30,
+      "auth_type": "bot_token",
+      "rollout_status": "experimental",
+      "capabilities": {
+        "connection": "planned",
+        "disconnect": "planned",
+        "publish_text": "planned",
+        "publish_image": "planned",
+        "publish_video": "planned",
+        "scheduling": "planned",
+        "analytics": "not_available",
+        "inbox": "planned",
+        "comments": "not_available",
+        "reviews": "not_available",
+        "webhooks": "planned"
+      },
+      "features": {},
+      "contract": {
+        "version": 1,
+        "auth": {
+          "strategy": "bot_token",
+          "fields": [
+            {
+              "key": "token",
+              "title_en": "Bot token",
+              "title_fa": "توکن ربات",
+              "secret": true,
+              "required": true,
+              "normalization": "trim"
+            },
+            {
+              "key": "destination_id",
+              "title_en": "Destination ID",
+              "title_fa": "شناسه مقصد",
+              "secret": false,
+              "required": true,
+              "normalization": "trim"
+            }
+          ],
+          "start_path": ""
+        },
+        "destination_types": [
+          "channel",
+          "group",
+          "profile",
+          "business",
+          "location",
+          "topic"
+        ],
+        "publishing_modes": {},
+        "constraints": {},
+        "brand": {
+          "icon": "eitaa",
+          "color": "#F58220"
+        },
+        "analytics": {
+          "metrics": [],
+          "sync_available": false
+        },
+        "inbound": "none",
+        "extensions": [],
+        "ui_extensions": [],
+        "resilience": {
+          "retry_after": true,
+          "max_attempts": 3,
+          "mutation_retry": "reconcile_first",
+          "idempotency": "local",
+          "reconciliation": "manual"
+        }
+      }
+    },
+    {
+      "key": "youtube",
+      "titles": {
+        "fa": "یوتیوب",
+        "en": "YouTube"
+      },
+      "category": "video",
+      "order": 10,
+      "auth_type": "oauth2",
+      "rollout_status": "active",
+      "capabilities": {
+        "connection": "supported",
+        "disconnect": "supported",
+        "publish_text": "not_available",
+        "publish_image": "not_available",
+        "publish_video": "supported",
+        "scheduling": "supported",
+        "analytics": "supported",
+        "inbox": "not_available",
+        "comments": "supported",
+        "reviews": "not_available",
+        "webhooks": "beta"
+      },
+      "features": {},
+      "contract": {
+        "version": 1,
+        "auth": {
+          "strategy": "oauth2",
+          "fields": [],
+          "start_path": "/api/oauth/google/start/{workspace_id}/?platform=youtube"
+        },
+        "destination_types": [
+          "channel",
+          "group",
+          "profile",
+          "business",
+          "location",
+          "topic"
+        ],
+        "publishing_modes": {
+          "video": {
+            "capability": "publish_video",
+            "constraints": {
+              "status": "supported",
+              "media_types": [
+                "video"
+              ],
+              "destination_types": [],
+              "scopes": [],
+              "min_items": 1,
+              "max_items": 1,
+              "max_bytes": 274877906944,
+              "max_characters": 5000,
+              "mime_types": [
+                "video/mp4",
+                "video/quicktime",
+                "video/webm",
+                "video/x-matroska"
+              ],
+              "aspect_min": null,
+              "aspect_max": null,
+              "max_seconds": 43200,
+              "max_width": null,
+              "min_width": null,
+              "min_height": null
+            },
+            "ui_extension": ""
+          },
+          "reel": {
+            "capability": "publish_video",
+            "constraints": {
+              "status": "supported",
+              "media_types": [
+                "reel"
+              ],
+              "destination_types": [],
+              "scopes": [],
+              "min_items": 1,
+              "max_items": 1,
+              "max_bytes": 268435456,
+              "max_characters": 5000,
+              "mime_types": [
+                "video/mp4"
+              ],
+              "aspect_min": null,
+              "aspect_max": null,
+              "max_seconds": 60,
+              "max_width": null,
+              "min_width": null,
+              "min_height": null
+            },
+            "ui_extension": ""
+          }
+        },
+        "constraints": {},
+        "brand": {
+          "icon": "youtube",
+          "color": "#FF0000"
+        },
+        "analytics": {
+          "metrics": [
+            {
+              "key": "views",
+              "title_en": "Video views",
+              "title_fa": "بازدید ویدیو",
+              "unit": "count",
+              "period": "day"
+            },
+            {
+              "key": "estimatedMinutesWatched",
+              "title_en": "Estimated watch time",
+              "title_fa": "زمان تخمینی تماشا",
+              "unit": "minutes",
+              "period": "day"
+            },
+            {
+              "key": "averageViewDuration",
+              "title_en": "Average view duration",
+              "title_fa": "میانگین زمان تماشا",
+              "unit": "seconds",
+              "period": "day"
+            },
+            {
+              "key": "subscribersGained",
+              "title_en": "Subscribers gained",
+              "title_fa": "مشترکان جدید",
+              "unit": "count",
+              "period": "day"
+            },
+            {
+              "key": "subscribersLost",
+              "title_en": "Subscribers lost",
+              "title_fa": "مشترکان ازدست‌رفته",
+              "unit": "count",
+              "period": "day"
+            },
+            {
+              "key": "likes",
+              "title_en": "Likes",
+              "title_fa": "پسندها",
+              "unit": "count",
+              "period": "day"
+            },
+            {
+              "key": "comments",
+              "title_en": "Comments",
+              "title_fa": "نظرها",
+              "unit": "count",
+              "period": "day"
+            },
+            {
+              "key": "shares",
+              "title_en": "Shares",
+              "title_fa": "اشتراک‌ها",
+              "unit": "count",
+              "period": "day"
+            }
+          ],
+          "sync_available": true
+        },
+        "inbound": "none",
+        "extensions": [],
+        "ui_extensions": [],
+        "resilience": {
+          "retry_after": true,
+          "max_attempts": 3,
+          "mutation_retry": "reconcile_first",
+          "idempotency": "local",
+          "reconciliation": "manual"
+        }
+      }
+    },
+    {
+      "key": "aparat",
+      "titles": {
+        "fa": "آپارات",
+        "en": "Aparat"
+      },
+      "category": "video",
+      "order": 20,
+      "auth_type": "api_key",
+      "rollout_status": "experimental",
+      "capabilities": {
+        "connection": "planned",
+        "disconnect": "planned",
+        "publish_text": "not_available",
+        "publish_image": "not_available",
+        "publish_video": "planned",
+        "scheduling": "planned",
+        "analytics": "planned",
+        "inbox": "not_available",
+        "comments": "planned",
+        "reviews": "not_available",
+        "webhooks": "planned"
+      },
+      "features": {},
+      "contract": {
+        "version": 1,
+        "auth": {
+          "strategy": "api_key",
+          "fields": [
+            {
+              "key": "api_key",
+              "title_en": "API key",
+              "title_fa": "کلید API",
+              "secret": true,
+              "required": true,
+              "normalization": "trim"
+            }
+          ],
+          "start_path": ""
+        },
+        "destination_types": [
+          "channel",
+          "group",
+          "profile",
+          "business",
+          "location",
+          "topic"
+        ],
+        "publishing_modes": {},
+        "constraints": {},
+        "brand": {
+          "icon": "aparat",
+          "color": "#ED145B"
+        },
+        "analytics": {
+          "metrics": [],
+          "sync_available": false
+        },
+        "inbound": "none",
+        "extensions": [],
+        "ui_extensions": [],
+        "resilience": {
+          "retry_after": true,
+          "max_attempts": 3,
+          "mutation_retry": "reconcile_first",
+          "idempotency": "local",
+          "reconciliation": "manual"
+        }
+      }
+    },
+    {
+      "key": "instagram",
+      "titles": {
+        "fa": "اینستاگرام",
+        "en": "Instagram"
+      },
+      "category": "social_content",
+      "order": 10,
+      "auth_type": "oauth2",
+      "rollout_status": "active",
+      "capabilities": {
+        "connection": "supported",
+        "disconnect": "supported",
+        "publish_text": "not_available",
+        "publish_image": "supported",
+        "publish_video": "supported",
+        "scheduling": "supported",
+        "analytics": "supported",
+        "inbox": "supported",
+        "comments": "supported",
+        "reviews": "not_available",
+        "webhooks": "supported"
+      },
+      "features": {},
+      "contract": {
+        "version": 1,
+        "auth": {
+          "strategy": "oauth2",
+          "fields": [],
+          "start_path": "/api/oauth/facebook/start/{workspace_id}/?platform=instagram"
+        },
+        "destination_types": [
+          "channel",
+          "group",
+          "profile",
+          "business",
+          "location",
+          "topic"
+        ],
+        "publishing_modes": {
+          "image": {
+            "capability": "publish_image",
+            "constraints": {
+              "status": "supported",
+              "media_types": [
+                "image"
+              ],
+              "destination_types": [],
+              "scopes": [],
+              "min_items": 1,
+              "max_items": 1,
+              "max_bytes": 8388608,
+              "max_characters": 2200,
+              "mime_types": [
+                "image/jpeg"
+              ],
+              "aspect_min": 0.8,
+              "aspect_max": 1.91,
+              "max_seconds": null,
+              "max_width": 1440,
+              "min_width": 320,
+              "min_height": null
+            },
+            "ui_extension": ""
+          },
+          "video": {
+            "capability": "publish_video",
+            "constraints": {
+              "status": "supported",
+              "media_types": [
+                "video"
+              ],
+              "destination_types": [],
+              "scopes": [],
+              "min_items": 1,
+              "max_items": 1,
+              "max_bytes": 1073741824,
+              "max_characters": 2200,
+              "mime_types": [
+                "video/mp4",
+                "video/quicktime"
+              ],
+              "aspect_min": 0.8,
+              "aspect_max": 1.7777777777777777,
+              "max_seconds": 60,
+              "max_width": null,
+              "min_width": null,
+              "min_height": null
+            },
+            "ui_extension": ""
+          },
+          "carousel": {
+            "capability": "publish_image",
+            "constraints": {
+              "status": "supported",
+              "media_types": [
+                "carousel"
+              ],
+              "destination_types": [],
+              "scopes": [],
+              "min_items": 1,
+              "max_items": 10,
+              "max_bytes": null,
+              "max_characters": 2200,
+              "mime_types": [],
+              "aspect_min": null,
+              "aspect_max": null,
+              "max_seconds": null,
+              "max_width": null,
+              "min_width": null,
+              "min_height": null
+            },
+            "ui_extension": ""
+          },
+          "reel": {
+            "capability": "publish_video",
+            "constraints": {
+              "status": "supported",
+              "media_types": [
+                "reel"
+              ],
+              "destination_types": [],
+              "scopes": [],
+              "min_items": 1,
+              "max_items": 1,
+              "max_bytes": 1073741824,
+              "max_characters": 2200,
+              "mime_types": [
+                "video/mp4"
+              ],
+              "aspect_min": null,
+              "aspect_max": null,
+              "max_seconds": 90,
+              "max_width": null,
+              "min_width": null,
+              "min_height": null
+            },
+            "ui_extension": ""
+          },
+          "story": {
+            "capability": "publish_image",
+            "constraints": {
+              "status": "supported",
+              "media_types": [
+                "story"
+              ],
+              "destination_types": [],
+              "scopes": [],
+              "min_items": 1,
+              "max_items": 1,
+              "max_bytes": 104857600,
+              "max_characters": 2200,
+              "mime_types": [
+                "image/jpeg",
+                "video/mp4"
+              ],
+              "aspect_min": null,
+              "aspect_max": null,
+              "max_seconds": 60,
+              "max_width": null,
+              "min_width": null,
+              "min_height": null
+            },
+            "ui_extension": ""
+          }
+        },
+        "constraints": {},
+        "brand": {
+          "icon": "instagram",
+          "color": "#E1306C"
+        },
+        "analytics": {
+          "metrics": [
+            {
+              "key": "reach",
+              "title_en": "Daily reach",
+              "title_fa": "دسترسی روزانه",
+              "unit": "count",
+              "period": "day"
+            },
+            {
+              "key": "total_interactions",
+              "title_en": "Total interactions",
+              "title_fa": "مجموع تعامل‌ها",
+              "unit": "count",
+              "period": "day"
+            },
+            {
+              "key": "profile_views",
+              "title_en": "Profile views",
+              "title_fa": "بازدید نمایه",
+              "unit": "count",
+              "period": "day"
+            },
+            {
+              "key": "follower_count",
+              "title_en": "Follower count",
+              "title_fa": "تعداد دنبال‌کنندگان",
+              "unit": "count",
+              "period": "day"
+            },
+            {
+              "key": "likes",
+              "title_en": "Likes",
+              "title_fa": "پسندها",
+              "unit": "count",
+              "period": "day"
+            },
+            {
+              "key": "comments",
+              "title_en": "Comments",
+              "title_fa": "نظرها",
+              "unit": "count",
+              "period": "day"
+            },
+            {
+              "key": "shares",
+              "title_en": "Shares",
+              "title_fa": "اشتراک‌ها",
+              "unit": "count",
+              "period": "day"
+            },
+            {
+              "key": "saves",
+              "title_en": "Saves",
+              "title_fa": "ذخیره‌ها",
+              "unit": "count",
+              "period": "day"
+            }
+          ],
+          "sync_available": true
+        },
+        "inbound": "none",
+        "extensions": [],
+        "ui_extensions": [],
+        "resilience": {
+          "retry_after": true,
+          "max_attempts": 3,
+          "mutation_retry": "reconcile_first",
+          "idempotency": "local",
+          "reconciliation": "manual"
+        }
+      }
+    },
+    {
+      "key": "tiktok",
+      "titles": {
+        "fa": "تیک‌تاک",
+        "en": "TikTok"
+      },
+      "category": "social_content",
+      "order": 20,
+      "auth_type": "oauth2",
+      "rollout_status": "experimental",
+      "capabilities": {
+        "connection": "not_available",
+        "disconnect": "not_available",
+        "publish_text": "not_available",
+        "publish_image": "not_available",
+        "publish_video": "not_available",
+        "scheduling": "not_available",
+        "analytics": "not_available",
+        "inbox": "not_available",
+        "comments": "not_available",
+        "reviews": "not_available",
+        "webhooks": "not_available"
+      },
+      "features": {},
+      "contract": {
+        "version": 1,
+        "auth": {
+          "strategy": "oauth2",
+          "fields": [],
+          "start_path": ""
+        },
+        "destination_types": [
+          "channel",
+          "group",
+          "profile",
+          "business",
+          "location",
+          "topic"
+        ],
+        "publishing_modes": {},
+        "constraints": {},
+        "brand": {
+          "icon": "",
+          "color": ""
+        },
+        "analytics": {
+          "metrics": [],
+          "sync_available": false
+        },
+        "inbound": "none",
+        "extensions": [],
+        "ui_extensions": [],
+        "resilience": {
+          "retry_after": true,
+          "max_attempts": 3,
+          "mutation_retry": "reconcile_first",
+          "idempotency": "local",
+          "reconciliation": "manual"
+        }
+      }
+    },
+    {
+      "key": "google_my_business",
+      "titles": {
+        "fa": "کسب‌وکار گوگل",
+        "en": "Google Business Profile"
+      },
+      "category": "location",
+      "order": 10,
+      "auth_type": "oauth2",
+      "rollout_status": "active",
+      "capabilities": {
+        "connection": "supported",
+        "disconnect": "supported",
+        "publish_text": "supported",
+        "publish_image": "supported",
+        "publish_video": "not_available",
+        "scheduling": "supported",
+        "analytics": "supported",
+        "inbox": "not_available",
+        "comments": "not_available",
+        "reviews": "supported",
+        "webhooks": "not_available"
+      },
+      "features": {},
+      "contract": {
+        "version": 1,
+        "auth": {
+          "strategy": "oauth2",
+          "fields": [],
+          "start_path": "/api/oauth/google/start/{workspace_id}/?platform=google_my_business"
+        },
+        "destination_types": [
+          "channel",
+          "group",
+          "profile",
+          "business",
+          "location",
+          "topic"
+        ],
+        "publishing_modes": {
+          "text": {
+            "capability": "publish_text",
+            "constraints": {
+              "status": "supported",
+              "media_types": [
+                "text"
+              ],
+              "destination_types": [],
+              "scopes": [],
+              "min_items": null,
+              "max_items": null,
+              "max_bytes": null,
+              "max_characters": 1500,
+              "mime_types": [],
+              "aspect_min": null,
+              "aspect_max": null,
+              "max_seconds": null,
+              "max_width": null,
+              "min_width": null,
+              "min_height": null
+            },
+            "ui_extension": ""
+          },
+          "image": {
+            "capability": "publish_image",
+            "constraints": {
+              "status": "supported",
+              "media_types": [
+                "image"
+              ],
+              "destination_types": [],
+              "scopes": [],
+              "min_items": 1,
+              "max_items": 1,
+              "max_bytes": 5242880,
+              "max_characters": 1500,
+              "mime_types": [
+                "image/jpeg",
+                "image/png"
+              ],
+              "aspect_min": null,
+              "aspect_max": null,
+              "max_seconds": null,
+              "max_width": null,
+              "min_width": 250,
+              "min_height": 250
+            },
+            "ui_extension": ""
+          }
+        },
+        "constraints": {},
+        "brand": {
+          "icon": "google_my_business",
+          "color": "#34A853"
+        },
+        "analytics": {
+          "metrics": [
+            {
+              "key": "website_clicks",
+              "title_en": "Website clicks",
+              "title_fa": "کلیک وب‌سایت",
+              "unit": "count",
+              "period": "day"
+            },
+            {
+              "key": "phone_calls",
+              "title_en": "Call clicks",
+              "title_fa": "کلیک تماس",
+              "unit": "count",
+              "period": "day"
+            },
+            {
+              "key": "direction_requests",
+              "title_en": "Direction requests",
+              "title_fa": "درخواست مسیر",
+              "unit": "count",
+              "period": "day"
+            }
+          ],
+          "sync_available": true
+        },
+        "inbound": "none",
+        "extensions": [],
+        "ui_extensions": [],
+        "resilience": {
+          "retry_after": true,
+          "max_attempts": 3,
+          "mutation_retry": "reconcile_first",
+          "idempotency": "local",
+          "reconciliation": "manual"
+        }
+      }
+    },
+    {
+      "key": "neshan",
+      "titles": {
+        "fa": "نشان",
+        "en": "Neshan"
+      },
+      "category": "location",
+      "order": 20,
+      "auth_type": "api_key",
+      "rollout_status": "experimental",
+      "capabilities": {
+        "connection": "not_available",
+        "disconnect": "not_available",
+        "publish_text": "not_available",
+        "publish_image": "not_available",
+        "publish_video": "not_available",
+        "scheduling": "not_available",
+        "analytics": "not_available",
+        "inbox": "not_available",
+        "comments": "not_available",
+        "reviews": "not_available",
+        "webhooks": "not_available"
+      },
+      "features": {},
+      "contract": {
+        "version": 1,
+        "auth": {
+          "strategy": "api_key",
+          "fields": [
+            {
+              "key": "api_key",
+              "title_en": "API key",
+              "title_fa": "کلید API",
+              "secret": true,
+              "required": true,
+              "normalization": "trim"
+            }
+          ],
+          "start_path": ""
+        },
+        "destination_types": [
+          "channel",
+          "group",
+          "profile",
+          "business",
+          "location",
+          "topic"
+        ],
+        "publishing_modes": {},
+        "constraints": {},
+        "brand": {
+          "icon": "",
+          "color": ""
+        },
+        "analytics": {
+          "metrics": [],
+          "sync_available": false
+        },
+        "inbound": "none",
+        "extensions": [],
+        "ui_extensions": [],
+        "resilience": {
+          "retry_after": true,
+          "max_attempts": 3,
+          "mutation_retry": "reconcile_first",
+          "idempotency": "local",
+          "reconciliation": "manual"
+        }
+      }
+    },
+    {
+      "key": "facebook",
+      "titles": {
+        "fa": "فیس‌بوک",
+        "en": "Facebook"
+      },
+      "category": "general_social",
+      "order": 10,
+      "auth_type": "oauth2",
+      "rollout_status": "active",
+      "capabilities": {
+        "connection": "supported",
+        "disconnect": "supported",
+        "publish_text": "supported",
+        "publish_image": "supported",
+        "publish_video": "supported",
+        "scheduling": "supported",
+        "analytics": "supported",
+        "inbox": "supported",
+        "comments": "supported",
+        "reviews": "not_available",
+        "webhooks": "supported"
+      },
+      "features": {},
+      "contract": {
+        "version": 1,
+        "auth": {
+          "strategy": "oauth2",
+          "fields": [],
+          "start_path": "/api/oauth/facebook/start/{workspace_id}/"
+        },
+        "destination_types": [
+          "channel",
+          "group",
+          "profile",
+          "business",
+          "location",
+          "topic"
+        ],
+        "publishing_modes": {
+          "text": {
+            "capability": "publish_text",
+            "constraints": {
+              "status": "supported",
+              "media_types": [
+                "text"
+              ],
+              "destination_types": [],
+              "scopes": [],
+              "min_items": null,
+              "max_items": null,
+              "max_bytes": null,
+              "max_characters": 63206,
+              "mime_types": [],
+              "aspect_min": null,
+              "aspect_max": null,
+              "max_seconds": null,
+              "max_width": null,
+              "min_width": null,
+              "min_height": null
+            },
+            "ui_extension": ""
+          },
+          "image": {
+            "capability": "publish_image",
+            "constraints": {
+              "status": "supported",
+              "media_types": [
+                "image"
+              ],
+              "destination_types": [],
+              "scopes": [],
+              "min_items": 1,
+              "max_items": 1,
+              "max_bytes": 10485760,
+              "max_characters": 63206,
+              "mime_types": [
+                "image/gif",
+                "image/jpeg",
+                "image/png"
+              ],
+              "aspect_min": null,
+              "aspect_max": null,
+              "max_seconds": null,
+              "max_width": null,
+              "min_width": null,
+              "min_height": null
+            },
+            "ui_extension": ""
+          },
+          "video": {
+            "capability": "publish_video",
+            "constraints": {
+              "status": "supported",
+              "media_types": [
+                "video"
+              ],
+              "destination_types": [],
+              "scopes": [],
+              "min_items": 1,
+              "max_items": 1,
+              "max_bytes": 4294967296,
+              "max_characters": 63206,
+              "mime_types": [
+                "video/mp4",
+                "video/quicktime"
+              ],
+              "aspect_min": null,
+              "aspect_max": null,
+              "max_seconds": 14400,
+              "max_width": null,
+              "min_width": null,
+              "min_height": null
+            },
+            "ui_extension": ""
+          },
+          "carousel": {
+            "capability": "publish_image",
+            "constraints": {
+              "status": "supported",
+              "media_types": [
+                "carousel"
+              ],
+              "destination_types": [],
+              "scopes": [],
+              "min_items": 1,
+              "max_items": 10,
+              "max_bytes": null,
+              "max_characters": 63206,
+              "mime_types": [],
+              "aspect_min": null,
+              "aspect_max": null,
+              "max_seconds": null,
+              "max_width": null,
+              "min_width": null,
+              "min_height": null
+            },
+            "ui_extension": ""
+          },
+          "reel": {
+            "capability": "publish_video",
+            "constraints": {
+              "status": "supported",
+              "media_types": [
+                "reel"
+              ],
+              "destination_types": [],
+              "scopes": [],
+              "min_items": 1,
+              "max_items": 1,
+              "max_bytes": null,
+              "max_characters": 63206,
+              "mime_types": [],
+              "aspect_min": null,
+              "aspect_max": null,
+              "max_seconds": null,
+              "max_width": null,
+              "min_width": null,
+              "min_height": null
+            },
+            "ui_extension": ""
+          }
+        },
+        "constraints": {},
+        "brand": {
+          "icon": "facebook",
+          "color": "#1877F2"
+        },
+        "analytics": {
+          "metrics": [
+            {
+              "key": "reach",
+              "title_en": "Daily unique reach",
+              "title_fa": "دسترسی یکتای روزانه",
+              "unit": "count",
+              "period": "day"
+            },
+            {
+              "key": "profile_views",
+              "title_en": "Page views",
+              "title_fa": "بازدید صفحه",
+              "unit": "count",
+              "period": "day"
+            },
+            {
+              "key": "followers",
+              "title_en": "New follows",
+              "title_fa": "دنبال‌کردن‌های جدید",
+              "unit": "count",
+              "period": "day"
+            },
+            {
+              "key": "followers_lost",
+              "title_en": "Unfollows",
+              "title_fa": "لغو دنبال‌کردن",
+              "unit": "count",
+              "period": "day"
+            },
+            {
+              "key": "fb_video_views",
+              "title_en": "Video views",
+              "title_fa": "بازدید ویدیو",
+              "unit": "count",
+              "period": "day"
+            },
+            {
+              "key": "clicks",
+              "title_en": "Page actions",
+              "title_fa": "عملیات صفحه",
+              "unit": "count",
+              "period": "day"
+            },
+            {
+              "key": "likes",
+              "title_en": "Post engagements",
+              "title_fa": "تعامل با پست",
+              "unit": "count",
+              "period": "day"
+            }
+          ],
+          "sync_available": true
+        },
+        "inbound": "none",
+        "extensions": [],
+        "ui_extensions": [],
+        "resilience": {
+          "retry_after": true,
+          "max_attempts": 3,
+          "mutation_retry": "reconcile_first",
+          "idempotency": "local",
+          "reconciliation": "manual"
+        }
+      }
+    },
+    {
+      "key": "linkedin",
+      "titles": {
+        "fa": "لینکدین",
+        "en": "LinkedIn"
+      },
+      "category": "professional",
+      "order": 10,
+      "auth_type": "oauth2",
+      "rollout_status": "active",
+      "capabilities": {
+        "connection": "supported",
+        "disconnect": "supported",
+        "publish_text": "supported",
+        "publish_image": "supported",
+        "publish_video": "supported",
+        "scheduling": "supported",
+        "analytics": "beta",
+        "inbox": "not_available",
+        "comments": "beta",
+        "reviews": "not_available",
+        "webhooks": "not_available"
+      },
+      "features": {},
+      "contract": {
+        "version": 1,
+        "auth": {
+          "strategy": "oauth2",
+          "fields": [],
+          "start_path": "/api/oauth/linkedin/start/{workspace_id}/"
+        },
+        "destination_types": [
+          "channel",
+          "group",
+          "profile",
+          "business",
+          "location",
+          "topic"
+        ],
+        "publishing_modes": {
+          "text": {
+            "capability": "publish_text",
+            "constraints": {
+              "status": "supported",
+              "media_types": [
+                "text"
+              ],
+              "destination_types": [],
+              "scopes": [],
+              "min_items": null,
+              "max_items": null,
+              "max_bytes": null,
+              "max_characters": 3000,
+              "mime_types": [],
+              "aspect_min": null,
+              "aspect_max": null,
+              "max_seconds": null,
+              "max_width": null,
+              "min_width": null,
+              "min_height": null
+            },
+            "ui_extension": ""
+          },
+          "image": {
+            "capability": "publish_image",
+            "constraints": {
+              "status": "supported",
+              "media_types": [
+                "image"
+              ],
+              "destination_types": [],
+              "scopes": [],
+              "min_items": 1,
+              "max_items": 1,
+              "max_bytes": 5242880,
+              "max_characters": 3000,
+              "mime_types": [
+                "image/jpeg",
+                "image/png"
+              ],
+              "aspect_min": null,
+              "aspect_max": null,
+              "max_seconds": null,
+              "max_width": null,
+              "min_width": null,
+              "min_height": null
+            },
+            "ui_extension": ""
+          },
+          "video": {
+            "capability": "publish_video",
+            "constraints": {
+              "status": "supported",
+              "media_types": [
+                "video"
+              ],
+              "destination_types": [],
+              "scopes": [],
+              "min_items": 1,
+              "max_items": 1,
+              "max_bytes": 5368709120,
+              "max_characters": 3000,
+              "mime_types": [
+                "video/mp4",
+                "video/quicktime"
+              ],
+              "aspect_min": null,
+              "aspect_max": null,
+              "max_seconds": 600,
+              "max_width": null,
+              "min_width": null,
+              "min_height": null
+            },
+            "ui_extension": ""
+          },
+          "carousel": {
+            "capability": "publish_image",
+            "constraints": {
+              "status": "supported",
+              "media_types": [
+                "carousel"
+              ],
+              "destination_types": [],
+              "scopes": [],
+              "min_items": 1,
+              "max_items": 10,
+              "max_bytes": null,
+              "max_characters": 3000,
+              "mime_types": [],
+              "aspect_min": null,
+              "aspect_max": null,
+              "max_seconds": null,
+              "max_width": null,
+              "min_width": null,
+              "min_height": null
+            },
+            "ui_extension": ""
+          }
+        },
+        "constraints": {},
+        "brand": {
+          "icon": "linkedin",
+          "color": "#0A66C2"
+        },
+        "analytics": {
+          "metrics": [
+            {
+              "key": "page_views",
+              "title_en": "Organization page views",
+              "title_fa": "بازدید صفحه سازمان",
+              "unit": "count",
+              "period": "day"
+            },
+            {
+              "key": "total_clicks",
+              "title_en": "Organization clicks",
+              "title_fa": "کلیک‌های سازمان",
+              "unit": "count",
+              "period": "day"
+            },
+            {
+              "key": "followers_gained",
+              "title_en": "Followers gained",
+              "title_fa": "دنبال‌کنندگان جدید",
+              "unit": "count",
+              "period": "day"
+            }
+          ],
+          "sync_available": true
+        },
+        "inbound": "none",
+        "extensions": [],
+        "ui_extensions": [],
+        "resilience": {
+          "retry_after": true,
+          "max_attempts": 3,
+          "mutation_retry": "reconcile_first",
+          "idempotency": "local",
+          "reconciliation": "manual"
+        }
+      }
+    }
+  ]
+}

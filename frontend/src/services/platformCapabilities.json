@@ -33,23 +33,6 @@
     },
     "features": {}
   },
-  "youtube": {
-    "label": "YouTube",
-    "capabilities": {
-      "connection": "supported",
-      "disconnect": "supported",
-      "publish_text": "not_available",
-      "publish_image": "not_available",
-      "publish_video": "supported",
-      "scheduling": "supported",
-      "analytics": "supported",
-      "inbox": "not_available",
-      "comments": "supported",
-      "reviews": "not_available",
-      "webhooks": "beta"
-    },
-    "features": {}
-  },
   "linkedin": {
     "label": "LinkedIn",
     "capabilities": {
@@ -63,23 +46,6 @@
       "inbox": "not_available",
       "comments": "beta",
       "reviews": "not_available",
-      "webhooks": "not_available"
-    },
-    "features": {}
-  },
-  "google_my_business": {
-    "label": "Google Business Profile",
-    "capabilities": {
-      "connection": "supported",
-      "disconnect": "supported",
-      "publish_text": "supported",
-      "publish_image": "supported",
-      "publish_video": "not_available",
-      "scheduling": "supported",
-      "analytics": "supported",
-      "inbox": "not_available",
-      "comments": "not_available",
-      "reviews": "supported",
       "webhooks": "not_available"
     },
     "features": {}
@@ -260,6 +226,23 @@
     },
     "features": {}
   },
+  "youtube": {
+    "label": "YouTube",
+    "capabilities": {
+      "connection": "supported",
+      "disconnect": "supported",
+      "publish_text": "not_available",
+      "publish_image": "not_available",
+      "publish_video": "supported",
+      "scheduling": "supported",
+      "analytics": "supported",
+      "inbox": "not_available",
+      "comments": "supported",
+      "reviews": "not_available",
+      "webhooks": "beta"
+    },
+    "features": {}
+  },
   "aparat": {
     "label": "Aparat",
     "capabilities": {
@@ -274,6 +257,23 @@
       "comments": "planned",
       "reviews": "not_available",
       "webhooks": "planned"
+    },
+    "features": {}
+  },
+  "google_my_business": {
+    "label": "Google Business Profile",
+    "capabilities": {
+      "connection": "supported",
+      "disconnect": "supported",
+      "publish_text": "supported",
+      "publish_image": "supported",
+      "publish_video": "not_available",
+      "scheduling": "supported",
+      "analytics": "supported",
+      "inbox": "not_available",
+      "comments": "not_available",
+      "reviews": "supported",
+      "webhooks": "not_available"
     },
     "features": {}
   }

@@ -29,13 +29,9 @@ from social_stats.ai_context import build_client_ai_context
 
 logger = logging.getLogger(__name__)
 
-PLATFORM_RULES = {
-    'facebook':           'Facebook: 150-300 words, conversational, 2-3 hashtags',
-    'instagram':          'Instagram: 100-150 words, engaging, 15-20 hashtags grouped at end, include emojis',
-    'linkedin':           'LinkedIn: 100-200 words, professional, no hashtags, thought leadership angle',
-    'youtube':            'YouTube: 150-250 words, SEO focused, include keywords',
-    'google_my_business': 'Google My Business: 50-100 words, local focus, include location keywords',
-}
+from social_stats.platforms.catalogue import writing_guidance
+
+PLATFORM_RULES = writing_guidance('caption')
 
 SYSTEM_PROMPT = (
     "You are an expert social media copywriter for a marketing agency. "

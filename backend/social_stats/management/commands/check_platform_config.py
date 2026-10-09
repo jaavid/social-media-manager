@@ -73,6 +73,11 @@ def configuration_errors(base_dir=None):
     except (OSError, ValueError) as exc:
         errors.append(f'frontend metadata unreadable: {exc}')
 
+    from .export_platform_catalogue import snapshot, snapshot_path
+    path = snapshot_path()
+    if not path.exists() or path.read_text() != snapshot():
+        errors.append('Frontend catalogue drift: run export_platform_catalogue')
+
     docs_path = root / 'docs/PLATFORM_SUPPORT.md'
     try:
         docs = docs_path.read_text(encoding='utf-8')

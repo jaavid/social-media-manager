@@ -15,16 +15,6 @@ import { useSuggestedTimes } from '../../hooks/useCalendar';
 import SocialPlatformIcon from '../ui/SocialPlatformIcon';
 import { useLanguage } from '../../i18n';
 
-const CHAR_LIMITS = {
-  facebook: 63206,
-  instagram: 2200,
-  linkedin: 3000,
-  youtube: 5000,
-  google_my_business: 1500,
-  telegram: 4096,
-  bale: 4096,
-};
-
 const POST_TYPES = ['image', 'video', 'reel', 'story', 'carousel', 'text', 'article', 'short'];
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -96,7 +86,7 @@ export default function PostFormDrawer({ date, post, isOpen, onClose, onSave, cl
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
   const [error, setError] = useState('');
-  const { platforms: platformRegistry } = usePlatformUiRegistry();
+  const { platforms: platformRegistry } = usePlatformUiRegistry('scheduling');
   const compatiblePlatforms = useMemo(
     () => connectedPlatforms(platformRegistry, connectionStatus, postType),
     [platformRegistry, connectionStatus, postType]
@@ -155,7 +145,7 @@ export default function PostFormDrawer({ date, post, isOpen, onClose, onSave, cl
     setSaving(false);
   }, [isOpen, post, date]);
 
-  const charLimit = CHAR_LIMITS[platform] || 2200;
+  const charLimit = PLATFORMS[platform]?.maxText || 2200;
   const hashCount = hashtags.trim().split(/\s+/).filter(token => token.startsWith('#')).length;
   const selectedPlatform = PLATFORMS[platform] || { color: '#64748B', label: platform };
 

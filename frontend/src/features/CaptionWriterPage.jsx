@@ -1,3 +1,4 @@
+import { usePlatformOptions, PLATFORMS as platformPresentation } from '@/services/platforms';
 import { useLanguage } from '@/i18n';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
@@ -21,21 +22,9 @@ import PageHeader from '../components/layout/PageHeader';
 import SegmentedTabs from '../components/ui/SegmentedTabs';
 
 // ── Caption platform config ─────────────────────────────────────────────────────
-const PLATFORMS = {
-  facebook:           { label: 'Facebook', color: '#1877f2', limit: 63206 },
-  instagram:          { label: 'Instagram', color: '#e1306c', limit: 2200  },
-  linkedin:           { label: 'LinkedIn', color: '#0077b5', limit: 3000  },
-  youtube:            { label: 'YouTube', color: '#ff0000', limit: 5000  },
-  google_my_business: { label: 'Google My Business', color: '#34a853', limit: 1500  },
-};
-
-// ── Hashtag platform config ─────────────────────────────────────────────────────
-const HASHTAG_PLATFORMS = {
-  instagram: { label: 'Instagram', color: '#e1306c' },
-  facebook:  { label: 'Facebook',  color: '#1877f2' },
-  linkedin:  { label: 'LinkedIn',  color: '#0077b5' },
-  youtube:   { label: 'YouTube',   color: '#ff0000' },
-};
+// Generic writing suggestions follow publishing support, not a provider-name list.
+const PLATFORMS = platformPresentation;
+const HASHTAG_PLATFORMS = platformPresentation;
 
 const TIER_ORDER = ['mega', 'large', 'medium', 'small', 'local', 'branded'];
 const TIER_CONFIG = {
@@ -330,7 +319,10 @@ const histStyles = {
 
 // ── Main page ──────────────────────────────────────────────────────────────────
 export default function CaptionWriterPage({ defaultTab = 'caption' }) {
-  const { t: brandT } = useLanguage();
+  const { t: brandT, language } = useLanguage();
+  const platformChoices = usePlatformOptions('publish');
+  const PLATFORMS = Object.fromEntries(platformChoices.map(p => [p.key, { ...p, label: language === 'fa' ? p.label_fa : p.label }]));
+  const HASHTAG_PLATFORMS = PLATFORMS;
   const { user } = useAuth();
   const isAdmin = user?.role === 'superadmin' || user?.role === 'staff';
   const { workspaces: clients } = useWorkspaces();
@@ -345,7 +337,7 @@ export default function CaptionWriterPage({ defaultTab = 'caption' }) {
   const [topic, setTopic]               = useState('');
   const [tone, setTone]                 = useState('professional');
   const [postType, setPostType]         = useState('promotion');
-  const [selectedPlatforms, setPlatforms] = useState(['facebook', 'instagram', 'linkedin']);
+  const [selectedPlatforms, setPlatforms] = useState([]);
   const [keywords, setKeywords]         = useState('');
   const [cta, setCta]                   = useState('');
   const [capLoading, setCapLoading]     = useState(false);
@@ -359,7 +351,7 @@ export default function CaptionWriterPage({ defaultTab = 'caption' }) {
   // ── Hashtag state ──
   const [hNiche, setHNiche]             = useState('');
   const [hLocation, setHLocation]       = useState('');
-  const [hPlatform, setHPlatform]       = useState('instagram');
+  const [hPlatform, setHPlatform]       = useState(platformChoices[0]?.key || '');
   const [hTopic, setHTopic]             = useState('');
   const [hPostType, setHPostType]       = useState('general');
   const [hashLoading, setHashLoading]   = useState(false);

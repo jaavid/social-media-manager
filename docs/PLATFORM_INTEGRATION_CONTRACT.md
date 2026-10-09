@@ -266,3 +266,36 @@ response cannot establish successful gateway health. Invalid optional gateway
 configuration is reported as unavailable; auto routing can still use direct
 transport, while explicitly requested gateway transport fails before sending.
 These controls complement the ambiguous-write fallback boundary above.
+
+## Catalogue consumers and generated browser data
+
+The manifest catalogue owns localized titles, brand color/icon and capability
+statuses. Builtin caption/hashtag guidance and the legacy calendar display icon
+also live on the manifest. `platforms/catalogue.py` derives calendar metadata,
+schedulable keys and writing guidance from registered providers. Calendar API
+validation accepts registered supported/beta scheduling providers; unknown and
+planned providers are rejected. Historical display metadata has neutral fallbacks.
+Adding a label does not enable a provider implementation.
+
+`/api/platforms/` is the live source for browser selectors. Legacy compatibility
+objects and writing/calendar/competitor selectors derive from that payload;
+account availability and permissions continue to come from connections. The
+committed `platformCatalogue.generated.json` is an offline/bootstrap snapshot,
+not another editable catalogue. Public deletion instructions and marketing copy
+are editorial/provider-specific content, not operational capability selectors.
+Provider-specific auth adapters and protocol implementations remain separate.
+
+After changing a manifest or adding a provider, run from `backend/`:
+
+```sh
+python manage.py export_platform_catalogue
+python manage.py export_platform_catalogue --check
+python manage.py check_platform_config
+```
+
+The export regenerates browser catalogue, compatibility capability data and the
+support matrix. `check_platform_config` and CI detect drift. Do not hand-edit
+those JSON files. Rebuild the frontend for the updated bootstrap snapshot; the
+live API also refreshes selectors, including newly registered providers.
+Eitaa/Aparat retain their planned capabilities until real implementations are
+verified; their metadata appears without enabling unsupported operations.

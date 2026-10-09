@@ -16,7 +16,7 @@ import {
   useCalendarPosts, useCalendarStats, useCalendarNotes,
   useCreatePost, useUpcomingPosts,
 } from '../hooks/useCalendar';
-import { PLATFORMS, PLATFORM_LIST } from '../services/platforms';
+import { PLATFORMS, usePlatformUiRegistry } from '../services/platforms';
 import CalendarGrid from '../components/calendar/CalendarGrid';
 import PostDrawer from '../components/calendar/PostDrawer';
 import PostFormDrawer from '../components/calendar/PostFormDrawer';
@@ -189,10 +189,11 @@ const listBtnStyle = {
 };
 
 export default function CalendarPage({ clientId: propClientId }) {
+  const { platforms: calendarPlatforms } = usePlatformUiRegistry('scheduling');
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
   const { workspaces: clients } = useWorkspaces();
-  const { isPersian, t, tr, formatDate, formatNumber } = useLanguage();
+  const { isPersian, language, t, tr, formatDate, formatNumber } = useLanguage();
   const isAdmin = user?.role === 'superadmin' || user?.role === 'staff';
   const isEmbedded = !!propClientId;
   const showClientSelector = isAdmin && !propClientId;
@@ -405,7 +406,7 @@ export default function CalendarPage({ clientId: propClientId }) {
           </div>
 
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', flex: '999 1 420px', minWidth: 0 }}>
-            {[{ key: 'all', label: t('common.all', 'All'), color: '#00d7ff' }, ...PLATFORM_LIST.map(key => ({ key, ...PLATFORMS[key] }))].map(item => (
+            {[{ key: 'all', label: t('common.all', 'All'), color: '#00d7ff' }, ...calendarPlatforms.map(p => ({ key: p.key, label: p.labels[language] || p.labels.en, color: p.color }))].map(item => (
               <button key={item.key} onClick={() => setPlatform(item.key)} style={{
                 padding: '5px 10px', borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s',
                 background: platform === item.key ? '#00d7ff' : '#fff', color: platform === item.key ? '#fff' : 'var(--text-secondary)',
@@ -413,7 +414,7 @@ export default function CalendarPage({ clientId: propClientId }) {
               }}>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                   {item.key === 'all' ? null : <SocialPlatformIcon platform={item.key} size={14} />}
-                  {item.label?.split(' ')[0] || t('common.all', 'All')}
+                  {item.label || t('common.all', 'All')}
                 </span>
               </button>
             ))}
