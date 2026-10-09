@@ -9,7 +9,7 @@
 import { apiBaseUrl, websocketUrl } from '../lib/runtime/config';
 import { useSession } from '../core/session';
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { invalidateSession } from '../lib/auth/session';
 
 /**
@@ -59,8 +59,13 @@ function wsBaseURL() {
 
 
 export function RealtimeProvider({ children }) {
-  const { user } = useSession();
-  const identity = user ? JSON.stringify([user.id, user.role, user.workspace_id, user.client_id]) : null;
+  const { user, status: sessionStatus, transitioning } = useSession();
+  const identity = !transitioning && sessionStatus === 'authenticated' && user ? JSON.stringify([user.id, user.role, user.workspace_id, user.client_id]) : null;
+  const currentIdentity = useRef(identity);
+  useLayoutEffect(() => {
+    currentIdentity.current = identity;
+    return () => { currentIdentity.current = null; };
+  }, [identity]);
   const [status, setStatus] = useState('closed');
   const subscribers = useRef(new Set());
   const subscribe = useCallback((cb) => {
@@ -78,12 +83,12 @@ export function RealtimeProvider({ children }) {
       timer = setTimeout(connect, Math.min(RECONNECT_BASE_MS * 2 ** attempt++, RECONNECT_MAX_MS));
     }
     function connect() {
-      if (!active) return;
+      if (!active || currentIdentity.current !== identity) return;
       setStatus('connecting');
       try { socket = new WebSocket(`${wsBaseURL()}/ws/realtime/`); }
       catch { reconnect(); return; }
       socket.onopen = () => {
-        if (!active) return;
+        if (!active || currentIdentity.current !== identity) return;
         attempt = 0;
         setStatus('open');
         ping = setInterval(() => {
@@ -91,7 +96,7 @@ export function RealtimeProvider({ children }) {
         }, PING_INTERVAL_MS);
       };
       socket.onmessage = event => {
-        if (!active) return;
+        if (!active || currentIdentity.current !== identity) return;
         try {
           const data = JSON.parse(event.data);
           if (data?.type) for (const callback of subscribers.current) callback(data);
@@ -99,7 +104,7 @@ export function RealtimeProvider({ children }) {
       };
       socket.onclose = event => {
         clearInterval(ping);
-        if (!active) return;
+        if (!active || currentIdentity.current !== identity) return;
         setStatus('closed');
         if (event.code === 4401) { invalidateSession(); return; }
         if (event.code !== 4403) reconnect();
@@ -116,12 +121,10 @@ export function RealtimeProvider({ children }) {
 export function useRealtime(callback) {
   const ctx = useContext(RealtimeCtx);
   const cbRef = useRef(callback);
-  useEffect(() => { cbRef.current = callback; }, [callback]);
+  useLayoutEffect(() => { cbRef.current = callback; }, [callback]);
 
-  useEffect(() => {
-    if (typeof callback !== 'function') return;
-    return ctx.subscribe((event) => cbRef.current?.(event));
-  }, [ctx, callback]);
+  const { subscribe } = ctx;
+  useEffect(() => subscribe((event) => cbRef.current?.(event)), [subscribe]);
 
   return { status: ctx.status };
 }

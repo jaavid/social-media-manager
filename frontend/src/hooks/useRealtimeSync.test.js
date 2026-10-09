@@ -17,6 +17,7 @@ import { useAppStore } from '../stores/appStore';
 
 // Stub the realtime hook before importing useRealtimeSync's module graph.
 // We capture the callback so the test can fire synthetic events.
+jest.mock('./useWorkspaceScope', () => ({ __esModule: true, default: () => ({ workspaceId: 42, user: { id: 1 }, key: 'test' }), workspaceEventMatches: (event, id) => Number(event?.workspace_id ?? event?.client_id) === id }));
 let registeredCallback = null;
 jest.mock('./useRealtime', () => ({
   useRealtime: (cb) => {
@@ -66,7 +67,7 @@ describe('useRealtimeSync', () => {
     // conversations(client) key.
     const calls = invalidateSpy.mock.calls.map((c) => c[0].queryKey);
     expect(calls).toEqual(expect.arrayContaining([
-      ['dashboard.counts'],
+      ['dashboard.counts', 42, 1],
       ['conversations', 42, {}],
     ]));
 
@@ -84,8 +85,8 @@ describe('useRealtimeSync', () => {
   });
 
   test('approval.granted invalidates approvals + decrements pending_approvals', () => {
-    useAppStore.getState().setBadgeCounts({ pending_approvals: 3 });
     renderHook(() => useRealtimeSync(), { wrapper: makeWrapper(qc) });
+    useAppStore.getState().setBadgeCounts({ pending_approvals: 3 });
 
     fire({ type: 'approval.granted', client_id: 42, data: { approval_id: 9 } });
 
@@ -97,6 +98,7 @@ describe('useRealtimeSync', () => {
   test('composer.post_published invalidates posts + calendar and decrements scheduled_posts', () => {
     renderHook(() => useRealtimeSync(), { wrapper: makeWrapper(qc) });
 
+    useAppStore.getState().setBadgeCounts({ scheduled_posts: 5 });
     fire({ type: 'composer.post_published', client_id: 42, data: { post_id: 5 } });
 
     const calls = invalidateSpy.mock.calls.map((c) => c[0].queryKey);
@@ -114,7 +116,7 @@ describe('useRealtimeSync', () => {
 
     const calls = invalidateSpy.mock.calls.map((c) => c[0].queryKey);
     // Counts always invalidate
-    expect(calls).toEqual(expect.arrayContaining([['dashboard.counts']]));
+    expect(calls).toEqual([]);
     // But not the leads key for a foreign client
     expect(calls).not.toEqual(expect.arrayContaining([['leads', 42, {}]]));
     // And no badge bump for foreign client
@@ -145,7 +147,7 @@ describe('useRealtimeSync', () => {
     fire({ type: 'something.we.havent.mapped.yet', client_id: 42 });
 
     const calls = invalidateSpy.mock.calls.map((c) => c[0].queryKey);
-    expect(calls).toEqual([['dashboard.counts']]);
+    expect(calls).toEqual([['dashboard.counts', 42, 1]]);
   });
 
   test('event without a type is ignored', () => {

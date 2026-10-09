@@ -54,7 +54,7 @@ import {
 } from 'lucide-react';
 import PermissionGate from '../ui/PermissionGate';
 import { useWorkspaces } from '../../hooks/useData';
-import { useBadgeCount } from '../../stores/appStore';
+import useWorkspaceScope, { useScopedBadgeCount as useBadgeCount } from '../../hooks/useWorkspaceScope';
 import { useLanguage } from '../../i18n';
 export default function FeatureSidebar({
   module,
@@ -356,9 +356,10 @@ function EmptyModule({ message }) {
     </div>
   );
 }
-function ClientSwitcher({ selected, onSelect }) {
+function ClientSwitcher({ onSelect }) {
   const navigate = useNavigate();
   const { workspaces = [] } = useWorkspaces();
+  const { workspaceId } = useWorkspaceScope();
   const { t } = useLanguage();
   return (
     <div className="border-t border-border p-2.5">
@@ -366,7 +367,7 @@ function ClientSwitcher({ selected, onSelect }) {
         searchable
         placement="top"
         aria-label={t('common.workspace', 'Workspace')}
-        value={selected?.id ?? 'all'}
+        value={workspaceId ?? 'all'}
         options={[
           { value: 'all', label: t('common.allWorkspaces', 'All workspaces') },
           ...workspaces.map((workspace) => ({
@@ -379,6 +380,7 @@ function ClientSwitcher({ selected, onSelect }) {
             workspaces.find((item) => item.id === value) || null;
           onSelect?.(workspace);
           if (workspace) navigate(`/admin/workspace/${workspace.id}`);
+          else if (value === 'all') navigate('/admin/workspaces');
         }}
       />
     </div>

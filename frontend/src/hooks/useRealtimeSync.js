@@ -6,10 +6,12 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
+import { useLayoutEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { useRealtime } from './useRealtime';
-import { useAppStore, useCurrentClientId } from '../stores/appStore';
+import { useAppStore } from '../stores/appStore';
+import useWorkspaceScope, { workspaceEventMatches } from './useWorkspaceScope';
 import { QK } from '../services/queryClient';
 
 /**
@@ -47,7 +49,11 @@ import { QK } from '../services/queryClient';
  */
 export default function useRealtimeSync() {
   const queryClient = useQueryClient();
-  const clientId    = useCurrentClientId();
+  const scope = useWorkspaceScope();
+  const clientId = scope.workspaceId;
+  useLayoutEffect(() => {
+    useAppStore.setState({ badgeScope: scope.key, badgeCounts: { unread_inbox: 0, priority_inbox: 0, pending_approvals: 0, new_leads: 0, unread_notifications: 0, scheduled_posts: 0 } });
+  }, [scope.key]);
   const bumpBadge   = useAppStore((s) => s.bumpBadge);
 
   useRealtime((event) => {
@@ -56,13 +62,10 @@ export default function useRealtimeSync() {
 
     // Only act on events for the active client. Multi-client agency users
     // shouldn't see inbox bumps from other workspaces in their badge.
-    const evClient = event.client_id;
-    const inScope  = evClient == null || evClient === clientId;
+    if (!workspaceEventMatches(event, clientId)) return;
 
-    // Dashboard counts always invalidate — cheap and authoritative.
-    queryClient.invalidateQueries({ queryKey: ['dashboard.counts'] });
-
-    if (!inScope) return;
+    // Only the effective workspace and identity's counts are invalidated.
+    queryClient.invalidateQueries({ queryKey: [...QK.dashboardCounts(clientId), scope.user.id] });
 
     switch (t) {
       case 'inbox.new_message':

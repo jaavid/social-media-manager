@@ -1,3 +1,4 @@
+jest.mock('./useWorkspaceScope', () => ({ __esModule: true, default: function useScope() { return { workspaceId: mockAppStore(s => s.currentClientId) }; } }));
 /**
  *
  * Verifies:
@@ -12,7 +13,7 @@ import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import useDashboardToday from './useDashboardToday';
-import { useAppStore } from '../stores/appStore';
+import { useAppStore as mockAppStore } from '../stores/appStore';
 
 jest.mock('@/services/http/client', () => ({ api: { get: jest.fn() } }));
 
@@ -28,7 +29,7 @@ describe('useDashboardToday', () => {
 
   beforeEach(() => {
     api.get.mockReset();
-    useAppStore.getState().reset();
+    mockAppStore.getState().reset();
     qc = new QueryClient({
       defaultOptions: { queries: { retry: false, gcTime: 0 } },
     });
@@ -52,7 +53,7 @@ describe('useDashboardToday', () => {
       recent_activity: [], pending_approvals: [], engagement_chart: [],
     }});
 
-    useAppStore.getState().setCurrentClient({ id: 42, name: 'Acme' });
+    mockAppStore.getState().setCurrentClient({ id: 42, name: 'Acme' });
     const { result } = renderHook(() => useDashboardToday(),
       { wrapper: makeWrapper(qc) });
 
@@ -69,11 +70,11 @@ describe('useDashboardToday', () => {
       leads: {}, campaigns: {}, recent_activity: [], pending_approvals: [],
       engagement_chart: [], briefing: '', as_of: '', client_name: '' }});
 
-    useAppStore.getState().setCurrentClient({ id: 1, name: 'A' });
+    mockAppStore.getState().setCurrentClient({ id: 1, name: 'A' });
     renderHook(() => useDashboardToday(), { wrapper: makeWrapper(qc) });
     await waitFor(() => expect(api.get).toHaveBeenCalledTimes(1));
 
-    act(() => { useAppStore.getState().setCurrentClient({ id: 99, name: 'B' }); });
+    act(() => { mockAppStore.getState().setCurrentClient({ id: 99, name: 'B' }); });
     await waitFor(() => expect(api.get).toHaveBeenCalledTimes(2));
 
     const [, optsSecond] = api.get.mock.calls[1];

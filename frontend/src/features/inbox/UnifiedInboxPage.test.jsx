@@ -6,7 +6,7 @@ import { inboxAPI } from '@/services/domains/messaging';
 import { connectionFixture } from '@/services/__fixtures__/connections';
 import { setLanguage } from '@/i18n';
 
-jest.mock('@/core/session', () => ({ useSession: () => ({ user: { id: 1, client_id: 7 } }) }));
+jest.mock('@/core/session', () => ({ useSession: () => ({ status: 'authenticated', user: { id: 1, client_id: 7 } }) }));
 jest.mock('@/services/domains/connections', () => ({ connectionsAPI: { get: jest.fn() } }));
 jest.mock('@/services/domains/messaging', () => ({ inboxAPI: { conversations: { list: jest.fn(), get: jest.fn(), reply: jest.fn() }, reviews: { list: jest.fn() } } }));
 jest.mock('@/components/ai/AIReplySuggestions', () => () => null);

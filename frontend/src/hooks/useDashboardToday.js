@@ -10,7 +10,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import { api } from '@/services/http/client';
 import { QK } from '../services/queryClient';
-import { useCurrentClientId } from '../stores/appStore';
+import useWorkspaceScope from './useWorkspaceScope';
 
 /**
  *
@@ -39,7 +39,7 @@ async function fetchToday(clientId) {
 }
 
 export default function useDashboardToday() {
-  const clientId = useCurrentClientId();
+  const clientId = useWorkspaceScope().workspaceId;
 
   return useQuery({
     queryKey:           QK.dashboardToday(clientId),

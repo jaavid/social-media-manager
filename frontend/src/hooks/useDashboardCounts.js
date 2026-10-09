@@ -9,7 +9,8 @@
 import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
-import { useAppStore, useCurrentClientId } from '../stores/appStore';
+import { useAppStore } from '../stores/appStore';
+import useWorkspaceScope, { normalizeWorkspaceId } from './useWorkspaceScope';
 import { QK } from '../services/queryClient';
 import { api } from '@/services/http/client';
 
@@ -42,13 +43,13 @@ async function fetchCounts(clientId) {
 }
 
 export default function useDashboardCounts() {
-  const clientId      = useCurrentClientId();
-  const setBadgeCounts = useAppStore((s) => s.setBadgeCounts);
+  const scope = useWorkspaceScope();
+  const clientId = scope.workspaceId;
 
   const query = useQuery({
-    queryKey:           QK.dashboardCounts(clientId),
+    queryKey:           [...QK.dashboardCounts(clientId), scope.user?.id],
     queryFn:            () => fetchCounts(clientId),
-    enabled:            true,  // backend returns zeros when no client — safe
+    enabled:            clientId !== null,
     refetchInterval:    POLL_INTERVAL_MS,
     refetchOnMount:     true,
     refetchOnWindowFocus: true,
@@ -57,10 +58,10 @@ export default function useDashboardCounts() {
 
   // Mirror server response into zustand for cheap selector reads in NavItem.
   useEffect(() => {
-    if (query.data) {
-      setBadgeCounts(query.data);
+    if (clientId !== null && query.data && normalizeWorkspaceId(query.data.workspace_id ?? query.data.client_id) === clientId) {
+      useAppStore.setState({ badgeScope: scope.key, badgeCounts: query.data, badgeCountsFetchedAt: Date.now() });
     }
-  }, [query.data, setBadgeCounts]);
+  }, [query.data, clientId, scope.key]);
 
   return query;
 }
