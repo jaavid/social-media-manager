@@ -20,9 +20,39 @@ Run `npm run lint`, `npm run check:architecture`, `npm run typecheck`,
 `npm run i18n:check`, `npm run check:next`, `CI=true npm test`, `npm run build`,
 `npm run test:proxy`, and `npm run test:next`. CI runs these explicitly, including
 the route inventory and retirement worker tests. Babel transforms only Jest;
-the production build uses Next's compiler with Webpack. React/ReactDOM/types
-remain on compatible React 18 versions. React 19, Turbopack and React Compiler
-adoption require the chart/flow/form compatibility work in #98.
+the production build uses Next's compiler with Webpack. The declared React
+ecosystem contract is recorded below. Turbopack and React Compiler adoption
+require the chart/flow/form compatibility work in #98.
+
+## Dependency and installation contract (NX-01)
+
+Use Node **20.19.5** (`frontend/.nvmrc`) and npm **10.8.2**. From `frontend/`,
+run `nvm use`, `npm install --global npm@10.8.2 --no-audit --no-fund`, then
+`npm ci --no-audit --no-fund` and `npm run check:dependencies`. CI and both
+Docker frontend build stages pin these same versions and check the resulting
+dependency tree. Docker retains its existing distributions and platform support.
+`packageManager` records npm; it does not automatically install that version.
+
+Next **16.3.8**, React/ReactDOM **18.3.1**, `@types/react` **18.3.31** and
+`@types/react-dom` **18.3.7** are exact declarations matching the lockfile.
+NX-01 found the committed manifest/lockfile already agreed on React 18, while
+the local installation had React/ReactDOM/types 19.3.0 and other out-of-contract
+packages. Reinstall with `npm ci`; do not repair this with `--force`,
+`--legacy-peer-deps`, or an unrelated dependency upgrade. No resolved dependency
+version changes are required. Update the manifest and lockfile together when
+deliberately changing this contract.
+
+Next 16.3.8's published peer ranges accept React/ReactDOM `^18.2.0`. The locked
+Radix, Framer Motion, ReactFlow, Recharts, TanStack Query, next-intl and Zustand
+packages also accept 18.3.1, so the existing declared React 18 contract is kept.
+This is an ecosystem/tooling contract, **not a React 18-only browser runtime**:
+the [App Router uses React canary bundled inside Next](https://nextjs.org/docs/app/getting-started/installation).
+Next's installed documentation and `dist/build/create-compiler-aliases.js`
+confirm this distinction. Its vendored React is outside `npm ls`; a single npm
+React resolution does not prove a single React implementation across Next's
+server/client compilation layers. Do not override those aliases. React 19
+declarations/types adoption remains separate work in #98; browser compatibility
+must be checked against the actual production build.
 
 ESLint uses the pinned Next flat configuration with web-vitals and Hooks rules.
 Hooks correctness and explicit `any` are errors. Compiler recommendations and

@@ -96,9 +96,12 @@ jobs:
 
       - uses: actions/setup-node@v6
         with:
-          node-version: '20'
+          node-version: '20.19.5'
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
+
+      - name: Pin frontend npm
+        run: npm install --global npm@10.8.2 --no-audit --no-fund
 
       - name: npm audit (informational baseline)
         # Informational baseline; findings include production feature dependencies.

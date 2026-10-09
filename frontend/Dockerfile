@@ -1,11 +1,13 @@
 # syntax=docker/dockerfile:1.7
 # Standalone Next.js frontend. Build with frontend/ as the Docker context.
-FROM node:20-alpine AS build
+FROM node:20.19.5-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
+COPY scripts/check-dependencies.mjs ./scripts/check-dependencies.mjs
 RUN --mount=type=secret,id=proxy_ca \
     if [ -f /run/secrets/proxy_ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/proxy_ca; fi; \
-    npm ci --no-audit --no-fund
+    npm install --global npm@10.8.2 --no-audit --no-fund && \
+    npm ci --no-audit --no-fund && npm run check:dependencies
 COPY . .
 ARG NEXT_PUBLIC_API_URL=
 ARG REACT_APP_API_URL=/api
@@ -21,7 +23,7 @@ ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL} REACT_APP_API_URL=${REACT_APP_API
     NEXT_TELEMETRY_DISABLED=1 NEXT_OUTPUT=standalone
 RUN npm run build
 
-FROM node:20-alpine AS runtime
+FROM node:20.19.5-alpine AS runtime
 WORKDIR /app
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 HOSTNAME=0.0.0.0 PORT=3000
 COPY --from=build --chown=node:node /app/.next/standalone ./

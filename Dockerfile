@@ -1,11 +1,13 @@
 # syntax=docker/dockerfile:1.7
 
-FROM node:20-bookworm-slim AS frontend-build
+FROM node:20.19.5-bookworm-slim AS frontend-build
 WORKDIR /src/frontend
 COPY frontend/package.json frontend/package-lock.json ./
+COPY frontend/scripts/check-dependencies.mjs ./scripts/check-dependencies.mjs
 RUN --mount=type=secret,id=proxy_ca \
     if [ -f /run/secrets/proxy_ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/proxy_ca; fi; \
-    npm ci --no-audit --no-fund
+    npm install --global npm@10.8.2 --no-audit --no-fund && \
+    npm ci --no-audit --no-fund && npm run check:dependencies
 COPY frontend/ ./
 ARG NEXT_PUBLIC_API_URL=
 ARG REACT_APP_API_URL=/api

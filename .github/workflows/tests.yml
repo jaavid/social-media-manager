@@ -129,13 +129,16 @@ jobs:
 
       - uses: actions/setup-node@v6
         with:
-          node-version: '20'
+          node-version: '20.19.5'
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
+      - name: Pin frontend npm
+        run: npm install --global npm@10.8.2 --no-audit --no-fund
+
       - name: Install frontend deps
         working-directory: frontend
-        run: npm ci --prefer-offline --no-audit --no-fund
+        run: npm ci --prefer-offline --no-audit --no-fund && npm run check:dependencies
 
       - name: Next source independence
         working-directory: frontend
@@ -253,9 +256,12 @@ jobs:
 
       - uses: actions/setup-node@v6
         with:
-          node-version: '20'
+          node-version: '20.19.5'
           cache: npm
           cache-dependency-path: frontend/package-lock.json
+
+      - name: Pin frontend npm
+        run: npm install --global npm@10.8.2 --no-audit --no-fund
 
       - name: Browser parity through the unified production ingress
         working-directory: frontend
@@ -264,6 +270,7 @@ jobs:
           E2E_BASE_URL: http://127.0.0.1:3000
         run: |
           npm ci --prefer-offline --no-audit --no-fund
+          npm run check:dependencies
           npx playwright install --with-deps chromium
           npm run test:next
 
