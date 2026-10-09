@@ -19,7 +19,7 @@ import {
   CheckCircle2, AlertTriangle, Wand2, Copy,
 } from 'lucide-react';
 
-import { botConversationAPI } from '../../services/api';
+import { botConversationAPI } from '@/services/domains/bots';
 import toast from '../../components/ui/toast';
 
 const STATUS_META = {

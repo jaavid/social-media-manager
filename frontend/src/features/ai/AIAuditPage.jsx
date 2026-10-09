@@ -27,7 +27,7 @@ import Button from '../../components/ui/Button';
 import EmptyState from '../../components/ui/EmptyState';
 import AIBadge from '../../components/ai/AIBadge';
 import AILoading from '../../components/ai/AILoading';
-import { aiV2API } from '../../services/api';
+import { aiV2API } from '@/services/domains/intelligence';
 import { useSession as useAuth } from '../../core/session';
 import toast from '../../components/ui/toast';
 

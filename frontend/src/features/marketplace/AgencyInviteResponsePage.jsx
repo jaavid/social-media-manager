@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 
 import PermissionMatrix from '../../components/marketplace/PermissionMatrix';
-import { agencyInviteAPI } from '../../services/api';
+import { agencyInviteAPI } from '@/services/domains/accounts';
 import { useSession as useAuth } from '../../core/session';
 import toast from '../../components/ui/toast';
 

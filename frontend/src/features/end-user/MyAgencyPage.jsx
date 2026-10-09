@@ -29,7 +29,8 @@ import {
 import PermissionMatrix from '../../components/marketplace/PermissionMatrix';
 import InviteAgencyModal from '../../components/marketplace/InviteAgencyModal';
 import WriteReviewModal from '../../components/marketplace/WriteReviewModal';
-import { relationAPI, activityAPI } from '../../services/api';
+import { relationAPI } from '@/services/domains/marketplace';
+import { activityAPI } from '@/services/domains/messaging';
 import toast from '../../components/ui/toast';
 
 const STATUS_PILL = {

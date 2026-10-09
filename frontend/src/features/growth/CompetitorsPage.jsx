@@ -20,7 +20,7 @@ import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 import EmptyState from '../../components/ui/EmptyState';
-import { competitorAPI } from '../../services/api';
+import { competitorAPI } from '@/services/domains/reporting';
 
 
 export default function CompetitorsPage() {

@@ -2,7 +2,7 @@ import { useQuery, useQueryClient, onlineManager } from '@tanstack/react-query';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useSession } from '@/core/session';
 import { apiError } from '@/services/http/errors';
-import { alertsAPI, notificationAPI } from '@/services/api';
+import { alertsAPI, notificationAPI } from '@/services/domains/reporting';
 import { parseAlerts, parseNotifications, parseMarked } from '@/lib/settingsRecovery';
 export default function useNotificationFeed(kind, workspace, { enabled = true, scopeKey = null, filters = {} } = {}) {
   const { user, status } = useSession();

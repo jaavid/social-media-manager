@@ -19,7 +19,8 @@ import {
   CheckCircle2, AlertTriangle,
 } from 'lucide-react';
 
-import { ctwaAPI, botAPI, metaAdsAPI } from '../../services/api';
+import { ctwaAPI, metaAdsAPI } from '@/services/domains/accounts';
+import { botAPI } from '@/services/domains/bots';
 import toast from '../../components/ui/toast';
 
 export default function CTWACampaignsPage() {

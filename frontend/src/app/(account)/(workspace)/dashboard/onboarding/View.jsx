@@ -1,5 +1,5 @@
 'use client';
-import Feature from '../../../../../features/ClientOnboardingPage.jsx';
+import Feature from "@/features/ClientOnboardingPage.jsx";
 export default function View() {
   return <Feature />;
 }

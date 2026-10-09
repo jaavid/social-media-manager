@@ -1,13 +1,11 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import WorkspaceTeamPolicy from './WorkspaceTeamPolicy';
-import api, { managementAPI } from '../services/api';
+import { api } from '@/services/http/client';
+import { managementAPI } from '@/services/domains/marketplace';
 
-jest.mock('../services/api', () => ({
-  __esModule: true,
-  default: { get: jest.fn(), put: jest.fn() },
-  managementAPI: { listWorkspaces: jest.fn() },
-}));
+jest.mock('@/services/http/client', () => ({ api: { get: jest.fn(), put: jest.fn() } }));
+jest.mock('@/services/domains/marketplace', () => ({ managementAPI: { listWorkspaces: jest.fn() } }));
 
 const team = {
   actions: { publish_posts: 'Publish Posts' }, accounts: [{ id: 3, label: 'Facebook page' }],

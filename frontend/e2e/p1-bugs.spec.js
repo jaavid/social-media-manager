@@ -35,7 +35,8 @@ for (const role of ['client', 'superadmin']) {
     await page.getByRole('button', { name: 'Facebook', exact: true }).first().click();
     await page.locator('textarea').first().fill(post.content);
     await page.getByRole('button', { name: 'Save Draft', exact: true }).click();
-    await expect(page).toHaveURL(new RegExp(`${base}/901$`));
+    const canonicalBase = role === 'client' ? '/dashboard/composer' : base;
+    await expect(page).toHaveURL(new RegExp(`${canonicalBase}/901$`));
     await expect(page.locator('textarea').first()).toHaveValue(post.content);
     await page.reload();
     await expect(page.locator('textarea').first()).toHaveValue(post.content);

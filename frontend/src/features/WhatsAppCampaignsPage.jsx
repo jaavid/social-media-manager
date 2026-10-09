@@ -13,7 +13,7 @@ import {
 
 import PageHeader from '../components/layout/PageHeader';
 import { useWhatsAppCampaigns, useWhatsAppTemplates, useWhatsAppLists } from '../hooks/useWhatsApp';
-import { whatsappAPI } from '../services/api';
+import { whatsappAPI } from '@/services/domains/messaging';
 
 const COLORS = {
   primary: '#00CCF5', primaryD: '#00A8D8',

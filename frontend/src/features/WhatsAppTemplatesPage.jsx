@@ -11,7 +11,7 @@ import { Plus, RefreshCw, Trash2, FileType, Loader2, AlertCircle, Send } from 'l
 
 import PageHeader from '../components/layout/PageHeader';
 import { useWhatsAppTemplates } from '../hooks/useWhatsApp';
-import { whatsappAPI } from '../services/api';
+import { whatsappAPI } from '@/services/domains/messaging';
 import { safeHtml } from '../utils/sanitize';
 
 const COLORS = {

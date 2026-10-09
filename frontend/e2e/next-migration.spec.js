@@ -1,6 +1,15 @@
 import { test, expect } from '@playwright/test';
 import inventory from '../src/core/routes/__fixtures__/legacyRoutes.json' with { type: 'json' };
+import redirectOnly from '../src/core/routes/__fixtures__/redirectOnlyRoutes.json' with { type: 'json' };
 const sampleSlugs = { product: 'analytics', solutions: 'agencies', customers: 'acme-realty', blog: 'unified-marketing-os-is-here', agencies: 'bluewave-agency' };
+
+for (const route of redirectOnly) test(`redirect-only compatibility ${route.path} preserves query and draft ID`, async ({ request }) => {
+  const legacy = route.path.replace(':id', '42');
+  const target = route.destination.replace(':id', '42');
+  const response = await request.get(`${legacy}?workspace=7&source=legacy`, { maxRedirects: 0 });
+  expect(response.status()).toBe(308);
+  expect(response.headers().location).toBe(`${target}?workspace=7&source=legacy`);
+});
 
 test('every inventoried route is served by the standalone Next application', async ({ request }) => {
   test.setTimeout(120000);

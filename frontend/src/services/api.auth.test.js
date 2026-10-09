@@ -1,4 +1,5 @@
-import { api, onSessionInvalidated } from './api';
+import { api } from '@/services/http/client';
+import { onSessionInvalidated } from '@/lib/auth/session';
 import axios from 'axios';
 beforeEach(() => { localStorage.clear(); jest.restoreAllMocks(); });
 test('temporary network/5xx errors preserve the session and do not replay a mutation', async () => {

@@ -14,7 +14,7 @@ import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
 import EmptyState from '../../components/ui/EmptyState';
 import StatCard from '../../components/ui/StatCard';
-import { audienceAPI } from '../../services/api';
+import { audienceAPI } from '@/services/domains/reporting';
 
 const DAYS_OPTIONS = [7, 30, 90, 180];
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];

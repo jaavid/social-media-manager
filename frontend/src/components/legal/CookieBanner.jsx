@@ -75,7 +75,7 @@ export default function CookieBanner({ user = null }) {
 
     // A consent choice may be made on a public page without mounting auth.
     if (user || hasSession) {
-      import('../../services/api').then(({ privacyAPI }) => Promise.all([
+      import('@/services/domains/identity').then(({ privacyAPI }) => Promise.all([
         privacyAPI.setConsent('cookies_analytics', !!c.analytics, 'cookie_banner'),
         privacyAPI.setConsent('cookies_marketing', !!c.marketing, 'cookie_banner'),
       ])).catch(() => {});

@@ -84,7 +84,12 @@ async function setup(page, family, language = 'en', theme = 'light') {
       if (state.status)
         return route.fulfill({
           status: state.status,
-          headers: { 'Retry-After': '3', 'X-Request-ID': '0123456789abcdef0123456789abcdef' },
+          headers: {
+            'Retry-After': '3',
+            'X-Request-ID': '0123456789abcdef0123456789abcdef',
+            // The configured API can be cross-origin; expose the fixture's diagnostic headers.
+            'Access-Control-Expose-Headers': 'X-Request-ID, Retry-After',
+          },
           json: { detail: 'private-token' },
         });
       return route.fulfill({

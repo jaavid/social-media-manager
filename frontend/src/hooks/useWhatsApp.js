@@ -7,7 +7,7 @@
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { whatsappAPI } from '../services/api';
+import { whatsappAPI } from '@/services/domains/messaging';
 
 function unwrap(res) {
   return res?.data?.results ?? res?.data ?? null;

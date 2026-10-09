@@ -1,4 +1,4 @@
-import api from './api';
+import { api } from '@/services/http/client';
 
 export const egressAPI = {
   connectivity: (service) => api.get(

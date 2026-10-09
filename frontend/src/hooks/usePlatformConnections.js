@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { oauthAPI } from '../services/api';
+import { oauthAPI } from '@/services/domains/accounts';
 import { botChannelsAPI } from '../services/botChannels';
 import { loadPlatformRegistry } from '../services/platforms';
 

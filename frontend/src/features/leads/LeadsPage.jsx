@@ -25,7 +25,7 @@ import {
   Sparkles, ChevronRight, Star, Trash2, RefreshCw, X,
 } from 'lucide-react';
 
-import { leadAPI } from '../../services/api';
+import { leadAPI } from '@/services/domains/messaging';
 import { persistentStorage } from '../../lib/runtime/storage';
 import toast from '../../components/ui/toast';
 

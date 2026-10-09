@@ -1,11 +1,11 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import NotificationPreferencesPage from './NotificationPreferencesPage';
-import { notificationPrefsAPI } from '../../services/api';
+import { notificationPrefsAPI } from '@/services/domains/accounts';
 import { setLanguage } from '../../i18n';
 
 jest.mock('@/core/session', () => ({ useSession: () => ({ status: 'authenticated', user: { id: 7, role: 'client', client_id: 12 } }) }));
-jest.mock('../../services/api', () => ({ notificationPrefsAPI: { get: jest.fn(), update: jest.fn() } }));
+jest.mock('@/services/domains/accounts', () => ({ notificationPrefsAPI: { get: jest.fn(), update: jest.fn() } }));
 jest.mock('../../components/ui/toast', () => ({ success: jest.fn(), error: jest.fn() }));
 let client;
 beforeEach(() => { client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } }); });

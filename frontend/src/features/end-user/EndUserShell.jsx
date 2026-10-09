@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 
 import { useSession as useAuth } from '../../core/session';
-import { approvalAPI } from '../../services/api';
+import { approvalAPI } from '@/services/domains/accounts';
 
 const SECTIONS = [
   {

@@ -4,7 +4,7 @@ import { onlineManager } from '@tanstack/react-query';
 import { useSession } from '@/core/session';
 import { apiError } from '@/services/http/errors';
 import { parseSuggestions, parseDecision } from '@/lib/telegramSuggestions';
-import api from '../services/api';
+import { api } from '@/services/http/client';
 import Card from './ui/Card';
 import Button from './ui/Button';
 import DataState from './ui/DataState';

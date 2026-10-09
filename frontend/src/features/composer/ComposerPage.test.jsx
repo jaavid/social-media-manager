@@ -18,7 +18,7 @@ jest.mock('@/core/session', () => ({ useSession: () => ({ user: mockUser }) }));
 jest.mock('@/services/domains/composer', () => ({ composer: { get: jest.fn(), save: jest.fn(), command: jest.fn(), queues: jest.fn(), resolve: jest.fn(), upload: jest.fn() } }));
 jest.mock('@/services/domains/connections', () => ({ connectionsAPI: { get: jest.fn() } }));
 jest.mock('@/components/ai/AIWriteButton', () => () => null);
-jest.mock('@/components/connections/composerExtensions', () => ({ composerExtensions: {} }));
+jest.mock("./composerExtensions", () => ({ composerExtensions: {} }));
 function mount(existingClient) {
   const client = existingClient || new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
   const view = render(<QueryClientProvider client={client}><ComposerPage /></QueryClientProvider>);

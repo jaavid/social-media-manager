@@ -20,7 +20,7 @@ import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 import EmptyState from '../../components/ui/EmptyState';
-import { automationsAPI } from '../../services/api';
+import { automationsAPI } from '@/services/domains/publishing';
 
 const TRIGGER_OPTIONS = [
   { id: 'new_comment',         label: 'New comment',           icon: MessageSquare,

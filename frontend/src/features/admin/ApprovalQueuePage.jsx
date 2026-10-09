@@ -16,7 +16,8 @@ import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import EmptyState from '../../components/ui/EmptyState';
-import { notificationsAPI, composerAPI } from '../../services/api';
+import { notificationsAPI } from '@/services/domains/reporting';
+import { composerAPI } from '@/services/domains/publishing';
 
 export default function ApprovalQueuePage() {
   const [queue, setQueue] = useState([]);

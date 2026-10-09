@@ -26,7 +26,7 @@ import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 import EmptyState from '../../components/ui/EmptyState';
-import { aiV2API } from '../../services/api';
+import { aiV2API } from '@/services/domains/intelligence';
 import toast from '../../components/ui/toast';
 
 export default function AIChatHistoryPage() {

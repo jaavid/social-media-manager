@@ -38,13 +38,13 @@ import {
   Undo2, Redo2, LayoutGrid, FlaskConical,
 } from 'lucide-react';
 
-import { botAPI } from '../../services/api';
+import { botAPI } from '@/services/domains/bots';
 import toast from '../../components/ui/toast';
-import CanvasNode from '../../components/bot/CanvasNode';
-import NodeInspector from '../../components/bot/NodeInspector';
-import TestModeDrawer from '../../components/bot/TestModeDrawer';
-import TriggerConfigModal from '../../components/bot/TriggerConfigModal';
-import { NODE_CATALOG, CATEGORIES, getNodeMeta } from '../../components/bot/nodeCatalog';
+import CanvasNode from "./CanvasNode";
+import NodeInspector from "./NodeInspector";
+import TestModeDrawer from "./TestModeDrawer";
+import TriggerConfigModal from "./TriggerConfigModal";
+import { NODE_CATALOG, CATEGORIES, getNodeMeta } from "./nodeCatalog";
 
 // ─────────────────────────────────────────────────────────
 // Auto-layout via Dagre

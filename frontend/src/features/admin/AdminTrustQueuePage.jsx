@@ -22,7 +22,7 @@ import {
   RefreshCw, Pause, Slash, MessageSquare,
 } from 'lucide-react';
 
-import { verificationAPI, disputeAPI } from '../../services/api';
+import { verificationAPI, disputeAPI } from '@/services/domains/accounts';
 import toast from '../../components/ui/toast';
 import { translateRaw, useLanguage } from '../../i18n';
 

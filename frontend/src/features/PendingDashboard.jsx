@@ -14,7 +14,7 @@ import { useLanguage } from '@/i18n';
 import { useEffect, useState, useCallback } from 'react';
 import { useAppNavigate as useNavigate } from '../core/navigation';
 import { useSession as useAuth } from '../core/session';
-import { soloAPI, invitationAPI } from '../services/api';
+import { soloAPI, invitationAPI } from '@/services/domains/identity';
 import { Building2, UserCheck, Clock, CheckCircle, XCircle, Bell, LogOut, ChevronRight, Loader2 } from 'lucide-react';
 import { BrandLogoHorizontal } from '../components/ui/BrandLogo';
 

@@ -11,7 +11,7 @@ import { useLanguage } from '@/i18n';
 import { useState, useEffect, useCallback } from 'react';
 import { useSession as useAuth } from '../core/session';
 import { useWorkspaces } from '../hooks/useData';
-import { captionAPI, hashtagAPI } from '../services/api';
+import { captionAPI, hashtagAPI } from '@/services/domains/intelligence';
 import {
   Copy, Edit2, CalendarDays, RefreshCw, Sparkles,
   Clock, Hash, CheckSquare, Square, ChevronDown, ChevronUp, Loader2,

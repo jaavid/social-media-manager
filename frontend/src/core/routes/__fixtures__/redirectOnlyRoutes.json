@@ -1,0 +1,6 @@
+[
+  { "path": "/dashboard/analytics/composer", "destination": "/dashboard/composer" },
+  { "path": "/dashboard/analytics/composer/:id", "destination": "/dashboard/composer/:id" },
+  { "path": "/dashboard/analytics/media", "destination": "/dashboard/media" },
+  { "path": "/dashboard/analytics/queues", "destination": "/dashboard/queues" }
+]

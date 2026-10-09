@@ -20,7 +20,7 @@ import {
   User, Bot, Clock, Phone, Mail, MapPin, Building2,
 } from 'lucide-react';
 
-import { leadAPI } from '../../services/api';
+import { leadAPI } from '@/services/domains/messaging';
 import toast from '../../components/ui/toast';
 
 const STATUSES = [

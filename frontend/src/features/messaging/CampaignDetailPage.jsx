@@ -20,7 +20,7 @@ import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 import DataTable from '../../components/ui/DataTable';
-import { whatsappAPI } from '../../services/api';
+import { whatsappAPI } from '@/services/domains/messaging';
 
 const STATUS_VARIANT = {
   draft: 'default', scheduled: 'info', running: 'success', completed: 'info',

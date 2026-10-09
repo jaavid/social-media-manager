@@ -21,7 +21,7 @@ import {
   Wand2, AlertTriangle,
 } from 'lucide-react';
 
-import { botAPI, botTemplateAPI } from '../../services/api';
+import { botAPI, botTemplateAPI } from '@/services/domains/bots';
 import toast from '../../components/ui/toast';
 
 const FILTERS = [

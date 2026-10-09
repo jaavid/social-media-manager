@@ -28,7 +28,7 @@ import Checkbox from '../components/ui/Checkbox';
 import Confetti from '../components/ui/Confetti';
 import SocialPlatformIcon from '../components/ui/SocialPlatformIcon';
 import { useSession as useAuth } from '../core/session';
-import { authAPI, invitationAPI } from '../services/api';
+import { authAPI, invitationAPI } from '@/services/domains/identity';
 
 const API_BASE = apiBaseUrl();
 

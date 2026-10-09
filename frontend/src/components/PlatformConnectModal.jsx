@@ -11,7 +11,7 @@ import { connectionsAPI } from '@/services/domains/connections';
 import { apiError } from '@/services/http/errors';
 import { useLanguage } from '@/i18n';
 import Button from '@/components/ui/Button';
-import Dialog from '@/components/ui/Dialog';
+import Dialog from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import DataState from '@/components/ui/DataState';
 

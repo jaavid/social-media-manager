@@ -1,12 +1,9 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { useConversation } from './useInbox';
 import { useWhatsAppThread } from './useWhatsApp';
-import { inboxAPI, whatsappAPI } from '../services/api';
+import { inboxAPI, whatsappAPI } from '@/services/domains/messaging';
 
-jest.mock('../services/api', () => ({
-  inboxAPI: { conversations: { get: jest.fn() } },
-  whatsappAPI: { inbox: { thread: jest.fn() } },
-}));
+jest.mock('@/services/domains/messaging', () => ({ inboxAPI: { conversations: { get: jest.fn() } }, whatsappAPI: { inbox: { thread: jest.fn() } } }));
 
 beforeEach(() => jest.clearAllMocks());
 

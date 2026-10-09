@@ -1,5 +1,8 @@
 import { workspaceRequest } from './workspaceVocabulary';
-import { api, workspacesAPI, clientsAPI, managementAPI, adminAPI } from './api';
+import { api } from '@/services/http/client';
+import { workspacesAPI, clientsAPI } from '@/services/domains/accounts';
+import { managementAPI } from '@/services/domains/marketplace';
+import { adminAPI } from '@/services/domains/reporting';
 
 test('workspace requests preserve opaque data and reject conflicting tenant IDs', () => {
   const original = { client_id: 1, metadata: { client_id: 9 }, add: [{ client_id: 2 }] };

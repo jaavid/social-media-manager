@@ -16,6 +16,10 @@
 
 پشته: Django 5.2، DRF، Channels، Celery، React 18، Next.js 16، TanStack Query و Zustand. دیتابیس محلی SQLite؛ استقرار Compose از PostgreSQL 16 و Redis 7 استفاده می‌کند.
 
+در فرانت، فایل اختصاصی قابلیت کنار همان قابلیت قرار می‌گیرد: hook و extensionهای composer در `features/composer` و اجزای editor بات در `features/bots` هستند. `components/ui` primitives مشترک را نگه می‌دارد. قراردادهای backend از `services/domains` و transport از `services/http/client` وارد می‌شوند؛ facade قدیمی `services/api.js` حذف شده است. import بین ریشه‌ها از alias `@/` استفاده می‌کند؛ import همسایه در یک قابلیت نسبی می‌ماند.
+
+صفحهٔ native مالک metadata سرور است و entry تعاملی قابلیت مرز `use client` را نگه می‌دارد. بعضی URLهای قدیمی فقط redirect دائمی‌اند؛ fixtureهای route، هم مالک native و هم مقصد redirectهای بازبینی‌شده را بررسی می‌کنند. جزئیات و آزمون‌های حفظ ظاهر در [گزارش اجرای ساده‌سازی](FRONTEND_SIMPLIFICATION_IMPLEMENTATION.md) آمده است.
+
 ## مسیر درخواست
 
 مرورگر → nginx → Next.js یا Django. Django کار پس‌زمینه را به Celery می‌دهد؛ worker از ناشر پلتفرم برای انتشار استفاده می‌کند. beat زمان‌بندی دوره‌ای را اجرا می‌کند. Channels ارتباط WebSocket را مدیریت می‌کند.

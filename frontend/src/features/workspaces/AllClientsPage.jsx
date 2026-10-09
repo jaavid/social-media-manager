@@ -11,7 +11,8 @@ import { cn } from '../../lib/utils';
 import { useState, useEffect, useCallback } from 'react';
 import { useAppNavigate as useNavigate } from '../../core/navigation';
 import { useWorkspaces } from '../../hooks/useData';
-import { invitationAPI, workspacesAPI } from '../../services/api';
+import { invitationAPI } from '@/services/domains/identity';
+import { workspacesAPI } from '@/services/domains/accounts';
 import {
   Search,
   ChevronRight,

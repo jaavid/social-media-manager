@@ -7,7 +7,7 @@
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { inboxAPI } from '../services/api';
+import { inboxAPI } from '@/services/domains/messaging';
 
 // This feature-owned abstraction has no persistent cache. Every snapshot and
 // error belongs to a scope key; cleanup cancels transport and rejects late work.

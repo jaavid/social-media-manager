@@ -14,7 +14,7 @@ import PageHeader from '../../components/layout/PageHeader';
 import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
 import EmptyState from '../../components/ui/EmptyState';
-import { auditAPI } from '../../services/api';
+import { auditAPI } from '@/services/domains/reporting';
 
 const RESULT_VARIANT = {
   success: 'success',

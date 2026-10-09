@@ -1,3 +1,4 @@
+'use client';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -14,9 +15,9 @@ import PageHeader from '../../components/layout/PageHeader';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import EmptyState from '../../components/ui/EmptyState';
-import { useMediaAssets } from '../../hooks/useComposer';
+import { useMediaAssets } from "./useComposer";
 import { useLanguage } from '../../i18n';
-import { composerAPI } from '../../services/api';
+import { composerAPI } from '@/services/domains/publishing';
 
 export default function MediaLibraryPage() {
   const { tr } = useLanguage();

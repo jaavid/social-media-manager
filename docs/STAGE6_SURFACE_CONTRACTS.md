@@ -47,7 +47,7 @@ These are the existing canonical files under `src/components/ui`, not new copies
 | NativeSelect | native options/events, label/hint/error, forwarded ref; compatibility owner: form maintainers |
 | Select / Combobox | options/value/onChange(value), searchable, disabled options; Select's searchable mode is the existing combobox, not another implementation |
 | Checkbox / Radio / Switch | controlled checked/value and onChange, native labels/disabled and ref |
-| Dialog / Modal / Sheet / Drawer | Radix controlled open/onOpenChange, title/description, trap and restore focus, Escape; Modal initialFocusRef and role='alertdialog' for destructive actions |
+| Modal / Drawer | Radix controlled open/onOpenChange, title/description, trap and restore focus, Escape; Modal initialFocusRef and role='alertdialog' for destructive actions; old Dialog/Sheet aliases retired after caller migration |
 | Tabs / DropdownMenu / Tooltip | existing Radix roots/triggers/content, keyboard and direction inherited from AppProviders |
 | Table / DataTable | shared semantic table elements; horizontal table scrolling stays within collection |
 | Toast | canonical toast wrapper for notifications; actionable failures remain inline |

@@ -18,7 +18,7 @@ import {
   CheckCircle2, AlertTriangle, UserCheck, Clock,
 } from 'lucide-react';
 
-import { botConversationAPI, botAPI } from '../../services/api';
+import { botConversationAPI, botAPI } from '@/services/domains/bots';
 import toast from '../../components/ui/toast';
 
 const STATUS_META = {

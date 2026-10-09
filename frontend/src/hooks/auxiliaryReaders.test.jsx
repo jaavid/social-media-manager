@@ -1,11 +1,13 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useOAuthStatus, useLookups, usePosts, useWorkspaces } from './useData';
-import { oauthAPI, lookupsAPI, workspacesAPI } from '@/services/api';
+import { oauthAPI, workspacesAPI } from '@/services/domains/accounts';
+import { lookupsAPI } from '@/services/domains/reporting';
 const oauth = Object.fromEntries(['facebook','instagram','youtube','linkedin','google_my_business'].map(key => [key, { status: 'not_connected', last_successful_sync: null, accounts: [] }]));
 let mockUser, mockStatus;
 jest.mock('@/core/session', () => ({ useSession: () => ({ user: mockUser, status: mockStatus }) }));
-jest.mock('@/services/api', () => ({ oauthAPI: { status: jest.fn() }, lookupsAPI: { get: jest.fn() }, workspacesAPI: { posts: jest.fn(), list: jest.fn() } }));
+jest.mock('@/services/domains/accounts', () => ({ oauthAPI: { status: jest.fn() }, workspacesAPI: { posts: jest.fn(), list: jest.fn() } }));
+jest.mock('@/services/domains/reporting', () => ({ lookupsAPI: { get: jest.fn() } }));
 let client;
 beforeEach(() => { jest.clearAllMocks(); mockUser = { id: 1, role: 'client', account_type: 'legacy', client_id: 7 }; mockStatus = 'authenticated'; client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } }); oauthAPI.status.mockResolvedValue({ data: oauth }); lookupsAPI.get.mockResolvedValue({ data: {} }); workspacesAPI.posts.mockResolvedValue({ data: { results: [{ id: 1 }], total: 1, has_more: false } }); workspacesAPI.list.mockResolvedValue({ data: [{ id: 7 }] }); });
 afterEach(() => client.clear());

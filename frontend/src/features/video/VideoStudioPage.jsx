@@ -28,7 +28,7 @@ import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 import EmptyState from '../../components/ui/EmptyState';
-import { videoAPI } from '../../services/api';
+import { videoAPI } from '@/services/domains/publishing';
 
 const ASPECTS = [
   { id: '16:9', label: '16:9 · Landscape',  hint: 'YouTube, Facebook, LinkedIn feed' },

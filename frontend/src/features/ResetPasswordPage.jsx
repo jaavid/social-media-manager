@@ -21,7 +21,7 @@ import AuthLayout from '../components/auth/AuthLayout';
 import PasswordStrength from '../components/auth/PasswordStrength';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
-import { authAPI } from '../services/api';
+import { authAPI } from '@/services/domains/identity';
 
 export default function ResetPasswordPage() {
   const [params] = useAppSearchParams();

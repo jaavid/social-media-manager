@@ -26,7 +26,7 @@ import {
 
 import InviteAgencyModal from '../../components/marketplace/InviteAgencyModal';
 import WriteReviewModal  from '../../components/marketplace/WriteReviewModal';
-import { marketplaceAPI, reviewAPI } from '../../services/api';
+import { marketplaceAPI, reviewAPI } from '@/services/domains/accounts';
 import { useSession as useAuth } from '../../core/session';
 import toast from '../../components/ui/toast';
 

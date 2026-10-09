@@ -28,7 +28,7 @@ import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
 import EmptyState from '../../components/ui/EmptyState';
 import Spinner from '../../components/ui/Spinner';
-import { aiV2API } from '../../services/api';
+import { aiV2API } from '@/services/domains/intelligence';
 import { useSession as useAuth } from '../../core/session';
 import toast from '../../components/ui/toast';
 

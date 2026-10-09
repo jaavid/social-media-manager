@@ -8,7 +8,7 @@
  * ========================================================================== */
 import { useState, useEffect } from 'react';
 import { useAppNavigate as useNavigate } from '../core/navigation';
-import { workspacesAPI } from '../services/api';
+import { workspacesAPI } from '@/services/domains/accounts';
 import { ArrowLeft } from 'lucide-react';
 import PageHeader from '../components/layout/PageHeader';
 

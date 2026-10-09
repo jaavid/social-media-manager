@@ -21,7 +21,8 @@ import {
   FileText,
 } from 'lucide-react';
 
-import { agencyAPI, authAPI, verificationAPI } from '../../services/api';
+import { agencyAPI, verificationAPI } from '@/services/domains/accounts';
+import { authAPI } from '@/services/domains/identity';
 import toast from '../../components/ui/toast';
 
 export default function AgencyMarketplaceProfilePage() {

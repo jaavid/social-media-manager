@@ -21,7 +21,7 @@ import {
   Activity as ActivityIcon, Clock, Undo2, Download,
 } from 'lucide-react';
 
-import { activityAPI } from '../../services/api';
+import { activityAPI } from '@/services/domains/messaging';
 import toast from '../../components/ui/toast';
 
 const ACTOR_PILL = {

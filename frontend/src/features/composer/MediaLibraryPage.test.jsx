@@ -1,8 +1,8 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import MediaLibraryPage from './MediaLibraryPage';
-import { composerAPI } from '../../services/api';
+import { composerAPI } from '@/services/domains/publishing';
 import { setLanguage } from '../../i18n';
-jest.mock('../../services/api', () => ({ composerAPI: { media: { list: jest.fn() } } }));
+jest.mock('@/services/domains/publishing', () => ({ composerAPI: { media: { list: jest.fn() } } }));
 const assets = [{ id: 1, folder: 'Alpha', alt_text: 'One' }, { id: 2, folder: 'Beta', alt_text: 'Two' }];
 beforeEach(() => { jest.clearAllMocks(); window.history.replaceState({}, '', '/admin/analytics/media'); setLanguage('en'); });
 

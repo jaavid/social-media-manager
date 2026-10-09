@@ -20,7 +20,7 @@ import {
   Building2, CheckCircle, XCircle, Info, Loader2,
 } from 'lucide-react';
 import { useAlerts } from '../../hooks/useData';
-import { invitationAPI } from '../../services/api';
+import { invitationAPI } from '@/services/domains/identity';
 import { useSession as useAuth } from '../../core/session';
 import useNotificationFeed from '@/hooks/useNotificationFeed';
 import FeedState from './FeedState';

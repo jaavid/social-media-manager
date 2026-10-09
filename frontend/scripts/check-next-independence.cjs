@@ -32,8 +32,10 @@ for (const file of active) {
       ? node.source?.value
       : node.type === 'CallExpression' && (node.callee.type === 'Import' || node.callee.name === 'require')
         ? node.arguments[0]?.value : undefined;
-    if (typeof specifier !== 'string' || !specifier.startsWith('.')) return;
-    const target = path.resolve(path.dirname(file), specifier);
+    if (typeof specifier !== 'string' || (!specifier.startsWith('.') && !specifier.startsWith('@/'))) return;
+    const target = specifier.startsWith('@/')
+      ? path.join(next, 'src', specifier.slice(2))
+      : path.resolve(path.dirname(file), specifier);
     const candidates = [target, ...extensions.map(ext => target + ext), ...extensions.map(ext => path.join(target, 'index' + ext))];
     const resolved = candidates.find(candidate => fs.existsSync(candidate) && fs.statSync(candidate).isFile());
     const label = `${path.relative(root, file)} → ${specifier}`;

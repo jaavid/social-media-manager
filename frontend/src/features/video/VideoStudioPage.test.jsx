@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import VideoStudioPage from './VideoStudioPage';
-import { videoAPI } from '@/services/api';
+import { videoAPI } from '@/services/domains/publishing';
 let mockWorkspace = 7;
 jest.mock('@/core/session', () => ({
   useSession: () => ({ user: { id: 1, role: 'client', workspace_id: mockWorkspace } }),
@@ -11,7 +11,7 @@ jest.mock('@/hooks/useData', () => ({
 }));
 jest.mock('@/core/navigation', () => ({ useAppNavigate: () => jest.fn() }));
 jest.mock('@/i18n', () => ({ useLanguage: () => ({ t: (key) => key, tr: (value) => value }) }));
-jest.mock('@/services/api', () => ({ videoAPI: { importFromUrl: jest.fn(), upload: jest.fn() } }));
+jest.mock('@/services/domains/publishing', () => ({ videoAPI: { importFromUrl: jest.fn(), upload: jest.fn() } }));
 const media = (workspace) => ({
   id: 1,
   client: workspace,

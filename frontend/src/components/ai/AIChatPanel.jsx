@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 
 import Button from '../ui/Button';
-import { aiV2API } from '../../services/api';
+import { aiV2API } from '@/services/domains/intelligence';
 import { useSession as useAuth } from '../../core/session';
 import toast from '../ui/toast';
 

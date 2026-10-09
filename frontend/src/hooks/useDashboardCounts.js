@@ -11,7 +11,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import { useAppStore, useCurrentClientId } from '../stores/appStore';
 import { QK } from '../services/queryClient';
-import api from '../services/api';
+import { api } from '@/services/http/client';
 
 /**
  *

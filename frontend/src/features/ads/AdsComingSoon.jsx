@@ -12,7 +12,7 @@ import { Rocket, Target, BarChart2, Wand2, Mail, CheckCircle2 } from 'lucide-rea
 import PageHeader from '../../components/layout/PageHeader';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
-import api from '../../services/api';
+import { api } from '@/services/http/client';
 
 export default function AdsComingSoon() {
   const [email, setEmail] = useState('');

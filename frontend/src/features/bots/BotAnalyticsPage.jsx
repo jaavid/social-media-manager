@@ -24,8 +24,8 @@ import {
   BarChart3, ArrowLeft, Filter, AlertTriangle, TrendingDown, Sparkles, ChevronRight,
 } from 'lucide-react';
 
-import { botAPI } from '../../services/api';
-import { getNodeMeta } from '../../components/bot/nodeCatalog';
+import { botAPI } from '@/services/domains/bots';
+import { getNodeMeta } from "./nodeCatalog";
 import toast from '../../components/ui/toast';
 
 export default function BotAnalyticsPage() {

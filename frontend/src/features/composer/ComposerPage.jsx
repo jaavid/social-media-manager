@@ -1,3 +1,4 @@
+'use client';
 /* ============================================================================
  * Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  * Released under the MIT License — see LICENSE. Keep this notice.
@@ -24,7 +25,7 @@ import NativeSelect from '@/components/ui/NativeSelect';
 import Card from '@/components/ui/Card';
 import Page from '@/components/ui/Page';
 import DataState from '@/components/ui/DataState';
-import { composerExtensions } from '@/components/connections/composerExtensions';
+import { composerExtensions } from "./composerExtensions";
 
 const empty = { title: '', content: '', mediaType: 'text', mediaAssets: [], targetPlatforms: [],
   platformOverrides: {}, scheduleMode: 'now', scheduledAt: '', queueId: '' };

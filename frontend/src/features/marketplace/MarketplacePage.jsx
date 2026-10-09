@@ -19,7 +19,7 @@ import {
   Search, ShieldCheck, Sparkles, Star, Filter, Building2, ChevronRight, MapPin,
 } from 'lucide-react';
 
-import { marketplaceAPI } from '../../services/api';
+import { marketplaceAPI } from '@/services/domains/accounts';
 import toast from '../../components/ui/toast';
 
 const SORT_OPTIONS = [

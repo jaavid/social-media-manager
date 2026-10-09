@@ -6,8 +6,8 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
-import { cn } from '../../../lib/utils';
-import { persistentStorage } from '../../../lib/runtime/storage';
+import { cn } from "@/lib/utils";
+import { persistentStorage } from "@/lib/runtime/storage";
 
 /**
  *
@@ -18,22 +18,22 @@ import { persistentStorage } from '../../../lib/runtime/storage';
  */
 
 import { useState } from 'react';
-import { AppLink as Link } from '../../../core/navigation';
+import { AppLink as Link } from "@/core/navigation";
 import {
   Sun,
   Moon,
   Monitor,
   ArrowRight,
 } from 'lucide-react';
-import { useTheme } from '../../../hooks/useTheme';
-import Button from '../../../components/ui/Button';
-import Switch from '../../../components/ui/Switch';
-import Card from '../../../components/ui/Card';
-import Badge from '../../../components/ui/Badge';
-import KeyboardShortcut from '../../../components/ui/KeyboardShortcut';
-import toast from '../../../components/ui/toast';
-import { useLanguage } from '../../../i18n';
-import NotificationPreferencesPage from '../../../components/notifications/NotificationPreferences';
+import { useTheme } from "@/hooks/useTheme";
+import Button from "@/components/ui/Button";
+import Switch from "@/components/ui/Switch";
+import Card from "@/components/ui/Card";
+import Badge from "@/components/ui/Badge";
+import KeyboardShortcut from "@/components/ui/KeyboardShortcut";
+import toast from "@/components/ui/toast";
+import { useLanguage } from "@/i18n";
+import NotificationPreferencesPage from "@/components/notifications/NotificationPreferences";
 
 // ─────────────────────────────────────────────────────────────────────────
 // 1. Notifications — per-channel × per-event matrix

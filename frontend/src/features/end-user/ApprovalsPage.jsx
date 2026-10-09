@@ -27,7 +27,7 @@ import {
   AlertTriangle, Sparkles, FileText, Send, Plug,
 } from 'lucide-react';
 
-import { approvalAPI } from '../../services/api';
+import { approvalAPI } from '@/services/domains/accounts';
 import toast from '../../components/ui/toast';
 
 const ACTION_ICON = {

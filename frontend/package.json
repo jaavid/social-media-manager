@@ -73,6 +73,7 @@
     "i18n:check": "node scripts/check-user-facing-strings.js --check",
     "typecheck": "tsc --noEmit",
     "test:next": "playwright test",
+    "test:visual": "playwright test --config playwright.visual.config.mjs",
     "start:standalone": "node scripts/start-next.mjs",
     "check:next": "node scripts/check-next-independence.cjs",
     "lint": "node scripts/check-lint.mjs",

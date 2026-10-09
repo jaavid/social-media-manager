@@ -12,7 +12,7 @@ import { persistentStorage } from '../lib/runtime/storage';
 import { useEffect, useState } from 'react';
 import platformCatalogue from './platformCatalogue.generated.json';
 import { legacyPlatformMap, platformColor, platformOptions } from './platformPresentation';
-import { oauthAPI } from './api';
+import { oauthAPI } from '@/services/domains/accounts';
 import { botChannelsAPI } from './botChannels';
 
 // Compatibility objects are derived, never independent platform declarations.

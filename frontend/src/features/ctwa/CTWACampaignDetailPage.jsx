@@ -25,7 +25,7 @@ import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend,
 } from 'recharts';
 
-import { ctwaAPI } from '../../services/api';
+import { ctwaAPI } from '@/services/domains/accounts';
 import toast from '../../components/ui/toast';
 
 export default function CTWACampaignDetailPage() {

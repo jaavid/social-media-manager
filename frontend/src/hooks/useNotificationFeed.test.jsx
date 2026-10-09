@@ -1,10 +1,10 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import useNotificationFeed from './useNotificationFeed';
-import { alertsAPI, notificationAPI } from '@/services/api';
+import { alertsAPI, notificationAPI } from '@/services/domains/reporting';
 let mockUser;
 jest.mock('@/core/session', () => ({ useSession: () => ({ user: mockUser, status: 'authenticated' }) }));
-jest.mock('@/services/api', () => ({ alertsAPI: { list: jest.fn(), markRead: jest.fn(), markAllRead: jest.fn() }, notificationAPI: { list: jest.fn(), markRead: jest.fn(), markAll: jest.fn() } }));
+jest.mock('@/services/domains/reporting', () => ({ alertsAPI: { list: jest.fn(), markRead: jest.fn(), markAllRead: jest.fn() }, notificationAPI: { list: jest.fn(), markRead: jest.fn(), markAll: jest.fn() } }));
 const row = { id: 1, message: 'fixture alert', alert_type: 'sync_failed', is_read: false, created_at: '2026-10-07T10:00:00Z' };
 let client;
 beforeEach(() => { jest.clearAllMocks(); mockUser = { id: 1, role: 'staff' }; client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } }); alertsAPI.list.mockResolvedValue({ data: [row] }); });

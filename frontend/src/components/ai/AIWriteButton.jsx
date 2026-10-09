@@ -11,7 +11,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Sparkles, Loader2, X, Check, RefreshCw, Copy } from 'lucide-react';
 
 import Button from '../ui/Button';
-import { aiV2API } from '../../services/api';
+import { aiV2API } from '@/services/domains/intelligence';
 import toast from '../ui/toast';
 
 /**

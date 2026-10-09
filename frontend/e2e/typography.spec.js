@@ -117,7 +117,11 @@ test('local font failure keeps readable fallback and locale specimens can switch
 
 for (const route of ['/', '/product/analytics', '/solutions/agencies']) for (const theme of ['light','dark']) test(`public display/body roles ${route} ${theme}`,async({page})=>{
   await page.context().addCookies([{name:'theme',value:theme,url:base}]);
-  await page.route('**/api/**',r=>r.fulfill({json:{}}));await page.goto(route);await page.evaluate(()=>document.fonts.ready);
+  await page.route('**/api/**', r => new URL(r.request().url()).pathname === '/api/auth/me/'
+    ? r.fulfill({ status: 401, json: { detail: 'Anonymous fixture' } })
+    : r.fulfill({ json: {} }));
+  await page.goto(route); await expect(page).toHaveURL(new URL(route, base).href);
+  await page.evaluate(() => document.fonts.ready);
   const display=page.locator('h1[data-typography="display"]');await expect(display).toBeVisible();expect(await display.evaluate(el=>getComputedStyle(el).fontWeight)).toBe('800');
   const prose=display.locator('..').locator('p').first();await expect(prose).toBeVisible();
   await expect.poll(()=>page.evaluate(()=>{

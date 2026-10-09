@@ -12,7 +12,7 @@ import { Sparkles, RefreshCw, Loader2 } from 'lucide-react';
 
 import Button from '../ui/Button';
 import AILoading from './AILoading';
-import { aiV2API } from '../../services/api';
+import { aiV2API } from '@/services/domains/intelligence';
 import toast from '../ui/toast';
 
 /**

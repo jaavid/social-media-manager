@@ -24,7 +24,7 @@ import {
   Bell, Save, Inbox, Mail, MessageCircle, Globe, Sparkles,
 } from 'lucide-react';
 
-import { notificationPrefsAPI } from '../../services/api';
+import { notificationPrefsAPI } from '@/services/domains/accounts';
 import { AccountScope, useAccountRead, useCheckedAction, ReadState, WriteState } from '@/components/ui/accountRecovery';
 import { parsePreferences, parsePreferenceWrite } from '@/lib/settingsRecovery';
 

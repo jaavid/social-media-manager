@@ -25,7 +25,7 @@ import { useMemo, useState } from 'react';
 import { ArrowLeft, ArrowRight, Send, X, Building2, Check } from 'lucide-react';
 
 import PermissionMatrix from './PermissionMatrix';
-import { agencyInviteAPI } from '../../services/api';
+import { agencyInviteAPI } from '@/services/domains/accounts';
 import toast from '../ui/toast';
 
 // Server-side AGENCY_CLIENT_PERMISSIONS catalog.

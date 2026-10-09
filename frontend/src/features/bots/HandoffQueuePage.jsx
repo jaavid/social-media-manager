@@ -22,7 +22,7 @@ import {
   UserPlus, RefreshCw, Inbox, ChevronRight, Sparkles, Bot,
 } from 'lucide-react';
 
-import { botConversationAPI } from '../../services/api';
+import { botConversationAPI } from '@/services/domains/bots';
 import toast from '../../components/ui/toast';
 import { translateRaw, useLanguage } from '../../i18n';
 

@@ -11,7 +11,7 @@ import { Send, Check, CheckCheck, AlertCircle, Loader2, MessageCircle } from 'lu
 
 import PageHeader from '../components/layout/PageHeader';
 import { useWhatsAppInbox, useWhatsAppThread } from '../hooks/useWhatsApp';
-import { whatsappAPI } from '../services/api';
+import { whatsappAPI } from '@/services/domains/messaging';
 import { useLanguage } from '../i18n';
 
 const COLORS = {

@@ -5,7 +5,7 @@ import Input from './Input';
 import Textarea from './Textarea';
 import Select from './Select';
 import Modal from './Modal';
-import Sheet from './Sheet';
+import Sheet from './Drawer';
 import Tabs, { TabPanel } from './Tabs';
 import DataTable from './DataTable';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from './DropdownMenu';

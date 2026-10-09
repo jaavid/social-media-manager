@@ -1,13 +1,13 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import QueueManagerPage from './QueueManagerPage';
-import { composerAPI } from '../../services/api';
+import { composerAPI } from '@/services/domains/publishing';
 import { setLanguage } from '../../i18n';
 import { registerPlatform } from '../../services/platforms';
 
 const mockRefetch = jest.fn();
 const queue = { id: 11, name: 'Morning queue', items_count: 0, waiting_count: 0, platforms: ['facebook'] };
-jest.mock('../../hooks/useComposer', () => ({ usePostQueues: () => ({ data: [queue], refetch: mockRefetch, loading: false }) }));
-jest.mock('../../services/api', () => ({ composerAPI: { queues: { get: jest.fn(), addItems: jest.fn() } } }));
+jest.mock("./useComposer", () => ({ usePostQueues: () => ({ data: [queue], refetch: mockRefetch, loading: false }) }));
+jest.mock('@/services/domains/publishing', () => ({ composerAPI: { queues: { get: jest.fn(), addItems: jest.fn() } } }));
 jest.mock('../../components/ui/toast', () => ({ success: jest.fn(), error: jest.fn() }));
 
 beforeEach(() => {

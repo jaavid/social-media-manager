@@ -19,7 +19,7 @@ import {
   Sparkles, Plug, Users2, ArrowRight, BarChart3, MessageSquare, Calendar,
 } from 'lucide-react';
 
-import { endUserAPI } from '../../services/api';
+import { endUserAPI } from '@/services/domains/identity';
 import { useSession as useAuth } from '../../core/session';
 
 export default function EndUserDashboard() {

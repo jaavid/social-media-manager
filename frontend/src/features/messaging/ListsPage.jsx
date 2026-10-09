@@ -15,7 +15,7 @@ import Button from '../../components/ui/Button';
 import EmptyState from '../../components/ui/EmptyState';
 import Badge from '../../components/ui/Badge';
 import { useWhatsAppLists } from '../../hooks/useWhatsApp';
-import { whatsappAPI } from '../../services/api';
+import { whatsappAPI } from '@/services/domains/messaging';
 
 export default function ListsPage() {
   const { data: lists, refetch, loading } = useWhatsAppLists();

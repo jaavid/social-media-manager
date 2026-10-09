@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import BotFlowEditorPage from './BotFlowEditorPage';
-import { botAPI } from '@/services/api';
+import { botAPI } from '@/services/domains/bots';
 let mockId = '1';
 jest.mock('nanoid', () => ({ nanoid: () => 'fixture-node' }));
 jest.mock('@/core/session', () => ({ useSession: () => ({ user: { id: 1, workspace_id: 7 } }) }));
@@ -9,9 +9,7 @@ jest.mock('../../core/navigation', () => ({
   useAppNavigate: () => jest.fn(),
   useAppParams: () => ({ id: mockId }),
 }));
-jest.mock('../../services/api', () => ({
-  botAPI: { get: jest.fn(), update: jest.fn(), validate: jest.fn(), unpublish: jest.fn() },
-}));
+jest.mock('@/services/domains/bots', () => ({ botAPI: { get: jest.fn(), update: jest.fn(), validate: jest.fn(), unpublish: jest.fn() } }));
 jest.mock('reactflow', () => ({
   __esModule: true,
   default: function MockReactFlow({ children }) {
@@ -27,10 +25,10 @@ jest.mock('reactflow', () => ({
   applyEdgeChanges: (_, rows) => rows,
   addEdge: (edge, rows) => [...rows, edge],
 }));
-jest.mock('../../components/bot/NodeInspector', () => () => null);
-jest.mock('../../components/bot/TestModeDrawer', () => () => null);
+jest.mock("./NodeInspector", () => () => null);
+jest.mock("./TestModeDrawer", () => () => null);
 jest.mock(
-  '../../components/bot/TriggerConfigModal',
+  "./TriggerConfigModal",
   () =>
     function MockPublishConfirmation() {
       return <div>Publish confirmation</div>;

@@ -23,7 +23,7 @@ import {
   CalendarClock,
 } from 'lucide-react';
 
-import { manageRequestAPI } from '../../services/api';
+import { manageRequestAPI } from '@/services/domains/marketplace';
 import { useSession as useAuth } from '../../core/session';
 import toast from '../../components/ui/toast';
 

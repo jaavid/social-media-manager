@@ -20,7 +20,7 @@ import { motion } from 'framer-motion';
 import AuthLayout from '../components/auth/AuthLayout';
 import Button from '../components/ui/Button';
 import Spinner from '../components/ui/Spinner';
-import { authAPI } from '../services/api';
+import { authAPI } from '@/services/domains/identity';
 import { useSession as useAuth } from '../core/session';
 
 export default function VerifyEmailPage() {

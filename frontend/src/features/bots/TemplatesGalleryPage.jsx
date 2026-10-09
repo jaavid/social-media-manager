@@ -21,8 +21,8 @@ import {
   Sparkles, Copy, RefreshCw, X, ArrowRight, Bot, Filter,
 } from 'lucide-react';
 
-import { botTemplateAPI } from '../../services/api';
-import { getNodeMeta } from '../../components/bot/nodeCatalog';
+import { botTemplateAPI } from '@/services/domains/bots';
+import { getNodeMeta } from "./nodeCatalog";
 import toast from '../../components/ui/toast';
 
 const INDUSTRY_LABELS = {

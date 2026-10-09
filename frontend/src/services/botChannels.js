@@ -6,7 +6,7 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
-import api from './api';
+import { api } from '@/services/http/client';
 
 export const botChannelsAPI = {
   status: (clientId) => api.get(`/bot-channels/${clientId}/status/`),

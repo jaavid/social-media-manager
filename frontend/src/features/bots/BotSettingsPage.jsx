@@ -23,7 +23,7 @@ import {
   ShieldCheck, ShieldOff, Save, AlertTriangle, Sparkles,
 } from 'lucide-react';
 
-import { botSettingsAPI } from '../../services/api';
+import { botSettingsAPI } from '@/services/domains/bots';
 import toast from '../../components/ui/toast';
 
 export default function BotSettingsPage() {

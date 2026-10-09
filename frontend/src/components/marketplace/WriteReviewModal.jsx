@@ -20,7 +20,7 @@ import { useEffect, useState } from 'react';
 import { Send, X, Star, Plus } from 'lucide-react';
 
 import StarRating from './StarRating';
-import { reviewAPI } from '../../services/api';
+import { reviewAPI } from '@/services/domains/accounts';
 import toast from '../ui/toast';
 
 

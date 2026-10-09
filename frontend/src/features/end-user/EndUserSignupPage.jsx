@@ -22,7 +22,7 @@ import { useState } from 'react';
 import { AppLink as Link, useAppNavigate as useNavigate } from '../../core/navigation';
 import { ArrowRight, ArrowLeft, Check, Sparkles } from 'lucide-react';
 
-import { endUserAPI } from '../../services/api';
+import { endUserAPI } from '@/services/domains/identity';
 import toast from '../../components/ui/toast';
 
 const INDUSTRY_OPTIONS = [

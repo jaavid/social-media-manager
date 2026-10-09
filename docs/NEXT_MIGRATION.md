@@ -72,7 +72,8 @@ Workspace content, composer, inbox and other tools now live directly under
 `/dashboard/<tool>` (for example `/dashboard/composer/42` and `/dashboard/inbox`).
 `/dashboard` is the overview and `/dashboard/analytics` is reporting. The old
 `/dashboard/analytics/<tool>` URLs redirect permanently, keeping query strings
-and dynamic draft IDs. Native legacy route files remain for route parity;
-short routes reuse their feature views. Shared navigation canonicalizes old
+and dynamic draft IDs. Most native legacy route files remain for route parity. Composer, draft, media
+and queue aliases retain only their permanent redirects; short routes import
+the client feature entries directly. Shared navigation canonicalizes old
 workspace links, including active menu state. Admin module URLs retain their
 existing `/admin/analytics/...` structure.

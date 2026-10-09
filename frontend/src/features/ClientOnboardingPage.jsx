@@ -17,7 +17,7 @@ import { apiBaseUrl } from '../lib/runtime/config';
 import { useRef, useState } from 'react';
 import { useAppNavigate as useNavigate } from '../core/navigation';
 import { useSession as useAuth } from '../core/session';
-import { workspacesAPI } from '../services/api';
+import { workspacesAPI } from '@/services/domains/accounts';
 import PageHeader from '../components/layout/PageHeader';
 import ConnectedAccounts from '@/components/ConnectedAccounts';
 import CompetitorSection from '../components/ui/CompetitorSection';

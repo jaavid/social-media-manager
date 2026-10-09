@@ -2,15 +2,12 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, waitFor } from '@testing-library/react';
 import { NavigationProvider } from '../../core/navigation';
 import NotificationBell from './NotificationBell';
-import { alertsAPI, notificationAPI } from '../../services/api';
+import { alertsAPI, notificationAPI } from '@/services/domains/reporting';
 import { useAuth } from '../../hooks/useAuth';
 
 jest.mock('../../hooks/useAuth');
-jest.mock('../../services/api', () => ({
-  alertsAPI: { list: jest.fn(), markRead: jest.fn(), markAllRead: jest.fn() },
-  notificationAPI: { list: jest.fn(), markRead: jest.fn(), markAll: jest.fn() },
-  invitationAPI: { respond: jest.fn() },
-}));
+jest.mock('@/services/domains/reporting', () => ({ alertsAPI: { list: jest.fn(), markRead: jest.fn(), markAllRead: jest.fn() }, notificationAPI: { list: jest.fn(), markRead: jest.fn(), markAll: jest.fn() } }));
+jest.mock('@/services/domains/identity', () => ({ invitationAPI: { respond: jest.fn() } }));
 
 const authenticated = {
   status: 'authenticated', user: { id: 7, role: 'client', client_id: 12 },

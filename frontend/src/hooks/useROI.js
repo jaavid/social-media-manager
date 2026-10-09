@@ -7,7 +7,7 @@
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { roiAPI } from '../services/api';
+import { roiAPI } from '@/services/domains/reporting';
 
 export function useROISettings(clientId) {
   const [settings, setSettings] = useState(null);

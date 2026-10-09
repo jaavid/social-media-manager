@@ -1,5 +1,5 @@
 'use client';
-import Feature from '../../../../../../features/marketplace/MarketplacePage.jsx';
+import Feature from "@/features/marketplace/MarketplacePage.jsx";
 export default function View() {
   return <Feature />;
 }

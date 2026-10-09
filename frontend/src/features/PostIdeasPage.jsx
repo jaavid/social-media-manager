@@ -17,7 +17,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAppSearchParams as useSearchParams } from '../core/navigation';
 import { useSession as useAuth } from '../core/session';
 import { useWorkspaces, useLookups } from '../hooks/useData';
-import { postIdeasAPI } from '../services/api';
+import { postIdeasAPI } from '@/services/domains/intelligence';
 import SocialPlatformIcon from '../components/ui/SocialPlatformIcon';
 import PageHeader from '../components/layout/PageHeader';
 import {

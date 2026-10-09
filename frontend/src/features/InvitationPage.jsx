@@ -22,7 +22,7 @@ import { Building2, CheckCircle, XCircle, Clock } from 'lucide-react';
 import AuthLayout from '../components/auth/AuthLayout';
 import Button from '../components/ui/Button';
 import Spinner from '../components/ui/Spinner';
-import { invitationAPI } from '../services/api';
+import { invitationAPI } from '@/services/domains/identity';
 import { useSession as useAuth } from '../core/session';
 
 export default function InvitationPage() {

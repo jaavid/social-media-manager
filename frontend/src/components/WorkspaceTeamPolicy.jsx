@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import api, { managementAPI } from '../services/api';
+import { api } from '@/services/http/client';
+import { managementAPI } from '@/services/domains/marketplace';
 import Button from './ui/Button';
 
 const controlStyle = { padding: '8px 10px', marginInlineStart: 6, borderRadius: 8, border: '1px solid var(--border-default)', background: 'var(--surface-card)', color: 'var(--text-primary)', font: 'inherit' };

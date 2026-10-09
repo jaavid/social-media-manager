@@ -7,7 +7,7 @@ export default function ReturningUserRedirect() {
   const router = useRouter();
   useEffect(() => {
     let active = true;
-    import('../../services/api').then(({ authAPI }) => authAPI.me()).then(({ data: user }) => {
+    import('@/services/domains/auth').then(({ authAPI }) => authAPI.me()).then(({ data: user }) => {
       if (!active) return;
       const destination = ['superadmin', 'staff'].includes(user.role) ? '/admin'
         : user.role === 'client' && !(user.workspace_id ?? user.client_id) ? '/pending'

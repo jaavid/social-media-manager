@@ -14,12 +14,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import useDashboardToday from './useDashboardToday';
 import { useAppStore } from '../stores/appStore';
 
-jest.mock('../services/api', () => ({
-  __esModule: true,
-  default: { get: jest.fn() },
-}));
+jest.mock('@/services/http/client', () => ({ api: { get: jest.fn() } }));
 
-import api from '../services/api';
+import { api } from '@/services/http/client';
 
 function makeWrapper(qc) {
   return ({ children }) =>

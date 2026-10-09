@@ -17,7 +17,7 @@ import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import DataState from '@/components/ui/DataState';
-import Dialog from '@/components/ui/Dialog';
+import Dialog from '@/components/ui/Modal';
 import NativeSelect from '@/components/ui/NativeSelect';
 import SectionHeader from '@/components/ui/SectionHeader';
 import SocialPlatformIcon from '@/components/ui/SocialPlatformIcon';

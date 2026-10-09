@@ -1,3 +1,4 @@
+'use client';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -18,8 +19,8 @@ import Card from '../../components/ui/Card';
 import Modal from '../../components/ui/Modal';
 import DataState from '../../components/ui/DataState';
 import Badge from '../../components/ui/Badge';
-import { usePostQueues } from '../../hooks/useComposer';
-import { composerAPI } from '../../services/api';
+import { usePostQueues } from "./useComposer";
+import { composerAPI } from '@/services/domains/publishing';
 import { getPlatformRegistry, platformHasCapability } from '../../services/platforms';
 import { useLanguage } from '../../i18n';
 

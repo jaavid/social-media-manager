@@ -1,13 +1,13 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import SyncLogsPage from './SyncLogsPage';
-import { syncLogsAPI } from '@/services/api';
+import { syncLogsAPI } from '@/services/domains/reporting';
 import { enMessages as mockMessages } from '@/i18n/messages';
 let mockUser;
 jest.mock('@/core/session', () => ({
   useSession: () => ({ user: mockUser, status: 'authenticated' }),
 }));
-jest.mock('@/services/api', () => ({ syncLogsAPI: { list: jest.fn() } }));
+jest.mock('@/services/domains/reporting', () => ({ syncLogsAPI: { list: jest.fn() } }));
 jest.mock(
   '@/components/layout/PageHeader',
   () =>

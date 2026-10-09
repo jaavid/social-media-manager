@@ -8,7 +8,7 @@ async function fixture(page){
  await page.context().addCookies([{name:'socialstats.language',value:'en',url:base}]);
  await page.addInitScript(()=>{localStorage.setItem('socialstats.language','en');localStorage.setItem('socialstats_cookie_choice',JSON.stringify({version:'2024-11-01',choices:{essential:true,functional:true}}));});
  await page.routeWebSocket('**/ws/**',s=>s.close());
- await page.route('**/api/**',route=>{const req=route.request(),p=new URL(req.url()).pathname;if(!['GET','HEAD'].includes(req.method()))state.writes++;
+ await page.route('**/api/**',route=>{const req=route.request(),p=new URL(req.url()).pathname;if(p.startsWith('/api/composer/')&&!['GET','HEAD'].includes(req.method()))state.writes++;
   if(p.endsWith('/auth/session/'))return route.fulfill({json:{authenticated:true,csrfToken:'fixture'}});
   if(p.endsWith('/auth/me/'))return route.fulfill({json:{id:1,role:'client',account_type:'legacy',client_id:7,workspace_id:7,permissions:{}}});
   if(p==='/api/composer/posts/900/'){state.postReads++;return route.fulfill({status:state.postStatus||200,json:{id:900,client:7,title:'',content:'Synthetic saved post',media_type:'text',media_urls:[],target_platforms:['facebook'],platform_overrides:{},status:'draft',scheduled_at:null}});}
@@ -39,7 +39,7 @@ test('save navigation and immediate reload never persist an empty post recovery 
  await page.getByRole('button',{name:'Facebook',exact:true}).first().click();
  await page.getByLabel('Content',{exact:true}).fill('Synthetic saved post');
  await page.getByRole('button',{name:'Save Draft',exact:true}).click();
- await expect(page).toHaveURL(/\/dashboard\/analytics\/composer\/900$/);
+ await expect(page).toHaveURL(/\/dashboard\/composer\/900$/);
  await expect(page.getByLabel('Content',{exact:true})).toHaveValue('Synthetic saved post');
  expect(await page.evaluate(()=>window.__emptyComposerDraftWrites)).toBe(0);
  await page.reload();

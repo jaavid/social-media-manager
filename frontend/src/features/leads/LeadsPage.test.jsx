@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import LeadsPage from './LeadsPage';
 import { setLanguage } from '../../i18n';
 
-jest.mock('../../services/api', () => ({ leadAPI: { list: jest.fn(async () => ({ data: [{ id: 1, name: 'Fixture lead', status: 'new', score: 0 }] })) } }));
+jest.mock('@/services/domains/messaging', () => ({ leadAPI: { list: jest.fn(async () => ({ data: [{ id: 1, name: 'Fixture lead', status: 'new', score: 0 }] })) } }));
 jest.mock('../../core/navigation', () => ({ AppLink: ({ children }) => <a>{children}</a> }));
 jest.mock('../../components/ui/toast', () => ({ success: jest.fn(), error: jest.fn() }));
 

@@ -1,50 +1,6 @@
 import { test, expect } from '@playwright/test';
-import { legacyComposerConnections } from './composer-fixture';
-import { connectionFixture, connectionAccount } from '../src/services/__fixtures__/connections';
+import { legacyComposerConnections, setupComposer as setup, compose } from './composer-fixture';
 
-async function setup(page, { language = 'en', theme = 'light', scheduling = false } = {}) {
-  const wire = connectionFixture();
-  wire.providers[0].accounts = [connectionAccount(), connectionAccount(11)];
-  if (scheduling) wire.providers[0].capabilities.scheduling = 'supported';
-  const state = { wire, writes: [], failSave: false, failPublish: null, failQueue: false, failRead: false,
-    post: { id: 900, client: 7, title: '', content: '', media_urls: [], media_type: 'text', target_platforms: [], platform_overrides: {}, scheduled_at: null, status: 'draft' } };
-  await page.context().addCookies([{ name: 'socialstats.language', value: language, url: 'http://127.0.0.1:3000' }, { name: 'theme', value: theme, url: 'http://127.0.0.1:3000' }, { name: 'csrftoken', value: 'e2e-csrf', url: 'http://127.0.0.1:3000' }]);
-  await page.addInitScript(({ language, theme }) => {
-    localStorage.setItem('socialstats.language', language); localStorage.setItem('theme', theme);
-    localStorage.setItem('socialstats_cookie_choice', JSON.stringify({ version: '2024-11-01', choices: { essential: true, functional: true } }));
-  }, { language, theme });
-  await page.route('**/api/**', async route => {
-    const req = route.request(); const url = new URL(req.url()); const path = url.pathname;
-    if (path.endsWith('/auth/me/')) return route.fulfill({ json: { id: 1, role: 'client', account_type: 'legacy', workspace_id: 7, client_id: 7, email: 'fixture@example.test', permissions: {} } });
-    if (path.endsWith('/auth/session/')) return route.fulfill({ json: { authenticated: true, csrfToken: 'e2e-csrf' } });
-    if (path.includes('/connections/')) return route.fulfill({ status: state.failRead === 403 ? 403 : state.failRead ? 503 : 200, json: state.failRead ? { code: state.failRead === 403 ? 'permission_denied' : 'unavailable' } : state.wire });
-    if (path === '/api/composer/queues/') return route.fulfill({ json: [{ id: 11, client: 7, name: 'Queue fixture', platforms: ['contract_example'], is_active: true }] });
-    if (path.includes('/composer/posts/')) {
-      if (req.method() !== 'GET') state.writes.push({ path, payload: req.postDataJSON(), key: req.headers()['idempotency-key'] });
-      if (path.endsWith('/publish_now/')) {
-        if (state.failPublish === 'timeout') return route.abort('timedout');
-        if (state.failPublish) return route.fulfill({ status: state.failPublish, json: { code: state.failPublish === 429 ? 'rate_limited' : 'permission_denied' } });
-        state.post.status = 'queued'; return route.fulfill({ json: state.post });
-      }
-      if (path.endsWith('/schedule/')) { state.post.scheduled_at = req.postDataJSON().scheduled_at; state.post.status = 'scheduled'; return route.fulfill({ json: state.post }); }
-      if (path.endsWith('/add_to_queue/')) return route.fulfill({ status: state.failQueue ? 400 : 201, json: state.failQueue ? { code: 'invalid_destination' } : { id: 12 } });
-      if (req.method() !== 'GET') {
-        if (state.failSave) return route.fulfill({ status: 503, json: { code: 'unavailable' } });
-        state.post = { ...state.post, ...req.postDataJSON() };
-      }
-      return route.fulfill({ json: state.post });
-    }
-    return route.fulfill({ json: [] });
-  });
-  await page.routeWebSocket('**/ws/**', socket => socket.close());
-  await page.goto('/dashboard/analytics/composer');
-  return state;
-}
-async function compose(page, language = 'en') {
-  await page.getByRole('button', { name: language === 'fa' ? 'آزمایشی' : 'Contract example', pressed: false }).click();
-  await page.getByRole('checkbox', { name: /First account/ }).check();
-  await page.getByLabel(language === 'fa' ? 'محتوا' : 'Content', { exact: true }).fill('Private editor content');
-}
 for (const language of ['fa', 'en']) for (const theme of ['light', 'dark', 'system']) for (const width of [360, 768, 1440]) {
   test(`${language}/${theme}/${width}: editor keyboard, failure preservation and safe save retry`, async ({ page }) => {
     await page.setViewportSize({ width, height: 1000 });
@@ -142,7 +98,7 @@ test('forbidden workspace refresh hides cached identities and recovered editor c
   const state = await setup(page); await compose(page);
   page.once('dialog', dialog => dialog.accept());
   await page.getByRole('link', { name: 'Home', exact: true }).click();
-  await expect(page).toHaveURL(/analytics\/dashboard$/);
+  await expect(page).toHaveURL(/\/dashboard$/);
   state.failRead = 403;
   // Expire the shared query cache before remount so the denied refresh occurs.
   await page.clock.setFixedTime(new Date(Date.now() + 10 * 60 * 1000));

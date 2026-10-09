@@ -15,7 +15,7 @@ import { publicMessage } from '../i18n/public-message';
  */
 import { useEffect, useState } from 'react';
 import { useAppNavigate as useNavigate } from '../core/navigation';
-import { authAPI } from '../services/api';
+import { authAPI } from '@/services/domains/identity';
 
 export default function AuthCallbackPage() {
   const navigate = useNavigate();

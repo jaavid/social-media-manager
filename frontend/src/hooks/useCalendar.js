@@ -7,7 +7,7 @@
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { calendarAPI } from '../services/api';
+import { calendarAPI } from '@/services/domains/publishing';
 
 function mergeDateMaps(responses) {
   const merged = {};

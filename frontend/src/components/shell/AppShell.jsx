@@ -15,7 +15,7 @@ import ErrorBoundary from '@/components/ui/ErrorBoundary';
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
-import Sheet from '../ui/Sheet';
+import Sheet from '../ui/Drawer';
 import { cn } from '../../lib/utils';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
