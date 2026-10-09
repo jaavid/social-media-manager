@@ -34,7 +34,9 @@ export function resolveWorkspace({ user, status, route, selection, owner, allowe
 }
 
 export default function useWorkspaceScope() {
-  const { user, status } = useSession();
+  const session = useSession();
+  const { user } = session;
+  const status = session.transitioning ? 'initializing' : session.status;
   const params = useAppParams();
   const { pathname } = useAppLocation();
   const selected = useAppStore(s => s.workspaceSelection);

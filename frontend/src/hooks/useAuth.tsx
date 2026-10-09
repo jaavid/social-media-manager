@@ -21,6 +21,7 @@ import { apiError } from '../services/http/errors';
 export interface AuthSession {
   user: SessionUser | null;
   loading: boolean;
+  transitioning: boolean;
   status: SessionStatus;
   login: (email: string, password: string, termsAccepted?: boolean) => Promise<SessionUser | { mfa_required: true; mfa_token: string }>;
   loginMfa: (token: string, options?: { code?: string; backupCode?: string }) => Promise<SessionUser>;
@@ -40,8 +41,10 @@ export function AuthProvider({ children, initialUser = null }: PropsWithChildren
   const [user, setUser] = useState<SessionUser | null>(initialUser);
   const [status, setStatus] = useState<SessionStatus>(initialUser ? 'authenticated' : 'initializing');
   const generation = useRef(0);
+  const [transitioning, setTransitioning] = useState(false);
   const becomeAnonymous = useCallback(() => {
     generation.current += 1;
+    setTransitioning(false);
     useAppStore.getState().reset();
     setUser(null);
     setStatus('anonymous');
@@ -57,6 +60,7 @@ export function AuthProvider({ children, initialUser = null }: PropsWithChildren
   }, []);
   const retry = useCallback(() => {
     const current = ++generation.current;
+    setTransitioning(false);
     setUser(null);
     setStatus('initializing');
     void migrateLegacySession().then(refreshUser).catch(error => {
@@ -72,25 +76,53 @@ export function AuthProvider({ children, initialUser = null }: PropsWithChildren
   }, [retry]);
   useEffect(() => onSessionChanged(retry), [retry]);
 
+  const failTransition = (current: number) => {
+    if (current !== generation.current) return;
+    setTransitioning(false);
+    setUser(null);
+    setStatus('unavailable');
+  };
   const login = async (email: string, password: string, termsAccepted?: boolean) => {
-    generation.current += 1;
-    const response = await authAPI.login(email, password, termsAccepted);
-    if ('mfa_required' in response.data && response.data.mfa_required) return { mfa_required: true as const, mfa_token: 'session' };
-    const next = await refreshUser();
-    notifySessionChanged();
-    return next;
+    const current = ++generation.current;
+    setTransitioning(true);
+    try {
+      const response = await authAPI.login(email, password, termsAccepted);
+      if ('mfa_required' in response.data && response.data.mfa_required) {
+        if (current === generation.current) { setTransitioning(false); setUser(null); setStatus('anonymous'); }
+        return { mfa_required: true as const, mfa_token: 'session' };
+      }
+      if (current !== generation.current) throw new Error('Session changed during authentication');
+      const next = await refreshUser();
+      if (current !== generation.current) throw new Error('Session changed during authentication');
+      notifySessionChanged();
+      setTransitioning(false);
+      return next;
+    } catch (error) { failTransition(current); throw error; }
   };
   const loginMfa = async (token: string, { code, backupCode }: { code?: string; backupCode?: string } = {}) => {
-    generation.current += 1;
-    await mfaAPI.login({ mfa_token: token, ...(code ? { code } : {}), ...(backupCode ? { backup_code: backupCode } : {}), terms_accepted: true });
-    const next = await refreshUser();
-    notifySessionChanged();
-    return next;
+    const current = ++generation.current;
+    setTransitioning(true);
+    try {
+      await mfaAPI.login({ mfa_token: token, ...(code ? { code } : {}), ...(backupCode ? { backup_code: backupCode } : {}), terms_accepted: true });
+      if (current !== generation.current) throw new Error('Session changed during authentication');
+      const next = await refreshUser();
+      if (current !== generation.current) throw new Error('Session changed during authentication');
+      notifySessionChanged();
+      setTransitioning(false);
+      return next;
+    } catch (error) { failTransition(current); throw error; }
   };
   const logout = async () => {
-    // Revocation must succeed before claiming the server session is logged out.
-    await api.delete('/auth/session/');
-    invalidateSession();
+    const current = ++generation.current;
+    setTransitioning(true);
+    try {
+      // Keep the caller's revocation/retry UI mounted while workspace scope pauses.
+      await api.delete('/auth/session/');
+      if (current === generation.current) invalidateSession();
+    } catch (error) {
+      if (current === generation.current) setTransitioning(false);
+      throw error;
+    }
   };
   const refreshAuth = useCallback(async () => {
     const next = await refreshUser();
@@ -99,7 +131,7 @@ export function AuthProvider({ children, initialUser = null }: PropsWithChildren
   }, [refreshUser]);
   const can = useCallback((code: string) => !!user && (user.role === 'superadmin' || user.permissions?.[code] === true), [user]);
   const accountType = user?.account_type || null;
-  return <AuthContext.Provider value={{ user, status, loading: status === 'initializing', login, loginMfa, logout,
+  return <AuthContext.Provider value={{ user, status, transitioning, loading: status === 'initializing', login, loginMfa, logout,
     refreshUser, refreshAuth, retry, can, accountType,
     isPending: !!(user?.role === 'client' && !(user.workspace_id ?? user.client_id)),
     isEndUser: accountType === 'end_user', isAgency: accountType === 'agency_member',

@@ -19,6 +19,11 @@ Resolution order:
 3. Valid session `workspace_id`, otherwise legacy `client_id`.
 4. No workspace. `null` never grants all-workspace access.
 
+Workspace consumers and socket dispatch pause while login, MFA completion or
+logout is pending. A session transition flag preserves revocation/retry UI;
+logout is only claimed after successful server revocation. Auth generation
+fences prevent superseded login responses from restoring a dismissed identity.
+
 IDs are positive safe integers, accepting decimal strings. Admin global pages
 retain their established independent global data APIs. Counts have no global
 scope: the backend previously returned zero when no workspace was resolved;

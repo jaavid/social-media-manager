@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test('admin workspace selector and route navigation scope badge requests', async ({ page }) => {
   const counts = [];
+  let liveSocket;
   await page.route('**/api/**', async route => {
     const url = new URL(route.request().url());
     const path = url.pathname;
@@ -16,15 +17,22 @@ test('admin workspace selector and route navigation scope badge requests', async
     }
     return route.fulfill({ json: [] });
   });
-  await page.routeWebSocket('**/ws/**', socket => socket.close());
+  await page.routeWebSocket('**/ws/**', socket => { liveSocket = socket; });
   await page.goto('/admin/analytics');
   const selector = page.locator('select').filter({ has: page.locator('option[value="42"]') }).first();
   await expect(selector).toBeVisible();
   expect(counts).toEqual([]);
   await selector.selectOption('42');
   await expect.poll(() => counts.at(-1)).toBe(42);
+  await expect.poll(() => Boolean(liveSocket)).toBe(true);
+  liveSocket.send(JSON.stringify({ type: 'composer.post_failed', client_id: '42', data: { title: 'Active workspace event' } }));
+  await expect(page.getByText('Publish failed: Active workspace event', { exact: true })).toBeVisible();
   await selector.selectOption('99');
   await expect.poll(() => counts.at(-1)).toBe(99);
+  liveSocket.send(JSON.stringify({ type: 'composer.post_failed', client_id: 42, data: { title: 'Foreign workspace event' } }));
+  liveSocket.send(JSON.stringify({ type: 'composer.post_failed', workspace_id: 99, data: { title: 'Current workspace event' } }));
+  await expect(page.getByText('Publish failed: Current workspace event', { exact: true })).toBeVisible();
+  await expect(page.getByText('Publish failed: Foreign workspace event', { exact: true })).toHaveCount(0);
   await page.getByRole('combobox', { name: 'Workspace', exact: true }).click();
   await page.getByRole('listbox', { name: 'Workspace', exact: true }).getByRole('option', { name: 'Workspace C', exact: true }).click();
   await expect(page).toHaveURL(/\/admin\/workspace\/70$/);
