@@ -15,6 +15,7 @@ import { invalidateSession, onSessionInvalidated, notifySessionChanged, onSessio
 import { migrateLegacySession } from '../lib/auth/browser';
 import { parseSessionUser } from '../lib/auth/contracts';
 import type { SessionUser, SessionStatus } from '../lib/auth/contracts';
+import { useAppStore } from '../stores/appStore';
 import { apiError } from '../services/http/errors';
 
 export interface AuthSession {
@@ -41,6 +42,7 @@ export function AuthProvider({ children, initialUser = null }: PropsWithChildren
   const generation = useRef(0);
   const becomeAnonymous = useCallback(() => {
     generation.current += 1;
+    useAppStore.getState().reset();
     setUser(null);
     setStatus('anonymous');
   }, []);

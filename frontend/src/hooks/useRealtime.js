@@ -9,7 +9,7 @@
 import { apiBaseUrl, websocketUrl } from '../lib/runtime/config';
 import { useSession } from '../core/session';
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { invalidateSession } from '../lib/auth/session';
 
 /**
@@ -116,12 +116,10 @@ export function RealtimeProvider({ children }) {
 export function useRealtime(callback) {
   const ctx = useContext(RealtimeCtx);
   const cbRef = useRef(callback);
-  useEffect(() => { cbRef.current = callback; }, [callback]);
+  useLayoutEffect(() => { cbRef.current = callback; }, [callback]);
 
-  useEffect(() => {
-    if (typeof callback !== 'function') return;
-    return ctx.subscribe((event) => cbRef.current?.(event));
-  }, [ctx, callback]);
+  const { subscribe } = ctx;
+  useEffect(() => subscribe((event) => cbRef.current?.(event)), [subscribe]);
 
   return { status: ctx.status };
 }

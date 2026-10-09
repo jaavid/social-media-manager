@@ -1,3 +1,4 @@
+jest.mock('./useWorkspaceScope', () => ({ __esModule: true, default: function useScope() { return { workspaceId: mockAppStore(s => s.currentClientId) }; } }));
 /**
  *
  * Verifies the contract the Cmd+K palette depends on:
@@ -13,7 +14,7 @@ import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import useUnifiedSearch from './useUnifiedSearch';
-import { useAppStore } from '../stores/appStore';
+import { useAppStore as mockAppStore } from '../stores/appStore';
 
 // Stub the api module — we want to assert on call count without touching a server.
 jest.mock('@/services/http/client', () => ({ api: { get: jest.fn() } }));
@@ -30,8 +31,8 @@ describe('useUnifiedSearch', () => {
 
   beforeEach(() => {
     api.get.mockReset();
-    useAppStore.getState().reset();
-    useAppStore.getState().setCurrentClient({ id: 42, name: 'test' });
+    mockAppStore.getState().reset();
+    mockAppStore.getState().setCurrentClient({ id: 42, name: 'test' });
     qc = new QueryClient({
       defaultOptions: { queries: { retry: false, gcTime: 0 } },
     });
@@ -117,7 +118,7 @@ describe('useUnifiedSearch', () => {
     await waitFor(() => expect(api.get).toHaveBeenCalledTimes(1), { timeout: 500 });
 
     // Switch tenant — same query string but different scope.
-    act(() => { useAppStore.getState().setCurrentClient({ id: 99, name: 'other' }); });
+    act(() => { mockAppStore.getState().setCurrentClient({ id: 99, name: 'other' }); });
     rerender({ q: 'something' });
 
     await waitFor(() => expect(api.get).toHaveBeenCalledTimes(2), { timeout: 500 });

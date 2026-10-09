@@ -8,6 +8,8 @@
  * ========================================================================== */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import useWorkspaceScope from '@/hooks/useWorkspaceScope';
+import { useAppStore } from '@/stores/appStore';
 import { useSession } from '@/core/session';
 import { useLanguage } from '@/i18n';
 import { connectionsAPI } from '@/services/domains/connections';
@@ -35,8 +37,10 @@ const enabled = value => ['supported', 'beta'].includes(value);
 export default function UnifiedInboxPage({ reviewsOnly = false }) {
   const { user } = useSession();
   const { t } = useLanguage();
-  const [chosenWorkspace, chooseWorkspace] = useState('');
-  const workspaceId = Number(user?.workspace_id || user?.client_id || chosenWorkspace) || null;
+  const scope = useWorkspaceScope();
+  const chosenWorkspace = scope.workspaceId ?? '';
+  const chooseWorkspace = id => useAppStore.getState().selectWorkspace(id, user.id, scope.pathname);
+  const workspaceId = scope.workspaceId;
   const workspaces = useQuery({ queryKey: ['engagement.workspaces', user?.id], enabled: !user?.workspace_id && !user?.client_id,
     queryFn: async () => { const r = await workspacesAPI.list(); const rows = r.data?.results || r.data;
       if (!Array.isArray(rows)) throw new Error('Invalid workspace list'); return rows; }, retry: false });

@@ -54,7 +54,7 @@ import {
 } from 'lucide-react';
 import PermissionGate from '../ui/PermissionGate';
 import { useWorkspaces } from '../../hooks/useData';
-import { useBadgeCount } from '../../stores/appStore';
+import { useScopedBadgeCount as useBadgeCount } from '../../hooks/useWorkspaceScope';
 import { useLanguage } from '../../i18n';
 export default function FeatureSidebar({
   module,

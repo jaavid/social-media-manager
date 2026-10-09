@@ -1,4 +1,5 @@
 import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
+import { useAppStore } from '../stores/appStore';
 import { AuthProvider, useAuth } from './useAuth';
 import { authAPI } from '../services/domains/identity';
 import { api } from '../services/http/client';
@@ -51,4 +52,16 @@ test('logout revokes on the server before clearing private identity', async () =
   fireEvent.click(screen.getByText('Logout'));
   await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('anonymous'));
   expect(api.delete).toHaveBeenCalledWith('/auth/session/');
+});
+
+test('cross-tab invalidation clears workspace selection and badge state', async () => {
+  mockMe.mockResolvedValue({ data: user } as Awaited<ReturnType<typeof authAPI.me>>);
+  render(<AuthProvider><Probe /></AuthProvider>);
+  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('authenticated'));
+  useAppStore.getState().selectWorkspace(42, 1, '/admin/analytics');
+  useAppStore.getState().setBadgeCounts({ unread_inbox: 20 });
+  act(() => window.dispatchEvent(new StorageEvent('storage', { key: 'social-stats.session-invalidated', newValue: 'logout' })));
+  expect(screen.getByRole('status')).toHaveTextContent('anonymous');
+  expect(useAppStore.getState().workspaceSelection).toBeNull();
+  expect(useAppStore.getState().badgeCounts.unread_inbox).toBe(0);
 });

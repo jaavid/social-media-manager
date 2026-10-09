@@ -9,7 +9,7 @@ jest.mock('../../core/navigation', () => ({
 }));
 jest.mock('../../core/session', () => ({ useSession: () => ({ can: () => true }) }));
 jest.mock('../../hooks/useData', () => ({ useWorkspaces: () => ({ workspaces: [] }) }));
-jest.mock('../../stores/appStore', () => ({ useBadgeCount: () => 0 }));
+jest.mock('../../hooks/useWorkspaceScope', () => ({ useScopedBadgeCount: () => 0 }));
 jest.mock('../../i18n', () => ({ useLanguage: () => ({ isPersian: false, tr: (text) => text }) }));
 
 beforeEach(() => { mockPathname = '/workspace/analytics/dashboard'; });

@@ -15,8 +15,8 @@ import { persist, createJSONStorage } from 'zustand/middleware';
  * navigations. Server state (posts, leads, conversations) belongs in React
  * Query — this store is for stuff React Query can't model:
  *
- *   - currentClientId / currentClient — the active workspace. Persisted to
- *     localStorage so a refresh on /admin/posts doesn't reset the switcher.
+ *   - workspaceSelection — identity-owned, path-local explicit UI selection.
+ *     Effective scope is derived by useWorkspaceScope, never from legacy fields.
  *   - badgeCounts — sidebar unread/pending counts. Updated by:
  *       a) the periodic /api/dashboard/counts/ poller (`setBadgeCounts`)
  *       b) WebSocket events (`bumpBadge` / `clearBadge`)
@@ -27,6 +27,9 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 
 const initial = {
   // ── Active workspace ────────────────────────────────────────────────
+  workspaceSelection: null,
+  badgeScope: null,
+  // Deprecated compatibility fields; no active UI consumers.
   currentClientId: null,
   currentClient:   null,   // {id, name, company, ...} — denormalised for the switcher
 
@@ -47,6 +50,7 @@ export const useAppStore = create(
     (set, get) => ({
       ...initial,
 
+      selectWorkspace: (id, owner, path) => set({ workspaceSelection: { id, owner, path } }),
       // ── Active client ─────────────────────────────────────────────
       setCurrentClient: (client) => set({
         currentClientId: client?.id ?? null,
@@ -81,11 +85,10 @@ export const useAppStore = create(
     {
       name: 'social-stats-state',
       storage: createJSONStorage(() => localStorage),
-      // Only persist the active-client choice — badge counts are ephemeral
+      // Only persist the identity-owned selection — badge counts are ephemeral
       // and re-fetched on app boot.
       partialize: (state) => ({
-        currentClientId: state.currentClientId,
-        currentClient:   state.currentClient,
+        workspaceSelection: state.workspaceSelection,
       }),
     },
   ),

@@ -11,7 +11,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import { api } from '@/services/http/client';
 import { QK } from '../services/queryClient';
-import { useCurrentClientId } from '../stores/appStore';
+import useWorkspaceScope from './useWorkspaceScope';
 
 /**
  *
@@ -43,9 +43,9 @@ const EMPTY_RESULTS = Object.freeze({
 
 
 export default function useUnifiedSearch(query) {
-  const clientId       = useCurrentClientId();
+  const clientId       = useWorkspaceScope().workspaceId;
   const debouncedQuery = useDebounced(query, DEBOUNCE_MS);
-  const enabled        = (debouncedQuery || '').trim().length >= MIN_QUERY_LEN;
+  const enabled        = clientId !== null && (debouncedQuery || '').trim().length >= MIN_QUERY_LEN;
 
   const { data, isFetching } = useQuery({
     queryKey: QK.search(clientId, debouncedQuery || ''),
@@ -54,7 +54,7 @@ export default function useUnifiedSearch(query) {
     // The user's input changes faster than the data does — preserving
     // last-good results between debounced fetches removes the "results
     // disappear, then reappear" flicker.
-    placeholderData: (prev) => prev,
+    placeholderData: undefined,
   });
 
   return {

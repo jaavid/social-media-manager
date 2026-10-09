@@ -1,3 +1,4 @@
+jest.mock('../../hooks/useWorkspaceScope', () => ({ useScopedBadgeCount: () => 0 }));
 import { render, screen, fireEvent } from '@testing-library/react';
 import MobileNav from './MobileNav';
 import TopBar from './TopBar';
