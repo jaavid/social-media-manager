@@ -16,9 +16,10 @@ from social_stats.models import (
 from .shared import WorkspaceLabelsMixin, OperationalReadOnlyAdmin
 
 @admin.register(MediaAsset)
-class MediaAssetAdmin(WorkspaceLabelsMixin, ModelAdmin):
-    list_display = ['file', 'workspace_column', 'mime_type', 'folder', 'is_used', 'created_at']
-    list_filter = ['mime_type', 'is_used']
+class MediaAssetAdmin(OperationalReadOnlyAdmin):
+    list_display = ['file', 'workspace_column', 'social_account', 'mime_type', 'file_size', 'folder', 'is_used', 'created_at']
+    list_filter = ['client__organization', 'client', 'social_account__platform', 'social_account', 'mime_type', 'is_used']
+    list_select_related = ['client__organization', 'social_account']
     search_fields = ['client__company', 'file', 'alt_text', 'folder']
     autocomplete_fields = ['client']
     raw_id_fields = ['uploaded_by']

@@ -9,7 +9,6 @@
 """
 User profile, password change, and agency disconnect views.
 """
-import os
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
@@ -77,9 +76,7 @@ def user_profile(request):
         # Delete old avatar
         if profile.avatar:
             try:
-                old_path = profile.avatar.path
-                if os.path.exists(old_path):
-                    os.remove(old_path)
+                profile.avatar.delete(save=False)
             except Exception:
                 pass
         profile.avatar = avatar_file
@@ -88,9 +85,7 @@ def user_profile(request):
     # Remove avatar
     if data.get('remove_avatar') and profile and profile.avatar:
         try:
-            old_path = profile.avatar.path
-            if os.path.exists(old_path):
-                os.remove(old_path)
+            profile.avatar.delete(save=False)
         except Exception:
             pass
         profile.avatar = None

@@ -113,7 +113,7 @@ def data_export_download(request, token: str):
 
     try:
         return FileResponse(
-            open(req.archive_path, 'rb'),
+            _open_export_archive(req.archive_path),
             as_attachment=True,
             filename=f'socialstats-export-{req.id}.zip',
             content_type='application/zip',
@@ -271,3 +271,10 @@ def consents_collection(request):
     )
     return Response({'ok': True, 'consent_type': consent_type, 'given': given,
                      'recorded_at': row.given_at.isoformat()})
+
+
+def _open_export_archive(path):
+    # Existing disk exports keep working; new exports store a backend-relative key.
+    import os
+    from django.core.files.storage import default_storage
+    return open(path, 'rb') if os.path.isabs(path) else default_storage.open(path, 'rb')

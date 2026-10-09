@@ -8,6 +8,7 @@
 # ============================================================================
 """Workspaces models."""
 import uuid
+from social_stats.upload_paths import workspace_image_path, avatar_path
 from django.db import models
 from django.db import transaction, router
 from django.contrib.auth.models import User
@@ -42,7 +43,7 @@ class Client(models.Model):
     whatsapp_number = models.CharField(verbose_name='شماره واتس‌اپ', max_length=30, blank=True)
     website    = models.URLField(verbose_name='نشانی وب‌سایت', blank=True)
     gmb_url    = models.URLField(verbose_name='نشانی پروفایل کسب‌وکار در گوگل', blank=True, help_text='نشانی پروفایل کسب‌وکار در گوگل.')
-    logo       = models.ImageField(verbose_name='لوگو', upload_to='logos/', blank=True, null=True)
+    logo       = models.ImageField(verbose_name='لوگو', upload_to=workspace_image_path, max_length=500, blank=True, null=True)
     is_active  = models.BooleanField(verbose_name='فعال', default=True)
     created_at = models.DateTimeField(verbose_name='زمان ایجاد', auto_now_add=True)
 
@@ -70,7 +71,7 @@ class Client(models.Model):
     business_location = models.CharField(verbose_name='موقعیت کسب‌وکار', max_length=200, blank=True)
     target_locations = models.JSONField(verbose_name='موقعیت‌های جغرافیایی هدف', default=list, blank=True, help_text='فهرست کشورها یا شهرهای هدف در قالب JSON.')
     brand_assets = models.JSONField(verbose_name='دارایی‌های برند', default=dict, blank=True, help_text='اطلاعات دارایی‌های برند در قالب JSON، مانند نشانی لوگو و اطلاعات تماس.')
-    profile_image = models.ImageField(verbose_name='تصویر پروفایل', upload_to='profile_images/', blank=True, null=True)
+    profile_image = models.ImageField(verbose_name='تصویر پروفایل', upload_to=workspace_image_path, max_length=500, blank=True, null=True)
     product_images = models.JSONField(verbose_name='تصاویر محصولات', default=list, blank=True, help_text='فهرست نشانی تصاویر محصولات در قالب JSON.')
 
     # Onboarding status
@@ -192,7 +193,7 @@ class UserProfile(models.Model):
     role              = models.CharField(verbose_name='نقش', max_length=20, choices=ROLE_CHOICES, default='client')
     client            = models.ForeignKey(Client, verbose_name='فضای کاری', null=True, blank=True, on_delete=models.SET_NULL)
     assigned_clients  = models.ManyToManyField(Client, verbose_name='فضاهای کاری تخصیص‌یافته', blank=True, related_name='staff_assigned')
-    avatar            = models.ImageField(verbose_name='تصویر کاربر', upload_to='avatars/', blank=True, null=True)
+    avatar            = models.ImageField(verbose_name='تصویر کاربر', upload_to=avatar_path, max_length=500, blank=True, null=True)
     created_at        = models.DateTimeField(verbose_name='زمان ایجاد', auto_now_add=True)
     terms_accepted    = models.BooleanField(verbose_name='شرایط استفاده پذیرفته شده', default=False)
     terms_accepted_at = models.DateTimeField(verbose_name='زمان پذیرش شرایط استفاده', null=True, blank=True)

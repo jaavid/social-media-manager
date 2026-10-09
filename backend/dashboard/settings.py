@@ -171,8 +171,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # ── Static files (production build, collectstatic) ─────────────────
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+from .media_storage import media_storage
+
 STORAGES = {
-    'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
+    'default': media_storage(os.environ),
     'staticfiles': {'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage'},
 }
 STATIC_URL = '/static/'

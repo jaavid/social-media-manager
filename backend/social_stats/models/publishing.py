@@ -10,6 +10,7 @@
 from social_stats.entitlements import EntitledResourceMixin
 
 from django.db import models
+from social_stats.upload_paths import media_path, thumbnail_path
 from django.contrib.auth.models import User
 from social_stats.platforms.registry import PLATFORM_CHOICES
 
@@ -72,8 +73,9 @@ class MediaAsset(EntitledResourceMixin, models.Model):
     """Uploaded media library — photos, videos, gifs available to the composer."""
     client       = models.ForeignKey(Client, verbose_name='فضای کاری', on_delete=models.CASCADE, related_name='media_assets')
     uploaded_by  = models.ForeignKey(User, verbose_name='بارگذاری‌کننده', on_delete=models.SET_NULL, null=True, blank=True, related_name='uploaded_media')
-    file         = models.FileField(verbose_name='فایل', upload_to='media_assets/%Y/%m/')
-    thumbnail    = models.ImageField(verbose_name='تصویر بندانگشتی', upload_to='media_assets/thumbs/%Y/%m/', null=True, blank=True)
+    social_account = models.ForeignKey(SocialAccount, verbose_name='اکانت', on_delete=models.SET_NULL, null=True, blank=True, related_name='media_assets')
+    file         = models.FileField(verbose_name='فایل', upload_to=media_path, max_length=500)
+    thumbnail    = models.ImageField(verbose_name='تصویر بندانگشتی', upload_to=thumbnail_path, max_length=500, null=True, blank=True)
     mime_type    = models.CharField(verbose_name='نوع فایل (MIME)', max_length=100, blank=True)
     file_size    = models.BigIntegerField(verbose_name='حجم فایل (بایت)', default=0)
     width        = models.IntegerField(verbose_name='عرض (پیکسل)', default=0)

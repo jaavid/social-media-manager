@@ -20,9 +20,7 @@ Responsibilities:
                             installed in dev.
 
 Storage:
-  When `AWS_ACCESS_KEY_ID` and `AWS_S3_BUCKET` are set in settings, files are
-  uploaded to S3 (returns presigned URLs). Otherwise we fall back to Django's
-  default storage (local filesystem in dev).
+  All files use Django default storage, configured through MEDIA_STORAGE_BACKEND.
 """
 from __future__ import annotations
 
@@ -70,19 +68,22 @@ def upload_media(
     client_id: int,
     *,
     uploaded_by_id: Optional[int] = None,
+    social_account_id: Optional[int] = None,
     folder: str = '',
     alt_text: str = '',
     tags: Optional[list] = None,
 ) -> MediaAsset:
     """Check quota before writing bytes, and hold the tenant lock through save."""
     from .entitlements import locked_organization, require_capacity
-    from .models import Client
+    from .models import Client, SocialAccount
+    if social_account_id is not None:
+        SocialAccount.objects.get(pk=social_account_id, client_id=client_id)
 
     workspace = Client.objects.get(pk=client_id)
     with locked_organization(workspace.organization_id) as organization:
         require_capacity(organization, 'storage_bytes', file.size or 0)
         return _upload_media(file, client_id=client_id, uploaded_by_id=uploaded_by_id,
-                             alt_text=alt_text, tags=tags, folder=folder)
+                             alt_text=alt_text, tags=tags, folder=folder, social_account_id=social_account_id)
 
 
 def _upload_media(
@@ -90,6 +91,7 @@ def _upload_media(
     client_id: int,
     *,
     uploaded_by_id: Optional[int] = None,
+    social_account_id: Optional[int] = None,
     folder: str = '',
     alt_text: str = '',
     tags: Optional[list] = None,
@@ -106,6 +108,7 @@ def _upload_media(
     name = _safe_filename(file.name)
     asset = MediaAsset(
         client_id=client_id,
+        social_account_id=social_account_id,
         uploaded_by_id=uploaded_by_id,
         mime_type=mime,
         file_size=file.size or 0,
@@ -274,38 +277,15 @@ def transcode_for_platform(asset: MediaAsset, platform: str, post_type: str) -> 
 
 
 # ── S3 helpers (used when settings configure S3) ──────────────────────────────
-def _s3_enabled() -> bool:
-    return bool(getattr(settings, 'AWS_ACCESS_KEY_ID', None) and getattr(settings, 'AWS_S3_BUCKET', None))
-
-
-def presigned_url(asset: MediaAsset, *, expires: int = 3600) -> str:
-    """
-    Return a signed URL the platform APIs can fetch the file from.
-    Falls back to the local MEDIA_URL path when S3 isn't configured.
-    """
+def presigned_url(asset: MediaAsset, *, expires: Optional[int] = None) -> str:
+    """Use the same backend, endpoint and key prefix that saved the file."""
     if not asset or not asset.file:
         return ''
-    if _s3_enabled():
-        try:
-            import boto3
-            client = boto3.client(
-                's3',
-                aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-                region_name=getattr(settings, 'AWS_S3_REGION', None),
-            )
-            return client.generate_presigned_url(
-                'get_object',
-                Params={'Bucket': settings.AWS_S3_BUCKET, 'Key': asset.file.name},
-                ExpiresIn=expires,
-            )
-        except Exception:
-            logger.exception('Failed to sign S3 URL for asset %s', asset.id)
-    # Local fallback — assumes Django is serving MEDIA_URL
-    try:
-        return asset.file.url
-    except Exception:
-        return ''
+    storage = asset.file.storage
+    from storages.backends.s3 import S3Storage
+    if isinstance(storage, S3Storage):
+        return storage.url(asset.file.name, expire=expires)
+    return asset.file.url
 
 
 # ── Internals ─────────────────────────────────────────────────────────────────

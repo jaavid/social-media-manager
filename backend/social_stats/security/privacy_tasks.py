@@ -22,7 +22,6 @@ import json
 import logging
 import os
 import secrets
-import tempfile
 import uuid
 import zipfile
 from datetime import timedelta
@@ -31,6 +30,8 @@ from typing import Iterable
 from celery import shared_task
 from django.conf import settings
 from django.core.mail import send_mail
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
 from django.utils import timezone
 
 
@@ -68,15 +69,10 @@ def assemble_data_export(self, request_id: int):
             return
         return
 
-    # Persist the archive. In prod, prefer S3 with KMS + signed URL; here we
-    # write to MEDIA_ROOT/exports/<token>.zip for simplicity.
     download_token = uuid.uuid4()
-    out_dir = os.path.join(getattr(settings, 'MEDIA_ROOT', None) or tempfile.gettempdir(),
-                           'privacy_exports')
-    os.makedirs(out_dir, exist_ok=True)
-    out_path = os.path.join(out_dir, f'{download_token.hex}.zip')
-    with open(out_path, 'wb') as f:
-        f.write(zip_bytes)
+    out_path = default_storage.save(
+        f'users/{user.pk}/privacy_exports/{download_token.hex}.zip', ContentFile(zip_bytes),
+    )
 
     req.archive_path        = out_path
     req.archive_size_bytes  = len(zip_bytes)
@@ -250,8 +246,12 @@ def process_account_deletion(request_id: int) -> str:
         # Wipe export archives off disk, plus the rows
         for old in DataExportRequest.objects.filter(user=user):
             try:
-                if old.archive_path and os.path.exists(old.archive_path):
-                    os.remove(old.archive_path)
+                if old.archive_path:
+                    if os.path.isabs(old.archive_path):
+                        if os.path.exists(old.archive_path):
+                            os.remove(old.archive_path)
+                    else:
+                        default_storage.delete(old.archive_path)
             except OSError:
                 pass
         DataExportRequest.objects.filter(user=user).delete()

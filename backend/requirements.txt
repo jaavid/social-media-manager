@@ -35,3 +35,5 @@ pyotp==2.10.0
 qrcode[pil]==8.2
 
 django-unfold==0.108.0
+
+django-storages[s3]==1.14.6

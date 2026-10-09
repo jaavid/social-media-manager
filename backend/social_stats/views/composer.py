@@ -43,7 +43,7 @@ from social_stats.serializers.composer import (
     MediaAssetSerializer, PostQueueSerializer, QueuedItemSerializer,
 )
 from social_stats.models import (
-    UnifiedPost, MediaAsset, PostQueue, QueuedItem, Client,
+    UnifiedPost, MediaAsset, PostQueue, QueuedItem, Client, SocialAccount,
 )
 from social_stats.orchestrator import publish_unified_post
 from social_stats.platforms.registry import get_provider
@@ -549,8 +549,16 @@ class MediaAssetViewSet(TenantScopedMixin, viewsets.ModelViewSet):
         if not upload:
             return Response({'detail': 'file is required (multipart "file")'}, status=400)
 
+        account_id = request.data.get('social_account_id') or None
+        try:
+            account_id = int(account_id) if account_id else None
+        except (TypeError, ValueError):
+            return Response({'detail': 'Invalid account'}, status=400)
+        if account_id and not SocialAccount.objects.filter(pk=account_id, client_id=client_id).exists():
+            return Response({'detail': 'Invalid account for workspace'}, status=400)
         asset = media_service.upload_media(
             upload,
+            social_account_id=account_id,
             client_id=client_id,
             uploaded_by_id=request.user.id,
             folder=request.data.get('folder', ''),
@@ -571,12 +579,18 @@ class MediaAssetViewSet(TenantScopedMixin, viewsets.ModelViewSet):
         files = request.FILES.getlist('files')
         if not files:
             return Response({'detail': 'files are required (multipart "files")'}, status=400)
+        try:
+            account_id = int(request.data['social_account_id']) if request.data.get('social_account_id') else None
+        except (TypeError, ValueError):
+            return Response({'detail': 'Invalid account'}, status=400)
+        if account_id and not SocialAccount.objects.filter(pk=account_id, client_id=client_id).exists():
+            return Response({'detail': 'Invalid account for workspace'}, status=400)
         folder = request.data.get('folder', '')
         out, errors = [], []
         for f in files:
             try:
                 asset = media_service.upload_media(
-                    f, client_id=client_id, uploaded_by_id=request.user.id, folder=folder,
+                    f, client_id=client_id, uploaded_by_id=request.user.id, folder=folder, social_account_id=account_id,
                 )
                 out.append(MediaAssetSerializer(asset).data)
             except Exception:

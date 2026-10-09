@@ -23,14 +23,14 @@ class MediaAssetSerializer(serializers.ModelSerializer):
     class Meta:
         model = MediaAsset
         fields = [
-            'id', 'client',
+            'id', 'client', 'social_account',
             'mime_type', 'file_size', 'width', 'height', 'duration_seconds',
             'alt_text', 'tags', 'folder', 'is_used',
             'file_url', 'thumbnail_url',
             'created_at',
         ]
         read_only_fields = [
-            'mime_type', 'file_size', 'width', 'height', 'duration_seconds',
+            'social_account', 'mime_type', 'file_size', 'width', 'height', 'duration_seconds',
             'is_used', 'created_at',
         ]
 

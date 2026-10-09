@@ -472,7 +472,7 @@ def _save_derived(*, client, source: MediaAsset, user, bytes_: bytes,
     ext = '.mp4' if mime.startswith('video/') else ('.jpg' if mime.startswith('image/') else ext or '.bin')
     new_name = f'{base}{suffix}{ext}'
     asset = MediaAsset(
-        client=client, uploaded_by=user,
+        client=client, uploaded_by=user, social_account=source.social_account,
         mime_type=mime,
         file_size=len(bytes_),
         duration_seconds=float(duration or 0),
