@@ -32,7 +32,9 @@ The environment resides outside `/private`: the existing observability test
 checks the literal word `private` and otherwise falsely matches macOS paths.
 No provider writes or production deployment changes were performed.
 
-Refreshed main: `6ac39d0ccca419ae4dc3922c967c1c5fa2a147a5`. This is after the previously announced prerequisite merges, and still the latest fetched main. Batch PRs remain unmerged. Branch validation is not future-main evidence.
+## Historical snapshot — 2026-10-08
+
+At that snapshot, the latest fetched main was `6ac39d0ccca419ae4dc3922c967c1c5fa2a147a5`, after the previously announced prerequisite merges. The batch PRs were still unmerged. Their branch validation did not establish future-main behavior. The 2026-10-09 refresh above records their subsequent merge and verification.
 
 **Inventory confirmed:81 historical PRs,90 inline threads,45 review summaries,82 top-level discussion comments,8 additional off-diff/nit findings.** All REST/GraphQL pages and nested thread-comment cursors were exhausted. The JSON inventory records every PR/artifact URL, count and source hash; it deliberately omits raw review bodies, tokens and provider/private data. Merged, outdated and resolved flags are not evidence of remediation.
 
