@@ -10,6 +10,14 @@ export function normalizeWorkspaceId(value) {
   return Number.isSafeInteger(id) && id > 0 ? id : null;
 }
 
+export function workspaceEventMatches(event, workspaceId) {
+  if (workspaceId === null || !event) return false;
+  const canonical = normalizeWorkspaceId(event.workspace_id);
+  const legacy = normalizeWorkspaceId(event.client_id);
+  if (event.workspace_id != null && event.client_id != null && canonical !== legacy) return false;
+  return normalizeWorkspaceId(event.workspace_id ?? event.client_id) === workspaceId;
+}
+
 // null means unresolved/no workspace, never all workspaces. Access remains
 // enforced by the backend; non-default choices require a server-listed ID.
 export function resolveWorkspace({ user, status, route, selection, owner, allowed = [] }) {

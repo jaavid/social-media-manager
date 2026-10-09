@@ -38,10 +38,12 @@ import LanguageToggle from '../ui/LanguageToggle';
 import useBreakpoint from '../../hooks/useBreakpoint';
 import { useSession as useAuth } from '../../core/session';
 import { useLanguage } from '../../i18n';
+import useWorkspaceScope, { workspaceEventMatches } from '../../hooks/useWorkspaceScope';
 export default function AppShell({ children, isAdmin }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, can } = useAuth();
+  const { workspaceId } = useWorkspaceScope();
   const { isMobile } = useBreakpoint();
   const reducedMotion = useReducedMotion();
   const { language, tr } = useLanguage();
@@ -56,7 +58,7 @@ export default function AppShell({ children, isAdmin }) {
     setMobileMenuOpen(false);
   }, [location.pathname]);
   useRealtime((event) => {
-    if (!event || !event.type) return;
+    if (!event?.type || !workspaceEventMatches(event, workspaceId)) return;
     const d = event.data || {};
     switch (event.type) {
       case 'composer.post_published':

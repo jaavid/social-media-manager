@@ -17,7 +17,7 @@ import { useAppStore } from '../stores/appStore';
 
 // Stub the realtime hook before importing useRealtimeSync's module graph.
 // We capture the callback so the test can fire synthetic events.
-jest.mock('./useWorkspaceScope', () => ({ __esModule: true, default: () => ({ workspaceId: 42, user: { id: 1 }, key: 'test' }), normalizeWorkspaceId: value => value == null ? null : Number(value) }));
+jest.mock('./useWorkspaceScope', () => ({ __esModule: true, default: () => ({ workspaceId: 42, user: { id: 1 }, key: 'test' }), workspaceEventMatches: (event, id) => Number(event?.workspace_id ?? event?.client_id) === id }));
 let registeredCallback = null;
 jest.mock('./useRealtime', () => ({
   useRealtime: (cb) => {

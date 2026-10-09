@@ -8,7 +8,7 @@
  * ========================================================================== */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import useWorkspaceScope from '@/hooks/useWorkspaceScope';
+import useWorkspaceScope, { workspaceEventMatches } from '@/hooks/useWorkspaceScope';
 import { useAppStore } from '@/stores/appStore';
 import { useSession } from '@/core/session';
 import { useLanguage } from '@/i18n';
@@ -77,7 +77,7 @@ function InboxWorkspace({ workspaceId, reviewsOnly }) {
   const list = useConversations(params, scope, allowed && type !== 'review');
   const reviews = useReviews(params, scope, allowed && type === 'review');
   useRealtime(event => {
-    if (event?.client_id !== workspaceId) return;
+    if (!workspaceEventMatches(event, workspaceId)) return;
     if (event.type?.startsWith('inbox.')) { list.refetch(); reviews.refetch(); }
     if (event.type === 'credential.token_expired') metadata.refetch();
   });
@@ -121,7 +121,7 @@ function InboxContent({ resource, scope, params, selected, type, metadataCurrent
   const active = resource.data.find(row => row.id === activeId);
   const thread = useConversation(type === 'review' ? null : active?.id, scope, params);
   const data = type === 'review' ? active : thread.data;
-  useRealtime(event => { if (event?.client_id === params.workspace_id && event.type?.startsWith('inbox.')) thread.refetch(); });
+  useRealtime(event => { if (workspaceEventMatches(event, params.workspace_id) && event.type?.startsWith('inbox.')) thread.refetch(); });
   const canReply = metadataCurrent && selected.account.health.ready && selected.account.engagement_readiness?.[capability[type]] === true && selected.account.permissions[permission[type]] === true;
   return <>
     {resource.error && <Failure error={resource.error} retry={resource.refetch} preserved={resource.data.length > 0} />}

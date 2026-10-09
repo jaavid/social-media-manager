@@ -10,7 +10,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useRealtime } from '@/hooks/useRealtime';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import useWorkspaceScope from '@/hooks/useWorkspaceScope';
+import useWorkspaceScope, { workspaceEventMatches } from '@/hooks/useWorkspaceScope';
 import { useAppStore } from '@/stores/appStore';
 import { useSession } from '@/core/session';
 import { useLanguage } from '@/i18n';
@@ -243,7 +243,7 @@ function AccountReport({ workspaceId, selected, filters, setPage, metadataCurren
   const liveScope = useRef(scope);
   useRealtime((event) => {
     if (
-      Number(event.client_id) === workspaceId &&
+      workspaceEventMatches(event, workspaceId) &&
       ['analytics.synced', 'credential.token_expired'].includes(event.type) &&
       (!event.data?.social_account_id || event.data.social_account_id === selected.account.id)
     )

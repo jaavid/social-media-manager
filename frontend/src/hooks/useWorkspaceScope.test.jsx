@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, act, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import useWorkspaceScope, { normalizeWorkspaceId, resolveWorkspace, useScopedBadgeCount } from './useWorkspaceScope';
+import useWorkspaceScope, { normalizeWorkspaceId, workspaceEventMatches, resolveWorkspace, useScopedBadgeCount } from './useWorkspaceScope';
 import useDashboardCounts from './useDashboardCounts';
 import useRealtimeSync from './useRealtimeSync';
 import { useAppStore } from '../stores/appStore';
@@ -82,3 +82,9 @@ test('unauthorized explicit route fails closed while session has a valid default
   expect(screen.getByTestId('badge')).toHaveTextContent('0');
   view.unmount(); client.clear();
 });
+
+test.each([
+  [{ client_id: '42' }, 42, true], [{ workspace_id: 42 }, 42, true],
+  [{ workspace_id: 42, client_id: 99 }, 42, false], [{}, 42, false],
+  [{ client_id: 42 }, null, false], [{ client_id: 99 }, 42, false],
+])('event scope %j', (event, id, accepted) => expect(workspaceEventMatches(event, id)).toBe(accepted));

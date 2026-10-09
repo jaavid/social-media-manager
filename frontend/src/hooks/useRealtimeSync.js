@@ -11,7 +11,7 @@ import { useQueryClient } from '@tanstack/react-query';
 
 import { useRealtime } from './useRealtime';
 import { useAppStore } from '../stores/appStore';
-import useWorkspaceScope, { normalizeWorkspaceId } from './useWorkspaceScope';
+import useWorkspaceScope, { workspaceEventMatches } from './useWorkspaceScope';
 import { QK } from '../services/queryClient';
 
 /**
@@ -62,10 +62,7 @@ export default function useRealtimeSync() {
 
     // Only act on events for the active client. Multi-client agency users
     // shouldn't see inbox bumps from other workspaces in their badge.
-    const evClient = event.workspace_id ?? event.client_id;
-    if (event.workspace_id != null && event.client_id != null && normalizeWorkspaceId(event.workspace_id) !== normalizeWorkspaceId(event.client_id)) return;
-    const inScope = clientId !== null && normalizeWorkspaceId(evClient) === clientId;
-    if (!inScope) return;
+    if (!workspaceEventMatches(event, clientId)) return;
 
     // Only the effective workspace and identity's counts are invalidated.
     queryClient.invalidateQueries({ queryKey: [...QK.dashboardCounts(clientId), scope.user.id] });

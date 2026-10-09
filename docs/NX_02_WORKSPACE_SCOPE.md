@@ -1,7 +1,9 @@
 # NX-02: Effective workspace scope
 
 `useWorkspaceScope` is the shared resolver for realtime, sidebar counts,
-dashboard-today, search, analytics and inbox selection. Workspace and legacy
+dashboard-today, search, analytics, inbox selection and shell event toasts.
+The admin workspace switcher displays this effective scope; its all-workspaces
+action navigates to the global workspace list. Workspace and legacy
 client IDs identify the same entity in these APIs (`clientsAPI` aliases
 `workspacesAPI`; HTTP transport maps `client_id` to `workspace_id`). This does
 not rename provider account IDs or other domain identifiers.
