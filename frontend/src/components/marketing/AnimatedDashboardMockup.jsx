@@ -104,7 +104,7 @@ export default function AnimatedDashboardMockup() {
           {/* Stat cards row */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
             <StatCard label={"دسترسی مخاطبان"} value="248K" delta="+23%" tone="cyan" delay={0.2} />
-            <StatCard label={"نامزدی"} value="14.2K" delta="+12%" tone="purple" delay={0.4} />
+            <StatCard label={"تعامل"} value="14.2K" delta="+12%" tone="purple" delay={0.4} />
             <StatCard label={"سرنخ‌ها"} value="312" delta="+5x" tone="green" delay={0.6} />
           </div>
 

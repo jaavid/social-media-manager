@@ -377,7 +377,7 @@ export const solutionPages = {
     painPoints: {
       title: "شما از …",
       items: [
-        { title: "سه داشبورد استودیویی",         description: "YT Studio + اینستاگرام Insights + LI تحلیل و آمار. سه برگه. سه تعریف از نامزدی." },
+        { title: "سه داشبورد استودیویی",         description: "YT Studio + اینستاگرام Insights + LI تحلیل و آمار. سه برگه. سه تعریف از تعامل." },
         { title: "هرج و مرج در معامله برند",                description: "سه مارک. دو پرداخت از دست رفته یک برگه اکسل" },
         { title: "ارسال متناقض",            description: "شما می خواستید روز سه شنبه پست کنید. جمعه است. الگوریتم از شما متنفر است." },
       ],

@@ -100,18 +100,19 @@ export default function QueueManagerPage() {
 
 /* ── Queue list row ───────────────────────────────────────────────────── */
 function QueueRow({ queue, active, onClick, onChange }) {
+  const { tr } = useLanguage();
   async function toggle() {
     try {
       if (queue.is_active) await composerAPI.queues.pause(queue.id);
       else                  await composerAPI.queues.resume(queue.id);
       onChange();
-    } catch { toast.error('Failed'); }
+    } catch { toast.error(tr('Failed')); }
   }
   async function destroy(e) {
     e.stopPropagation();
-    if (!window.confirm(`Delete queue "${queue.name}"?`)) return;
+    if (!window.confirm(tr('Delete queue "{name}"?').replace('{name}', queue.name))) return;
     try { await composerAPI.queues.delete(queue.id); onChange(); }
-    catch { toast.error('Delete failed'); }
+    catch { toast.error(tr('Delete failed')); }
   }
 
   return (
@@ -133,20 +134,20 @@ function QueueRow({ queue, active, onClick, onChange }) {
             {queue.name}
           </div>
           <div style={{ fontSize: 11, color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)' }}>
-            {queue.schedule_rule || '— no rule —'}
+            {queue.schedule_rule || tr('— no rule —')}
           </div>
           <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
             <Badge variant={queue.is_active ? 'success' : 'default'} dot>
-              {queue.is_active ? 'Active' : 'Paused'}
+              {tr(queue.is_active ? 'Active' : 'Paused')}
             </Badge>
-            <Badge>{queue.waiting_count} waiting</Badge>
+            <Badge>{queue.waiting_count} {tr('waiting')}</Badge>
           </div>
         </div>
         <div style={{ display: 'flex', gap: 4 }}>
           <span
             role="button"
             onClick={(e) => { e.stopPropagation(); toggle(); }}
-            aria-label={queue.is_active ? 'Pause' : 'Resume'}
+            aria-label={tr(queue.is_active ? 'Pause' : 'Resume')}
             style={iconBtnStyle}
           >
             {queue.is_active ? <Pause size={12} /> : <Play size={12} />}
@@ -154,7 +155,7 @@ function QueueRow({ queue, active, onClick, onChange }) {
           <span
             role="button"
             onClick={destroy}
-            aria-label="Delete queue"
+            aria-label={tr('Delete queue')}
             style={{ ...iconBtnStyle, color: 'var(--danger)' }}
           >
             <Trash2 size={12} />
@@ -193,7 +194,7 @@ function QueueDetail({ queueId, onChanged }) {
 
   async function addItem(content) {
     await composerAPI.queues.addItems(queueId, [{ content }]);
-    toast.success('Added to queue');
+    toast.success(tr('Added to queue'));
     setShowAdd(false);
     load(); onChanged?.();
   }
@@ -238,9 +239,9 @@ function QueueDetail({ queueId, onChanged }) {
             <Clock size={12} />
             <span style={{ fontFamily: 'var(--font-mono)' }}>{queue.schedule_rule || '—'}</span>
             <span>·</span>
-            <span>{queue.queue_strategy}</span>
+            <span>{tr(STRATEGIES.find(strategy => strategy.id === queue.queue_strategy)?.label || queue.queue_strategy)}</span>
             <span>·</span>
-            <span>{(queue.platforms || []).join(', ') || 'no platforms'}</span>
+            <span>{(queue.platforms || []).join(', ') || tr('no platforms')}</span>
           </div>
         </div>
         <Button icon={Plus} size="sm" onClick={() => setShowAdd(true)}>Add item</Button>
@@ -251,10 +252,10 @@ function QueueDetail({ queueId, onChanged }) {
           display: 'flex', gap: 12, fontSize: 12, color: 'var(--text-secondary)',
           marginBottom: 16,
         }}>
-          <span><strong>{queue.items_count}</strong> total items</span>
-          <span><strong>{queue.waiting_count}</strong> waiting</span>
+          <span><strong>{queue.items_count}</strong> {tr('total items')}</span>
+          <span><strong>{queue.waiting_count}</strong> {tr('waiting')}</span>
           {queue.last_dispatched_at && (
-            <span>last fired {new Date(queue.last_dispatched_at).toLocaleString()}</span>
+            <span>{tr('last fired')} {new Date(queue.last_dispatched_at).toLocaleString()}</span>
           )}
         </div>
 
@@ -300,14 +301,14 @@ function CreateQueueModal({ onClose, onCreated }) {
   }
 
   async function save() {
-    if (!form.name.trim()) { toast.error('Name is required'); return; }
+    if (!form.name.trim()) { toast.error(tr('Name is required')); return; }
     setSaving(true);
     try {
       const res = await composerAPI.queues.create(form);
       onCreated(res.data);
-      toast.success('Queue created');
+      toast.success(tr('Queue created'));
     } catch (e) {
-      toast.error(e.response?.data?.detail || 'Failed');
+      toast.error(e.response?.data?.detail || tr('Failed'));
     } finally { setSaving(false); }
   }
 
@@ -315,29 +316,29 @@ function CreateQueueModal({ onClose, onCreated }) {
     <Modal open onClose={onClose} title={tr('New queue')} showClose={false}>
       <Card padding="none" style={{ width: '100%' }}>
         <div style={modalHeader}>
-          <h3 style={{ margin: 0, fontSize: 16 }}>New queue</h3>
+          <h3 style={{ margin: 0, fontSize: 16 }}>{tr('New queue')}</h3>
           <button onClick={onClose} style={iconBtnStyle} aria-label="Close"><X size={14} /></button>
         </div>
         <div style={{ padding: 16 }}>
-          <Field label="Name">
+          <Field label={tr('Name')}>
             <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
-                   placeholder="Weekday mornings" style={inputStyle} />
+                   placeholder={tr('Weekday mornings')} style={inputStyle} />
           </Field>
-          <Field label="Schedule (cron)">
+          <Field label={tr('Schedule (cron)')}>
             <input value={form.schedule_rule}
                    onChange={(e) => setForm({ ...form, schedule_rule: e.target.value })}
                    placeholder="0 10 * * 1-5"
                    style={{ ...inputStyle, fontFamily: 'var(--font-mono)' }} />
-            <span style={helpStyle}>e.g. <code style={code}>0 10 * * 1-5</code> = 10am Mon–Fri</span>
+            <span style={helpStyle}>{tr('e.g.')} <code style={code}>0 10 * * 1-5</code> = {tr('10am Mon–Fri')}</span>
           </Field>
-          <Field label="Strategy">
+          <Field label={tr('Strategy')}>
             <select value={form.queue_strategy}
                     onChange={(e) => setForm({ ...form, queue_strategy: e.target.value })}
                     style={inputStyle}>
-              {STRATEGIES.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
+              {STRATEGIES.map((s) => <option key={s.id} value={s.id}>{tr(s.label)}</option>)}
             </select>
           </Field>
-          <Field label="Platforms">
+          <Field label={tr('Platforms')}>
             <span className="grid gap-2 sm:grid-cols-2">
               {platforms.map(platform => (
                 <label key={platform.key} className="flex min-h-11 items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm">

@@ -24,15 +24,17 @@ import {
 
 import { verificationAPI, disputeAPI } from '../../services/api';
 import toast from '../../components/ui/toast';
+import { translateRaw, useLanguage } from '../../i18n';
 
 
 export default function AdminTrustQueuePage() {
+  const { tr } = useLanguage();
   const [tab, setTab] = useState('verifications');
   return (
     <div style={{ maxWidth: 1080, margin: '0 auto', padding: 24, display: 'flex', flexDirection: 'column', gap: 18 }}>
       <header>
         <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
-          Trust & safety queue
+          {tr('Trust & safety queue')}
         </h1>
         <p style={{ margin: '4px 0 0', color: 'var(--text-secondary)', fontSize: 14 }}>
           Verify agencies and resolve disputes. Superadmin-only.
@@ -85,7 +87,7 @@ function Verifications() {
     setLoading(true);
     verificationAPI.pending()
       .then((r) => setRows(r.data?.agencies || []))
-      .catch(() => toast.error('Could not load queue'))
+      .catch(() => toast.error(translateRaw('Could not load queue')))
       .finally(() => setLoading(false));
   }
   useEffect(load, []);

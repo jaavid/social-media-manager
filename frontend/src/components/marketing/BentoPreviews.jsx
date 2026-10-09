@@ -194,7 +194,7 @@ export function AIInsightPreview() {
         </span>
       </div>
       <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', lineHeight: 'var(--line-height-body)' }}>
-        نامزدی در روزهای سه شنبه 30 درصد کاهش یافت
+        تعامل در روزهای سه شنبه 30 درصد کاهش یافت
       </div>
       <div style={{ marginTop: 6, fontSize: 11, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>
         سعی کنید پست سه شنبه خود را به ساعت 7 بعدازظهر منتقل کنید - در آن زمان مخاطبان شما بیشتر فعال هستند.

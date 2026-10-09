@@ -24,9 +24,11 @@ import {
 
 import { botConversationAPI } from '../../services/api';
 import toast from '../../components/ui/toast';
+import { translateRaw, useLanguage } from '../../i18n';
 
 
 export default function HandoffQueuePage() {
+  const { tr } = useLanguage();
   const [items, setItems]                   = useState([]);
   const [loading, setLoading]               = useState(true);
   const [includeUnassigned, setUnassigned]  = useState(false);
@@ -37,7 +39,7 @@ export default function HandoffQueuePage() {
       include_unassigned: includeUnassigned ? '1' : '0',
     })
       .then((r) => setItems(r.data?.results || []))
-      .catch(() => { if (!silent) toast.error('Could not load handoff queue'); })
+      .catch(() => { if (!silent) toast.error(translateRaw('Could not load handoff queue')); })
       .finally(() => setLoading(false));
   }, [includeUnassigned]);
 
@@ -62,7 +64,7 @@ export default function HandoffQueuePage() {
         </span>
         <div style={{ flex: 1 }}>
           <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
-            Handoff queue
+            {tr('Handoff queue')}
           </h1>
           <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--text-secondary)' }}>
             Conversations where the bot escalated to a human. Auto-refreshes every 8s.
