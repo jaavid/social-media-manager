@@ -33,7 +33,7 @@ export default function WhatsAppTemplatesPage() {
   const [showDrawer, setShowDrawer] = useState(false);
 
   return (
-    <div style={{ paddingBottom: 32 }}>
+    <div className="app-page app-page--content app-page--xl">
       <PageHeader
         title="Templates"
         subtitle={`${data?.length || 0} templates`}

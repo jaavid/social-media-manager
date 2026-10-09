@@ -37,7 +37,7 @@ export default function WhatsAppCampaignsPage() {
   const [detailId, setDetailId] = useState(null);
 
   return (
-    <div style={{ paddingBottom: 32 }}>
+    <div className="app-page app-page--content app-page--xl">
       <PageHeader
         title="Campaigns"
         subtitle={`${data?.length || 0} campaigns`}

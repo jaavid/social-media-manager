@@ -28,7 +28,7 @@ export default function WhatsAppInboxPage() {
   const { data: thread, refetch: refetchThread, loading: threadLoading } = useWhatsAppThread(activeId);
 
   return (
-    <div style={{ paddingBottom: 32 }}>
+    <div className="app-page app-page--content app-page--xl">
       <PageHeader title="Inbox" subtitle="WhatsApp conversations" />
 
       <div className={`whatsapp-inbox ${activeId ? 'whatsapp-inbox-selected' : ''}`} style={{

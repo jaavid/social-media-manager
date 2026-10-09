@@ -93,7 +93,7 @@ export default function WhatsAppContactsPage() {
   }
 
   return (
-    <div style={{ paddingBottom: 32 }}>
+    <div className="app-page app-page--content app-page--xl">
       <PageHeader
         title="Contacts"
         subtitle={`${contacts?.length || 0} contacts`}

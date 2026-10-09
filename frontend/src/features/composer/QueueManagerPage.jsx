@@ -41,7 +41,7 @@ export default function QueueManagerPage() {
   }, [queues, activeId]);
 
   return (
-    <div style={{ paddingBottom: 32 }}>
+    <div className="app-page app-page--content app-page--xl">
       <PageHeader
         title="Queues"
         subtitle="Recurring auto-post slots that drain pre-written content"
@@ -50,7 +50,7 @@ export default function QueueManagerPage() {
 
       <div style={{
         display: 'grid', gridTemplateColumns: '320px minmax(0, 1fr)',
-        gap: 16, padding: '0 24px',
+        gap: 16, padding: 0,
       }} className="queue-grid">
         {/* Left: queue list */}
         <Card padding="none" style={{ overflow: 'hidden' }}>

@@ -52,13 +52,13 @@ export default function ApprovalQueuePage() {
   }
 
   return (
-    <div style={{ paddingBottom: 32 }}>
+    <div className="app-page app-page--content app-page--xl">
       <PageHeader
         title="Approval queue"
         subtitle={`${queue.length} post${queue.length === 1 ? '' : 's'} awaiting review`}
       />
 
-      <div style={{ padding: '0 24px' }}>
+      <div style={{ padding: 0 }}>
         {loading && (
           <div style={{ padding: 32, textAlign: 'center' }}>
             <Loader2 size={18} className="ds-spin" color="var(--text-tertiary)" />

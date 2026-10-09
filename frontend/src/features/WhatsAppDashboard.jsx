@@ -75,7 +75,7 @@ export default function WhatsAppDashboard() {
   const tier    = TIER_LABEL[account?.messaging_tier || 'TIER_1K'];
 
   return (
-    <div style={{ paddingBottom: 32 }}>
+    <div className="app-page app-page--content app-page--xl">
       <PageHeader
         title="WhatsApp"
         subtitle={account?.phone_number || account?.display_name || 'Cloud API integration'}

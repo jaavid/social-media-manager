@@ -38,7 +38,7 @@ export default function AudienceInsightsPage() {
   const top = data?.top_content_types || {};
 
   return (
-    <div style={{ paddingBottom: 32 }}>
+    <div className="app-page app-page--content app-page--xl">
       <PageHeader
         title="Audience Insights"
         subtitle="Cross-platform engagement, activity heatmap, and top content types"
@@ -64,7 +64,7 @@ export default function AudienceInsightsPage() {
       )}
 
       {!loading && data && (
-        <div style={{ padding: '0 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={{ padding: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
 
           {/* Totals row */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 12 }}>

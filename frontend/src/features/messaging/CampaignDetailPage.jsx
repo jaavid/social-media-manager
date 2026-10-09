@@ -83,7 +83,7 @@ export default function CampaignDetailPage() {
   ].filter((p) => p.value > 0);
 
   return (
-    <div style={{ paddingBottom: 32 }}>
+    <div className="app-page app-page--content app-page--xl">
       <PageHeader
         title={campaign.name}
         subtitle={`${campaign.template_name} → ${campaign.contact_list_name}`}
@@ -116,7 +116,7 @@ export default function CampaignDetailPage() {
         }
       />
 
-      <div style={{ padding: '0 24px', display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 320px', gap: 16 }}>
+      <div style={{ padding: 0, display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 320px', gap: 16 }}>
         <Card padding="md">
           <Card.Header title="Status breakdown" />
           {pie.length === 0 ? (

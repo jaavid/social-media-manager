@@ -3,6 +3,8 @@
 // incrementally through `tr()` without introducing another i18n dependency.
 
 const faExtra = {
+  'Recurring auto-post slots that drain pre-written content': 'انتشار خودکار و دوره‌ای محتواهای آماده از صف',
+
   'Expired': 'منقضی شده',
   'Automatically approved': 'تأیید خودکار',
   'Cancelled': 'لغو شده',

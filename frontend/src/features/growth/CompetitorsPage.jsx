@@ -41,7 +41,7 @@ export default function CompetitorsPage() {
   useEffect(() => { load(); /* eslint-disable-next-line */ }, []);
 
   return (
-    <div style={{ paddingBottom: 32 }}>
+    <div className="app-page app-page--content app-page--xl">
       <PageHeader
         title="Competitors"
         subtitle="Track public profile metrics and benchmark your workspace against them"
@@ -50,7 +50,7 @@ export default function CompetitorsPage() {
 
       <div style={{
         display: 'grid', gridTemplateColumns: '320px minmax(0, 1fr)',
-        gap: 16, padding: '0 24px',
+        gap: 16, padding: 0,
       }} className="comp-grid">
         <Card padding="none" style={{ overflow: 'hidden', alignSelf: 'flex-start' }}>
           {loading && <div style={{ padding: 16, color: 'var(--text-tertiary)' }}>

@@ -38,7 +38,7 @@ export default function AdsComingSoon() {
   }
 
   return (
-    <div style={{ paddingBottom: 32 }}>
+    <div className="app-page app-page--content app-page--xl">
       <PageHeader title="Ads" subtitle="Cross-channel ad management" />
 
       <div style={{

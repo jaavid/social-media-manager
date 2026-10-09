@@ -62,7 +62,7 @@ function WorkspaceVideo({ workspace }) {
   const [tab, setTab] = useState('trim');
 
   return (
-    <div style={{ paddingBottom: 32 }}>
+    <div className="app-page app-page--content app-page--xl">
       <PageHeader
         title="Video Studio"
         subtitle={t('editor.videoDescription')}
@@ -72,7 +72,7 @@ function WorkspaceVideo({ workspace }) {
         display: 'grid',
         gridTemplateColumns: 'minmax(0, 1fr) 380px',
         gap: 16,
-        padding: '0 24px',
+        padding: 0,
       }}>
         {/* ── Player + derived assets ─────────────────────────────── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>

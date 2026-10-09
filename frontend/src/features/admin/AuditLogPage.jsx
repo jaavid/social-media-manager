@@ -43,13 +43,13 @@ export default function AuditLogPage() {
   ]);
 
   return (
-    <div style={{ paddingBottom: 32 }}>
+    <div className="app-page app-page--content app-page--xl">
       <PageHeader
         title="Audit log"
         subtitle="Every write action Ravinta performed on your behalf"
       />
 
-      <div style={{ padding: '0 24px' }}>
+      <div style={{ padding: 0 }}>
         <Card padding="sm" style={{
           padding: 12, marginBottom: 12,
           display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center',

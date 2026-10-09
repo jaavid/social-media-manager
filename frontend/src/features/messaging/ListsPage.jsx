@@ -22,7 +22,7 @@ export default function ListsPage() {
   const [showCreate, setShowCreate] = useState(false);
 
   return (
-    <div style={{ paddingBottom: 32 }}>
+    <div className="app-page app-page--content app-page--xl">
       <PageHeader
         title="Lists"
         subtitle="Segment your contacts into reusable audiences"
@@ -31,7 +31,7 @@ export default function ListsPage() {
         }
       />
 
-      <div style={{ padding: '0 24px' }}>
+      <div style={{ padding: 0 }}>
         {!loading && (lists || []).length === 0 && (
           <Card padding="none" style={{ overflow: 'hidden' }}>
             <EmptyState

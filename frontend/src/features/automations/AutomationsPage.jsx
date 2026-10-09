@@ -76,7 +76,7 @@ export default function AutomationsPage() {
   }
 
   return (
-    <div style={{ paddingBottom: 32 }}>
+    <div className="app-page app-page--content app-page--xl">
       <PageHeader
         title="Automations"
         subtitle="If this happens, do that — across every connected platform"
@@ -87,7 +87,7 @@ export default function AutomationsPage() {
 
       <div style={{
         display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 320px',
-        gap: 16, padding: '0 24px',
+        gap: 16, padding: 0,
       }} className="automations-grid">
         <div>
           {loading && (

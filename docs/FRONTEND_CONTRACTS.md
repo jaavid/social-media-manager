@@ -265,3 +265,13 @@ Persian/English, RTL/LTR, light/dark/system and mobile/tablet/desktop, keyboard
 submission, error focus and preservation, safe save retry, ambiguous publication,
 and non-UTC scheduling. Providers use mocked transports; these checks do not
 certify live credentials, permissions or provider behavior.
+
+### Page gutters
+
+Feature pages using `PageHeader` must place both the header and content inside
+one page container: `Page` or `app-page app-page--content` with the appropriate
+width modifier. The standard content gutter is 32px on desktop, 16px on tablets and 12px on narrow
+phones. Avoid a root with only bottom padding or a separate horizontal inset on
+the body: those leave the header against the shell or double the body gutter.
+The same container applies in RTL and LTR. `e2e/page-gutters.spec.js` checks
+posts, queues, media and automations at desktop/mobile widths in both languages.

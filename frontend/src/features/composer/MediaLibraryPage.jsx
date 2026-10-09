@@ -94,7 +94,7 @@ export default function MediaLibraryPage() {
   }
 
   return (
-    <div style={{ paddingBottom: 32 }}>
+    <div className="app-page app-page--content app-page--xl">
       <PageHeader
         title="Media Library"
         subtitle="Reusable photos, videos, and graphics"
@@ -120,7 +120,7 @@ export default function MediaLibraryPage() {
         }
       />
 
-      <div style={{ padding: '0 24px' }}>
+      <div style={{ padding: 0 }}>
         {/* Toolbar */}
         <Card padding="sm" style={{
           display: 'flex', gap: 8, alignItems: 'center',
