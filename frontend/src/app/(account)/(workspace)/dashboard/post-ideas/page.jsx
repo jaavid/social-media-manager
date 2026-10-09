@@ -1,2 +1,4 @@
-import { redirect } from 'next/navigation';
-export default function Page() { redirect("/dashboard/analytics/post-ideas"); }
+import { publicMetadata } from '@/lib/metadata.mjs';
+export const metadata = publicMetadata("Post Ideas", "Manage analytics, content, conversations, and ads across your workspaces.", "/dashboard/post-ideas", true);
+import View from '../analytics/post-ideas/View.jsx';
+export default function Page() { return <View />; }

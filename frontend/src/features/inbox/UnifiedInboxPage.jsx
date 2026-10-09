@@ -83,10 +83,10 @@ function InboxWorkspace({ workspaceId, reviewsOnly }) {
   return <>
     {metadata.error && <Failure error={metadata.error} retry={() => metadata.refetch()} preserved />}
     <div className="my-4 flex flex-wrap gap-3">
-      {!reviewsOnly && <NativeSelect aria-label={t('engagement.title')} value={type} onChange={e => { setType(e.target.value); setAccount(''); setPage(1); }}>
+      {!reviewsOnly && <NativeSelect className="w-full sm:w-56" aria-label={t('engagement.title')} value={type} onChange={e => { setType(e.target.value); setAccount(''); setPage(1); }}>
         {Object.keys(capability).filter(kind => metadata.data.providers.some(p => enabled(p.capabilities[capability[kind]]))).map(kind => <option key={kind} value={kind}>{t(`engagement.${kind}`)}</option>)}
       </NativeSelect>}
-      <NativeSelect aria-label={t('engagement.account')} value={selected ? accountId : ''} onChange={e => { setAccount(e.target.value); setPage(1); }}>
+      <NativeSelect className="w-full sm:w-56" aria-label={t('engagement.account')} value={selected ? accountId : ''} onChange={e => { setAccount(e.target.value); setPage(1); }}>
         <option value="">{t('engagement.account')}</option>
         {accounts.map(({ provider, account }) => <option key={account.id} value={account.id}>{provider.titles[language]} · {account.name || account.identity.name} · {account.destination.id}</option>)}
       </NativeSelect>

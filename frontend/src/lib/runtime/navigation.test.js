@@ -14,3 +14,12 @@ test('active links match whole segments and honor exact matching', () => {
   expect(routeIsActive('/admin', '/admin/users', true)).toBe(false);
   expect(routeIsActive('/', '/privacy')).toBe(false);
 });
+
+test('workspace module links use short URLs and keep query, hash and draft IDs', () => {
+  expect(destinationHref('/dashboard/analytics/inbox?workspace=7#reply', '/')).toBe('/dashboard/inbox?workspace=7#reply');
+  expect(destinationHref('/dashboard/analytics/composer/42?workspace=7', '/')).toBe('/dashboard/composer/42?workspace=7');
+  expect(destinationHref('/dashboard/analytics/dashboard', '/')).toBe('/dashboard');
+  expect(destinationHref('/dashboard/analytics/analytics', '/')).toBe('/dashboard/analytics');
+  expect(destinationHref('/admin/analytics/inbox', '/')).toBe('/admin/analytics/inbox');
+  expect(routeIsActive('/dashboard/analytics/inbox', '/dashboard/inbox')).toBe(true);
+});

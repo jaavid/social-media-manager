@@ -65,3 +65,14 @@ worker قدیمی `/sw.js` بازنشسته می‌شود و فقط cacheهای 
 ## آرشیو مستقل
 
 `archive/legacy-frontend/` snapshot تاریخی ادغام‌شده در PR #97 است و در build، importها و تست‌ها استفاده نمی‌شود. می‌توان آن را جداگانه حذف کرد؛ rollback عملیاتی با image قبلی انجام می‌شود. `npm run check:next` صحت importهای نسبی و نبود symlink یا پوشهٔ routing قدیمی را بررسی می‌کند. CI این بررسی را مستقل از build اجرا می‌کند؛ تست browser هر ۱۹۱ URL و فایل‌های عمومی را پوشش می‌دهد.
+
+### Workspace URLs
+
+Workspace content, composer, inbox and other tools now live directly under
+`/dashboard/<tool>` (for example `/dashboard/composer/42` and `/dashboard/inbox`).
+`/dashboard` is the overview and `/dashboard/analytics` is reporting. The old
+`/dashboard/analytics/<tool>` URLs redirect permanently, keeping query strings
+and dynamic draft IDs. Native legacy route files remain for route parity;
+short routes reuse their feature views. Shared navigation canonicalizes old
+workspace links, including active menu state. Admin module URLs retain their
+existing `/admin/analytics/...` structure.

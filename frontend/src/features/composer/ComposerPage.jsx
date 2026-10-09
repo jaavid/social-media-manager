@@ -33,7 +33,7 @@ export default function ComposerPage() {
   const { id: parameterId } = useAppParams();
   const { pathname } = useAppLocation();
   // The pathname can commit before dynamic parameters during route hydration.
-  const id = parameterId || pathname.match(/\/analytics\/composer\/([1-9]\d*)$/)?.[1];
+  const id = parameterId || pathname.match(/\/composer\/([1-9]\d*)$/)?.[1];
   const [search] = useAppSearchParams();
   const requested = Number(search.get('workspace'));
   const workspaceId = Number.isSafeInteger(requested) && requested > 0 ? requested : user?.workspace_id || user?.client_id;
@@ -45,7 +45,7 @@ function ComposerEditor({ workspaceId, id, draftKey }) {
   const { t, language } = useLanguage();
   const navigate = useAppNavigate();
   const { pathname } = useAppLocation();
-  const path = pathname.startsWith('/dashboard/') ? '/dashboard/analytics/composer' : '/admin/analytics/composer';
+  const path = pathname.startsWith('/dashboard/') ? '/dashboard/composer' : '/admin/analytics/composer';
   const recovered = useMemo(() => {
     try { const v = JSON.parse(transientStorage.getItem(draftKey) || 'null'); return v?.platformOverrides ? v : null; }
     catch { return null; }
@@ -275,16 +275,21 @@ function ComposerEditor({ workspaceId, id, draftKey }) {
           {accounts.isPending && <DataState compact state="loading" title={t('composer.editor.loading')} />}
           {accounts.isError && <DataState compact state={accounts.data ? 'partial' : 'error'} title={t('composer.editor.unavailable')} action={<Button onClick={() => accounts.refetch()}>{t('composer.editor.retry')}</Button>} />}
           {accounts.data && !providers.some(p => Object.keys(publishingModes(p)).length) && <DataState compact state="empty" title={t('composer.editor.noProviders')} />}
-          <fieldset disabled={!!pending} className="space-y-3">
+          <fieldset disabled={!!pending} className="flex flex-wrap items-start gap-3">
             {providers.filter(p => Object.keys(publishingModes(p)).length || draft.targetPlatforms.includes(p.key)).map(provider => {
               const isSelected = draft.targetPlatforms.includes(provider.key);
-              const targets = draft.platformOverrides[provider.key]?.account_targets || (draft.platformOverrides[provider.key]?.social_account_id ? [{ social_account_id: draft.platformOverrides[provider.key].social_account_id }] : []);
-              return <div key={provider.key} className="rounded-xl border border-border p-3">
-                <Button variant="secondary" fullWidth aria-pressed={isSelected} onClick={() => toggleProvider(provider.key)}>{provider.titles[language] || provider.titles.en}</Button>
-                {isSelected && <div className="mt-3 space-y-3">{provider.accounts.map(account => <Checkbox key={account.id} className="w-full" checked={targets.some(target => target.social_account_id === account.id)} onChange={() => toggleAccount(provider, account)} label={<span>{account.name}<br /><bdi>{account.destination.kind}: {account.destination.id}</bdi><br />{!account.health.ready && t('composer.editor.not_connected')}</span>} />)}</div>}
+              return <div key={provider.key} className="min-w-0 max-w-full">
+                <Button variant={isSelected ? "primary" : "ghost"} aria-pressed={isSelected} onClick={() => toggleProvider(provider.key)}>{provider.titles[language] || provider.titles.en}</Button>
               </div>;
             })}
           </fieldset>
+          {selected.map(provider => {
+            const targets = draft.platformOverrides[provider.key]?.account_targets || (draft.platformOverrides[provider.key]?.social_account_id ? [{ social_account_id: draft.platformOverrides[provider.key].social_account_id }] : []);
+            return <fieldset key={provider.key} disabled={!!pending} className="mt-3 min-w-0">
+              <legend className="text-xs font-medium text-muted-foreground">{provider.titles[language] || provider.titles.en}</legend>
+              <div className="mt-2 flex max-w-full flex-wrap gap-2">{provider.accounts.map(account => <Checkbox key={account.id} className="min-h-11 max-w-full rounded-lg bg-muted/40 px-3 py-2" checked={targets.some(target => target.social_account_id === account.id)} onChange={() => toggleAccount(provider, account)} label={<span className="block min-w-0 text-sm"><span className="block font-medium">{account.name}</span><bdi className="block break-all text-xs text-muted-foreground">{account.destination.kind}: {account.destination.id}</bdi>{!account.health.ready && <span className="block text-xs text-destructive">{t('composer.editor.not_connected')}</span>}</span>} />)}</div>
+            </fieldset>;
+          })}
           {issues.length > 0 && <ul role="status" className="mt-3 space-y-2 text-sm">{issues.map((issue, i) => <li key={i}>{providers.find(p => p.key === issue.key)?.titles[language] || issue.key} {t(errorKey(issue.code))}{issue.limit && <> <bdi>{t('composer.editor.limits', undefined, { limit: issue.limit })}</bdi></>}</li>)}</ul>}
         </Card>
         <fieldset disabled={!!pending} className="min-w-0 space-y-6">

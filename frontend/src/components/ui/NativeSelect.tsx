@@ -1,4 +1,5 @@
 import { forwardRef, useId } from 'react';
+import { ChevronDown } from 'lucide-react';
 import type { SelectHTMLAttributes, ReactNode } from 'react';
 import { useLanguage } from '../../i18n';
 import { cn } from '../../lib/utils';
@@ -32,6 +33,7 @@ const NativeSelect = forwardRef<HTMLSelectElement, NativeSelectProps>(
             {localize(label)}
           </label>
         )}
+        <div className="relative">
         <select
           {...props}
           ref={ref}
@@ -42,8 +44,10 @@ const NativeSelect = forwardRef<HTMLSelectElement, NativeSelectProps>(
               .filter(Boolean)
               .join(' ') || undefined
           }
-          className="ds-textarea min-h-11"
+          className="ds-native-select"
         />
+        {!props.multiple && (!props.size || props.size === 1) && <ChevronDown aria-hidden="true" className="pointer-events-none absolute end-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />}
+        </div>
         {(error || hint) && (
           <div
             id={`${fieldId}-message`}
