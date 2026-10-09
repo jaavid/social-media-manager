@@ -1,4 +1,5 @@
 import { parseBusiness } from './settingsRecovery';
+import { sameJsonValue } from './jsonAcknowledgment';
 type Row = Record<string, unknown>;
 function check(v: unknown): asserts v { if (!v) throw new Error('Invalid onboarding response'); }
 export function parseOnboarding(v: unknown, workspace: unknown) {
@@ -13,7 +14,7 @@ export function parseOnboardingWrite(v: unknown, workspace: unknown, draft: Row,
   const result = parseOnboarding(v, workspace || row.id);
   for (const [key, value] of Object.entries(draft)) {
     if (['competitors','profile_image'].includes(key)) continue;
-    check(JSON.stringify((result as unknown as Row)[key]) === JSON.stringify(value));
+    check(sameJsonValue((result as unknown as Row)[key], value));
   }
   if (draft.profile_image) check(typeof result.profile_image === 'string' && result.profile_image.length > 0);
   check(!complete || result.onboarding_complete === true);

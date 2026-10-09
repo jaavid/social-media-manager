@@ -1,5 +1,37 @@
 # Historical PR review reconciliation — 2026-10-08
 
+## Verification refresh — 2026-10-09
+
+GitHub confirms that PRs #188–#200 merged on 2026-10-08. All are ancestors of
+the verified main commit `fea175fafa0d32dee3104bc1a077d1d65b3f34ba`, which also
+matched the remote main SHA during this audit. The historical tables below
+retain their original snapshot; their "unmerged" labels no longer describe
+these PRs today.
+
+| Bug issue | Current implementation and remaining scope |
+| --- | --- |
+| #184 | #190 and #193 implement OIDC redirect rejection, ambiguous-write protection, destination validation, credential normalization, and shared reply expiry; #196 adds explicit OAuth destination selection. The ready-account onboarding regression remains covered. Source findings in #6/#9 about deployed database volumes and trusted ingress still require operator evidence; repository tests cannot establish deployed state. |
+| #185 | #192 implements disabled-reader suppression, valid lookup fallback, order-independent business acknowledgments, authoritative session read-back, and verifies rejected versus uncertain passwords and completed deletion. #199 addresses active legacy UI notes; the existing logo contrast fix is retained. A remaining onboarding consumer used order-sensitive JSON serialization; this follow-up reuses `sameJsonValue` and tests reordered nested objects, changed/missing values, ordered arrays, and actual completion navigation without duplicate writes. |
+| #186 | #194 implements media/poll boundaries; #197 implements bounded suggestion permission checks, changed-only destination context, workspace-scoped settings, translation fixes and request ordering; #198 reconciles exact legacy Telegram identity. Existing album retention and malformed provider-response tests remain in place. #191 documents Google Testing-mode refresh-token expiry. |
+
+Fresh verification: 85 Jest suites / 439 tests; TypeScript, production build,
+i18n parity and lint regression checks pass. The existing lint inventory contains
+404 baseline findings and zero errors/regressions. Seven related production
+browser files pass 125 cases (connection normalization, diagnostic locking,
+legacy localization, key/password recovery, settings acknowledgments, inbox
+cookies and Telegram suggestion recovery). The final rebuilt onboarding flow
+passes both ready-account scenarios, including reordered JSON acknowledgment.
+The new parser regression failed before the fix and passed afterward.
+All 759 backend tests complete successfully (three existing skips); migration
+drift check reports no changes.
+
+Backend validation uses Python 3.12, isolated SQLite test databases, and
+`PYTHON_DOTENV_DISABLED=1`, so local provider-routing settings do not contaminate
+tests. URL validation needs DNS access even when provider calls are mocked.
+The environment resides outside `/private`: the existing observability test
+checks the literal word `private` and otherwise falsely matches macOS paths.
+No provider writes or production deployment changes were performed.
+
 Refreshed main: `6ac39d0ccca419ae4dc3922c967c1c5fa2a147a5`. This is after the previously announced prerequisite merges, and still the latest fetched main. Batch PRs remain unmerged. Branch validation is not future-main evidence.
 
 **Inventory confirmed:81 historical PRs,90 inline threads,45 review summaries,82 top-level discussion comments,8 additional off-diff/nit findings.** All REST/GraphQL pages and nested thread-comment cursors were exhausted. The JSON inventory records every PR/artifact URL, count and source hash; it deliberately omits raw review bodies, tokens and provider/private data. Merged, outdated and resolved flags are not evidence of remediation.
