@@ -90,7 +90,17 @@ export default function OrganizationTeamPage() {
       ? previous : String(list(orgs.data)[0]?.id || ''));
     setReady(true);
   }, []);
-  useEffect(() => { reload().catch(() => { setError('بارگذاری مجموعه‌ها انجام نشد. دوباره تلاش کنید.'); setReady(true); }); }, [reload]);
+  useEffect(() => {
+    let active = true;
+    // Fetch callbacks update state asynchronously, not in the effect's body.
+    Promise.resolve().then(() => {
+      if (active) return reload();
+      return undefined;
+    }).catch(() => {
+      if (active) { setError('بارگذاری مجموعه‌ها انجام نشد. دوباره تلاش کنید.'); setReady(true); }
+    });
+    return () => { active = false; };
+  }, [reload]);
   const loadTeam = useCallback(async () => {
     if (!organizationId) return;
     const [spaces, team, invites] = await Promise.all([
@@ -102,16 +112,20 @@ export default function OrganizationTeamPage() {
   }, [organizationId, manager]);
   useEffect(() => {
     let active = true;
-    setWorkspaces([]); setMembers([]); setInvitations([]); setGrants([]); setOrgRole('member');
-    if (organizationId) {
-      Promise.all([
+    // Clear scoped data after the current render, then load the next selection.
+    // The alive guard prevents an earlier selection from replacing newer data.
+    Promise.resolve().then(() => {
+      if (!active) return undefined;
+      setWorkspaces([]); setMembers([]); setInvitations([]); setGrants([]); setOrgRole('member');
+      if (!organizationId) return undefined;
+      return Promise.all([
         organizationAPI.workspaces(organizationId),
         manager ? organizationAPI.members(organizationId) : Promise.resolve({ data: [] }),
         manager ? organizationAPI.invitations(organizationId) : Promise.resolve({ data: [] }),
       ]).then(([spaces, team, invites]) => {
         if (active) { setWorkspaces(list(spaces.data)); setMembers(team.data); setInvitations(invites.data); }
-      }).catch(() => { if (active) setError('بارگذاری برندها و اعضا انجام نشد.'); });
-    }
+      });
+    }).catch(() => { if (active) setError('بارگذاری برندها و اعضا انجام نشد.'); });
     return () => { active = false; };
   }, [organizationId, manager]);
 
