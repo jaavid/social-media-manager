@@ -68,6 +68,7 @@ from social_stats.models.ai import (
 from social_stats.models.telegram import (
     TelegramIntegration, TelegramUpdate, TelegramSuggestion, TelegramCallback, TelegramAssistantLink, TelegramAssistantRun,
 )
+from social_stats.models.telegram_cloud import TelegramCloudLinkCode, TelegramCloudSession
 from social_stats.models.marketplace import (  # noqa: E402,F401
     AGENCY_CLIENT_PERMISSIONS,
     Agency,
