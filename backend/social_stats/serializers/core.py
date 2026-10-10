@@ -13,7 +13,15 @@ from social_stats.models import Client, SocialAccount, PlatformCredential, Daily
 
 class UserSerializer(serializers.ModelSerializer):
     role         = serializers.CharField(source='profile.role',         read_only=True)
-    client_id    = serializers.IntegerField(source='profile.client_id', read_only=True)
+    client_id = serializers.SerializerMethodField()
+
+    def get_client_id(self, user):
+        from social_stats.authorization import accessible_workspaces
+        profile = getattr(user, 'profile', None)
+        if not profile:
+            return None
+        candidate = profile.default_workspace_id or profile.client_id
+        return candidate if candidate and accessible_workspaces(user).filter(pk=candidate).exists() else None
     account_type = serializers.CharField(source='profile.account_type', read_only=True)
 
     class Meta:

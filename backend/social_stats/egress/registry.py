@@ -20,6 +20,10 @@ class EgressService:
 
 
 SERVICES: dict[str, EgressService] = {
+    'resend': EgressService(
+        key='resend', label='Resend Email API', direct_origin='https://api.resend.com',
+        gateway_route='resend', probe_url='https://api.resend.com/',
+    ),
     'telegram': EgressService(
         key='telegram', label='Telegram Bot API',
         direct_origin='https://api.telegram.org',

@@ -28,7 +28,7 @@ import Checkbox from '../components/ui/Checkbox';
 import Confetti from '../components/ui/Confetti';
 import SocialPlatformIcon from '../components/ui/SocialPlatformIcon';
 import { useSession as useAuth } from '../core/session';
-import { authAPI, invitationAPI } from '@/services/domains/identity';
+import { authAPI, invitationAPI, organizationAPI } from '@/services/domains/identity';
 
 const API_BASE = apiBaseUrl();
 
@@ -37,6 +37,7 @@ export default function SignupPage() {
   const { user } = useAuth();
   const [params] = useAppSearchParams();
   const inviteToken = params.get('invite');
+  const teamInviteToken = params.get('team_invite');
 
   const [inv, setInv] = useState(null);
   const [fullName, setFullName] = useState('');
@@ -53,8 +54,9 @@ export default function SignupPage() {
 
   // Redirect already-logged-in users
   useEffect(() => {
-    if (user) navigate('/dashboard', { replace: true });
-  }, [user, navigate]);
+    if (user) navigate(teamInviteToken ? `/join-team?token=${encodeURIComponent(teamInviteToken)}`
+      : user.account_type === 'end_user' ? '/u/organizations' : '/dashboard', { replace: true });
+  }, [user, navigate, teamInviteToken]);
 
   // Fetch invitation preview
   useEffect(() => {
@@ -62,6 +64,14 @@ export default function SignupPage() {
     invitationAPI.getByToken(inviteToken).then((res) => setInv(res.data)).catch(() => {});
     persistentStorage.setItem('pending_invite_token', inviteToken);
   }, [inviteToken]);
+
+  useEffect(() => {
+    let active = true;
+    if (teamInviteToken) organizationAPI.invitation(teamInviteToken).then(({ data }) => {
+      if (active) setEmail(data.email);
+    }).catch(() => { if (active) setServerError('دعوت منقضی یا لغو شده است.'); });
+    return () => { active = false; };
+  }, [teamInviteToken]);
 
   function clearField(field) {
     setErrors((prev) => {
@@ -92,12 +102,16 @@ export default function SignupPage() {
     if (!validate()) return;
     setLoading(true);
     try {
-      await authAPI.signup({
+      const response = await authAPI.signup({
         full_name: fullName.trim(),
         email: email.trim().toLowerCase(),
         password,
         terms_accepted: true,
+        ...(teamInviteToken ? { team_invite: teamInviteToken } : {}),
       });
+      if (response.data.email_sent === false) {
+        setServerError('حساب ساخته شد، اما ارسال ایمیل تأیید نشد. ارسال مجدد را امتحان کنید.');
+      }
       setDone(true);
     } catch (err) {
       const data = err?.response?.data;
@@ -119,8 +133,8 @@ export default function SignupPage() {
     setResending(true);
     setResentMsg('');
     try {
-      await authAPI.resendVerification(email);
-      setResentMsg("یک ایمیل تأیید جدید ارسال شده است.");
+      const response = await authAPI.resendVerification(email);
+      setResentMsg(response.data.email_sent === false ? "ارسال ایمیل تأیید نشد. دوباره تلاش کنید." : "یک ایمیل تأیید جدید ارسال شده است.");
     } catch {
       setResentMsg("امکان ارسال مجدد وجود ندارد. لطفا دوباره امتحان کنید.");
     } finally {
@@ -144,7 +158,7 @@ export default function SignupPage() {
         <Confetti />
         <AuthLayout
           heroTitle={"آخرین مرحله."}
-          heroSub={"ما به تازگی یک پیوند تأیید به صندوق ورودی شما ارسال کردیم - آن را برای فعال کردن حساب خود باز کنید."}
+          heroSub={serverError || "پیوند تأیید ایمیل را برای فعال‌کردن حساب خود باز کنید."}
         >
         <div
           style={{
@@ -169,11 +183,12 @@ export default function SignupPage() {
           >
             <Mail size={26} strokeWidth={1.8} />
           </div>
+          {serverError && <p role="alert">{serverError}</p>}
           <h1 style={{ margin: 0, fontSize: 22, fontWeight: 600, letterSpacing: '-0.01em', color: 'var(--text-primary)' }}>
             صندوق ورودی خود را بررسی کنید
           </h1>
           <p style={{ margin: '8px 0 20px', fontSize: 14, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>
-            ما یک پیوند تأیید را به <strong style={{ color: 'var(--text-primary)' }}>{email}</strong>. روی لینک موجود در ایمیل کلیک کنید تا حساب کاربری خود را فعال کنید.
+            ایمیل ثبت‌نام شما: <strong style={{ color: 'var(--text-primary)' }}>{email}</strong>. برای فعال‌کردن حساب، پیوند تأیید را باز کنید.
           </p>
 
           {resentMsg && (

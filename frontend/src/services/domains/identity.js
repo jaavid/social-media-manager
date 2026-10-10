@@ -87,3 +87,21 @@ export const privacyAPI = {
     consent_type: consentType, given: !!given, given_via: via || 'settings_page',
   }),
 };
+
+export const organizationAPI = {
+  list: () => api.get('/organizations/'),
+  create: (data) => api.post('/organizations/', data),
+  update: (id, data) => api.patch(`/organizations/${id}/`, data),
+  workspaces: (id) => api.get(`/organizations/${id}/workspaces/`),
+  createWorkspace: (id, data) => api.post(`/organizations/${id}/workspaces/`, data),
+  selectWorkspace: (id, workspaceId) => api.post(`/organizations/${id}/select_workspace/`, { workspace_id: workspaceId }),
+  members: (id) => api.get(`/organizations/${id}/members/`),
+  updateMember: (id, userId, data) => api.put(`/organizations/${id}/team/${userId}/`, data),
+  invitations: (id) => api.get(`/organizations/${id}/invitations/`),
+  invite: (id, data) => api.post(`/organizations/${id}/invitations/`, data),
+  cancelInvitation: (id, invitationId) => api.delete(`/organizations/${id}/invitations/${invitationId}/`),
+  myInvitations: () => api.get('/organization-team/invitations/'),
+  acceptInvitation: (id) => api.post(`/organization-team/invitations/${id}/accept/`, {}),
+  invitation: (token) => api.get('/organization-team/invitation/', { params: { token } }),
+  acceptToken: (token) => api.post('/organization-team/invitation/', { token }),
+};

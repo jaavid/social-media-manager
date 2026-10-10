@@ -22,6 +22,7 @@ import Button from '../components/ui/Button';
 import Spinner from '../components/ui/Spinner';
 import { authAPI } from '@/services/domains/identity';
 import { useSession as useAuth } from '../core/session';
+import { internalReturnTo } from '../lib/auth/contracts';
 
 export default function VerifyEmailPage() {
   const navigate = useNavigate();
@@ -44,7 +45,7 @@ export default function VerifyEmailPage() {
         const { access, refresh } = res.data;
         await refreshAuth(access, refresh);
         setStatus('success');
-        setTimeout(() => navigate('/pending', { replace: true }), 2000);
+        setTimeout(() => navigate(internalReturnTo(res.data.next_url, '/pending'), { replace: true }), 2000);
       })
       .catch((err) => {
         setStatus('error');

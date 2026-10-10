@@ -69,9 +69,9 @@ class OrganizationTests(TestCase):
         before = Organization.objects.count()
         with self.assertRaises(IntegrityError), transaction.atomic():
             Client.objects.create(
-                name="Duplicate",
-                company="Duplicate",
-                email=self.workspace.email,
+                name="Invalid",
+                company="Invalid",
+                email=None,
             )
         self.assertEqual(Organization.objects.count(), before)
 
