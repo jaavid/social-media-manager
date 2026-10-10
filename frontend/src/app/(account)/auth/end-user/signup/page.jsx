@@ -1,4 +1,10 @@
-import View from './View';
-import { publicMetadata } from "@/lib/metadata.mjs";
-export const metadata = publicMetadata("ثبت نام کاربر نهایی", "تحلیل و آمار، محتوا، مکالمات و تبلیغات را در فضای کاری خود مدیریت کنید.", "/auth/end-user/signup", true);
-export default function Page() { return <View />; }
+import { redirect } from 'next/navigation';
+export default async function Page({ searchParams }) {
+  const params = await searchParams;
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (Array.isArray(value)) value.forEach(item => query.append(key, item));
+    else if (value != null) query.set(key, value);
+  }
+  redirect(`/signup${query.size ? `?${query}` : ''}`);
+}

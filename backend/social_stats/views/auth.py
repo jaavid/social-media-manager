@@ -17,6 +17,7 @@ from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.conf import settings
 from django.utils import timezone
+from django.db import transaction
 
 from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.permissions import AllowAny
@@ -81,32 +82,28 @@ def signup(request):
     except ValidationError as e:
         return Response({'errors': {'password': ' '.join(e.messages)}}, status=400)
 
-    if User.objects.filter(username=email).exists():
+    if User.objects.filter(username__iexact=email).exists() or User.objects.filter(email__iexact=email).exists():
         return Response({'errors': {'email': 'An account with this email already exists.'}}, status=400)
 
-    # Create user (inactive until email verified)
+    # Invitation signup is email-bound and never creates a second organization.
+    if data.get('team_invite'):
+        from social_stats.views.organization_team import invitation_from_token
+        invitation = invitation_from_token(data['team_invite'])
+        if invitation.email.lower() != email:
+            return Response({'errors': {'email': 'This invitation belongs to a different email'}}, status=400)
     parts = full_name.split(' ', 1)
-    user  = User.objects.create_user(
-        username   = email,
-        email      = email,
-        password   = password,
-        first_name = parts[0],
-        last_name  = parts[1] if len(parts) > 1 else '',
-        is_active  = False,
-    )
-    UserProfile.objects.create(
-        user               = user,
-        role               = 'client',
-        is_self_registered = True,
-        email_verified     = False,
-        terms_accepted     = True,
-        terms_accepted_at  = timezone.now(),
-    )
-
-    token_obj = EmailVerificationToken.objects.create(user=user)
-    _send_verification_email(user, token_obj.token)
-
-    return Response({'detail': 'Account created. Please check your email to verify your account.'}, status=201)
+    with transaction.atomic():
+        user = User.objects.create_user(
+            username=email, email=email, password=password,
+            first_name=parts[0], last_name=parts[1] if len(parts) > 1 else '', is_active=False,
+        )
+        UserProfile.objects.create(
+            user=user, role='client', account_type='end_user', is_self_registered=True,
+            email_verified=False, terms_accepted=True, terms_accepted_at=timezone.now(),
+        )
+        token_obj = EmailVerificationToken.objects.create(user=user)
+    email_sent = _send_verification_email(user, token_obj.token)
+    return Response({'detail': 'Account created. Please verify your email.', 'email_sent': email_sent}, status=201)
 
 
 # ── Verify email ─────────────────────────────────────────────────────────────
@@ -163,7 +160,8 @@ def verify_email(request):
         pass
 
     access, refresh = _make_jwt(user)
-    return Response({'access': access, 'refresh': refresh, 'detail': 'Email verified successfully.'})
+    return Response({'access': access, 'refresh': refresh, 'detail': 'Email verified successfully.',
+                     'next_url': '/u/organizations' if profile.account_type == 'end_user' else '/pending'})
 
 
 # ── Resend verification ───────────────────────────────────────────────────────
@@ -186,9 +184,9 @@ def resend_verification(request):
     # Delete any existing token and create a fresh one
     EmailVerificationToken.objects.filter(user=user).delete()
     token_obj = EmailVerificationToken.objects.create(user=user)
-    _send_verification_email(user, token_obj.token)
+    email_sent = _send_verification_email(user, token_obj.token)
 
-    return Response({'detail': 'A new verification email has been sent.'})
+    return Response({'detail': 'Verification email requested.', 'email_sent': email_sent})
 
 
 # ── Password reset request ────────────────────────────────────────────────────
@@ -434,9 +432,11 @@ def _send_verification_email(user, token):
     plain = f"Hi {name},\n\nVerify your Ravinta account:\n{verify_url}\n\nThis link expires in 24 hours."
 
     try:
-        send_mail(subject, plain, FROM_EMAIL, [user.email], html_message=html, fail_silently=False)
+        return bool(send_mail(subject, plain, settings.DEFAULT_FROM_EMAIL, [user.email],
+                              html_message=html, fail_silently=False))
     except Exception:
-        pass
+        return False
+
 
 
 def _send_reset_email(user, token):

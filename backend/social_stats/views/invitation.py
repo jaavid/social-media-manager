@@ -10,7 +10,6 @@
 Invitation and Notification views.
 Agency users invite clients; clients accept/reject.
 """
-import uuid
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
@@ -18,9 +17,8 @@ from django.utils import timezone
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
-from rest_framework import status
 
-from social_stats.models import ClientInvitation, Notification, Client, UserProfile, OnboardingStep
+from social_stats.models import ClientInvitation, Notification, Client, OnboardingStep
 from social_stats.views.social_auth import _make_jwt
 from social_stats.views.auth import _email_html
 
@@ -138,7 +136,7 @@ def send_invitation(request):
     client_user = User.objects.filter(email__iexact=client_email).first()
 
     # Find or create a Client placeholder record
-    client_record = Client.objects.filter(email__iexact=client_email).first()
+    client_record = Client.objects.filter(email__iexact=client_email, owner_user=client_user).first()
     if not client_record:
         name = client_email.split('@')[0]
         client_record = Client.objects.create(

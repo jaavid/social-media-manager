@@ -96,7 +96,10 @@ def _make_jwt(user):
         profile = user.profile
         ensure_client_profile(profile)
         refresh['role']      = profile.role
-        refresh['client_id'] = profile.client_id
+        from social_stats.serializers.core import UserSerializer
+        workspace_id = UserSerializer(user).get_client_id(user)
+        refresh['client_id'] = workspace_id
+        refresh['workspace_id'] = workspace_id
         refresh['name']      = user.get_full_name() or user.username
         from social_stats.permissions import PermissionChecker
         refresh['permissions'] = PermissionChecker.get_user_permissions(profile)
@@ -146,7 +149,7 @@ def _find_or_create_client(email, first_name='', last_name=''):
     )
     user.set_unusable_password()
     user.save()
-    UserProfile.objects.create(user=user, role='client', is_self_registered=True)
+    UserProfile.objects.create(user=user, role='client', account_type='end_user', is_self_registered=True)
     return user, ''
 
 

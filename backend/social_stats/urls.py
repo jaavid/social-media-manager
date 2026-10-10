@@ -12,6 +12,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
 from social_stats.views.organizations import OrganizationViewSet
+from social_stats.views import organization_team as team_views
 
 from social_stats.views.telegram import TelegramAccountViewSet, TelegramSuggestionViewSet, telegram_webhook
 from social_stats.views.core import (
@@ -650,4 +651,13 @@ urlpatterns = [
 
     # REST API
     path('', include(router.urls)),
+]
+
+urlpatterns += [
+    path('organizations/<int:organization_id>/invitations/', team_views.invitations),
+    path('organizations/<int:organization_id>/invitations/<int:invitation_id>/', team_views.cancel_invitation),
+    path('organizations/<int:organization_id>/team/<int:user_id>/', team_views.member),
+    path('organization-team/invitations/', team_views.my_invitations),
+    path('organization-team/invitations/<int:invitation_id>/accept/', team_views.accept_mine),
+    path('organization-team/invitation/', team_views.invitation_token),
 ]

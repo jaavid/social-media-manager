@@ -25,8 +25,22 @@ def _workspace(request, workspace_id):
     workspace = get_object_or_404(Client, pk=workspace_id)
     role, _ = acting_context(request.user, workspace)
     if role not in ("owner", "superadmin"):
-        raise PermissionDenied("Only the workspace owner can manage team policy")
+        from social_stats.organization_team import organization_role
+        if organization_role(request.user, workspace.organization) != 'admin':
+            raise PermissionDenied("Only the workspace owner or organization administrator can manage team policy")
     return workspace
+
+
+def _check_team_target(actor, workspace, user, data):
+    from social_stats.organization_team import organization_role, require_target_management
+    from social_stats.tenancy import is_platform_admin
+    if workspace.owner_user_id == actor.pk or is_platform_admin(actor):
+        return
+    if organization_role(actor, workspace.organization) == 'admin':
+        require_target_management(actor, workspace.organization, user, 'member')
+        permissions = data.get('permissions')
+        if data.get('preset') == 'owner' or (isinstance(permissions, dict) and permissions.get('change_billing') is True):
+            raise PermissionDenied('Organization administrators cannot grant owner or billing permissions')
 
 
 def _map(data, key):
@@ -161,6 +175,7 @@ def team(request, workspace_id):
 def member_policy(request, workspace_id, user_id):
     workspace = _workspace(request, workspace_id)
     user = get_object_or_404(User, pk=user_id, is_active=True)
+    _check_team_target(request.user, workspace, user, request.data)
     # This endpoint configures existing members; it cannot enroll arbitrary users.
     if not accessible_workspaces(user).filter(pk=workspace.pk).exists():
         raise PermissionDenied("User is not an active member of this workspace")
@@ -202,6 +217,7 @@ def account_policy(request, workspace_id, account_id, user_id):
     workspace = _workspace(request, workspace_id)
     account = get_object_or_404(SocialAccount, pk=account_id, client=workspace)
     user = get_object_or_404(User, pk=user_id, is_active=True)
+    _check_team_target(request.user, workspace, user, request.data)
     if not accessible_workspaces(user).filter(pk=workspace.pk).exists():
         raise PermissionDenied("User is not an active member of this workspace")
     policy = SocialAccountPermissionOverride.objects.filter(

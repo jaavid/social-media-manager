@@ -41,6 +41,7 @@ const SECTIONS = [
   {
     title: 'Manage',
     items: [
+      { to: '/u/organizations', label: 'مجموعه و تیم', icon: Building2 },
       { to: '/u/agency',      label: 'My agency',   icon: Building2 },
       { to: '/u/connections', label: 'Connections', icon: Plug },
       { to: '/u/approvals',   label: 'Approvals',   icon: ClipboardCheck, badgeKey: 'pendingApprovals' },

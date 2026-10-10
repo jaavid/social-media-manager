@@ -43,3 +43,25 @@ python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().d
 SSO با `SSO_OIDC_ISSUER/CLIENT_ID/CLIENT_SECRET/REDIRECT_URI` تنظیم می‌شود. پیش‌فرض `SSO_OIDC_REQUIRE_VERIFIED_EMAIL=True` را حفظ کنید و claim ایمیل تأییدشده را در IdP فراهم کنید. بازگشت: `/api/auth/sso/callback/`.
 
 پس از تغییر محیط Compose: `docker compose up -d --force-recreate app`. متغیرهای عمومی فرانت‌اند زمان build خوانده می‌شوند؛ برای آن‌ها image را دوباره بسازید.
+
+## ایمیل تراکنشی با Resend و API Gateway
+
+ارسال SMTP قبلی با `EMAIL_PROVIDER=smtp` حفظ می‌شود. برای ارسال HTTP از Resend:
+
+```env
+EMAIL_PROVIDER=resend
+RESEND_API_KEY=YOUR_SERVER_SIDE_KEY
+DEFAULT_FROM_EMAIL=Ravinta <noreply@YOUR_VERIFIED_DOMAIN>
+EMAIL_TIMEOUT=15
+API_GATEWAY_URL=https://YOUR_GATEWAY
+API_GATEWAY_KEY=YOUR_GATEWAY_KEY
+OUTBOUND_RESEND_MODE=gateway
+```
+
+دامنهٔ فرستنده را در Resend با DNS تأیید کنید. gateway باید مسیر `/resend/*` را فقط به `https://api.resend.com/*` هدایت کند، `Authorization` و `Idempotency-Key` را به provider برساند و کلید داخلی gateway را اعتبارسنجی کند. headerهای محرمانه و بدنهٔ ایمیل نباید در log ذخیره شوند. این قابلیت از همان router خروجی تلگرام استفاده می‌کند؛ مسیرهای تلگرام تغییر نمی‌کنند.
+
+حالت `gateway` ارسال مستقیم را ممنوع می‌کند و بدون gateway معتبر خطا می‌دهد. SMTP از این gateway HTTP عبور نمی‌کند. انتخاب provider با متغیر سرور انجام می‌شود و هیچ کلیدی به مرورگر یا مشتری داده نمی‌شود.
+
+پاسخ موفق Resend به معنی پذیرش درخواست است، نه اثبات تحویل به صندوق گیرنده. backend شناسهٔ provider را روی پیام نگه می‌دارد. ارسال دوبارهٔ همان شیء پیام کلید یکسان دارد؛ برای retry پایدار بین jobها باید `Idempotency-Key` همان ارسال منطقی را در `extra_headers` بدهید. تلاش مجدد خودکار، webhook تحویل و failover به provider دیگر در این تغییر اضافه نشده‌اند. شکست ارسال دعوت یا تأیید ثبت‌نام با `email_sent=false` نمایش داده می‌شود؛ حساب/دعوت برای بازیابی حفظ می‌شود.
+
+پس از استقرار کد، migrationها را اجرا و پردازش‌های web و worker را با محیط جدید راه‌اندازی کنید. برای اثبات اتصال، ایمیل آزمایشی واقعی بفرستید و پذیرش provider و دریافت گیرنده را جدا بررسی کنید؛ صرف وجود متغیرها یا پاسخ health کافی نیست.

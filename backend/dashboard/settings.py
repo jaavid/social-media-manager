@@ -171,7 +171,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # ── Static files (production build, collectstatic) ─────────────────
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-from .media_storage import media_storage
+from .media_storage import media_storage  # noqa: E402
 
 STORAGES = {
     'default': media_storage(os.environ),
@@ -399,8 +399,15 @@ LINKEDIN_CLIENT_ID     = os.environ.get('LINKEDIN_CLIENT_ID', '')
 LINKEDIN_CLIENT_SECRET = os.environ.get('LINKEDIN_CLIENT_SECRET', '')
 LINKEDIN_REDIRECT_URI  = os.environ.get('LINKEDIN_REDIRECT_URI', 'http://localhost:8000/api/oauth/linkedin/callback/')
 
-# ── Email (Zoho) ──────────────────────────────────────
-EMAIL_BACKEND       = 'django.core.mail.backends.smtp.EmailBackend'
+# Transactional email: SMTP remains compatible; Resend uses shared HTTP egress.
+EMAIL_PROVIDER = os.environ.get('EMAIL_PROVIDER', 'smtp').strip().lower()
+if EMAIL_PROVIDER not in ('smtp', 'resend'):
+    from django.core.exceptions import ImproperlyConfigured
+    raise ImproperlyConfigured('EMAIL_PROVIDER must be smtp or resend')
+EMAIL_BACKEND = ('social_stats.mail.resend.ResendEmailBackend' if EMAIL_PROVIDER == 'resend'
+                 else 'django.core.mail.backends.smtp.EmailBackend')
+RESEND_API_KEY = os.environ.get('RESEND_API_KEY', '')
+EMAIL_TIMEOUT = int(os.environ.get('EMAIL_TIMEOUT', '15'))
 EMAIL_HOST          = os.environ.get('EMAIL_HOST', 'smtp.zoho.in')
 EMAIL_PORT          = int(os.environ.get('EMAIL_PORT', 587))
 EMAIL_USE_TLS       = True

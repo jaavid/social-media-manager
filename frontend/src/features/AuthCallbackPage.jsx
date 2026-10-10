@@ -49,6 +49,8 @@ export default function AuthCallbackPage() {
         const clientId = res.data.client_id;
         if (role === 'superadmin' || role === 'staff') {
           navigate('/admin');
+        } else if (res.data.account_type === 'end_user') {
+          navigate(clientId || res.data.workspace_id ? '/u' : '/u/organizations');
         } else if (state === 'self' || (role === 'client' && !clientId)) {
           navigate('/pending');
         } else if (!onboardingComplete) {

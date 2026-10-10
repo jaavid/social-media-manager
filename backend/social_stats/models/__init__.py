@@ -7,7 +7,7 @@
 #  Released under the MIT License — see LICENSE. Keep this notice.
 # ============================================================================
 """Canonical model exports; app label and database tables remain social_stats."""
-from social_stats.models.organizations import Organization, OrganizationMembership
+from social_stats.models.organizations import Organization, OrganizationMembership, OrganizationTeamInvitation
 from social_stats.models.workspaces import (
     ROLE_CHOICES, SYNC_STATUS, Client, UserProfile, EmailVerificationToken, PasswordResetToken, ensure_client_profile,
 )
@@ -134,6 +134,7 @@ from .ads import AdsWaitlist
 __all__ = [
     'Organization',
     'OrganizationMembership',
+    'OrganizationTeamInvitation',
     'ROLE_CHOICES',
     'SYNC_STATUS',
     'Client',
@@ -237,6 +238,8 @@ __all__ = [
     'AIMessage',
     'AIScheduledRun',
     'AITrainedAsset',
+    'TelegramCloudLinkCode',
+    'TelegramCloudSession',
     'TelegramIntegration',
     'TelegramUpdate',
     'TelegramSuggestion',

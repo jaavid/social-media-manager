@@ -32,8 +32,9 @@ class CustomTokenSerializer(TokenObtainPairSerializer):
             profile = user.profile
             ensure_client_profile(profile)
             token['role']      = profile.role
-            token['client_id'] = profile.client_id
-            token['workspace_id'] = profile.client_id
+            workspace_id = UserSerializer(user).get_client_id(user)
+            token['client_id'] = workspace_id
+            token['workspace_id'] = workspace_id
             token['name']      = user.get_full_name() or user.username
             # Include permissions in token
             from social_stats.permissions import PermissionChecker
@@ -304,7 +305,7 @@ def setup_solo_client(request):
     email = user.email.strip().lower()
 
     # Find or create a Client record
-    client = Client.objects.filter(email__iexact=email).first()
+    client = Client.objects.filter(email__iexact=email, owner_user=user).first()
     if not client:
         full_name  = user.get_full_name() or user.username or email.split('@')[0]
         first_name = (user.first_name or '').strip()

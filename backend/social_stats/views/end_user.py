@@ -14,37 +14,27 @@ clinic owners, restaurant operators, creators) and own their own workspace.
 Distinct from agency staff (who manage other people's workspaces).
 
 Endpoints:
-    POST /api/end-user/signup       — self-signup → JWT + new workspace
+    POST /api/end-user/signup       — compatibility alias for verified signup
     GET  /api/end-user/me           — current end-user + workspace summary
     PUT  /api/end-user/profile      — update first/last name + avatar
     GET  /api/end-user/workspace    — fetch the owned workspace
     PUT  /api/end-user/workspace    — update workspace profile
 
-The signup flow auto-activates the account (no email verification step) so
-the user lands in the dashboard immediately. We trade a verification step
-for a faster onboarding — appropriate for a free B2C tier where the only
-sensitive thing is their own data. (Email verification can be added later
-as a separate "verified" badge without blocking signup.)
+Signup is a compatibility alias of the verified account signup endpoint.
+Organization and workspace creation happen explicitly after verification.
 """
 from __future__ import annotations
 
-import re
-
 from django.contrib.auth.models import User
-from django.contrib.auth.password_validation import validate_password
-from django.core.exceptions import ValidationError
-from django.db import transaction
-from django.utils import timezone
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from social_stats.activity_logger import log_activity
-from social_stats.models import Client, UserProfile
-from social_stats.views.social_auth import _make_jwt
+from social_stats.models import Client
+from social_stats.views.auth import signup as end_user_signup  # noqa: F401
 
 
-EMAIL_RE = re.compile(r'^[^\s@]+@[^\s@]+\.[^\s@]+$')
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -55,7 +45,8 @@ def _workspace_for(user) -> Client | None:
     fall back to Client.owner_user lookup."""
     profile = getattr(user, 'profile', None)
     if profile and profile.default_workspace_id:
-        return profile.default_workspace
+        from social_stats.authorization import accessible_workspaces
+        return accessible_workspaces(user).filter(pk=profile.default_workspace_id).first()
     return Client.objects.filter(owner_user=user).order_by('id').first()
 
 
@@ -95,97 +86,7 @@ def _serialize_user(user: User) -> dict:
 # ─────────────────────────────────────────────────────────────────────────────
 # Signup
 # ─────────────────────────────────────────────────────────────────────────────
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def end_user_signup(request):
-    """POST {email, password, full_name, industry?, company_name?, phone?, terms_accepted}.
-
-    Creates User + UserProfile(account_type='end_user') + Client owned by user.
-    Returns JWT immediately so the frontend can drop the user into /u.
-    """
-    data = request.data or {}
-    email     = (data.get('email') or '').strip().lower()
-    password  = data.get('password') or ''
-    full_name = (data.get('full_name') or '').strip()
-    industry  = (data.get('industry') or '').strip()
-    company   = (data.get('company_name') or full_name).strip()
-    phone     = (data.get('phone') or '').strip()
-    terms     = bool(data.get('terms_accepted'))
-
-    errors: dict[str, str] = {}
-    if not full_name:
-        errors['full_name'] = 'Full name is required.'
-    if not email:
-        errors['email'] = 'Email is required.'
-    elif not EMAIL_RE.match(email):
-        errors['email'] = 'Enter a valid email address.'
-    if not password:
-        errors['password'] = 'Password is required.'
-    if not terms:
-        errors['terms'] = 'You must accept the Terms of Service.'
-    if errors:
-        return Response({'errors': errors}, status=400)
-
-    temp = User(username=email, email=email)
-    try:
-        validate_password(password, temp)
-    except ValidationError as e:
-        return Response({'errors': {'password': ' '.join(e.messages)}}, status=400)
-
-    if User.objects.filter(username=email).exists() or Client.objects.filter(email=email).exists():
-        return Response({'errors': {'email': 'An account with this email already exists.'}}, status=400)
-
-    parts = full_name.split(' ', 1)
-    with transaction.atomic():
-        user = User.objects.create_user(
-            username=email, email=email, password=password,
-            first_name=parts[0],
-            last_name=parts[1] if len(parts) > 1 else '',
-            is_active=True,
-        )
-        client = Client.objects.create(
-            name=full_name,
-            company=company,
-            email=email,
-            phone=phone,
-            industry=industry,
-            owner_user=user,
-            ownership_type='end_user_owned',
-            created_via='end_user_signup',
-            subscription_plan='free',
-        )
-        profile = UserProfile.objects.create(
-            user=user,
-            role='client',
-            account_type='end_user',
-            client=client,
-            default_workspace=client,
-            is_self_registered=True,
-            email_verified=True,
-            terms_accepted=True,
-            terms_accepted_at=timezone.now(),
-        )
-
-        log_activity(
-            client,
-            actor_user=user,
-            actor_type='end_user',
-            action_type='workspace_created',
-            description='Workspace created via end-user self-signup',
-            severity='info',
-            metadata={'industry': industry},
-        )
-
-    access, refresh = _make_jwt(user)
-    return Response(
-        {
-            'access':    access,
-            'refresh':   refresh,
-            'user':      _serialize_user(user),
-            'workspace': _serialize_workspace(client),
-        },
-        status=201,
-    )
+# Both API URLs use the same verified signup flow.
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -236,6 +137,10 @@ def end_user_workspace(request):
 
     if request.method == 'GET':
         return Response(_serialize_workspace(workspace))
+
+    from social_stats.tenancy import require_organization_owner
+    if workspace.owner_user_id != request.user.pk:
+        require_organization_owner(request.user, workspace.organization)
 
     # PUT — update editable fields only
     data = request.data or {}

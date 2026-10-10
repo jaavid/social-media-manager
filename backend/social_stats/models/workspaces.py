@@ -38,7 +38,7 @@ class Client(models.Model):
     )
     name       = models.CharField(verbose_name='نام مسئول تماس', max_length=200)
     company    = models.CharField(verbose_name='نام کسب‌وکار', max_length=200)
-    email      = models.EmailField(verbose_name='ایمیل', unique=True)
+    email      = models.EmailField(verbose_name='ایمیل')
     phone      = models.CharField(verbose_name='شماره تلفن', max_length=30, blank=True)
     whatsapp_number = models.CharField(verbose_name='شماره واتس‌اپ', max_length=30, blank=True)
     website    = models.URLField(verbose_name='نشانی وب‌سایت', blank=True)
@@ -282,6 +282,10 @@ def ensure_client_profile(profile):
         return None
     if profile.client_id:
         return profile.client
+    # New product accounts use explicit onboarding or invitation acceptance.
+    # Never attach a member to profile.client: that legacy link implies ownership.
+    if profile.account_type == 'end_user':
+        return None
 
     user = profile.user
     email = (user.email or '').strip().lower()
@@ -289,7 +293,7 @@ def ensure_client_profile(profile):
         return None
 
     with transaction.atomic():
-        existing = Client.objects.filter(email__iexact=email).first()
+        existing = Client.objects.filter(email__iexact=email, owner_user=user).first()
         if existing:
             profile.client = existing
             profile.save(update_fields=['client'])

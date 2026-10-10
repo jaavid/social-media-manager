@@ -44,7 +44,6 @@ from social_stats.models import (
     AgencyMembership,
     Client,
     ManageRequest,
-    UserProfile,
 )
 
 
@@ -378,6 +377,10 @@ def accept_manage_invite(request, token):
         Client.objects.filter(owner_user=request.user).order_by('id').first()
     if not workspace:
         return Response({'error': 'no workspace found for your account; finish onboarding first'}, status=400)
+
+    from social_stats.marketplace_permissions import _is_owner
+    if not _is_owner(request.user, workspace):
+        return Response({'error': 'only the workspace owner can delegate agency access'}, status=403)
 
     if AgencyClientRelation.objects.filter(
         agency=req.agency, client=workspace, status__in=('active', 'pending'),

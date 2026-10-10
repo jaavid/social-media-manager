@@ -65,6 +65,11 @@ export default function EndUserDashboard() {
         )}
       </header>
 
+      <section style={{ padding: 20, border: '1px solid var(--border-default)', borderRadius: 'var(--radius-lg)' }}>
+        <h2>مجموعه و تیم شما</h2>
+        <p>مجموعه بسازید، برندها را اضافه کنید یا دعوت همکاران را بپذیرید.</p>
+        <Link to="/u/organizations">مدیریت مجموعه، برندها و اعضا</Link>
+      </section>
       <section style={statsGrid}>
         <StatCard icon={BarChart3}     label={tr("Posts published")}   value="—" hint={loading ? tr("Loading…") : tr("No analytics yet")} />
         <StatCard icon={MessageSquare} label={tr("Engagement (7d)")}   value="—" hint={loading ? tr("Loading…") : tr("Connect a platform")} />

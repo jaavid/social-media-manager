@@ -80,7 +80,7 @@ export default function LoginPage() {
     } else if (user.role === 'superadmin' || user.role === 'staff') {
       navigate('/admin');
     } else if (user.account_type === 'end_user') {
-      navigate('/u');
+      navigate(user.workspace_id || user.client_id ? '/u' : '/u/organizations');
     } else if (user.role === 'client' && !user.client_id) {
       navigate('/pending');
     } else if (user.role === 'client' && !user.onboarding_complete) {
