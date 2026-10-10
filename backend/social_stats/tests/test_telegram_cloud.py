@@ -3,7 +3,10 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 from rest_framework.test import APIClient
 
-from social_stats.models import Client, UnifiedPost, UserProfile
+from social_stats.models import (
+    Agency, AgencyClientRelation, ApprovalRequest, Client, Permission,
+    RolePermission, UnifiedPost, UserProfile, WorkspaceMemberPolicy,
+)
 from social_stats.models.telegram_cloud import TelegramCloudLinkCode, TelegramCloudSession
 
 
@@ -160,3 +163,116 @@ class TelegramCloudAuthTests(TestCase):
             self.anonymous.get(f"/api/tgcloud/reviews/{posts[1].pk}/", **headers).status_code,
             401,
         )
+
+    def _staff_reviewer_workspace(self):
+        """Create a non-owner who has both legacy and active workspace grants."""
+        workspace = Client.objects.create(
+            name="Review tenant", company="Review tenant", email="staff-reviews@example.test",
+            owner_user=self.other_user,
+        )
+        profile = UserProfile.objects.create(user=self.user, role="staff")
+        profile.assigned_clients.add(workspace)
+        permission = Permission.objects.create(code="composer.approve", label="Approve posts")
+        RolePermission.objects.create(role="staff", permission=permission, is_granted=True)
+        policy = WorkspaceMemberPolicy.objects.create(
+            user=self.user, workspace=workspace,
+            permissions={"approve_posts": True}, is_active=True,
+        )
+        return workspace, policy
+
+    def test_inactive_account_can_revoke_session_and_cannot_reuse_it(self):
+        """An inactive user can revoke a token even before possible reactivation."""
+        token = self._link_token(tg_id=671)
+        headers = {"HTTP_AUTHORIZATION": f"Bearer {token}"}
+        self.user.is_active = False
+        self.user.save(update_fields=["is_active"])
+        self.assertEqual(self.anonymous.get("/api/tgcloud/session/", **headers).status_code, 401)
+        self.assertEqual(self.anonymous.get("/api/tgcloud/reviews/", **headers).status_code, 401)
+        response = self.anonymous.delete("/api/tgcloud/session/", **headers)
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(TelegramCloudSession.objects.filter(user=self.user).exists())
+        self.user.is_active = True
+        self.user.save(update_fields=["is_active"])
+        self.assertEqual(self.anonymous.get("/api/tgcloud/reviews/", **headers).status_code, 401)
+
+    def test_nonowner_reviewer_cannot_view_own_or_agency_pending_posts(self):
+        """Action-granted staff still cannot bypass Composer's approval exceptions."""
+        workspace, policy = self._staff_reviewer_workspace()
+        allowed = UnifiedPost.objects.create(
+            client=workspace, created_by=self.other_user,
+            status="pending_approval", title="Allowed staff review",
+        )
+        own = UnifiedPost.objects.create(
+            client=workspace, created_by=self.user,
+            status="pending_approval", title="Self-authored",
+        )
+        requested = UnifiedPost.objects.create(
+            client=workspace, created_by=self.other_user,
+            publish_requested_by=self.user,
+            status="pending_approval", title="Self-requested",
+        )
+        agency_post = UnifiedPost.objects.create(
+            client=workspace, created_by=self.other_user,
+            status="pending_approval", title="Agency approval required",
+        )
+        agency = Agency.objects.create(
+            name="Fixture agency", slug="fixture-tgcloud-agency", owner_user=self.other_user,
+        )
+        relation = AgencyClientRelation.objects.create(
+            agency=agency, client=workspace, status="active",
+            initiated_by="end_user",
+        )
+        ApprovalRequest.objects.create(
+            relation=relation, client=workspace,
+            requested_by=self.other_user, action_type="publish_posts",
+            target_object_type="UnifiedPost", target_object_id=agency_post.pk,
+            status="pending",
+        )
+        token = self._link_token(tg_id=672)
+        headers = {"HTTP_AUTHORIZATION": f"Bearer {token}"}
+        page = self.anonymous.get("/api/tgcloud/reviews/", **headers)
+        self.assertEqual(page.status_code, 200)
+        self.assertEqual([row["id"] for row in page.data["rows"]], [allowed.pk])
+        for post in (own, requested, agency_post):
+            with self.subTest(post=post.pk):
+                self.assertEqual(
+                    self.anonymous.get(f"/api/tgcloud/reviews/{post.pk}/", **headers).status_code,
+                    404,
+                )
+        policy.permissions = {"approve_posts": False}
+        policy.save(update_fields=["permissions"])
+        self.assertEqual(self.anonymous.get("/api/tgcloud/reviews/", **headers).data["rows"], [])
+        self.assertEqual(
+            self.anonymous.get(f"/api/tgcloud/reviews/{allowed.pk}/", **headers).status_code,
+            404,
+        )
+
+    def test_review_scan_is_bounded_and_cursor_preserves_hidden_candidates(self):
+        """More than 100 disallowed posts must not force an unbounded evaluation."""
+        workspace, _policy = self._staff_reviewer_workspace()
+        visible = UnifiedPost.objects.create(
+            client=workspace, created_by=self.other_user,
+            status="pending_approval", title="Older authorized post",
+        )
+        UnifiedPost.objects.bulk_create([
+            UnifiedPost(
+                client=workspace, created_by=self.user,
+                status="pending_approval", title=f"Ineligible {index}",
+            )
+            for index in range(101)
+        ])
+        token = self._link_token(tg_id=673)
+        headers = {"HTTP_AUTHORIZATION": f"Bearer {token}"}
+        first = self.anonymous.get("/api/tgcloud/reviews/", **headers)
+        self.assertEqual(first.status_code, 200)
+        self.assertEqual(first.data["rows"], [])
+        self.assertIsNotNone(first.data["next_cursor"])
+        second = self.anonymous.get(
+            "/api/tgcloud/reviews/",
+            {"before": first.data["next_cursor"]},
+            **headers,
+        )
+        self.assertEqual(second.status_code, 200)
+        self.assertEqual([row["id"] for row in second.data["rows"]], [visible.pk])
+        self.assertIsNone(second.data["next_cursor"])
+        self.assertNotEqual(first.data["next_cursor"], second.data["next_cursor"])
