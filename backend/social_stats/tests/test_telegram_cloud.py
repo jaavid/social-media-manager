@@ -153,10 +153,10 @@ class TelegramCloudAuthTests(TestCase):
             self.anonymous.get(f"/api/tgcloud/reviews/{posts[0].pk}/", **headers).status_code,
             404,
         )
-        # A newly revoked workspace link is checked on each request.
-        mine.owner_user = self.other_user
-        mine.save(update_fields=["owner_user"])
+        # Deactivating the linked account revokes this token immediately.
+        self.user.is_active = False
+        self.user.save(update_fields=["is_active"])
         self.assertEqual(
             self.anonymous.get(f"/api/tgcloud/reviews/{posts[1].pk}/", **headers).status_code,
-            404,
+            401,
         )
