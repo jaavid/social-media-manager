@@ -21,10 +21,15 @@ individually linked, **read-only** user session.
 ### Response examples
 
 ```json
-{"count": 2, "rows": [{"id": 100, "workspace": "Example", "title": "Review", "excerpt": "text", "platforms": ["telegram"]}], "next_cursor": "95"}
+{"count": 1, "rows": [{"id": 100, "workspace": "Example", "title": "Review", "excerpt": "text", "platforms": ["telegram"]}], "next_cursor": null}
 ```
 
-`next_cursor` is `null` on the last page. It is **not** a page number.
+The server examines at most 100 pending-post candidates per request and
+returns up to five authorized posts. `next_cursor` is the ID of the last
+**examined** candidate when unexamined candidates remain, not an offset or
+necessarily the last visible post. Some batches can return `count: 0` with
+a non-null cursor when none of the scanned posts are authorized; the bot can
+then request the next batch. A `null` cursor means the scan is exhausted.
 The server filters scope and RBAC **before** selecting 5 visible posts. If
 an item becomes published or the user loses access, fetching its detail returns
 404. Invalid cursors return 400. Unauthenticated/expired/revoked bearer tokens
