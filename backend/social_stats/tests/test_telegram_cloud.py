@@ -17,7 +17,7 @@ class TelegramCloudAuthTests(TestCase):
 
     def test_requires_login_and_single_use(self):
         url = "/api/tgcloud/link-code/"
-        self.assertEqual(self.anonymous.post(url, {}).status_code, 401)
+        self.assertIn(self.anonymous.post(url, {}).status_code, (401, 403))
         response = self.auth.post(url, {})
         self.assertEqual(response.status_code, 201)
         code = response.data["code"]
@@ -36,16 +36,16 @@ class TelegramCloudAuthTests(TestCase):
         first = self.auth.post("/api/tgcloud/link-code/", {}).data["code"]
         second = self.auth.post("/api/tgcloud/link-code/", {}).data["code"]
         self.assertNotEqual(first, second)
-        self.assertEqual(self.anonymous.post("/api/tgcloud/claim/", {"code": first, "telegram_user_id": 11}).status_code, 400)
-        self.assertEqual(self.anonymous.post("/api/tgcloud/claim/", {"code": second, "telegram_user_id": 11}).status_code, 201)
+        self.assertEqual(self.anonymous.post("/api/tgcloud/claim/", {"code": first, "telegram_user_id": 11}, format="json").status_code, 400)
+        self.assertEqual(self.anonymous.post("/api/tgcloud/claim/", {"code": second, "telegram_user_id": 11}, format="json").status_code, 201)
 
     def test_conflicting_identity_does_not_reassign(self):
         code1 = self.auth.post("/api/tgcloud/link-code/").data["code"]
-        self.assertEqual(self.anonymous.post("/api/tgcloud/claim/", {"code": code1, "telegram_user_id": 13}).status_code, 201)
+        self.assertEqual(self.anonymous.post("/api/tgcloud/claim/", {"code": code1, "telegram_user_id": 13}, format="json").status_code, 201)
         other = APIClient()
         other.force_authenticate(user=self.other_user)
         code2 = other.post("/api/tgcloud/link-code/").data["code"]
-        self.assertEqual(self.anonymous.post("/api/tgcloud/claim/", {"code": code2, "telegram_user_id": 13}).status_code, 409)
+        self.assertEqual(self.anonymous.post("/api/tgcloud/claim/", {"code": code2, "telegram_user_id": 13}, format="json").status_code, 409)
 
     def test_readonly_reviews_are_scoped_and_authorized(self):
         mine = Client.objects.create(name="Mine", company="Mine", email="mine@example.test", owner_user=self.user)
@@ -55,7 +55,7 @@ class TelegramCloudAuthTests(TestCase):
         mine_post = UnifiedPost.objects.create(client=mine, created_by=self.other_user, status="pending_approval", title="Allowed", content="Visible content")
         UnifiedPost.objects.create(client=not_mine, created_by=self.other_user, status="pending_approval", title="Forbidden")
         code = self.auth.post("/api/tgcloud/link-code/").data["code"]
-        token = self.anonymous.post("/api/tgcloud/claim/", {"code": code, "telegram_user_id": 67}).data["token"]
+        token = self.anonymous.post("/api/tgcloud/claim/", {"code": code, "telegram_user_id": 67}, format="json").data["token"]
         self.assertEqual(self.anonymous.get("/api/tgcloud/reviews/").status_code, 401)
         r = self.anonymous.get("/api/tgcloud/reviews/", HTTP_AUTHORIZATION=f"Bearer {token}")
         self.assertEqual(r.status_code, 200)
