@@ -56,6 +56,8 @@ export default function TelegramBotLinkCard() {
     } finally { setBusy(false); }
   }
 
+  const command = code ? `/connect ${code}` : '';
+
   return (
     <section className="mb-6 rounded-xl border p-5" aria-label="اتصال بات تلگرام راوینتا" dir="rtl">
       <h2 className="text-lg font-semibold">اتصال بات تلگرام راوینتا</h2>
@@ -68,9 +70,9 @@ export default function TelegramBotLinkCard() {
       {code && (
         <div className="rounded-lg border p-3">
           <p className="text-sm">دستور زیر را فقط در گفت‌وگوی خصوصی بات راوینتا ارسال کنید:</p>
-          <code dir="ltr" className="my-2 block break-all select-all">/connect {code}</code>
+          <code dir="ltr" className="my-2 block break-all select-all">{command}</code>
           <p className="text-xs">این کد فقط یک‌بار و تا {new Date(expires).toLocaleTimeString('fa-IR')} معتبر است. آن را برای کسی ارسال نکنید.</p>
-          <button type="button" className="mt-2 rounded border px-3 py-2 text-sm" onClick={() => navigator.clipboard?.writeText(`/connect ${code}`)}>
+          <button type="button" className="mt-2 rounded border px-3 py-2 text-sm" onClick={() => navigator.clipboard?.writeText(command)}>
             کپی دستور
           </button>
         </div>
