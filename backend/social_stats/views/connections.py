@@ -96,11 +96,18 @@ def connections(request, workspace_id):
                     'disconnect': manifest.capability('disconnect').enabled and permitted(request.user, workspace, 'disconnect_platforms', account),
                 },
             })
+        if manifest.auth_type == 'managed_bot':
+            from social_stats.platforms.managed_bots import bot_configuration, channel_challenge
+            token, username = bot_configuration(manifest.key)
+            metadata = {**metadata, 'managed_bot': {'username': username, 'configured': bool(token and username),
+                         **channel_challenge(workspace.pk, request.user.pk, manifest.key)}}
         items.append({**metadata, 'accounts': accounts,
                       'readiness': readiness.get(manifest.key),
                       'permissions': {'connect': connect_enabled and permitted(request.user, workspace, 'connect_platforms')}})
-    return Response({'version': 1, 'workspace_id': workspace.pk,
-                     'categories': registry['categories'], 'providers': items})
+    response = Response({'version': 1, 'workspace_id': workspace.pk,
+                         'categories': registry['categories'], 'providers': items})
+    response['Cache-Control'] = 'no-store'
+    return response
 
 
 @api_view(['POST', 'DELETE', 'GET'])
@@ -146,6 +153,8 @@ def connection(request, workspace_id, platform):
         fields = manifest.connection_fields()
         if not fields or manifest.auth_type in {'oauth2', 'oidc', 'unsupported'}:
             return Response({'code': 'unsupported'}, status=400)
+        if manifest.auth_type == 'managed_bot' and any(key in request.data for key in ('token', 'api_key')):
+            return Response({'code': 'invalid_request'}, status=400)
         values = {}
         for field in fields:
             value = request.data.get(field.key, '')
@@ -155,6 +164,9 @@ def connection(request, workspace_id, platform):
             if field.required and not value:
                 return Response({'code': 'invalid_request'}, status=400)
             values[field.key] = value
+        if manifest.auth_type == 'managed_bot':
+            from social_stats.platforms.managed_bots import challenge_code
+            values['ownership_code'] = challenge_code(request.data.get('verification_token'), workspace.pk, request.user.pk, manifest.key)
         if 'api_key' in values:
             values.setdefault('token', values['api_key'])
         credential, _ = ConnectionService().connect(
@@ -163,7 +175,7 @@ def connection(request, workspace_id, platform):
         return Response({'success': True, 'account_id': credential.social_account_id}, status=201)
     except PublishError as exc:
         allowed_codes = {'unsupported', 'token_expired', 'rate_limited', 'permission_denied',
-                         'invalid_credentials', 'invalid_response', 'network_error', 'timeout',
+                         'channel_verification_required', 'invalid_credentials', 'invalid_response', 'invalid_destination', 'missing_config', 'network_error', 'timeout',
                          'account_mismatch', 'scope_denied'}
         return Response({'code': exc.code if exc.code in allowed_codes else 'provider_error'},
                         status=403 if exc.code in {'permission_denied', 'scope_denied'} else 400)

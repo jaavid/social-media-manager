@@ -186,6 +186,7 @@ class PlatformManifest:
             'oidc',
             'api_key',
             'bot_token',
+            'managed_bot',
             'custom',
             'unsupported',
         }:
@@ -258,6 +259,8 @@ class PlatformManifest:
     def connection_fields(self):
         if self.auth_fields:
             return self.auth_fields
+        if self.auth_type == 'managed_bot':
+            return (AuthField('destination_id', 'Channel ID', 'شناسه کانال', normalization='trim'),)
         if self.auth_type == 'bot_token':
             return (AuthField('token', 'Bot token', 'توکن ربات', secret=True, normalization='trim'),
                     AuthField('destination_id', 'Destination ID', 'شناسه مقصد', normalization='trim'))

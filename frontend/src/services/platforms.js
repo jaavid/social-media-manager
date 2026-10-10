@@ -159,6 +159,11 @@ function authTypeFor(value) {
 
 function connectionSchema(metadata) {
   const authType = authTypeFor(metadata.auth_type);
+  if (authType === 'managed_bot') {
+    return { help: 'Add the project bot as channel administrator with permission to post.', fields: [
+      { key: 'destination_id', label: 'Channel ID', placeholder: '@channel or numeric chat_id', required: true },
+    ] };
+  }
   if (authType === 'bot_token') {
     return {
       help: `Add the ${metadata.titles?.en || metadata.key} bot token and destination channel/chat ID.`,

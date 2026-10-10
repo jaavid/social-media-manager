@@ -84,9 +84,10 @@ class PlatformCredential(models.Model):
     # How the credential was provisioned. 'oauth' = via Social Stats-owned OAuth app.
     # 'manual_token' = client pasted their own token from their dev account.
     # 'system_user' = Meta System User token (long-lived, ideal for prod).
+    # 'managed_bot' = project-owned messenger bot, resolved from server config.
     auth_method  = models.CharField(
         verbose_name='روش احراز هویت', max_length=20,
-        choices=[('oauth', 'احراز هویت OAuth'), ('manual_token', 'توکن دستی'), ('system_user', 'کاربر سیستمی')],
+        choices=[('oauth', 'احراز هویت OAuth'), ('manual_token', 'توکن دستی'), ('system_user', 'کاربر سیستمی'), ('managed_bot', 'روبات پروژه')],
         default='oauth',
     )
 

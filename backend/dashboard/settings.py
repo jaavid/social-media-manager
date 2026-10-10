@@ -18,6 +18,13 @@ from .admin import UNFOLD  # noqa: F401
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Project-owned publishing bots. Never supplied by workspace users.
+MESSENGER_BOTS = {
+    key: {'token': os.getenv(f'{key.upper()}_BOT_TOKEN', ''),
+          'username': os.getenv(f'{key.upper()}_BOT_USERNAME', '')}
+    for key in ('telegram', 'bale')
+}
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-change-in-production')
 
 # Independent keys for field-level encryption of OAuth tokens ( security).

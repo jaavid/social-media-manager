@@ -47,7 +47,8 @@ def safe_provider_error(exc):
         return ProviderTokenExpiredError('Provider operation failed')
     safe_codes = {'unsupported', 'token_expired', 'rate_limited', 'permission_denied',
                   'media_invalid', 'media_too_large', 'timeout', 'network_error',
-                  'invalid_response', 'invalid_credentials'}
+                  'invalid_response', 'invalid_credentials', 'invalid_destination',
+                  'missing_config', 'channel_verification_required'}
     safe = ProviderError('Provider operation failed',
                          code=exc.code if exc.code in safe_codes else 'provider_error',
                          supported=exc.supported)

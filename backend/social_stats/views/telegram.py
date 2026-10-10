@@ -130,6 +130,7 @@ class TelegramAccountViewSet(viewsets.ReadOnlyModelViewSet):
                 "assistant_rich": config.assistant_rich,
                 "rich_enabled": config.rich_enabled,
                 "webhook_enabled": config.webhook_enabled,
+                "webhook_managed": account.credential.auth_method == "managed_bot",
                 "last_update_at": config.last_update_at,
             }
         )
@@ -138,6 +139,8 @@ class TelegramAccountViewSet(viewsets.ReadOnlyModelViewSet):
     def webhook(self, request, pk=None):
         account = self.get_object()
         require(request.user, account, "manage_bots")
+        if account.credential.auth_method == 'managed_bot':
+            raise ValidationError('Project bot webhooks are managed centrally')
         url = request.build_absolute_uri(f"/api/webhooks/telegram/{account.pk}/")
         if not url.startswith("https://"):
             raise ValidationError("Webhook requires a public HTTPS application URL")

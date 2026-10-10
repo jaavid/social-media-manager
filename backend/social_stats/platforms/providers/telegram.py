@@ -24,10 +24,17 @@ class TelegramProvider(BotPlatformProvider):
 
     def connected(self, account, result):
         from social_stats.models import TelegramIntegration
-        TelegramIntegration.objects.get_or_create(
+        config, _ = TelegramIntegration.objects.get_or_create(
             account=account, defaults={'destination_context': {
                 'destination_type': result.data['destination'].get('type') or 'channel'}},
         )
+
+        if result.data.get('auth_method') == 'managed_bot':
+            # An old per-account webhook must not authenticate updates for the shared bot.
+            config.webhook_enabled = False
+            config.webhook_secret = ''
+            config.assistant_enabled = False
+            config.save(update_fields=['webhook_enabled', 'webhook_secret', 'assistant_enabled'])
 
     def disconnected(self, account):
         from social_stats.models import TelegramIntegration

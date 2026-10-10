@@ -46,7 +46,7 @@
       },
       "category": "messaging",
       "order": 10,
-      "auth_type": "bot_token",
+      "auth_type": "managed_bot",
       "rollout_status": "active",
       "capabilities": {
         "connection": "supported",
@@ -128,20 +128,12 @@
       "contract": {
         "version": 1,
         "auth": {
-          "strategy": "bot_token",
+          "strategy": "managed_bot",
           "fields": [
             {
-              "key": "token",
-              "title_en": "Bot token",
-              "title_fa": "توکن ربات",
-              "secret": true,
-              "required": true,
-              "normalization": "trim"
-            },
-            {
               "key": "destination_id",
-              "title_en": "Destination ID",
-              "title_fa": "شناسه مقصد",
+              "title_en": "Channel ID",
+              "title_fa": "شناسه کانال",
               "secret": false,
               "required": true,
               "normalization": "trim"
@@ -353,7 +345,7 @@
       },
       "category": "messaging",
       "order": 20,
-      "auth_type": "bot_token",
+      "auth_type": "managed_bot",
       "rollout_status": "active",
       "capabilities": {
         "connection": "supported",
@@ -434,20 +426,12 @@
       "contract": {
         "version": 1,
         "auth": {
-          "strategy": "bot_token",
+          "strategy": "managed_bot",
           "fields": [
             {
-              "key": "token",
-              "title_en": "Bot token",
-              "title_fa": "توکن ربات",
-              "secret": true,
-              "required": true,
-              "normalization": "trim"
-            },
-            {
               "key": "destination_id",
-              "title_en": "Destination ID",
-              "title_fa": "شناسه مقصد",
+              "title_en": "Channel ID",
+              "title_fa": "شناسه کانال",
               "secret": false,
               "required": true,
               "normalization": "trim"

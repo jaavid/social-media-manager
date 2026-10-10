@@ -97,7 +97,7 @@ class ConnectionService:
                 'client': client, 'platform': platform, 'access_token': result.access_token,
                 'refresh_token': result.refresh_token, 'platform_user_id': result.destination_id or result.account_id,
                 'page_name': result.account_name, 'scope': result.scope, 'is_active': True,
-                'auth_method': 'manual_token', 'expires_at': result.expires_at,
+                'auth_method': 'managed_bot' if provider.manifest.auth_type == 'managed_bot' else 'manual_token', 'expires_at': result.expires_at,
             }
             attached_exists = PlatformCredential.objects.filter(social_account=account).exists()
             legacy_query = PlatformCredential.objects.filter(
@@ -145,13 +145,21 @@ class ConnectionService:
             credential.delete()
         return True
 
+    @staticmethod
+    def _status(credential):
+        if credential.auth_method == 'managed_bot':
+            from .account_health import connection_health
+            health = connection_health(get_provider(credential.platform), credential)
+            return 'active' if health.ready else health.state
+        return credential.status if credential.is_active else 'not_connected'
+
     def statuses(self, client) -> dict:
         from .registry import iter_providers
         connectable = {p.manifest.key for p in iter_providers(capability='connect')}
         rows = PlatformCredential.objects.filter(client=client, platform__in=connectable)
         return {
             credential.platform: {
-                'status': credential.status if credential.is_active else 'not_connected',
+                'status': self._status(credential),
                 'credential_id': credential.id,
                 'destination_id': credential.platform_user_id,
                 'account_name': credential.page_name or '',

@@ -19,6 +19,7 @@ export interface ConnectionProvider {
   key: string; titles: { en: string; fa: string }; category: string; auth_type: string; rollout_status: string;
   capabilities: Record<string, CapabilityStatus>;
   contract: PublishingContract & { analytics?: { sync_available: boolean; metrics: { key: string; title_en: string; title_fa: string; unit: string; period: string }[] }; brand: { icon: string; color: string }; auth: { strategy: string; fields: ConnectionField[]; start_path: string }; destination_types: string[]; ui_extensions: string[] };
+  managed_bot?: { username: string; configured: boolean; verification_code: string; verification_token: string };
   readiness: { configured: boolean; missing: string[] } | null;
   permissions: { connect: boolean }; accounts: ConnectedAccount[];
 }
@@ -72,7 +73,7 @@ function analytics(v: unknown): boolean {
 }
 function provider(v: unknown): boolean {
   if (!object(v) || !key(v.key) || !object(v.titles) || !str(v.titles.en) || !str(v.titles.fa)
-    || !str(v.category) || !oneOf(v.auth_type, ['oauth2', 'oidc', 'api_key', 'bot_token', 'custom', 'unsupported'])
+    || !str(v.category) || !oneOf(v.auth_type, ['oauth2', 'oidc', 'api_key', 'bot_token', 'managed_bot', 'custom', 'unsupported'])
     || !oneOf(v.rollout_status, ['discovery', 'planned', 'experimental', 'beta', 'active', 'blocked', 'deprecated'])
     || !object(v.capabilities) || !Object.values(v.capabilities).every(s => oneOf(s, ['supported', 'beta', 'planned', 'not_available']))
     || !['connection', 'disconnect', 'analytics'].every(k => str((v.capabilities as Record<string, unknown>)[k]))
@@ -82,6 +83,7 @@ function provider(v: unknown): boolean {
     || !object(v.permissions) || !bool(v.permissions.connect) || !Array.isArray(v.accounts) || !v.accounts.every(account)) return false;
   if (!v.contract.auth.fields.every(f => object(f) && str(f.key) && /^[a-z][a-z0-9_]{0,49}$/.test(f.key)
     && str(f.title_en) && str(f.title_fa) && bool(f.secret) && bool(f.required) && (f.normalization === undefined || oneOf(f.normalization, ['preserve', 'trim'])))) return false;
+  if (v.managed_bot !== undefined && (!object(v.managed_bot) || !str(v.managed_bot.username) || !bool(v.managed_bot.configured) || !str(v.managed_bot.verification_code) || !str(v.managed_bot.verification_token))) return false;
   return v.readiness === null || (object(v.readiness) && bool(v.readiness.configured) && strings(v.readiness.missing));
 }
 export function parseConnections(wire: unknown, workspaceId: number): Connections {
