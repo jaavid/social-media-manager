@@ -90,17 +90,23 @@ def claim_link(request):
     return _nocache({"token": token, "expires_at": expiry.isoformat()}, 201)
 
 
-def _authorized_session(request):
-    """Resolve only an unexpired read-only Telegram Cloud session."""
+def _authorized_session(request, *, require_active=True):
+    """Resolve a nonexpired bearer; reads additionally require an active account.
+
+    Self-revocation must still work when the linked Django user is inactive,
+    otherwise an old bearer could regain access after account reactivation.
+    """
     authorization = request.headers.get("Authorization", "")
     match = re.fullmatch(r"Bearer ([A-Za-z0-9_-]{43})", authorization)
     if not match:
         return None
-    return TelegramCloudSession.objects.select_related("user").filter(
+    sessions = TelegramCloudSession.objects.select_related("user").filter(
         token_hash=_digest(match.group(1)),
         expires_at__gt=timezone.now(),
-        user__is_active=True,
-    ).first()
+    )
+    if require_active:
+        sessions = sessions.filter(user__is_active=True)
+    return sessions.first()
 
 
 def _can_review_post(user, post):
@@ -123,6 +129,7 @@ def _can_review_post(user, post):
 
 
 def _scoped_posts(user):
+    """Constrain pending posts to the user's currently accessible workspaces."""
     return UnifiedPost.objects.filter(
         status="pending_approval",
         client__in=accessible_workspaces(user),
@@ -130,6 +137,7 @@ def _scoped_posts(user):
 
 
 def _summary(post):
+    """Return only fields safe for Telegram's read-only review interface."""
     return {
         "id": post.pk,
         "workspace": post.client.company,
@@ -144,7 +152,7 @@ def _summary(post):
 @permission_classes([AllowAny])
 def bot_session(request):
     """Introspect/revoke the *own* read-only bearer session (never mutate posts)."""
-    session = _authorized_session(request)
+    session = _authorized_session(request, require_active=request.method != "DELETE")
     if session is None:
         return _nocache({"error": "link required or expired"}, 401)
     if request.method == "DELETE":
@@ -164,8 +172,9 @@ def bot_session(request):
 def readonly_reviews(request):
     """Paginated list of posts this linked user can approve, with no write actions.
 
-    Cursor is an existing post ID, not an offset. Always re-evaluate RBAC for
-    each page so revoked permissions immediately hide previously visible posts.
+    Cursor tracks the last *examined* post ID, not necessarily a visible post.
+    Always re-evaluate RBAC. Each request examines at most 100 candidates, so
+    a page may be empty while next_cursor is present (only hidden posts seen).
     """
     session = _authorized_session(request)
     if session is None:
@@ -178,20 +187,29 @@ def readonly_reviews(request):
     qs = _scoped_posts(session.user)
     if before is not None:
         qs = qs.filter(pk__lt=int(before))
-    qs = qs.order_by("-pk")
-    permitted = []
-    # Never paginate before checking authorization; a hidden post cannot
-    # consume a page slot or reveal its details to an unauthorized caller.
-    for post in qs.iterator(chunk_size=100):
+    # Authorization can issue several DB queries per post. Bound BOTH the
+    # candidate queryset and the number of per-post policy evaluations.
+    # A page may have zero visible rows with a cursor when a batch contains
+    # only ineligible posts; the next request continues past the last scanned
+    # post without skipping any candidate.
+    page_size = 5
+    scan_limit = 100
+    candidates = list(qs.order_by("-pk")[:scan_limit + 1])
+    rows = []
+    last_scanned_id = None
+    scanned = 0
+    for post in candidates[:scan_limit]:
+        last_scanned_id = post.pk
+        scanned += 1
         if _can_review_post(session.user, post):
-            permitted.append(_summary(post))
-            if len(permitted) == 6:
+            rows.append(_summary(post))
+            if len(rows) == page_size:
                 break
-    rows = permitted[:5]
+
     return _nocache({
         "count": len(rows),
         "rows": rows,
-        "next_cursor": str(rows[-1]["id"]) if len(permitted) > 5 else None,
+        "next_cursor": str(last_scanned_id) if len(candidates) > scanned else None,
     })
 
 
