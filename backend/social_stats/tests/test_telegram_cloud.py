@@ -172,8 +172,12 @@ class TelegramCloudAuthTests(TestCase):
         )
         profile = UserProfile.objects.create(user=self.user, role="staff")
         profile.assigned_clients.add(workspace)
-        permission = Permission.objects.create(code="composer.approve", label="Approve posts")
-        RolePermission.objects.create(role="staff", permission=permission, is_granted=True)
+        permission, _ = Permission.objects.get_or_create(
+            code="composer.approve", defaults={"label": "Approve posts"},
+        )
+        RolePermission.objects.update_or_create(
+            role="staff", permission=permission, defaults={"is_granted": True},
+        )
         policy = WorkspaceMemberPolicy.objects.create(
             user=self.user, workspace=workspace,
             permissions={"approve_posts": True}, is_active=True,
