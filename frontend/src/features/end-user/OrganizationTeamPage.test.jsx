@@ -4,7 +4,7 @@ import { organizationAPI } from '@/services/domains/identity';
 
 jest.mock('../../core/session', () => ({ useSession: () => ({ user: { id: 1, email: 'owner@example.com' }, refreshAuth: jest.fn() }) }));
 jest.mock('../../core/navigation', () => ({ AppLink: ({ to, children }) => <a href={to}>{children}</a> }));
-jest.mock('../../components/ui/Button', () => ({ __esModule: true, default: ({ variant, children, ...props }) => <button {...props}>{children}</button> }));
+jest.mock('../../components/ui/Button', () => ({ __esModule: true, default: ({ variant, children, ...props }) => <button data-variant={variant} {...props}>{children}</button> }));
 jest.mock('../../components/ui/Input', () => ({ __esModule: true, default: ({ label, ...props }) => <label>{label}<input {...props} /></label> }));
 jest.mock('@/services/domains/identity', () => ({ organizationAPI: {
   list: jest.fn(), myInvitations: jest.fn(), workspaces: jest.fn(), members: jest.fn(), invitations: jest.fn(),

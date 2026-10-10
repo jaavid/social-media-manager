@@ -15,7 +15,7 @@ export default function JoinTeamPage() {
   const [busy, setBusy] = useState(false);
   useEffect(() => {
     let active = true;
-    if (!token) { setError('پیوند دعوت معتبر نیست.'); return undefined; }
+    if (!token) return undefined;
     organizationAPI.invitation(token).then(({ data }) => { if (active) setInvite(data); })
       .catch(() => { if (active) setError('دعوت منقضی یا لغو شده است. از مدیر مجموعه دعوت تازه بخواهید.'); });
     return () => { active = false; };
@@ -29,11 +29,12 @@ export default function JoinTeamPage() {
     } catch { setError('پذیرش دعوت انجام نشد. ایمیل حساب و اعتبار دعوت را بررسی کنید.'); }
     finally { setBusy(false); }
   }
+  const visibleError = token ? error : 'پیوند دعوت معتبر نیست.';
   const mismatch = user && invite && user.email?.toLowerCase() !== invite.email.toLowerCase();
   return <AuthLayout heroTitle="پیوستن به تیم" heroSub="با حساب شخصی خود وارد مجموعه شوید.">
     <section style={{ padding: 24, background: 'var(--surface-card)', borderRadius: 'var(--radius-lg)' }}>
       <h1>دعوت به تیم</h1>
-      {error && <p role="alert">{error}</p>}
+      {visibleError && <p role="alert">{visibleError}</p>}
       {invite && <>
         <p>شما به مجموعهٔ <strong>{invite.organization_name}</strong> دعوت شده‌اید.</p>
         <p>ایمیل دعوت: <bdi dir="ltr">{invite.email}</bdi></p>
