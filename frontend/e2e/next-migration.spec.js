@@ -26,7 +26,7 @@ test('every inventoried route is served by the standalone Next application', asy
   }
 });
 
-test('public assets are owned and served by Next', async ({ request }) => {
+test('public assets are owned and served by Next', { tag: '@smoke' }, async ({ request }) => {
   for (const url of ['/manifest.json', '/icons/icon-192.png', '/icons/icon-512.png', '/brand-mark.svg', '/sw.js', '/.well-known/security.txt']) {
     expect((await request.get(url)).status(), url).toBe(200);
   }
@@ -42,7 +42,7 @@ test.beforeEach(async ({ page }) => {
   });
   await page.routeWebSocket('**/ws/**', socket => socket.close());
 });
-test('server-owned metadata and RTL survive hydration and public route navigation', async ({ page, request }) => {
+test('server-owned metadata and RTL survive hydration and public route navigation', { tag: '@smoke' }, async ({ page, request }) => {
   const html = await (await request.get('/privacy')).text();
   expect(html).toContain('<title>سیاست حریم خصوصی · Ravinta</title>');
   expect(html).toContain('dir="rtl"');
@@ -60,18 +60,18 @@ test('server-owned metadata and RTL survive hydration and public route navigatio
   await expect(page).toHaveTitle('شرایط استفاده از خدمات · Ravinta');
   expect(errors).toEqual([]);
 });
-test('anonymous protected route waits for session then redirects to login', async ({ page }) => {
+test('anonymous protected route waits for session then redirects to login', { tag: '@smoke' }, async ({ page }) => {
   await page.goto('/admin/account-settings');
   await expect(page).toHaveURL(/\/login\?next=/);
   await expect(page.locator('input[type="email"]')).toBeVisible();
 });
-test('client cannot render staff account settings', async ({ page }) => {
+test('client cannot render staff account settings', { tag: '@smoke' }, async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem('access_token', 'test-token'));
   await page.route('**/api/auth/me/', route => route.fulfill({ json: { id: 1, role: 'client', account_type: 'legacy', client_id: 1 } }));
   await page.goto('/admin/account-settings');
   await expect(page).toHaveURL(/\/dashboard/);
 });
-test('OAuth MFA callback preserves state across native App Router navigation', async ({ page }) => {
+test('OAuth MFA callback preserves state across native App Router navigation', { tag: '@smoke' }, async ({ page }) => {
   await page.goto('/auth/callback?mfa_required=true');
   await expect(page).toHaveURL(/\/login$/);
   await expect(page.locator('input[autocomplete="one-time-code"]')).toBeVisible();
@@ -79,7 +79,7 @@ test('OAuth MFA callback preserves state across native App Router navigation', a
   await page.reload();
   await expect(page.locator('input[autocomplete="one-time-code"]')).toBeVisible();
 });
-test('public login stays Persian with an English preference and persists dark theme', async ({ page }) => {
+test('public login stays Persian with an English preference and persists dark theme', { tag: '@smoke' }, async ({ page }) => {
   await page.context().addCookies(['socialstats.language', 'theme'].map((name, i) => ({ name, value: i ? 'dark' : 'en', url: process.env.E2E_BASE_URL || 'http://127.0.0.1:3000' })));
   await page.addInitScript(() => {
     localStorage.setItem('socialstats.language', 'en');
@@ -108,7 +108,7 @@ test('public native links preserve browser Back', async ({ page }) => {
   await expect(page).toHaveURL(/\/about$/);
 });
 
-test('staff session resolves before the native settings page is shown', async ({ page }) => {
+test('staff session resolves before the native settings page is shown', { tag: '@smoke' }, async ({ page }) => {
   await page.context().addCookies([{ name: 'socialstats.language', value: 'en', url: process.env.E2E_BASE_URL || 'http://127.0.0.1:3000' }]);
   await page.addInitScript(() => {
     localStorage.setItem('access_token', 'test-token');
@@ -246,7 +246,7 @@ test('cookie-personalized public pages render server content without a shared HT
   }
 });
 
-test('temporary session outage offers retry; confirmed expiry redirects and clears private UI', async ({ page }) => {
+test('temporary session outage offers retry; confirmed expiry redirects and clears private UI', { tag: '@smoke' }, async ({ page }) => {
   await page.context().addCookies([{ name: 'socialstats.language', value: 'en', url: process.env.E2E_BASE_URL || 'http://127.0.0.1:3000' }]);
   await page.addInitScript(() => localStorage.setItem('socialstats_cookie_choice', JSON.stringify({ version: '2024-11-01', choices: { essential: true } })));
   let status = 503;
