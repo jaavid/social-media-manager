@@ -189,6 +189,7 @@ from social_stats.views.competitor import CompetitorViewSet, BenchmarkView
 from social_stats.views.audience import UnifiedAudienceView
 from .audit import ActionLogViewSet
 from social_stats.views.notification import notification_preferences, approval_queue
+from social_stats.views.telegram_cloud import link_code as tgcloud_link_code, claim_link as tgcloud_claim_link, readonly_reviews as tgcloud_readonly_reviews
 from social_stats.views.whatsapp import (
     WhatsAppAccountViewSet, WhatsAppContactViewSet, WhatsAppContactListViewSet,
     WhatsAppTemplateViewSet, WhatsAppCampaignViewSet, WhatsAppMessageViewSet,
@@ -607,6 +608,9 @@ urlpatterns = [
     # Notifications + approvals ()
     path('notifications/preferences/', notification_preferences,    name='notif_preferences'),
     path('composer/approvals/',        approval_queue,              name='composer_approvals'),
+    path('tgcloud/link-code/', tgcloud_link_code, name='tgcloud_link_code'),
+    path('tgcloud/claim/', tgcloud_claim_link, name='tgcloud_claim_link'),
+    path('tgcloud/reviews/', tgcloud_readonly_reviews, name='tgcloud_reviews'),
 
     # Inbox stats
     path('inbox/stats/',            InboxStatsView.as_view(),           name='inbox_stats'),
