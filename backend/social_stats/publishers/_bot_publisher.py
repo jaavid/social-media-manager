@@ -18,7 +18,8 @@ class BotPublisher(BasePublisher):
     SUPPORTED_TYPES = frozenset({'text', 'image', 'video', 'carousel'})
 
     def _client(self, credential) -> BotAPIClient:
-        return BotAPIClient(credential.access_token, self.API_BASE_URL)
+        from social_stats.platforms.managed_bots import publishing_token
+        return BotAPIClient(publishing_token(credential), self.API_BASE_URL)
 
     def _routing_options(self, kwargs):
         from social_stats.platforms.bot_features import validated_bot_options

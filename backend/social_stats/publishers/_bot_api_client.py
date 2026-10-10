@@ -167,5 +167,8 @@ class BotAPIClient:
     def get_me(self) -> dict:
         return self.call('getMe').get('result') or {}
 
+    def get_chat_member(self, chat_id: str, user_id: int) -> dict:
+        return self.call('getChatMember', data={'chat_id': chat_id, 'user_id': user_id}).get('result') or {}
+
     def get_chat(self, chat_id: str) -> dict:
         return self.call('getChat', data={'chat_id': chat_id}).get('result') or {}

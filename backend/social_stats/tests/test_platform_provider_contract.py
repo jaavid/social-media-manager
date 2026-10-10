@@ -3,7 +3,7 @@ from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
 import requests
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, override_settings
 from django.test import TestCase
 from django.contrib.auth.models import User
 from rest_framework.test import APIClient
@@ -93,6 +93,7 @@ class AparatClientContractTests(SimpleTestCase):
         self.assertEqual(ctx.exception.code, 'media_invalid')
 
 
+@override_settings(MESSENGER_BOTS={'telegram': {'token': 'project-fixture-token', 'username': 'publisher_bot'}})
 class ProviderConnectionAPITests(TestCase):
     def setUp(self):
         self.tenant = Client.objects.create(name='Tenant', company='Tenant', email='tenant@test.dev')
@@ -106,12 +107,16 @@ class ProviderConnectionAPITests(TestCase):
     def test_connect_status_and_disconnect(self, client_factory):
         client = Mock()
         client.get_me.return_value = {'id': 10, 'username': 'publisher_bot'}
-        client.get_chat.return_value = {'title': 'News'}
+        client.get_chat.return_value = {'id': -10010, 'type': 'channel', 'title': 'News'}
+        client.get_chat_member.return_value = {'status': 'administrator', 'can_post_messages': True}
         client_factory.return_value = client
 
+        from social_stats.platforms.managed_bots import channel_challenge
+        challenge = channel_challenge(self.tenant.pk, self.user.pk, 'telegram')
+        client.get_chat.return_value['description'] = challenge['verification_code']
         connected = self.api.post(
             f'/api/bot-channels/{self.tenant.id}/telegram/',
-            {'token': 'valid-token', 'destination_id': '@news'}, format='json',
+            {'destination_id': '@news', 'verification_token': challenge['verification_token']}, format='json',
         )
         self.assertEqual(connected.status_code, 200)
         self.assertTrue(PlatformCredential.objects.filter(

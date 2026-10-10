@@ -25,32 +25,56 @@ export default function PlatformConnectModal({ open, provider, account, workspac
   useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
   if (!provider) return null;
   const fields = provider.contract.auth.fields;
+  const managed = provider.contract.auth.strategy === 'managed_bot';
+  const bot = provider.managed_bot;
+  const botMissing = managed && (!bot?.configured || !bot?.username || !bot?.verification_token);
   const submit = async event => {
     event.preventDefault();
-    if (pending) return;
+    if (pending || botMissing) return;
     setPending(true);
     setError(null);
     try {
       const normalized = Object.fromEntries(fields.map(field => [field.key, field.normalization === 'trim' ? (values[field.key] || '').trim() : (values[field.key] || '')]));
+      if (managed) normalized.verification_token = bot.verification_token;
       await connectionsAPI.connect(workspaceId, provider.key, normalized, account?.id);
       if (!alive.current) return;
       onConnected?.();
       onClose?.();
     } catch (failure) {
-      if (alive.current) setError(apiError(failure).code === 'account_mismatch' ? 'connections.mismatch' : 'connections.mutationFailed');
+      if (alive.current) {
+        const errors = {
+          account_mismatch: 'connections.mismatch',
+          ...(managed ? {
+            permission_denied: 'botConnect.permissionDenied',
+            invalid_destination: 'botConnect.channelRequired',
+            missing_config: 'botConnect.notConfigured',
+            channel_verification_required: 'botConnect.verificationRequired',
+          } : {}),
+        };
+        setError(errors[apiError(failure).code] || 'connections.mutationFailed');
+      }
     } finally {
       if (alive.current) setPending(false);
     }
   };
   return <Dialog initialFocusRef={firstField} open={open} title={t('botConnect.title', undefined, { platform: provider.titles[isPersian ? 'fa' : 'en'] })}
-    description={t('connections.formHelp')} closeOnBackdrop={!pending} showClose={!pending} onClose={() => { if (!pending) onClose?.(); }}>
+    description={t(managed ? 'botConnect.managedHelp' : 'connections.formHelp')} closeOnBackdrop={!pending} showClose={!pending} onClose={() => { if (!pending) onClose?.(); }}>
     <form onSubmit={submit} className="space-y-4" aria-busy={pending}>
+      {managed && <div className="space-y-2 text-sm">
+        {botMissing ? <DataState state="error" title={t('botConnect.notConfigured')} compact /> : <>
+          <p>{t('botConnect.addAdmin')}</p>
+          <code dir="ltr" className="block select-all">@{bot.username}</code>
+          <p>{t('botConnect.permissionHelp')}</p>
+          <p>{t('botConnect.ownershipHelp')}</p>
+          <code dir="ltr" className="block select-all">{bot.verification_code}</code>
+        </>}
+      </div>}
       {fields.map((field, index) => <Input ref={index === 0 ? firstField : undefined} key={field.key} label={field[isPersian ? 'title_fa' : 'title_en']}
         type={field.secret ? 'password' : 'text'} autoComplete="off" showPasswordToggle={false} required={field.required}
-        dir="ltr" maxLength={2048} disabled={pending} value={values[field.key] || ''}
+        dir="ltr" data-ltr="true" maxLength={2048} disabled={pending} value={values[field.key] || ''}
         onChange={event => setValues(current => ({ ...current, [field.key]: event.target.value }))} />)}
       {error && <DataState state="error" title={t(error)} compact />}
-      <Button type="submit" loading={pending}>{t('connections.submit')}</Button>
+      <Button type="submit" loading={pending} disabled={botMissing}>{t(managed ? 'botConnect.verifyChannel' : 'connections.submit')}</Button>
     </form>
   </Dialog>;
 }

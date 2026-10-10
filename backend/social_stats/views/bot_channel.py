@@ -32,7 +32,9 @@ def bot_channel_connection(request, client_id, platform):
         provider = get_provider(platform)
     except NotImplementedError:
         return Response({'detail': 'Unsupported provider'}, status=404)
-    if not provider.capabilities.connect or provider.manifest.status in {'blocked', 'deprecated'}:
+    if (not provider.capabilities.connect or provider.manifest.status in {'blocked', 'deprecated'}
+            or (provider.manifest.auth_type in {'managed_bot', 'bot_token'}
+                and not provider.manifest.capability('connection').enabled)):
         return Response({'detail': 'Provider does not support connections'}, status=400)
 
     client, error = _client_or_error(request, client_id)
@@ -65,17 +67,27 @@ def bot_channel_connection(request, client_id, platform):
     # The metadata-driven UI calls API-key style credentials ``api_key`` while
     # current token-based providers persist them in PlatformCredential.access_token.
     # Normalize the transport alias here and keep provider contracts token-based.
-    token = (request.data.get('token') or request.data.get('api_key') or '').strip()
-    destination_id = (request.data.get('destination_id') or '').strip()
-    if not token:
+    token = request.data.get('token') or request.data.get('api_key') or ''
+    destination_id = request.data.get('destination_id') or ''
+    if not isinstance(token, str) or not isinstance(destination_id, str):
+        return Response({'code': 'invalid_request'}, status=400)
+    token, destination_id = token.strip(), destination_id.strip()
+    if provider.manifest.auth_type == 'managed_bot':
+        if 'token' in request.data or 'api_key' in request.data:
+            return Response({'code': 'invalid_request'}, status=400)
+    elif not token:
         return Response({'detail': 'token or api_key is required'}, status=400)
     if len(token) > 2048 or len(destination_id) > 200:
         return Response({'detail': 'credential or destination_id is too long'}, status=400)
 
     try:
-        credential, result = ConnectionService().connect(client, platform, {
-            'token': token, 'destination_id': destination_id,
-        }, social_account_id=account_id)
+        values = {'destination_id': destination_id}
+        if provider.manifest.auth_type == 'managed_bot':
+            from social_stats.platforms.managed_bots import challenge_code
+            values['ownership_code'] = challenge_code(request.data.get('verification_token'), client.pk, request.user.pk, platform)
+        else:
+            values['token'] = token
+        credential, result = ConnectionService().connect(client, platform, values, social_account_id=account_id)
     except PublishError as exc:
         return Response({'detail': str(exc), 'code': exc.code}, status=400)
 

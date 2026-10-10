@@ -51,3 +51,12 @@ test('workspace switch clears an unsaved draft and ignores a late old read', asy
   await waitFor(() => expect(api.post).toHaveBeenCalledWith('/telegram-accounts/11/settings/', expect.any(Object)));
   expect(api.post).toHaveBeenCalledTimes(1);
 });
+
+
+test('managed project bots do not offer account-level webhook registration', async () => {
+  api.get.mockResolvedValue({ data: { ...original, webhook_managed: true } });
+  setup();
+  await screen.findByText('botConnect.centralWebhook');
+  expect(screen.queryByRole('button', { name: 'Configure secure webhook' })).not.toBeInTheDocument();
+  expect(api.post).not.toHaveBeenCalled();
+});

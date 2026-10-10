@@ -121,7 +121,8 @@ function ScopedTelegramSettings({ workspaceId, accountId }) {
         rich_enabled: settings.rich_enabled,
         assistant_rich: settings.assistant_rich
       })}>{tr("Save Telegram settings")}</Button>
-      <Button onClick={() => act('webhook', {})}>{tr("Configure secure webhook")}</Button>
+      <>{settings.webhook_managed ? <p>{t('botConnect.centralWebhook')}</p>
+        : <Button onClick={() => act('webhook', {})}>{tr("Configure secure webhook")}</Button>}</>
       <p>{tr("Webhook:")}{tr(settings.webhook_enabled ? 'enabled' : 'disabled')}{'. '}{tr("Last update:")}{settings.last_update_at || tr('none')}</p>
       <p>{tr("Assistant access requires an explicit Telegram identity link to an authorized application user.")}</p>
       <label>{tr("Telegram user ID")}<input value={telegramUser} onChange={e => setTelegramUser(e.target.value)} /></label>

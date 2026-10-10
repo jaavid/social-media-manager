@@ -20,5 +20,5 @@ export function parseTelegramSettings(value: unknown) {
   destinationContext(value.destination_context);
   return { destination_context: value.destination_context as Record<string, unknown>, rich_enabled: value.rich_enabled,
     assistant_enabled: value.assistant_enabled, assistant_rich: value.assistant_rich ?? false,
-    webhook_enabled: value.webhook_enabled === true, last_update_at: typeof value.last_update_at === 'string' ? value.last_update_at : null };
+    webhook_managed: value.webhook_managed === true, webhook_enabled: value.webhook_enabled === true, last_update_at: typeof value.last_update_at === 'string' ? value.last_update_at : null };
 }

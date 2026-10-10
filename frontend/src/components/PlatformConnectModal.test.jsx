@@ -19,3 +19,44 @@ test('credential normalization follows auth fields and preserves intentional sec
     token: 'fixture-token', destination_id: 'destination', password: ' intentional fixture whitespace  ',
   }, 10));
 });
+
+test('managed bot flow shows project identity and submits only the channel', async () => {
+  const provider = { key: 'telegram', titles: { en: 'Telegram', fa: 'تلگرام' }, managed_bot: { username: 'project_bot', configured: true, verification_code: 'fixture-code', verification_token: 'fixture-challenge' },
+    contract: { auth: { strategy: 'managed_bot', fields: [
+      { key: 'destination_id', title_en: 'Channel ID', title_fa: 'شناسه کانال', secret: false, required: true, normalization: 'trim' },
+    ] } } };
+  render(<PlatformConnectModal open provider={provider} workspaceId={7} onClose={jest.fn()} />);
+  expect(screen.getByText('@project_bot')).toBeInTheDocument();
+  expect(screen.getByText('botConnect.permissionHelp')).toBeInTheDocument();
+  expect(screen.queryByLabelText(/token/i)).not.toBeInTheDocument();
+  fireEvent.change(screen.getByLabelText('Channel ID'), { target: { value: ' @channel ' } });
+  fireEvent.submit(screen.getByLabelText('Channel ID').closest('form'));
+  await waitFor(() => expect(connectionsAPI.connect).toHaveBeenCalledWith(7, 'telegram', { destination_id: '@channel', verification_token: 'fixture-challenge' }, undefined));
+});
+
+test('unconfigured managed bot cannot be connected', () => {
+  const provider = { key: 'bale', titles: { en: 'Bale', fa: 'بله' }, managed_bot: { username: '', configured: false },
+    contract: { auth: { strategy: 'managed_bot', fields: [
+      { key: 'destination_id', title_en: 'Channel ID', title_fa: 'شناسه کانال', required: true },
+    ] } } };
+  render(<PlatformConnectModal open provider={provider} workspaceId={7} />);
+  expect(screen.getByText('botConnect.notConfigured')).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'botConnect.verifyChannel' })).toBeDisabled();
+  fireEvent.submit(screen.getByLabelText('Channel ID').closest('form'));
+  expect(connectionsAPI.connect).not.toHaveBeenCalled();
+});
+
+test('permission failure keeps the channel form open with an actionable error', async () => {
+  connectionsAPI.connect.mockRejectedValue({ isAxiosError: true, response: { status: 403, data: { code: 'permission_denied' } } });
+  const onClose = jest.fn();
+  const provider = { key: 'telegram', titles: { en: 'Telegram', fa: 'تلگرام' }, managed_bot: { username: 'project_bot', configured: true, verification_code: 'fixture-code', verification_token: 'fixture-challenge' },
+    contract: { auth: { strategy: 'managed_bot', fields: [
+      { key: 'destination_id', title_en: 'Channel ID', title_fa: 'شناسه کانال', required: true, normalization: 'trim' },
+    ] } } };
+  render(<PlatformConnectModal open provider={provider} workspaceId={7} onClose={onClose} />);
+  fireEvent.change(screen.getByLabelText('Channel ID'), { target: { value: '@channel' } });
+  fireEvent.submit(screen.getByLabelText('Channel ID').closest('form'));
+  await screen.findByText('botConnect.permissionDenied');
+  expect(onClose).not.toHaveBeenCalled();
+  expect(screen.getByLabelText('Channel ID')).toHaveValue('@channel');
+});
