@@ -28,7 +28,7 @@ for (const language of ['fa', 'en']) for (const theme of ['light', 'dark', 'syst
     expect(errors).toEqual([]);
   });
 }
-test('standard fixture publishes text; capability removal disables publishing without conversion', async ({ page }) => {
+test('standard fixture publishes text; capability removal disables publishing without conversion', { tag: '@smoke' }, async ({ page }) => {
   const state = await setup(page); await compose(page);
   await page.getByRole('button', { name: 'Publish Now', exact: true }).click();
   await expect(page.getByText('Accepted into the queue. Publication is not confirmed.', { exact: true })).toBeVisible();
@@ -93,7 +93,7 @@ test('advanced draft media order, captions and destinations survive failed save 
   expect(state.writes[1].payload.platform_overrides.telegram).toEqual(options);
 });
 
-test('forbidden workspace refresh hides cached identities and recovered editor content', async ({ page }) => {
+test('forbidden workspace refresh hides cached identities and recovered editor content', { tag: '@smoke' }, async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 1000 });
   const state = await setup(page); await compose(page);
   page.once('dialog', dialog => dialog.accept());

@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('admin workspace selector and route navigation scope badge requests', async ({ page }) => {
+test('admin workspace selector and route navigation scope badge requests', { tag: '@smoke' }, async ({ page }) => {
   const counts = [];
   let liveSocket;
   await page.route('**/api/**', async route => {

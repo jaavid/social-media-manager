@@ -2,7 +2,7 @@ import { mockComposerConnections } from './composer-fixture';
 import { test, expect } from '@playwright/test';
 
 for (const role of ['client', 'superadmin']) {
-  test(`${role}: queue failure preserves editor and retry only enqueues`, async ({ page }, testInfo) => {
+  test(`${role}: queue failure preserves editor and retry only enqueues`, { tag: '@smoke' }, async ({ page }, testInfo) => {
     await page.setViewportSize({ width: 1440, height: 1400 });
     const writes = [];
     let failEnqueue = true;

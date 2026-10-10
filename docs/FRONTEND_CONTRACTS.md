@@ -18,8 +18,10 @@ modules or the archived application. The architecture guard detects source cycle
 
 Run `npm run lint`, `npm run check:architecture`, `npm run typecheck`,
 `npm run i18n:check`, `npm run check:next`, `CI=true npm test`, `npm run build`,
-`npm run test:proxy`, and `npm run test:next`. CI runs these explicitly, including
-the route inventory and retirement worker tests. Babel transforms only Jest;
+`npm run test:proxy`, and `npm run test:next`. CI runs source checks, the production build and all Jest tests once for relevant
+frontend PRs. Browser smoke gates PRs; full browser coverage (including the route
+inventory) runs through the unified production ingress on main/develop pushes,
+nightly and manual runs, and high-risk PRs. See [CI policy](CI.md). Babel transforms only Jest;
 the production build uses Next's compiler with Webpack. The declared React
 ecosystem contract is recorded below. Turbopack and React Compiler adoption
 require the chart/flow/form compatibility work in #98.

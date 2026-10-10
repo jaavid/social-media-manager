@@ -6,16 +6,44 @@ on:
   push:
     branches: [main, develop]
   workflow_dispatch:
+  schedule:
+    - cron: '0 2 * * *'
 
 permissions:
   contents: read
 
 concurrency:
-  group: tests-${{ github.ref }}
+  group: tests-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
+  changes:
+    name: Detect affected checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    outputs:
+      frontend: ${{ steps.paths.outputs.frontend }}
+      backend: ${{ steps.paths.outputs.backend }}
+      docker: ${{ steps.paths.outputs.docker }}
+      full_browser: ${{ steps.paths.outputs.full_browser }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify CI change selection
+        run: python3 -m unittest discover -s scripts/tests -v
+      - name: Select checks (unknown paths and diff errors run everything)
+        id: paths
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: python3 scripts/ci_changes.py --event "$EVENT_NAME" --base "$BASE_SHA" --head "$HEAD_SHA"
+
   backend:
+    needs: changes
+    if: ${{ needs.changes.outputs.backend == 'true' }}
     name: Backend — Django tests
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -116,11 +144,9 @@ jobs:
         run: python manage.py test social_stats.tests --verbosity=1
 
   frontend_checks:
-    name: Frontend — production contracts (browser shard ${{ matrix.browser_shard }}/2)
-    strategy:
-      fail-fast: false
-      matrix:
-        browser_shard: [1, 2]
+    name: Frontend — production contracts
+    needs: changes
+    if: ${{ needs.changes.outputs.frontend == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -178,30 +204,54 @@ jobs:
           CI: "true"
         run: npm test
 
-      - name: Install browser for cutover checks
+      - name: Cache Chromium binary
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('frontend/package-lock.json') }}
+
+      - name: Install Chromium and system dependencies
         working-directory: frontend
         run: npx playwright install --with-deps chromium
 
-      - name: Native Next browser tests
+      - name: Native Next browser smoke
         working-directory: frontend
         env:
           CI: "true"
-        run: |
-          npm run test:next -- --shard=${{ matrix.browser_shard }}/2
+        run: npm run test:next:smoke
+
+      - name: Upload browser failure traces
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: native-next-browser-failures
+          path: frontend/test-results/
+          retention-days: 7
 
   frontend:
     name: Frontend — build + Jest tests
-    needs: frontend_checks
+    needs: [changes, frontend_checks]
     if: ${{ always() }}
     runs-on: ubuntu-latest
     timeout-minutes: 1
     steps:
-      - name: Require both complete production-contract shards
+      - name: Require selected frontend contracts or an intentional path skip
         env:
-          SHARD_RESULT: ${{ needs.frontend_checks.result }}
-        run: test "$SHARD_RESULT" = success
+          CHANGES_RESULT: ${{ needs.changes.result }}
+          FRONTEND_REQUIRED: ${{ needs.changes.outputs.frontend }}
+          FRONTEND_RESULT: ${{ needs.frontend_checks.result }}
+        run: |
+          test "$CHANGES_RESULT" = success
+          if [ "$FRONTEND_REQUIRED" = true ]; then
+            test "$FRONTEND_RESULT" = success
+          else
+            test "$FRONTEND_REQUIRED" = false
+            test "$FRONTEND_RESULT" = skipped
+          fi
 
   docker:
+    needs: changes
+    if: ${{ needs.changes.outputs.docker == 'true' }}
     name: Docker — unified stack boots
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -263,16 +313,40 @@ jobs:
       - name: Pin frontend npm
         run: npm install --global npm@10.8.2 --no-audit --no-fund
 
+      - name: Install browser test dependencies
+        working-directory: frontend
+        run: npm ci --prefer-offline --no-audit --no-fund && npm run check:dependencies
+
+      - name: Cache Chromium binary
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('frontend/package-lock.json') }}
+
+      - name: Install Chromium and system dependencies
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
+
       - name: Browser parity through the unified production ingress
         working-directory: frontend
         env:
           CI: "true"
           E2E_BASE_URL: http://127.0.0.1:3000
+          FULL_BROWSER: ${{ needs.changes.outputs.full_browser }}
         run: |
-          npm ci --prefer-offline --no-audit --no-fund
-          npm run check:dependencies
-          npx playwright install --with-deps chromium
-          npm run test:next
+          if [ "$FULL_BROWSER" = true ]; then
+            npm run test:next
+          else
+            npm run test:next:smoke
+          fi
+
+      - name: Upload browser failure traces
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: unified-ingress-browser-failures
+          path: frontend/test-results/
+          retention-days: 7
 
       - name: Actual browser session through nginx and the server DAL
         env:

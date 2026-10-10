@@ -1,6 +1,6 @@
 import { defineConfig } from '@playwright/test';
 export default defineConfig({
-  testDir: './e2e', timeout: 30000, // Full browser coverage shares the existing ten-minute frontend job budget.
+  testDir: './e2e', timeout: 30000, // PR smoke and full ingress coverage share this configuration.
   testIgnore: 'refactor-visual.spec.js', // Platform-specific images have their own explicit runner.
   // Each worker has an isolated browser context and uses synthetic API fixtures.
   fullyParallel: true,
