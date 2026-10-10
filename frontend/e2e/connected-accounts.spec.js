@@ -2,12 +2,12 @@ import { test, expect } from '@playwright/test';
 import { connectionFixture } from '../src/services/__fixtures__/connections.js';
 const origin = process.env.E2E_BASE_URL || 'http://127.0.0.1:3000';
 const surface = page => page.locator('[data-connected-accounts]');
-async function setup(page, { language = 'en', theme = 'light', role = 'superadmin', accountType = 'legacy', respond } = {}) {
+async function setup(page, { language = 'en', theme = 'light', role = 'superadmin', accountType = 'legacy', workspaceId = 7, respond } = {}) {
   await page.context().addCookies([{ name: 'socialstats.language', value: language, url: origin }, { name: 'theme', value: theme, url: origin }]);
   await page.addInitScript(() => localStorage.setItem('socialstats_cookie_choice', JSON.stringify({ version: '2024-11-01', choices: { essential: true, functional: true } })));
   await page.route('**/api/**', route => {
     const url = new URL(route.request().url());
-    if (url.pathname.endsWith('/auth/me/')) return route.fulfill({ json: { id: 1, role, account_type: accountType, workspace_id: 7, client_id: 7, permissions: {} } });
+    if (url.pathname.endsWith('/auth/me/')) return route.fulfill({ json: { id: 1, role, account_type: accountType, workspace_id: workspaceId, client_id: workspaceId, permissions: {} } });
     if (url.pathname.endsWith('/auth/session/')) return route.fulfill({ json: { authenticated: true, csrfToken: 'test' } });
     if (/\/workspaces\/\d+\/$/.test(url.pathname)) return route.fulfill({ json: { id: Number(url.pathname.split('/')[3]), name: 'Workspace', company: 'Workspace', organization: 1 } });
     if (url.pathname.includes('/connections/')) return respond?.(route, url) || route.fulfill({ json: connectionFixture(Number(url.pathname.split('/')[3])) });
@@ -204,15 +204,31 @@ test('OAuth reconnect uses the same account-scoped internal flow and provider se
   await expect(page).toHaveURL(/\/api\/workspaces\/7\/connections\/contract_example\/\?account_id=11$/);
   expect(account).toBe('11');
 });
-test('end-user workspace lookup errors remain errors and retry distinguishes a successful absent workspace', async ({ page }) => {
+test('end-user connection errors remain errors and retry distinguishes a successful empty account list', async ({ page }) => {
+  // MyConnectionsPage now resolves workspace from /auth/me/ and useWorkspaceScope.
+  // Mock the connections endpoint that is actually requested, not /end-user/me/.
   let failed = true;
-  await setup(page, { role: 'client', accountType: 'end_user' });
-  await page.route('**/api/end-user/me/', route => failed ? route.fulfill({ status: 503, json: { code: 'unavailable' } }) : route.fulfill({ json: { workspace: null } }));
+  const empty = connectionFixture();
+  for (const provider of empty.providers) provider.accounts = [];
+  await setup(page, {
+    role: 'client', accountType: 'end_user',
+    respond: route => failed
+      ? route.fulfill({ status: 503, json: { code: 'unavailable' } })
+      : route.fulfill({ json: empty }),
+  });
   await page.goto('/u/connections');
   await expect(page.getByText('Connections could not be loaded.')).toBeVisible();
-  await expect(page.getByText('Select a workspace to manage connections.')).toHaveCount(0);
-  failed = false; await page.getByRole('button', { name: 'Try again' }).click();
+  await expect(page.getByText('No connected accounts yet.')).toHaveCount(0);
+  failed = false;
+  await page.getByRole('button', { name: 'Try again' }).click();
+  await expect(page.getByText('No connected accounts yet.')).toBeVisible();
+});
+
+test('end user without an assigned workspace gets an explicit workspace empty state', async ({ page }) => {
+  await setup(page, { role: 'client', accountType: 'end_user', workspaceId: null });
+  await page.goto('/u/connections');
   await expect(page.getByText('Select a workspace to manage connections.')).toBeVisible();
+  await expect(page.getByText('Connections could not be loaded.')).toHaveCount(0);
 });
 test('a rejected browser session hides account identities and uses the existing login recovery', async ({ page }) => {
   await setup(page, { respond: route => route.fulfill({ status: 401, json: { code: 'authentication_required' } }) });

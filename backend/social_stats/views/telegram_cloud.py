@@ -90,55 +90,146 @@ def claim_link(request):
     return _nocache({"token": token, "expires_at": expiry.isoformat()}, 201)
 
 
-def _authorized_user(request):
+def _authorized_session(request, *, require_active=True):
+    """Resolve a nonexpired bearer; reads additionally require an active account.
+
+    Self-revocation must still work when the linked Django user is inactive,
+    otherwise an old bearer could regain access after account reactivation.
+    """
     authorization = request.headers.get("Authorization", "")
     match = re.fullmatch(r"Bearer ([A-Za-z0-9_-]{43})", authorization)
     if not match:
         return None
-    session = TelegramCloudSession.objects.select_related("user").filter(
+    sessions = TelegramCloudSession.objects.select_related("user").filter(
         token_hash=_digest(match.group(1)),
         expires_at__gt=timezone.now(),
-        user__is_active=True,
-    ).first()
-    return session.user if session else None
+    )
+    if require_active:
+        sessions = sessions.filter(user__is_active=True)
+    return sessions.first()
+
+
+def _can_review_post(user, post):
+    """Same action-specific authorization guards used by Composer approval."""
+    decision = evaluate(user, post.client, "approve_posts")
+    if not decision.allowed:
+        return False
+    privileged = decision.role in ("owner", "superadmin")
+    if not privileged and user.pk in (post.created_by_id, post.publish_requested_by_id):
+        return False
+    if not privileged and ApprovalRequest.objects.filter(
+        client=post.client,
+        target_object_type="UnifiedPost",
+        target_object_id=post.pk,
+        relation__isnull=False,
+        status="pending",
+    ).exists():
+        return False
+    return True
+
+
+def _scoped_posts(user):
+    """Constrain pending posts to the user's currently accessible workspaces."""
+    return UnifiedPost.objects.filter(
+        status="pending_approval",
+        client__in=accessible_workspaces(user),
+    ).select_related("client")
+
+
+def _summary(post):
+    """Return only fields safe for Telegram's read-only review interface."""
+    return {
+        "id": post.pk,
+        "workspace": post.client.company,
+        "title": post.title or "بدون عنوان",
+        "excerpt": post.content[:220],
+        "platforms": post.target_platforms or [],
+    }
+
+
+@api_view(["GET", "DELETE"])
+@authentication_classes([])
+@permission_classes([AllowAny])
+def bot_session(request):
+    """Introspect/revoke the *own* read-only bearer session (never mutate posts)."""
+    session = _authorized_session(request, require_active=request.method != "DELETE")
+    if session is None:
+        return _nocache({"error": "link required or expired"}, 401)
+    if request.method == "DELETE":
+        session.delete()
+        return _nocache({"unlinked": True})
+    name = session.user.get_full_name().strip() or session.user.username
+    return _nocache({
+        "linked": True,
+        "name": name[:120],
+        "expires_at": session.expires_at.isoformat(),
+    })
 
 
 @api_view(["GET"])
 @authentication_classes([])
 @permission_classes([AllowAny])
 def readonly_reviews(request):
-    """Return only posts the linked user can *currently* approve, without actions."""
-    user = _authorized_user(request)
-    if user is None:
-        return _nocache({"error": "link required or expired"}, 401)
+    """Paginated list of posts this linked user can approve, with no write actions.
 
+    Cursor tracks the last *examined* post ID, not necessarily a visible post.
+    Always re-evaluate RBAC. Each request examines at most 100 candidates, so
+    a page may be empty while next_cursor is present (only hidden posts seen).
+    """
+    session = _authorized_session(request)
+    if session is None:
+        return _nocache({"error": "link required or expired"}, 401)
+    before = request.query_params.get("before")
+    if before is not None and (
+        not re.fullmatch(r"[1-9][0-9]{0,18}", before) or int(before) >= 2**63
+    ):
+        return _nocache({"error": "invalid cursor"}, 400)
+    qs = _scoped_posts(session.user)
+    if before is not None:
+        qs = qs.filter(pk__lt=int(before))
+    # Authorization can issue several DB queries per post. Bound BOTH the
+    # candidate queryset and the number of per-post policy evaluations.
+    # A page may have zero visible rows with a cursor when a batch contains
+    # only ineligible posts; the next request continues past the last scanned
+    # post without skipping any candidate.
+    page_size = 5
+    scan_limit = 100
+    candidates = list(qs.order_by("-pk")[:scan_limit + 1])
     rows = []
-    qs = UnifiedPost.objects.filter(
-        status="pending_approval",
-        client__in=accessible_workspaces(user),
-    ).select_related("client").order_by("-created_at")[:200]
-    for post in qs:
-        decision = evaluate(user, post.client, "approve_posts")
-        if not decision.allowed:
-            continue
-        privileged = decision.role in ("owner", "superadmin")
-        if not privileged and user.pk in (post.created_by_id, post.publish_requested_by_id):
-            continue
-        if not privileged and ApprovalRequest.objects.filter(
-            client=post.client,
-            target_object_type="UnifiedPost",
-            target_object_id=post.pk,
-            relation__isnull=False,
-            status="pending",
-        ).exists():
-            continue
-        rows.append({
-            "id": post.pk,
-            "workspace": post.client.company,
-            "title": post.title or "بدون عنوان",
-            "excerpt": post.content[:220],
-            "platforms": post.target_platforms or [],
-        })
-        if len(rows) == 10:
-            break
-    return _nocache({"count": len(rows), "rows": rows})
+    last_scanned_id = None
+    scanned = 0
+    for post in candidates[:scan_limit]:
+        last_scanned_id = post.pk
+        scanned += 1
+        if _can_review_post(session.user, post):
+            rows.append(_summary(post))
+            if len(rows) == page_size:
+                break
+
+    return _nocache({
+        "count": len(rows),
+        "rows": rows,
+        "next_cursor": str(last_scanned_id) if len(candidates) > scanned else None,
+    })
+
+
+@api_view(["GET"])
+@authentication_classes([])
+@permission_classes([AllowAny])
+def readonly_review_detail(request, post_id):
+    """A fresh, independently authorized read of one pending post."""
+    session = _authorized_session(request)
+    if session is None:
+        return _nocache({"error": "link required or expired"}, 401)
+    post = _scoped_posts(session.user).filter(pk=post_id).first()
+    if post is None or not _can_review_post(session.user, post):
+        return _nocache({"error": "post unavailable"}, 404)
+    data = _summary(post)
+    # Bound Telegram message length and avoid returning private media URLs
+    # or platform-specific overrides/credentials.
+    data.update({
+        "content": post.content[:3000],
+        "media_type": post.media_type,
+        "scheduled_at": post.scheduled_at.isoformat() if post.scheduled_at else None,
+    })
+    return _nocache(data)
