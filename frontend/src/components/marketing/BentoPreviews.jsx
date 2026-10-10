@@ -15,6 +15,7 @@
  * Every preview honours `prefers-reduced-motion` via framer-motion's
  * `useReducedMotion` hook (used inside the bits that genuinely animate).
  */
+import { useId } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import {
   ArrowUpRight, Send, Zap, Bot, Sparkles, BarChart3,
@@ -129,27 +130,28 @@ export function InboxPreview() {
 // 4. Bot Builder — node graph with edges
 // ─────────────────────────────────────────────────────────────────────────────
 export function BotBuilderPreview() {
+  const edgeId = useId();
   return (
-    <svg viewBox="0 0 240 130" preserveAspectRatio="xMidYMid meet"
-         style={{ width: '100%', height: '100%' }}>
+    <svg role="img" aria-label="نمونه مسیر ربات: شروع، پرسش، دریافت و پاسخ" dir="ltr" viewBox="0 0 280 140" preserveAspectRatio="xMidYMid meet"
+         style={{ display: 'block', width: '100%', height: 'auto', aspectRatio: '2 / 1', overflow: 'visible' }}>
       <defs>
-        <linearGradient id="bb-edge" x1="0" x2="1">
+        <linearGradient id={edgeId} x1="0" x2="1">
           <stop offset="0%"   stopColor="#00CCF5" />
           <stop offset="100%" stopColor="#8b5cf6" />
         </linearGradient>
       </defs>
       {/* Edges */}
-      <motion.path d="M 50 30 L 110 30" stroke="url(#bb-edge)" strokeWidth="1.5" fill="none"
-                   initial={{ pathLength: 0 }} whileInView={{ pathLength: 1 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.3 }} />
-      <motion.path d="M 170 30 L 230 65" stroke="url(#bb-edge)" strokeWidth="1.5" fill="none"
-                   initial={{ pathLength: 0 }} whileInView={{ pathLength: 1 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.6 }} />
-      <motion.path d="M 170 30 L 110 100" stroke="url(#bb-edge)" strokeWidth="1.5" fill="none"
-                   initial={{ pathLength: 0 }} whileInView={{ pathLength: 1 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.6 }} />
+      <motion.path d="M 80 30 L 140 30" stroke={`url(#${edgeId})`} strokeWidth="1.5" fill="none"
+                   initial={false} whileInView={{ pathLength: 1 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.3 }} />
+      <motion.path d="M 200 30 L 230 55" stroke={`url(#${edgeId})`} strokeWidth="1.5" fill="none"
+                   initial={false} whileInView={{ pathLength: 1 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.6 }} />
+      <motion.path d="M 170 40 L 110 90" stroke={`url(#${edgeId})`} strokeWidth="1.5" fill="none"
+                   initial={false} whileInView={{ pathLength: 1 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.6 }} />
 
       {/* Nodes */}
-      <Node x={20}  y={30} label={"شروع کنید"}   tone="#00CCF5" />
-      <Node x={140} y={30} label={"بپرسید"}     tone="#a78bfa" delay={0.4} />
-      <Node x={200} y={65} label={"گرفتن"} tone="#34d399" delay={0.8} />
+      <Node x={20}  y={30} label={"شروع"}   tone="#00CCF5" />
+      <Node x={140} y={30} label={"پرسش"}     tone="#a78bfa" delay={0.4} />
+      <Node x={200} y={65} label={"دریافت"} tone="#34d399" delay={0.8} />
       <Node x={80}  y={100} label={"پاسخ"}  tone="#fbbf24" delay={0.8} />
     </svg>
   );
@@ -158,7 +160,7 @@ export function BotBuilderPreview() {
 function Node({ x, y, label, tone, delay = 0.1 }) {
   return (
     <motion.g
-      initial={{ opacity: 0, scale: 0.6 }}
+      initial={false}
       whileInView={{ opacity: 1, scale: 1 }}
       viewport={{ once: true }}
       transition={{ delay, duration: 0.4 }}
@@ -167,7 +169,7 @@ function Node({ x, y, label, tone, delay = 0.1 }) {
             rx={6} fill="var(--surface-elevated)"
             stroke={tone} strokeWidth="1.2" />
       <circle cx={x + 6} cy={y} r={3} fill={tone} />
-      <text x={x + 14} y={y + 3.5}
+      <text x={x + 34} y={y + 3.5} textAnchor="middle" direction="rtl"
             fontSize="9" fontWeight="600"
             fill="var(--text-primary)"
             fontFamily="var(--font-sans)">{label}</text>
@@ -211,17 +213,17 @@ export function AutomationsPreview() {
     <div style={cardStyle}>
       <div style={ruleRowStyle}>
         <span style={kindStyle('cyan')}>اگر</span>
-        <span style={ruleTextStyle}>نظر با کلمه کلیدی "قیمت" مطابقت دارد</span>
+        <span style={ruleTextStyle}>نظر شامل کلمه «قیمت» است</span>
       </div>
       <ChainArrow />
       <div style={ruleRowStyle}>
         <span style={kindStyle('purple')}>سپس</span>
-        <span style={ruleTextStyle}>پاسخ با الگو <strong style={{ color: 'var(--text-primary)' }}>"قیمت"</strong></span>
+        <span style={ruleTextStyle}>ارسال پاسخ آماده <strong style={{ color: 'var(--text-primary)' }}>"قیمت"</strong></span>
       </div>
       <ChainArrow />
       <div style={ruleRowStyle}>
         <span style={kindStyle('green')}>و</span>
-        <span style={ruleTextStyle}>مخاطب را به عنوان برچسب بزنید <strong style={{ color: 'var(--text-primary)' }}>سرب داغ</strong></span>
+        <span style={ruleTextStyle}>برچسب مخاطب: <strong style={{ color: 'var(--text-primary)' }}>سرنخ علاقه‌مند</strong></span>
       </div>
     </div>
   );
@@ -229,7 +231,7 @@ export function AutomationsPreview() {
 
 function ChainArrow() {
   return (
-    <div aria-hidden style={{ height: 14, marginLeft: 16, display: 'flex', alignItems: 'center' }}>
+    <div aria-hidden style={{ height: 14, marginInlineStart: 16, display: 'flex', alignItems: 'center' }}>
       <span style={{
         display: 'block', width: 1.5, height: '100%',
         background: 'linear-gradient(to bottom, #00CCF5, #8b5cf6)',
@@ -354,13 +356,13 @@ function Bubble({ side, tone = 'plain', children }) {
 }
 
 const dotsStyle = {
-  display: 'inline-flex', gap: 3, marginLeft: 6, verticalAlign: 'middle',
+  display: 'inline-flex', gap: 3, marginInlineStart: 6, verticalAlign: 'middle',
 };
 
 const dot = (delay) => ({
   width: 4, height: 4, borderRadius: '50%',
   background: 'var(--text-tertiary)', display: 'inline-block',
-  animation: `mkt-dot 1.4s ease-in-out ${delay}ثانیه بی نهایت`,
+  animation: `mkt-dot 1.4s ease-in-out ${delay}s infinite`,
 });
 
 const ruleRowStyle = {

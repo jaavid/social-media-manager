@@ -9,7 +9,7 @@
  * ========================================================================== */
 import { useEffect, useState } from 'react';
 import Link from '../components/marketing/MarketingLink';
-import { AlertTriangle, RefreshCw, Activity, MessageCircle } from 'lucide-react';
+import { AlertTriangle, RefreshCw, MessageCircle } from 'lucide-react';
 import Button from '../components/ui/Button';
 import Meta from '../components/Meta';
 
@@ -82,7 +82,6 @@ export default function ServerErrorPage() {
 
           <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
             <Button onClick={() => window.location.reload()} size="lg" icon={RefreshCw}>دوباره امتحان کنید</Button>
-            <Button as={Link} to="/status"  variant="secondary" size="lg" icon={Activity}>وضعیت را بررسی کنید</Button>
             <Button as={Link} to="/contact" variant="ghost" size="lg" icon={MessageCircle}>آن را گزارش کنید</Button>
           </div>
 

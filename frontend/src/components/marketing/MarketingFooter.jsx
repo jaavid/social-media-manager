@@ -9,7 +9,6 @@
 import Link from './MarketingLink';
 import Logo from '../ui/Logo';
 import { Sparkles } from 'lucide-react';
-import BrandIcon from '../ui/BrandIcon';
 export default function MarketingFooter() {
   const year = new Date().getFullYear();
 
@@ -46,8 +45,6 @@ export default function MarketingFooter() {
         { label: "مشتریان",     to: '/customers' },
         { label: "وبلاگ",          to: '/blog' },
         { label: "مرکز راهنما",   to: '/help' },
-        { label: "تاریخچه تغییرات",     to: '/changelog' },
-        { label: "وضعیت",        to: '/status' },
         { label: "اتصال‌ها",  to: '/integrations' },
       ],
     },
@@ -57,8 +54,6 @@ export default function MarketingFooter() {
         { label: "درباره ما",     to: '/about' },
         { label: "مشتریان", to: '/customers' },
         { label: "تماس با ما",   to: '/contact' },
-        { label: "رسانه‌ها",     to: '/about#press' },
-        { label: "فرصت‌های شغلی",   to: '/about#careers' },
       ],
     },
     {
@@ -67,8 +62,6 @@ export default function MarketingFooter() {
         { label: "حریم خصوصی",         to: '/privacy' },
         { label: "شرایط استفاده",           to: '/terms' },
         { label: "کوکی‌ها",         to: '/cookies' },
-        { label: 'GDPR',            to: '/gdpr' },
-        { label: 'DPDP',            to: '/dpdp' },
         { label: "امنیت",        to: '/security' },
       ],
     },
@@ -106,16 +99,9 @@ export default function MarketingFooter() {
               color: 'var(--text-secondary)',
               maxWidth: 280,
             }}>
-              سیستم عامل بازاریابی هوش مصنوعی برای آژانس‌های مدرن. تحلیل و آمار، محتوا، مکالمات و تبلیغات - برای هر مشتری، در یک مکان.
+              راوینتا برای مدیریت محتوای شبکه‌های اجتماعی، پیگیری پیام‌ها و بررسی آمار حساب‌ها ساخته شده است. کار هر تیم را در فضای کاری خودش دنبال کنید.
             </p>
-            <div style={{ display: 'flex', gap: 6 }}>
-              <SocialIconLink href="https://github.com/socialstats"            label="GitHub"   brand="github" />
-              <SocialIconLink href="https://linkedin.com/company/socialstats"  label={"لینکدین"} brand="linkedin" />
-              <SocialIconLink href="https://twitter.com/socialstats"           label={"توییتر"}  brand="x" />
-              <SocialIconLink href="https://youtube.com/@socialstats"          label={"یوتیوب"}  brand="youtube" />
-            </div>
-            {/* Geographic framing intentionally omitted from the global footer.
-                Office and contact information lives on /contact and /dpdp. */}
+
           </div>
 
           {COLUMNS.map((col) => (
@@ -157,17 +143,6 @@ export default function MarketingFooter() {
         }}>
           <span>© {year} راوینتا. همه حقوق محفوظ است.</span>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-            <Link to="/status" style={{
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              color: 'var(--text-tertiary)', textDecoration: 'none',
-            }}>
-              <span aria-hidden style={{
-                width: 8, height: 8, borderRadius: '50%',
-                background: 'var(--success)',
-                boxShadow: '0 0 8px rgba(16,185,129,0.6)',
-              }} />
-              همه سیستم ها عملیاتی هستند
-            </Link>
             <span style={{
               display: 'inline-flex', alignItems: 'center', gap: 4,
               color: 'var(--text-tertiary)',
@@ -191,25 +166,5 @@ export default function MarketingFooter() {
         `}</style>
       </div>
     </footer>
-  );
-}
-
-function SocialIconLink({ href, label, brand }) {
-  return (
-    <a
-      href={href} target="_blank" rel="noopener noreferrer" aria-label={label}
-      style={{
-        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-        width: 32, height: 32,
-        borderRadius: 'var(--radius-sm)',
-        border: '1px solid var(--border-subtle)',
-        color: 'var(--text-tertiary)',
-        background: 'var(--surface-card)',
-        transition: 'var(--transition-fast)',
-        textDecoration: 'none',
-      }}
-    >
-      <BrandIcon brand={brand} size={14} />
-    </a>
   );
 }

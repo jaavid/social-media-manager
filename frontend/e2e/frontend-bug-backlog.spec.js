@@ -237,16 +237,6 @@ test('media folders stay available and failed fetch offers retry', async ({ page
   await expect(page.locator('main [role=alert]')).toHaveCount(0);
 });
 
-test('status without historical data displays unknown history and real current outage', async ({ page }) => {
-  await session(page, { respond: (route, url) => {
-    if (url.pathname.endsWith('/health/services/')) return route.fulfill({ json: { overall: 'outage', services: [{ id: 'api', name: 'API', status: 'outage' }] } });
-  } });
-  await page.goto('/status');
-  await expect(page.getByText('قطعی عمده').first()).toBeVisible();
-  await expect(page.getByText('تاریخچهٔ پایش در دسترس نیست')).toHaveCount(1);
-  await expect(page.getByText(/100.00|۹۰ روز/)).toHaveCount(0);
-  await expect(page.getByText('تاریخچهٔ حوادث در دسترس نیست.')).toBeVisible();
-});
 
 test('agency Preview points at the live marketplace profile', async ({ page }) => {
   await session(page, { role: 'client', accountType: 'agency_member', respond: (route, url) => {

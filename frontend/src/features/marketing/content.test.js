@@ -18,3 +18,12 @@ test('unknown and inherited slugs cannot resolve as authored content', () => {
     }
   }
 });
+
+test('product capability icons resolve to renderable components', () => {
+  for (const page of Object.values(marketingContent.product)) {
+    for (const item of page.capabilities?.items || []) {
+      expect(['function', 'object']).toContain(typeof item.icon);
+      expect(item.icon).not.toBeNull();
+    }
+  }
+});

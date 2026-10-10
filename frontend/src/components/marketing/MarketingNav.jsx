@@ -58,8 +58,6 @@ const SIMPLE_LINKS = [
     menu: { single: [
       { label: "وبلاگ",          to: '/blog',         desc: "نکات بازاریابی و تازه‌های محصول" },
       { label: "مرکز راهنما",   to: '/help',         desc: "راهنماها + نحوه کار" },
-      { label: "تاریخچه تغییرات",     to: '/changelog',    desc: "امکانات تازه و بهبودهای محصول" },
-      { label: "وضعیت",        to: '/status',       desc: "وضعیت دسترس‌پذیری سامانه" },
       { label: "اتصال‌ها",  to: '/integrations', desc: "ابزارهای خود را متصل کنید" },
       { label: "تماس با ما",       to: '/contact',      desc: "فروش + پشتیبانی" },
     ]},

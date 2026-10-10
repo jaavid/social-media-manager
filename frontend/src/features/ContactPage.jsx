@@ -10,7 +10,7 @@
 import Link from '../components/marketing/MarketingLink';
 import {
   Mail, MessageSquare, Phone, MapPin, ArrowRight,
-  BookOpen, Activity, ShieldCheck,
+  BookOpen, ShieldCheck,
 } from 'lucide-react';
 
 import Button from '../components/ui/Button';
@@ -139,7 +139,7 @@ export default function ContactPage() {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+              gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
               gap: 16,
             }}
             className="contact-support-grid"
@@ -149,12 +149,6 @@ export default function ContactPage() {
               title={"مرکز راهنما"}
               body={"راهنمای راه‌اندازی، رفع مشکل و پرسش‌های متداول."}
               to="/help"
-            />
-            <SupportLinkCard
-              icon={Activity}
-              title={"وضعیت سیستم"}
-              body={"دسترس‌پذیری زنده، رخدادها و نگهداری برنامه‌ریزی‌شده."}
-              to="/status"
             />
             <SupportLinkCard
               icon={ShieldCheck}

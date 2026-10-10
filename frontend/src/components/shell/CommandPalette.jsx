@@ -30,9 +30,7 @@ import {
   TrendingUp,
   AlertCircle,
   CalendarDays,
-  Sparkles,
   BookOpen,
-  Activity,
   ShieldCheck,
   ExternalLink,
   MessageSquare,
@@ -557,13 +555,6 @@ function buildActions(basePath) {
 function buildLinks() {
   return [
     {
-      id: 'link-changelog',
-      label: "What's new",
-      hint: 'Recent product updates',
-      icon: Sparkles,
-      path: '/changelog',
-    },
-    {
       id: 'link-help',
       label: 'Help center',
       hint: 'Guides + troubleshooting',
@@ -571,16 +562,9 @@ function buildLinks() {
       path: '/help',
     },
     {
-      id: 'link-status',
-      label: 'System status',
-      hint: 'Live uptime + incidents',
-      icon: Activity,
-      path: '/status',
-    },
-    {
       id: 'link-security',
-      label: 'Security & compliance',
-      hint: 'GDPR, DPDP, certifications',
+      label: 'Security',
+      hint: 'Account security and access',
       icon: ShieldCheck,
       path: '/security',
     },

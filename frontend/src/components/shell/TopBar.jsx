@@ -17,7 +17,6 @@ import {
   ChevronRight,
   Search,
   Settings,
-  Sparkles,
 } from 'lucide-react';
 import ThemeToggle from '../ui/ThemeToggle';
 import NotificationBell from '../ui/NotificationBell';
@@ -100,16 +99,6 @@ export default function TopBar({ basePath, onOpenPalette }) {
         <NotificationBellWrapper />
       </div>
 
-      <Link
-        to="/changelog"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="ds-whats-new hidden items-center gap-1.5 rounded-full border border-primary/15 bg-primary/10 px-2.5 py-1.5 text-[11px] font-semibold text-primary no-underline transition hover:bg-primary/15 2xl:inline-flex"
-        aria-label={t('common.whatsNew', "What's new")}
-      >
-        <Sparkles size={11} />
-        {t('common.new', 'New')}
-      </Link>
     </header>
   );
 }

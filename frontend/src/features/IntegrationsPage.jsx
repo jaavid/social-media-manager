@@ -139,14 +139,14 @@ export default function IntegrationsPage() {
         textAlign: 'center',
         overflow: 'hidden',
       }}>
-        <MeshGradient variant="hero" />
+        <MeshGradient variant="soft" />
 
         <div style={{ position: 'relative', maxWidth: 720, margin: '0 auto' }}>
           <span style={{
             display: 'inline-flex', alignItems: 'center', gap: 6,
             padding: '6px 14px', marginBottom: 20,
             fontSize: 12, fontWeight: 600,
-            color: '#00CCF5',
+            color: 'var(--text-link)',
             background: 'rgba(0,204,245,0.10)',
             border: '1px solid rgba(0,204,245,0.25)',
             borderRadius: 'var(--radius-pill)',
@@ -159,11 +159,11 @@ export default function IntegrationsPage() {
             fontSize: 'clamp(40px, 6vw, 64px)',
             fontWeight: 700,
             letterSpacing: '-0.02em',
-            color: '#fff',
+            color: 'var(--text-primary)',
             lineHeight: 1.05,
           }}>
-            راوینتا را به آن وصل کنید<br />
-            <span style={{ background: 'linear-gradient(135deg, #00CCF5, #8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            راوینتا را وصل کنید به<br />
+            <span style={{ color: 'var(--text-link)' }}>
               ابزارهایی که قبلاً استفاده می‌کنید
             </span>
           </h1>
@@ -172,7 +172,7 @@ export default function IntegrationsPage() {
             margin: '20px auto 32px',
             maxWidth: 560,
             fontSize: 'clamp(16px, 1.8vw, 19px)',
-            color: 'rgba(255,255,255,0.75)',
+            color: 'var(--text-secondary)',
             lineHeight: 'var(--line-height-body)',
           }}>
             بیش از ۴۰ اتصال یکپارچه برای شبکه‌های اجتماعی، پیام‌رسانی، تحلیل و آمار، مدیریت ارتباط با مشتری، تجارت و هوش مصنوعی. این اتصال‌ها را تیم ما توسعه می‌دهد و نگهداری می‌کند.
@@ -183,23 +183,23 @@ export default function IntegrationsPage() {
             display: 'flex', alignItems: 'center', gap: 10,
             maxWidth: 480, margin: '0 auto',
             padding: '12px 16px',
-            background: 'rgba(255,255,255,0.06)',
-            border: '1px solid rgba(255,255,255,0.14)',
+            background: 'var(--surface-card)',
+            border: '1px solid var(--border-subtle)',
             borderRadius: 'var(--radius-pill)',
             backdropFilter: 'blur(12px)',
           }}>
-            <Search size={16} color="rgba(255,255,255,0.55)" />
+            <Search size={16} color="var(--text-tertiary)" />
             <input
               type="search"
-              aria-label={"ادغام جستجو"}
-              placeholder={"ادغام جستجو…"}
+              aria-label={"جستجوی اتصال‌ها"}
+              placeholder={"جستجوی اتصال‌ها…"}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               style={{
                 flex: 1, minWidth: 0,
                 background: 'transparent',
                 border: 'none', outline: 'none',
-                color: '#fff',
+                color: 'var(--text-primary)',
                 fontSize: 15,
               }}
             />
@@ -210,7 +210,7 @@ export default function IntegrationsPage() {
                 aria-label={"جستجو را پاک کنید"}
                 style={{
                   background: 'transparent', border: 'none',
-                  color: 'rgba(255,255,255,0.55)',
+                  color: 'var(--text-tertiary)',
                   cursor: 'pointer', fontSize: 14,
                 }}
               >
@@ -230,7 +230,7 @@ export default function IntegrationsPage() {
             <ScrollReveal>
               <div style={{
                 fontSize: 11, fontWeight: 600, letterSpacing: 2, textTransform: 'uppercase',
-                color: 'rgba(255,255,255,0.55)', marginBottom: 16,
+                color: 'var(--text-tertiary)', marginBottom: 16,
                 textAlign: 'center',
               }}>
                 برجسته
@@ -278,9 +278,9 @@ export default function IntegrationsPage() {
                     padding: '8px 14px',
                     fontSize: 13,
                     fontWeight: 600,
-                    color: active ? '#0a0e14' : '#fff',
-                    background: active ? 'linear-gradient(135deg, #00CCF5, #00A8D8)' : 'rgba(255,255,255,0.06)',
-                    border: active ? '1px solid transparent' : '1px solid rgba(255,255,255,0.12)',
+                    color: active ? '#0a0e14' : 'var(--text-primary)',
+                    background: active ? 'linear-gradient(135deg, #00CCF5, #00A8D8)' : 'var(--surface-card)',
+                    border: active ? '1px solid transparent' : '1px solid var(--border-subtle)',
                     borderRadius: 'var(--radius-pill)',
                     cursor: 'pointer',
                     transition: 'all 0.2s',
@@ -308,7 +308,7 @@ export default function IntegrationsPage() {
           ) : (
             <div style={{
               padding: 56, textAlign: 'center',
-              color: 'rgba(255,255,255,0.55)',
+              color: 'var(--text-tertiary)',
               border: '1px dashed rgba(255,255,255,0.12)',
               borderRadius: 'var(--radius-xl)',
             }}>
@@ -320,9 +320,9 @@ export default function IntegrationsPage() {
               </p>
               <Button as={Link} to="/contact" size="sm" variant="ghost"
                 style={{
-                  color: '#fff',
-                  background: 'rgba(255,255,255,0.08)',
-                  border: '1px solid rgba(255,255,255,0.18)',
+                  color: 'var(--text-primary)',
+                  background: 'var(--surface-elevated)',
+                  border: '1px solid var(--border-subtle)',
                 }}>
                 درخواست ادغام
               </Button>
@@ -334,7 +334,7 @@ export default function IntegrationsPage() {
       {/* ╭──────────────────────────╮
           │   5.  CUSTOM / API CTA   │
           ╰──────────────────────────╯ */}
-      <section style={{ padding: '80px 24px', background: 'rgba(255,255,255,0.02)' }}>
+      <section style={{ padding: '80px 24px', background: 'var(--surface-page)' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <div style={{
             display: 'grid',
@@ -372,7 +372,7 @@ export default function IntegrationsPage() {
         textAlign: 'center',
         overflow: 'hidden',
       }}>
-        <MeshGradient variant="cta" />
+        <MeshGradient variant="soft" />
 
         <div style={{ position: 'relative', maxWidth: 640, margin: '0 auto' }}>
           <h2 style={{
@@ -380,11 +380,11 @@ export default function IntegrationsPage() {
             fontSize: 'clamp(32px, 4.5vw, 48px)',
             fontWeight: 700,
             letterSpacing: '-0.02em',
-            color: '#fff',
+            color: 'var(--text-primary)',
             lineHeight: 1.1,
           }}>
             پشته خود را وصل کنید<br />
-            <span style={{ background: 'linear-gradient(135deg, #00CCF5, #8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            <span style={{ color: 'var(--text-link)' }}>
               در کمتر از 10 دقیقه
             </span>
           </h2>
@@ -393,7 +393,7 @@ export default function IntegrationsPage() {
             margin: '20px auto 32px',
             maxWidth: 480,
             fontSize: 17,
-            color: 'rgba(255,255,255,0.75)',
+            color: 'var(--text-secondary)',
             lineHeight: 'var(--line-height-body)',
           }}>
             اکثر مشتریان قبل از اینکه قهوه صبح خود را تمام کنند، 4-6 پلتفرم را به هم متصل می‌کنند. طرح رایگان، بدون کارت.
@@ -413,9 +413,9 @@ export default function IntegrationsPage() {
             </Button>
             <Button as={Link} to="/contact" size="lg" variant="ghost"
               style={{
-                color: '#fff',
-                background: 'rgba(255,255,255,0.08)',
-                border: '1px solid rgba(255,255,255,0.18)',
+                color: 'var(--text-primary)',
+                background: 'var(--surface-elevated)',
+                border: '1px solid var(--border-subtle)',
               }}>
               با فروشندگان صحبت کنید
             </Button>
@@ -449,9 +449,9 @@ function FeaturedCard({ i }) {
       }}>
         <Logo i={i} size={44} />
         <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: 16, fontWeight: 600, color: '#fff' }}>{i.name}</div>
+          <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)' }}>{i.name}</div>
           {i.badge && (
-            <div style={{ fontSize: 11, fontWeight: 600, color: i.accent }}>{i.badge}</div>
+            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)' }}>{i.badge}</div>
           )}
         </div>
       </div>
@@ -459,7 +459,7 @@ function FeaturedCard({ i }) {
       <p style={{
         margin: 0, flex: 1,
         fontSize: 14,
-        color: 'rgba(255,255,255,0.75)',
+        color: 'var(--text-secondary)',
         lineHeight: 'var(--line-height-body)',
       }}>
         {i.tagline}
@@ -470,7 +470,7 @@ function FeaturedCard({ i }) {
         borderTop: '1px solid rgba(255,255,255,0.08)',
         display: 'flex', alignItems: 'center', gap: 4,
         fontSize: 12, fontWeight: 600,
-        color: '#00CCF5',
+        color: 'var(--text-link)',
       }}>
         <CheckCircle2 size={13} /> اکنون زندگی کنید
       </div>
@@ -486,8 +486,8 @@ function IntegrationCard({ i }) {
         position: 'relative',
         padding: 18,
         borderRadius: 'var(--radius-lg)',
-        background: 'rgba(255,255,255,0.03)',
-        border: '1px solid rgba(255,255,255,0.08)',
+        background: 'var(--surface-card)',
+        border: '1px solid var(--border-subtle)',
         cursor: 'default',
         height: '100%',
         display: 'flex',
@@ -502,7 +502,7 @@ function IntegrationCard({ i }) {
         <Logo i={i} size={34} />
         <div style={{ minWidth: 0, flex: 1 }}>
           <div style={{
-            fontSize: 14, fontWeight: 600, color: '#fff',
+            fontSize: 14, fontWeight: 600, color: 'var(--text-primary)',
             whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
           }}>
             {i.name}
@@ -511,7 +511,7 @@ function IntegrationCard({ i }) {
         {i.live ? (
           <span style={{
             fontSize: 10, fontWeight: 600,
-            color: '#10b981',
+            color: 'var(--success)',
             padding: '2px 7px',
             background: 'rgba(16,185,129,0.10)',
             border: '1px solid rgba(16,185,129,0.30)',
@@ -523,10 +523,10 @@ function IntegrationCard({ i }) {
         ) : (
           <span style={{
             fontSize: 10, fontWeight: 600,
-            color: 'rgba(255,255,255,0.55)',
+            color: 'var(--text-tertiary)',
             padding: '2px 7px',
-            background: 'rgba(255,255,255,0.04)',
-            border: '1px solid rgba(255,255,255,0.10)',
+            background: 'var(--surface-sunken)',
+            border: '1px solid var(--border-subtle)',
             borderRadius: 'var(--radius-pill)',
             whiteSpace: 'nowrap',
           }}>
@@ -538,7 +538,7 @@ function IntegrationCard({ i }) {
       <p style={{
         margin: 0, flex: 1,
         fontSize: 12,
-        color: 'rgba(255,255,255,0.65)',
+        color: 'var(--text-secondary)',
         lineHeight: 'var(--line-height-body)',
       }}>
         {i.tagline}
@@ -571,8 +571,8 @@ function Tile({ icon: Icon, title, body, cta }) {
       <div style={{
         padding: 28,
         borderRadius: 'var(--radius-xl)',
-        background: 'rgba(255,255,255,0.04)',
-        border: '1px solid rgba(255,255,255,0.10)',
+        background: 'var(--surface-sunken)',
+        border: '1px solid var(--border-subtle)',
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
@@ -582,18 +582,18 @@ function Tile({ icon: Icon, title, body, cta }) {
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           borderRadius: 10,
           background: 'rgba(0,204,245,0.12)',
-          color: '#00CCF5',
+          color: 'var(--text-link)',
           marginBottom: 14,
         }}>
           <Icon size={20} strokeWidth={1.6} />
         </div>
-        <h3 style={{ margin: 0, fontSize: 17, fontWeight: 600, color: '#fff' }}>
+        <h3 style={{ margin: 0, fontSize: 17, fontWeight: 600, color: 'var(--text-primary)' }}>
           {title}
         </h3>
         <p style={{
           margin: '8px 0 16px', flex: 1,
           fontSize: 14,
-          color: 'rgba(255,255,255,0.65)',
+          color: 'var(--text-secondary)',
           lineHeight: 'var(--line-height-body)',
         }}>
           {body}
@@ -601,7 +601,7 @@ function Tile({ icon: Icon, title, body, cta }) {
         <Link to={cta.to} style={{
           display: 'inline-flex', alignItems: 'center', gap: 4,
           fontSize: 13, fontWeight: 600,
-          color: '#00CCF5',
+          color: 'var(--text-link)',
           textDecoration: 'none',
         }}>
           {cta.label} <ArrowRight size={13} />

@@ -13,7 +13,7 @@ function pages(folder) {
 const native = pages(app).map(file => '/' + path.relative(app, path.dirname(file)).split(path.sep)
   .filter(segment => !segment.startsWith('(')).map(segment => segment.replace(/^\[([^\.]+)\]$/, ':$1')).join('/'));
 test('every inventoried URL has one native owner or a reviewed redirect to a native owner', () => {
-  expect(inventory.routes).toHaveLength(191);
+  expect(inventory.routes).toHaveLength(187);
   for (const route of inventory.routes) {
     const redirected = redirects.filter(r => r.path === route.path);
     expect(native.filter(p => p === route.path).length + redirected.length).toBe(1);

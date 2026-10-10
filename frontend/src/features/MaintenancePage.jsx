@@ -9,7 +9,7 @@
  * ========================================================================== */
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Wrench, RefreshCw, Activity, Mail } from 'lucide-react';
+import { Wrench, RefreshCw, Mail } from 'lucide-react';
 
 import Logo from '../components/ui/Logo';
 import Button from '../components/ui/Button';
@@ -112,7 +112,6 @@ export default function MaintenancePage({ expectedReturn }) {
 
         <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
           <Button onClick={() => window.location.reload()} size="md" icon={RefreshCw}>به‌روزرسانی</Button>
-          <Button as="a" href="/status" variant="secondary" size="md" icon={Activity}>وضعیت را بررسی کنید</Button>
           <Button as="a" href="https://github.com/cbsshekhawat18-lab/social-stats-social-media-manager/issues" variant="ghost" size="md" icon={Mail}>به ما ایمیل بزنید</Button>
         </div>
 

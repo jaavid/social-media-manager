@@ -109,25 +109,7 @@ async function Hero() {
         textAlign: 'center',
         color: '#fff',
       }}>
-        {/* Eyebrow */}
-        <MotionDiv initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-          <Link to="/changelog" style={{
-            display: 'inline-flex', alignItems: 'center', gap: 8,
-            padding: '6px 14px',
-            fontSize: 12, fontWeight: 600,
-            color: '#fff',
-            background: 'rgba(255,255,255,0.06)',
-            border: '1px solid rgba(255,255,255,0.14)',
-            borderRadius: 'var(--radius-pill)',
-            textDecoration: 'none',
-            backdropFilter: 'blur(10px)',
-          }}>
-            <Sparkles size={12} style={{ color: '#00CCF5' }} />
-            <span style={{ color: 'rgba(255,255,255,0.65)' }}>{t('home.new')}</span>
-            {t('home.announcement')}
-            <ArrowRight size={11} style={{ opacity: 0.6 }} />
-          </Link>
-        </MotionDiv>
+
 
         {/* Headline */}
         <MotionH1 data-typography="display"
