@@ -32,6 +32,7 @@ import Badge from '@/components/ui/Badge';
 import { useLookups } from '../../hooks/useData';
 import { workspacesAPI } from '@/services/domains/accounts';
 import ConnectedAccounts from '@/components/ConnectedAccounts';
+import TelegramBotLinkCard from './TelegramBotLinkCard';
 
 import PageHeader from '../../components/layout/PageHeader';
 import SegmentedTabs from '../../components/ui/SegmentedTabs';
@@ -778,6 +779,7 @@ function SettingsBody({ clientId: propClientId, identity, enabled }) {
         title="Settings"
         subtitle="Manage your account and business profile."
       />
+      <TelegramBotLinkCard />
 
       <div
         className={cn(
