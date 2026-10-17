@@ -73,6 +73,7 @@ export default function OrganizationTeamPage() {
   const [incoming, setIncoming] = useState([]);
   const [name, setName] = useState('');
   const [brand, setBrand] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
   const [email, setEmail] = useState('');
   const [orgRole, setOrgRole] = useState('member');
   const [grants, setGrants] = useState([]);
@@ -132,7 +133,15 @@ export default function OrganizationTeamPage() {
   async function run(action, success) {
     setBusy(true); setError(''); setNotice('');
     try { await action(); if (success) setNotice(success); }
-    catch { setError('نتیجهٔ درخواست تأیید نشد. وضعیت فعلی، دسترسی و محدودیت طرح مجموعه را بررسی کنید.'); }
+    catch (error) {
+      const data = error.response?.data;
+      const labels = { name: 'نام مسئول تماس', email: 'ایمیل', company: 'نام برند' };
+      const details = data && typeof data === 'object' ? Object.entries(data).flatMap(([field, messages]) => {
+        const values = Array.isArray(messages) ? messages : [messages];
+        return values.filter(message => typeof message === 'string').map(message => `${labels[field] || field}: ${message}`);
+      }).join(' — ') : '';
+      setError(details || 'نتیجهٔ درخواست تأیید نشد. وضعیت فعلی، دسترسی و محدودیت طرح مجموعه را بررسی کنید.');
+    }
     finally { setBusy(false); }
   }
   async function createOrganization(event) {
@@ -146,7 +155,8 @@ export default function OrganizationTeamPage() {
     event.preventDefault();
     await run(async () => {
       await organizationAPI.createWorkspace(organizationId, {
-        company: brand.trim(), name: user.first_name || user.email, email: user.email, requires_approval: true,
+        company: brand.trim(), requires_approval: true,
+        ...(!user.email && contactEmail.trim() ? { email: contactEmail.trim() } : {}),
       });
       setBrand(''); await loadTeam(); await refreshAuth();
     }, 'فضای کاری برند ساخته شد. حساب‌های اجتماعی را به همین برند متصل کنید.');
@@ -193,6 +203,7 @@ export default function OrganizationTeamPage() {
         </div>)}</div>
         {manager && <form onSubmit={createBrand} style={{ ...row, marginTop: 20 }}>
           <Input label="نام برند یا واحد" value={brand} onChange={event => setBrand(event.target.value)} required maxLength={200} />
+          {!user.email && <Input label="ایمیل تماس برند" type="email" value={contactEmail} onChange={event => setContactEmail(event.target.value)} required />}
           <Button type="submit" disabled={busy || !brand.trim()}>افزودن برند</Button>
         </form>}
       </section>

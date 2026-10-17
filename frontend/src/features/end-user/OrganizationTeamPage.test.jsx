@@ -2,7 +2,8 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import OrganizationTeamPage from './OrganizationTeamPage';
 import { organizationAPI } from '@/services/domains/identity';
 
-jest.mock('../../core/session', () => ({ useSession: () => ({ user: { id: 1, email: 'owner@example.com' }, refreshAuth: jest.fn() }) }));
+const mockSessionUser = { id: 1, email: 'owner@example.com' };
+jest.mock('../../core/session', () => ({ useSession: () => ({ user: mockSessionUser, refreshAuth: jest.fn() }) }));
 jest.mock('../../core/navigation', () => ({ AppLink: ({ to, children }) => <a href={to}>{children}</a> }));
 jest.mock('../../components/ui/Button', () => ({ __esModule: true, default: ({ variant, children, ...props }) => <button data-variant={variant} {...props}>{children}</button> }));
 jest.mock('../../components/ui/Input', () => ({ __esModule: true, default: ({ label, ...props }) => <label>{label}<input {...props} /></label> }));
@@ -15,6 +16,7 @@ const owner = { id: 1, name: 'Negative Five', owner_user: 1, my_role: 'owner', r
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockSessionUser.email = 'owner@example.com';
   organizationAPI.list.mockResolvedValue({ data: [owner] });
   organizationAPI.myInvitations.mockResolvedValue({ data: [] });
   organizationAPI.workspaces.mockResolvedValue({ data: [{ id: 10, company: 'Sky Den' }, { id: 11, company: 'School' }] });
@@ -56,4 +58,42 @@ test('ordinary members see their brands without team management controls', async
   expect(organizationAPI.members).not.toHaveBeenCalled();
   expect(organizationAPI.invitations).not.toHaveBeenCalled();
   expect(screen.getAllByRole('link', { name: 'اتصال شبکه‌های اجتماعی' })[0]).toHaveAttribute('href', '/u/connections?workspace=10');
+});
+
+
+test('brand creation relies on server contact defaults', async () => {
+  organizationAPI.createWorkspace.mockResolvedValue({ data: { id: 12 } });
+  render(<OrganizationTeamPage />);
+  await screen.findByRole('heading', { name: 'برندهای Negative Five' });
+  fireEvent.change(screen.getByLabelText('نام برند یا واحد'), { target: { value: 'School' } });
+  fireEvent.click(screen.getByRole('button', { name: 'افزودن برند' }));
+  await waitFor(() => expect(organizationAPI.createWorkspace).toHaveBeenCalledWith('1', {
+    company: 'School', requires_approval: true,
+  }));
+  expect(await screen.findByRole('status')).toHaveTextContent('فضای کاری برند ساخته شد');
+});
+
+test('brand field errors are visible and preserve the entered brand', async () => {
+  organizationAPI.createWorkspace.mockRejectedValue({ response: { data: { email: ['This field may not be blank.'] } } });
+  render(<OrganizationTeamPage />);
+  await screen.findByRole('heading', { name: 'برندهای Negative Five' });
+  fireEvent.change(screen.getByLabelText('نام برند یا واحد'), { target: { value: 'School' } });
+  fireEvent.click(screen.getByRole('button', { name: 'افزودن برند' }));
+  expect(await screen.findByRole('alert')).toHaveTextContent('ایمیل: This field may not be blank.');
+  expect(screen.getByLabelText('نام برند یا واحد')).toHaveValue('School');
+});
+
+
+test('an account without an email can supply a brand contact email', async () => {
+  mockSessionUser.email = '';
+  organizationAPI.createWorkspace.mockResolvedValue({ data: { id: 12 } });
+  render(<OrganizationTeamPage />);
+  await screen.findByRole('heading', { name: 'برندهای Negative Five' });
+  fireEvent.change(screen.getByLabelText('نام برند یا واحد'), { target: { value: 'School' } });
+  fireEvent.change(screen.getByLabelText('ایمیل تماس برند'), { target: { value: 'n5@n5.com' } });
+  fireEvent.click(screen.getByRole('button', { name: 'افزودن برند' }));
+  await waitFor(() => expect(organizationAPI.createWorkspace).toHaveBeenCalledWith('1', {
+    company: 'School', email: 'n5@n5.com', requires_approval: true,
+  }));
+  expect(await screen.findByRole('status')).toHaveTextContent('فضای کاری برند ساخته شد');
 });

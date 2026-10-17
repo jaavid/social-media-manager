@@ -284,6 +284,29 @@ class OrganizationTests(TestCase):
         self.api.force_authenticate(self.outsider)
         self.assertEqual(self.api.post(url, {}).status_code, 404)
 
+    def test_brand_contact_defaults_use_authenticated_account(self):
+        self.owner.email = 'owner@example.com'
+        self.owner.first_name = 'Ramin'
+        self.owner.save()
+        url = f'/api/organizations/{self.organization.pk}/workspaces/'
+        for contact in ({}, {'name': '', 'email': ''}):
+            with self.subTest(contact=contact):
+                response = self.api.post(url, {'company': 'School', **contact}, format='json')
+                self.assertEqual(response.status_code, 201, response.data)
+                workspace = Client.objects.get(pk=response.data['id'])
+                self.assertEqual(workspace.name, 'Ramin')
+                self.assertEqual(workspace.email, 'owner@example.com')
+                self.assertEqual(workspace.organization, self.organization)
+                self.assertEqual(workspace.owner_user, self.owner)
+
+    def test_missing_account_email_returns_field_error_without_creating_brand(self):
+        url = f'/api/organizations/{self.organization.pk}/workspaces/'
+        before = Client.objects.count()
+        response = self.api.post(url, {'company': 'School'}, format='json')
+        self.assertEqual(response.status_code, 400, response.data)
+        self.assertIn('email', response.data)
+        self.assertEqual(Client.objects.count(), before)
+
     def test_public_workspace_writes_cannot_change_tenant_or_owner(self):
         foreign = Organization.objects.create(name="Foreign", owner_user=self.outsider)
         url = f"/api/workspaces/{self.workspace.pk}/"

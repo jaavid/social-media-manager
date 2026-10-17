@@ -95,7 +95,18 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         organization = self.get_object()
         if request.method == "POST":
             require_manager(request.user, organization)
-            serializer = ClientSerializer(data=request.data)
+            data = request.data.copy()
+            # Contact defaults come from the authenticated account, even when
+            # older clients send blank identity fields from their session.
+            defaults = {
+                'name': request.user.get_full_name().strip() or request.user.email or request.user.get_username(),
+                'email': request.user.email,
+            }
+            for field, default in defaults.items():
+                value = data.get(field)
+                if value is None or isinstance(value, str) and not value.strip():
+                    data[field] = default
+            serializer = ClientSerializer(data=data)
             serializer.is_valid(raise_exception=True)
             # Only this owner-authorized route may select an existing tenant.
             # An unclaimed legacy organization stays unclaimed.
