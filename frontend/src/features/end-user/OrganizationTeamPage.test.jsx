@@ -17,6 +17,7 @@ const owner = { id: 1, name: 'Negative Five', owner_user: 1, my_role: 'owner', r
 beforeEach(() => {
   jest.clearAllMocks();
   mockSessionUser.email = 'owner@example.com';
+  delete mockSessionUser.client_id;
   organizationAPI.list.mockResolvedValue({ data: [owner] });
   organizationAPI.myInvitations.mockResolvedValue({ data: [] });
   organizationAPI.workspaces.mockResolvedValue({ data: [{ id: 10, company: 'Sky Den' }, { id: 11, company: 'School' }] });
@@ -96,4 +97,24 @@ test('an account without an email can supply a brand contact email', async () =>
     company: 'School', email: 'n5@n5.com', requires_approval: true,
   }));
   expect(await screen.findByRole('status')).toHaveTextContent('فضای کاری برند ساخته شد');
+});
+
+
+test('existing owners can expand the new organization form', async () => {
+  render(<OrganizationTeamPage />);
+  const toggle = await screen.findByRole('button', { name: 'ساخت مجموعهٔ جدید' });
+  expect(screen.queryByLabelText('نام مجموعه')).not.toBeInTheDocument();
+  fireEvent.click(toggle);
+  expect(screen.getByLabelText('نام مجموعه')).toBeInTheDocument();
+  expect(toggle).toHaveAttribute('aria-expanded', 'true');
+});
+
+test('active workspace and empty team have clear labels', async () => {
+  mockSessionUser.client_id = 10;
+  mockSessionUser.email = '';
+  render(<OrganizationTeamPage />);
+  expect(await screen.findByText('فضای کاری فعال')).toBeInTheDocument();
+  expect(screen.getAllByRole('button', { name: 'انتخاب فضای کاری' })[0]).toBeDisabled();
+  expect(screen.getByText(/مالک مجموعه:/)).toHaveTextContent('شما');
+  expect(screen.getByText(/هنوز همکاری به تیم اضافه نشده/)).toBeInTheDocument();
 });
