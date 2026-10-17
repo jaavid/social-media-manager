@@ -4,6 +4,8 @@
 
 `supported`: پیاده‌سازی‌شده؛ `beta`: قابل‌استفاده با محدودیت؛ `planned`: هنوز آماده نیست؛ `not_available`: موجود نیست. مجوز و سهمیهٔ provider همچنان لازم است. WhatsApp/Pinbot ماژول جدا دارد؛ [اتصال](CONNECT_ACCOUNTS.md).
 
+راه‌اندازی، دسترسی‌های لازم و محدودیت‌های نسخه آزمایشی [Reddit و Discord](REDDIT_DISCORD.md).
+
 <!-- platform-matrix:start -->
 | Platform | Connection | Disconnect | Text | Image | Video | Scheduling | Analytics | Inbox | Comments | Reviews | Webhooks |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -16,6 +18,8 @@
 | YouTube | supported | supported | not_available | not_available | supported | supported | supported | not_available | supported | not_available | beta |
 | Aparat | planned | planned | not_available | not_available | planned | planned | planned | not_available | planned | not_available | planned |
 | Google Business Profile | supported | supported | supported | supported | not_available | supported | supported | not_available | not_available | supported | not_available |
+| Discord | beta | beta | beta | beta | beta | beta | beta | beta | beta | not_available | not_available |
+| Reddit | beta | beta | beta | not_available | not_available | beta | beta | beta | beta | not_available | not_available |
 <!-- platform-matrix:end -->
 
 فقط `supported` و `beta` تعاملی باشند؛ `planned` غیرفعال و `not_available` پنهان. وصل‌بودن حساب به معنی آماده‌بودن همهٔ قابلیت‌ها نیست.

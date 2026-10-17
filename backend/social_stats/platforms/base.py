@@ -188,6 +188,9 @@ class BasePlatformProvider:
     def refresh(self, credential, destination, request=None) -> ConnectionResult:
         return self._unsupported('refresh')
 
+    def ensure_credentials(self, credential, destination):
+        """Refresh short-lived credentials when supported, after scope authorization."""
+
     def sync(self, credential, destination, request=None) -> StatsResult:
         return self.sync_stats(credential)
 
@@ -196,6 +199,12 @@ class BasePlatformProvider:
 
     def ingest(self, credential, destination, request=None) -> InboxResult:
         return self._unsupported('ingest')
+
+    def poll_inbox(self, credential, destination, request=None) -> InboxResult:
+        return self.fetch_inbox(credential, cursor=request.cursor)
+
+    def poll_comments(self, credential, destination, request=None) -> InboxResult:
+        return self.fetch_comments(credential, remote_id=request.remote_id, cursor=request.cursor)
 
     def reply(self, credential, destination, request=None) -> ProviderResult:
         # Integration maintainers own this compatibility path. Remove it when

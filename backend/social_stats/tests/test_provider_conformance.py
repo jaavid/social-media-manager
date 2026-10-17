@@ -115,7 +115,7 @@ class RegisteredProviderConformanceTests(SimpleTestCase):
     def test_ci_runner(self):
         output = StringIO()
         call_command('check_provider_conformance', stdout=output)
-        self.assertIn('11 providers', output.getvalue())
+        self.assertIn('13 providers', output.getvalue())
 
     def test_discovery_order_and_catalogue_are_deterministic(self):
         modules = registry.discover_modules('social_stats.platforms.providers')

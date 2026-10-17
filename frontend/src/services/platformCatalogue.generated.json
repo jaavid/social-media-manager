@@ -641,6 +641,203 @@
       }
     },
     {
+      "key": "discord",
+      "titles": {
+        "fa": "دیسکورد",
+        "en": "Discord"
+      },
+      "category": "messaging",
+      "order": 40,
+      "auth_type": "bot_token",
+      "rollout_status": "beta",
+      "capabilities": {
+        "connection": "beta",
+        "disconnect": "beta",
+        "publish_text": "beta",
+        "publish_image": "beta",
+        "publish_video": "beta",
+        "scheduling": "beta",
+        "analytics": "beta",
+        "inbox": "beta",
+        "comments": "beta",
+        "reviews": "not_available",
+        "webhooks": "not_available"
+      },
+      "features": {},
+      "contract": {
+        "version": 1,
+        "auth": {
+          "strategy": "bot_token",
+          "fields": [
+            {
+              "key": "token",
+              "title_en": "Bot token",
+              "title_fa": "توکن ربات",
+              "secret": true,
+              "required": true,
+              "normalization": "trim"
+            },
+            {
+              "key": "destination_id",
+              "title_en": "Channel ID",
+              "title_fa": "شناسه کانال",
+              "secret": false,
+              "required": true,
+              "normalization": "trim"
+            }
+          ],
+          "start_path": ""
+        },
+        "destination_types": [
+          "channel"
+        ],
+        "publishing_modes": {
+          "text": {
+            "capability": "publish_text",
+            "constraints": {
+              "status": "beta",
+              "media_types": [],
+              "destination_types": [],
+              "scopes": [],
+              "min_items": null,
+              "max_items": null,
+              "max_bytes": null,
+              "max_characters": 2000,
+              "mime_types": [],
+              "aspect_min": null,
+              "aspect_max": null,
+              "max_seconds": null,
+              "max_width": null,
+              "min_width": null,
+              "min_height": null
+            },
+            "ui_extension": ""
+          },
+          "image": {
+            "capability": "publish_image",
+            "constraints": {
+              "status": "beta",
+              "media_types": [],
+              "destination_types": [],
+              "scopes": [],
+              "min_items": 1,
+              "max_items": 1,
+              "max_bytes": 10485760,
+              "max_characters": 2000,
+              "mime_types": [
+                "image/jpeg",
+                "image/png",
+                "image/gif",
+                "image/webp"
+              ],
+              "aspect_min": null,
+              "aspect_max": null,
+              "max_seconds": null,
+              "max_width": null,
+              "min_width": null,
+              "min_height": null
+            },
+            "ui_extension": ""
+          },
+          "video": {
+            "capability": "publish_video",
+            "constraints": {
+              "status": "beta",
+              "media_types": [],
+              "destination_types": [],
+              "scopes": [],
+              "min_items": 1,
+              "max_items": 1,
+              "max_bytes": 10485760,
+              "max_characters": 2000,
+              "mime_types": [
+                "video/mp4",
+                "video/webm"
+              ],
+              "aspect_min": null,
+              "aspect_max": null,
+              "max_seconds": null,
+              "max_width": null,
+              "min_width": null,
+              "min_height": null
+            },
+            "ui_extension": ""
+          }
+        },
+        "constraints": {
+          "inbox": {
+            "status": "beta",
+            "media_types": [],
+            "destination_types": [],
+            "scopes": [],
+            "min_items": null,
+            "max_items": null,
+            "max_bytes": null,
+            "max_characters": 2000,
+            "mime_types": [],
+            "aspect_min": null,
+            "aspect_max": null,
+            "max_seconds": null,
+            "max_width": null,
+            "min_width": null,
+            "min_height": null
+          },
+          "comments": {
+            "status": "beta",
+            "media_types": [],
+            "destination_types": [],
+            "scopes": [],
+            "min_items": null,
+            "max_items": null,
+            "max_bytes": null,
+            "max_characters": 2000,
+            "mime_types": [],
+            "aspect_min": null,
+            "aspect_max": null,
+            "max_seconds": null,
+            "max_width": null,
+            "min_width": null,
+            "min_height": null
+          }
+        },
+        "brand": {
+          "icon": "discord",
+          "color": "#5865F2"
+        },
+        "analytics": {
+          "metrics": [
+            {
+              "key": "messages_sampled",
+              "title_en": "Messages in latest sample",
+              "title_fa": "پیام‌های نمونه اخیر",
+              "unit": "count",
+              "period": "snapshot"
+            },
+            {
+              "key": "reactions_sampled",
+              "title_en": "Reactions in latest sample",
+              "title_fa": "واکنش‌های نمونه اخیر",
+              "unit": "count",
+              "period": "snapshot"
+            }
+          ],
+          "sync_available": true
+        },
+        "inbound": "polling",
+        "extensions": [],
+        "ui_extensions": [
+          "discord_connection"
+        ],
+        "resilience": {
+          "retry_after": true,
+          "max_attempts": 3,
+          "mutation_retry": "never",
+          "idempotency": "local",
+          "reconciliation": "manual"
+        }
+      }
+    },
+    {
       "key": "youtube",
       "titles": {
         "fa": "یوتیوب",
@@ -1182,6 +1379,190 @@
           "retry_after": true,
           "max_attempts": 3,
           "mutation_retry": "reconcile_first",
+          "idempotency": "local",
+          "reconciliation": "manual"
+        }
+      }
+    },
+    {
+      "key": "reddit",
+      "titles": {
+        "fa": "ردیت",
+        "en": "Reddit"
+      },
+      "category": "social_content",
+      "order": 30,
+      "auth_type": "oauth2",
+      "rollout_status": "beta",
+      "capabilities": {
+        "connection": "beta",
+        "disconnect": "beta",
+        "publish_text": "beta",
+        "publish_image": "not_available",
+        "publish_video": "not_available",
+        "scheduling": "beta",
+        "analytics": "beta",
+        "inbox": "beta",
+        "comments": "beta",
+        "reviews": "not_available",
+        "webhooks": "not_available"
+      },
+      "features": {},
+      "contract": {
+        "version": 1,
+        "auth": {
+          "strategy": "oauth2",
+          "fields": [],
+          "start_path": "/api/oauth/reddit/start/{workspace_id}/"
+        },
+        "destination_types": [
+          "profile"
+        ],
+        "publishing_modes": {
+          "text": {
+            "capability": "publish_text",
+            "constraints": {
+              "status": "beta",
+              "media_types": [],
+              "destination_types": [],
+              "scopes": [
+                "submit"
+              ],
+              "min_items": null,
+              "max_items": null,
+              "max_bytes": null,
+              "max_characters": 40000,
+              "mime_types": [],
+              "aspect_min": null,
+              "aspect_max": null,
+              "max_seconds": null,
+              "max_width": null,
+              "min_width": null,
+              "min_height": null
+            },
+            "ui_extension": "reddit_composer"
+          }
+        },
+        "constraints": {
+          "publish_text": {
+            "status": "beta",
+            "media_types": [],
+            "destination_types": [],
+            "scopes": [
+              "submit"
+            ],
+            "min_items": null,
+            "max_items": null,
+            "max_bytes": null,
+            "max_characters": 40000,
+            "mime_types": [],
+            "aspect_min": null,
+            "aspect_max": null,
+            "max_seconds": null,
+            "max_width": null,
+            "min_width": null,
+            "min_height": null
+          },
+          "inbox": {
+            "status": "beta",
+            "media_types": [],
+            "destination_types": [],
+            "scopes": [
+              "privatemessages"
+            ],
+            "min_items": null,
+            "max_items": null,
+            "max_bytes": null,
+            "max_characters": 10000,
+            "mime_types": [],
+            "aspect_min": null,
+            "aspect_max": null,
+            "max_seconds": null,
+            "max_width": null,
+            "min_width": null,
+            "min_height": null
+          },
+          "comments": {
+            "status": "beta",
+            "media_types": [],
+            "destination_types": [],
+            "scopes": [
+              "submit"
+            ],
+            "min_items": null,
+            "max_items": null,
+            "max_bytes": null,
+            "max_characters": 10000,
+            "mime_types": [],
+            "aspect_min": null,
+            "aspect_max": null,
+            "max_seconds": null,
+            "max_width": null,
+            "min_width": null,
+            "min_height": null
+          },
+          "scheduling": {
+            "status": "beta",
+            "media_types": [],
+            "destination_types": [],
+            "scopes": [
+              "submit"
+            ],
+            "min_items": null,
+            "max_items": null,
+            "max_bytes": null,
+            "max_characters": null,
+            "mime_types": [],
+            "aspect_min": null,
+            "aspect_max": null,
+            "max_seconds": null,
+            "max_width": null,
+            "min_width": null,
+            "min_height": null
+          }
+        },
+        "brand": {
+          "icon": "reddit",
+          "color": "#FF4500"
+        },
+        "analytics": {
+          "metrics": [
+            {
+              "key": "subscribers",
+              "title_en": "Subreddit subscribers",
+              "title_fa": "مشترکان ساب‌ردیت",
+              "unit": "count",
+              "period": "snapshot"
+            },
+            {
+              "key": "link_karma",
+              "title_en": "Account post karma",
+              "title_fa": "کارمای پست حساب",
+              "unit": "count",
+              "period": "snapshot"
+            },
+            {
+              "key": "comment_karma",
+              "title_en": "Account comment karma",
+              "title_fa": "کارمای نظر حساب",
+              "unit": "count",
+              "period": "snapshot"
+            }
+          ],
+          "sync_available": true
+        },
+        "inbound": "polling",
+        "extensions": [
+          "reddit"
+        ],
+        "ui_extensions": [
+          "reddit_composer",
+          "reddit_connection"
+        ],
+        "resilience": {
+          "retry_after": true,
+          "max_attempts": 3,
+          "mutation_retry": "never",
           "idempotency": "local",
           "reconciliation": "manual"
         }

@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>اتصال ردیت</title></head>
+<body>
+  <main>
+    <h1>اتصال حساب ردیت</h1>
+    <p>نام ساب‌ردیتی را وارد کنید که می‌خواهید در آن منتشر کنید. در مرحله بعد، دسترسی حساب را در ردیت تأیید می‌کنید.</p>
+    <form method="post">
+      {% csrf_token %}
+      <label for="subreddit">نام ساب‌ردیت (بدون r/)</label>
+      <input id="subreddit" name="subreddit" value="{{ subreddit }}" dir="ltr" required pattern="[A-Za-z0-9_]{2,21}" maxlength="21" autocomplete="off">
+      <button type="submit">ادامه در ردیت</button>
+    </form>
+  </main>
+</body>
+</html>

@@ -90,6 +90,10 @@ def oauth_readiness_report() -> dict[str, dict]:
     )
 
     return {
+        'reddit': _provider({key: getattr(settings, key, '') for key in (
+            'REDDIT_CLIENT_ID', 'REDDIT_CLIENT_SECRET', 'REDDIT_REDIRECT_URI', 'REDDIT_USER_AGENT')},
+            redirect_key='REDDIT_REDIRECT_URI', scopes=['identity', 'read', 'submit', 'privatemessages'],
+            required_apis=['Reddit Data API approval']),
         'facebook': dict(meta),
         'instagram': dict(meta),
         'youtube': dict(google),

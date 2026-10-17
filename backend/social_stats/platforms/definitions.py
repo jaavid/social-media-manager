@@ -12,6 +12,7 @@ from dataclasses import replace
 from .publishing_defaults import builtin_modes
 from .analytics_defaults import builtin_metrics
 from .manifest import CAPABILITIES, PlatformManifest
+from .community_manifests import COMMUNITY_MANIFESTS
 
 
 CATEGORY_REGISTRY = {
@@ -463,3 +464,4 @@ _ANALYTICS_SYNC = {key: f'social_stats.tasks.sync_{runtime}' for key, runtime in
 PLATFORM_REGISTRY = tuple(replace(item, publishing_modes=builtin_modes(item),
     analytics_metrics=builtin_metrics(item.key), analytics_sync_handler=_ANALYTICS_SYNC.get(item.key, ''))
     for item in PLATFORM_REGISTRY)
+PLATFORM_REGISTRY += COMMUNITY_MANIFESTS

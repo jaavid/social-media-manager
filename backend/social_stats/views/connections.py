@@ -144,7 +144,7 @@ def connection(request, workspace_id, platform):
         if request.method == 'DELETE':
             if account is None:
                 return Response({'code': 'account_required'}, status=400)
-            if manifest.oauth_start:
+            if manifest.oauth_start and manifest.legacy_adapter:
                 # Legacy OAuth disconnect uses the same permission evaluator.
                 from .oauth import oauth_disconnect
                 return oauth_disconnect(request._request, workspace.pk, manifest.key)

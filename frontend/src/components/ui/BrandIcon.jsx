@@ -3,9 +3,13 @@ import {
   siGithub,
   siX,
   siYoutube,
+  siDiscord,
+  siReddit,
 } from 'simple-icons';
 
 const BRAND_ICONS = {
+  discord: siDiscord,
+  reddit: siReddit,
   facebook: siFacebook,
   github: siGithub,
   twitter: siX,

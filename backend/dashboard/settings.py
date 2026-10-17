@@ -305,6 +305,11 @@ CELERY_ACCEPT_CONTENT    = ['json']
 CELERY_TASK_SERIALIZER   = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE          = 'UTC'
+REDDIT_CLIENT_ID = os.getenv('REDDIT_CLIENT_ID', '')
+REDDIT_CLIENT_SECRET = os.getenv('REDDIT_CLIENT_SECRET', '')
+REDDIT_REDIRECT_URI = os.getenv('REDDIT_REDIRECT_URI', '')
+REDDIT_USER_AGENT = os.getenv('REDDIT_USER_AGENT', '')
+
 CELERY_BEAT_SCHEDULER    = 'django_celery_beat.schedulers:DatabaseScheduler'
 # In development, run tasks synchronously (no Redis/worker needed)
 CELERY_TASK_ALWAYS_EAGER = DEBUG

@@ -58,13 +58,15 @@ const INTEGRATIONS = [
   { slug: 'youtube',    name: "یوتیوب",    tagline: "بارگذاری، نظرات، تحلیل و آمار.",         category: 'social',     live: true,  badge: "یکپارچه", accent: '#FF0000', initial: 'Y' },
   { slug: 'linkedin',   name: "لینکدین",   tagline: "صفحات، پست‌ها، فرم‌های اصلی.",         category: 'social',     live: true,  badge: "یکپارچه", accent: '#0A66C2', initial: 'in' },
 
+  { slug: 'reddit', name: "ردیت", tagline: "انتشار در ساب‌ردیت، نظرها و پیام‌ها.", category: 'social', live: true, badge: "آزمایشی", accent: '#FF4500', initial: 'r' },
+
   // Messaging
   { slug: 'whatsapp',   name: "کسب و کار واتس‌اپ", tagline: "چت دو طرفه، کمپین ها، CTWA.", category: 'messaging',  live: true,  badge: "یکپارچه", accent: '#25D366', initial: 'W' },
   { slug: 'pinbot',     name: 'Pinbot.ai',  tagline: "درگاه واتس‌اپ کسب و کار API.",         category: 'messaging',  live: true,                   accent: '#22c55e', initial: 'pb' },
   { slug: 'messenger',  name: "مسنجر",  tagline: "مکالمات از فیس‌بوک.",          category: 'messaging',  live: true,                   accent: '#0084FF', initial: 'M' },
   { slug: 'telegram',   name: "تلگرام",   tagline: "کانال ها و پاسخ های ربات.",             category: 'messaging',  live: false,                  accent: '#26A5E4', initial: 'tg' },
   { slug: 'slack',      name: "اسلک",      tagline: "اطلاعیه ها، تأییدیه ها، هشدارها.",     category: 'messaging',  live: true,                   accent: '#4A154B', initial: 'S' },
-  { slug: 'discord',    name: "دیسکورد",    tagline: "اطلاعیه های سرور از طریق webhook.",     category: 'messaging',  live: false,                  accent: '#5865F2', initial: 'D' },
+  { slug: 'discord',    name: "دیسکورد",    tagline: "انتشار در کانال سرور با ربات.",     category: 'messaging',  live: true, badge: "آزمایشی",                  accent: '#5865F2', initial: 'D' },
 
   // Analytics
   { slug: 'ga4',        name: "گوگل آنالیتیکس ۴", tagline: "جلسات، تبدیل ها، مسیرها.", category: 'analytics',  live: true,                   accent: '#E37400', initial: 'GA' },

@@ -20,6 +20,9 @@ class EgressService:
 
 
 SERVICES: dict[str, EgressService] = {
+    'discord': EgressService('discord', 'Discord API', 'https://discord.com', 'discord', 'https://discord.com/api/v10/gateway'),
+    'reddit': EgressService('reddit', 'Reddit API', 'https://oauth.reddit.com', 'reddit', 'https://oauth.reddit.com/'),
+    'reddit_oauth': EgressService('reddit_oauth', 'Reddit OAuth', 'https://www.reddit.com', 'reddit-oauth', 'https://www.reddit.com/'),
     'resend': EgressService(
         key='resend', label='Resend Email API', direct_origin='https://api.resend.com',
         gateway_route='resend', probe_url='https://api.resend.com/',

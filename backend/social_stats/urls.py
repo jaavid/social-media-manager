@@ -13,6 +13,7 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
 from social_stats.views.organizations import OrganizationViewSet
 from social_stats.views import organization_team as team_views
+from social_stats.views.community import reddit_start, reddit_callback, sync_inbox as community_sync_inbox
 
 from social_stats.views.telegram import TelegramAccountViewSet, TelegramSuggestionViewSet, telegram_webhook
 from social_stats.views.core import (
@@ -443,6 +444,11 @@ urlpatterns = [
     path('oauth/destination-selection/', oauth_destination_selection, name='oauth_destination_selection'),
     path('oauth/google/start/<int:client_id>/',    google_oauth_start,    name='google_start'),
     path('oauth/google/callback/',                 google_oauth_callback, name='google_callback'),
+
+    # Community integrations
+    path('oauth/reddit/start/<int:client_id>/', reddit_start, name='reddit_start'),
+    path('oauth/reddit/callback/', reddit_callback, name='reddit_callback'),
+    path('workspaces/<int:client_id>/connections/<str:platform>/inbox-sync/', community_sync_inbox, name='community_inbox_sync'),
 
     # OAuth — LinkedIn
     path('oauth/linkedin/start/<int:client_id>/',  linkedin_oauth_start,    name='li_start'),

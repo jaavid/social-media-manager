@@ -68,12 +68,45 @@ def sync_inbox_for_all_clients(self):
     }
     for c in creds:
         task = by_platform.get(c.platform)
+        if task is None:
+            from .platforms.registry import get_provider
+            try:
+                if get_provider(c.platform).manifest.inbound == 'polling':
+                    task = sync_community_inbox
+            except NotImplementedError:
+                pass
         if task is not None:
             task.delay(c.client_id, credential_id=c.id)
             queued += 1
     if queued:
         logger.info('sync_inbox_for_all_clients queued %s syncs', queued)
     return queued
+
+
+@shared_task(bind=True, max_retries=0)
+def sync_community_inbox(self, client_id, credential_id):
+    from .platforms.community_polling import poll_account
+    from .publishers.base import PublishError
+    try:
+        return poll_account(client_id, credential_id)
+    except PublishError as error:
+        if error.code == 'rate_limited':
+            from .models import SocialAccount
+            with transaction.atomic():
+                account = SocialAccount.objects.select_for_update().filter(
+                    client_id=client_id, credential__pk=credential_id, is_active=True).first()
+                if account:
+                    metadata = dict(account.metadata or {})
+                    wait = max(1, min(int(getattr(error, 'retry_after', None) or 300), 86400))
+                    metadata['community_poll_after'] = (timezone.now() + timedelta(seconds=wait)).isoformat()
+                    account.metadata = metadata
+                    account.save(update_fields=['metadata', 'updated_at'])
+        if error.code == 'token_expired':
+            credential = PlatformCredential.objects.filter(pk=credential_id, client_id=client_id).first()
+            if credential:
+                credential.mark_auth_failure('token_expired')
+        logger.warning('Community inbox failed workspace=%s credential=%s code=%s', client_id, credential_id, error.code)
+        return 0
 
 
 # ── Facebook ─────────────────────────────────────────────────────────────────

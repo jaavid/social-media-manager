@@ -158,7 +158,9 @@ def validate_intent(payload, workspace, user=None, *, action='draft_posts', read
                 if not credential or not credential.is_active or not credential.access_token or (account and not account.is_active):
                     invalid('not_connected', 'Reconnect the selected account')
                 if credential.is_expired:
-                    invalid('token_expired', 'Reconnect the expired account')
+                    from .platforms.account_health import connection_health
+                    if not connection_health(provider, credential).ready:
+                        invalid('token_expired', 'Reconnect the expired account')
                 if credential.auth_failure_code:
                     invalid('not_connected', 'Reconnect the selected account')
                 policy = descriptor.constraints

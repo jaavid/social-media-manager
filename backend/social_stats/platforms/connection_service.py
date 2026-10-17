@@ -147,9 +147,10 @@ class ConnectionService:
 
     @staticmethod
     def _status(credential):
-        if credential.auth_method == 'managed_bot':
+        provider = get_provider(credential.platform)
+        if credential.auth_method == 'managed_bot' or not provider.manifest.legacy_adapter:
             from .account_health import connection_health
-            health = connection_health(get_provider(credential.platform), credential)
+            health = connection_health(provider, credential)
             return 'active' if health.ready else health.state
         return credential.status if credential.is_active else 'not_connected'
 

@@ -6,6 +6,8 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
+import BrandIcon from './BrandIcon';
+
 const PLATFORM_ALIASES = {
   google: 'google',
   google_my_business: 'google_my_business',
@@ -37,6 +39,10 @@ export default function SocialPlatformIcon({ platform, size = 18, title, label, 
   const key = normalizePlatform(platform);
 
   switch (key) {
+    case 'reddit':
+    case 'discord':
+      return <BrandIcon brand={key} size={size} title={title || (key === 'reddit' ? 'Reddit' : 'Discord')}
+        color={key === 'reddit' ? '#FF4500' : '#5865F2'} style={style} />;
     case 'facebook':
       return (
         <SvgWrap size={size} title={title || 'Facebook'} style={style}>

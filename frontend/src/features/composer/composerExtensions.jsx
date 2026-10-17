@@ -1,5 +1,6 @@
 /* Provider-owned editor extensions. Generic Composer resolves declared slot IDs. */
 import TelegramComposer, { emptyRich, RichPreview } from './TelegramComposer';
+import RedditComposer from './RedditComposer';
 
 function TelegramEditor({ mode, value, onChange, assets, setAssets }) {
   return (
@@ -60,4 +61,14 @@ const telegram = {
     return null;
   },
 };
-export const composerExtensions = { telegram_composer: telegram };
+export const composerExtensions = {
+  telegram_composer: telegram,
+  reddit_composer: {
+    Editor: RedditComposer,
+    prepare: (_mode, value) => value,
+    Preview: ({ value }) => <div className="space-y-2">
+      {value.extensions?.reddit?.title && <h3 className="font-semibold">{value.extensions.reddit.title}</h3>}
+      {value.extensions?.reddit?.url && <p dir="ltr" className="break-all">{value.extensions.reddit.url}</p>}
+    </div>,
+  },
+};

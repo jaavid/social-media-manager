@@ -1,5 +1,18 @@
 // Semantic catalogs. Identical key sets and ICU placeholders are checked in CI.
 const accountsEn = {
+  "reddit.editor": "Reddit post settings",
+  "reddit.title": "Post title (up to 300 characters)",
+  "reddit.url": "Link URL (optional)",
+  "reddit.linkHelp": "A link creates a link post. Without a link, the content becomes a text post. Native image/video uploads are not available.",
+  "reddit.flair": "Flair template ID (if required by the subreddit)",
+  "reddit.nsfw": "Adult content (NSFW)",
+  "reddit.spoiler": "Contains spoilers",
+  "community.sync": "Sync Inbox",
+  "community.queued": "Inbox sync queued. New items will appear in Inbox after processing.",
+  "community.failed": "Could not queue sync. Check your access and try again.",
+  "community.discordHelp": "The bot needs View Channel, Read Message History, Send Messages, Attach Files and Message Content access. Only this connected channel is imported; personal Discord DMs are not imported.",
+  "community.redditHelp": "Text and link posts, comments on your posts, and account mail use the approved Reddit API. Rules and flair requirements vary by subreddit.",
+
   "business.uploadLimit": "Product-file uploads are not supported by the current workspace endpoint. Existing product URLs are retained.",
   "business.competitorLimit": "Competitors are read-only in this form. Manage them through the existing Competitors page; saving this profile does not update them.",
 
@@ -480,6 +493,19 @@ const accountsEn = {
   'category.business': 'Business listings',
 } as const;
 const accountsFa = {
+  "reddit.editor": "تنظیمات پست ردیت",
+  "reddit.title": "عنوان پست (حداکثر ۳۰۰ نویسه)",
+  "reddit.url": "نشانی لینک (اختیاری)",
+  "reddit.linkHelp": "با واردکردن لینک، پست از نوع لینک منتشر می‌شود؛ بدون لینک، محتوای نوشته به‌صورت پست متنی منتشر می‌شود. آپلود بومی تصویر و ویدیو در دسترس نیست.",
+  "reddit.flair": "شناسه قالب برچسب Flair (در صورت الزام ساب‌ردیت)",
+  "reddit.nsfw": "محتوای بزرگسالان (NSFW)",
+  "reddit.spoiler": "حاوی افشای داستان",
+  "community.sync": "همگام‌سازی صندوق پیام",
+  "community.queued": "همگام‌سازی در صف قرار گرفت. موارد جدید پس از پردازش در صندوق پیام نمایش داده می‌شوند.",
+  "community.failed": "افزودن همگام‌سازی به صف ممکن نشد. دسترسی خود را بررسی و دوباره تلاش کنید.",
+  "community.discordHelp": "ربات به دسترسی دیدن کانال، خواندن تاریخچه، ارسال پیام، پیوست فایل و محتوای پیام نیاز دارد. فقط همین کانال متصل دریافت می‌شود؛ پیام‌های خصوصی حساب شخصی دیسکورد دریافت نمی‌شوند.",
+  "community.redditHelp": "انتشار متن و لینک، نظرهای پست‌های شما و پیام‌های حساب از API تأییدشده ردیت استفاده می‌کنند. قوانین و الزام برچسب هر ساب‌ردیت متفاوت است.",
+
   "business.uploadLimit": "بارگذاری فایل محصول در مسیر فعلی فضای کار پشتیبانی نمی‌شود. نشانی‌های موجود محصولات حفظ می‌شوند.",
   "business.competitorLimit": "رقبا در این فرم فقط خواندنی‌اند. از صفحه موجود رقبا آن‌ها را مدیریت کنید؛ ذخیره مشخصات کسب‌وکار رقبا را تغییر نمی‌دهد.",
 

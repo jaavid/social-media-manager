@@ -99,6 +99,10 @@ export function parseConnections(wire: unknown, workspaceId: number): Connection
 }
 const path = (workspaceId: number, provider?: string) => `/workspaces/${workspaceId}/connections/${provider ? `${encodeURIComponent(provider)}/` : ''}`;
 export const connectionsAPI = {
+  async syncInbox(workspaceId: number, provider: string, accountId: number) {
+    const response = await api.post(`${path(workspaceId, provider)}inbox-sync/`, {}, { params: { account_id: accountId } });
+    if (response.status !== 202 || response.data?.queued !== true) throw new Error('Invalid inbox sync result');
+  },
   async workspace(signal?: AbortSignal): Promise<{ id: number } | null> {
     const response = await api.get<unknown>('/end-user/me/', { signal });
     if (!object(response.data) || !('workspace' in response.data)) throw new Error('Invalid workspace response');

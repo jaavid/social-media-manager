@@ -276,5 +276,39 @@
       "webhooks": "not_available"
     },
     "features": {}
+  },
+  "discord": {
+    "label": "Discord",
+    "capabilities": {
+      "connection": "beta",
+      "disconnect": "beta",
+      "publish_text": "beta",
+      "publish_image": "beta",
+      "publish_video": "beta",
+      "scheduling": "beta",
+      "analytics": "beta",
+      "inbox": "beta",
+      "comments": "beta",
+      "reviews": "not_available",
+      "webhooks": "not_available"
+    },
+    "features": {}
+  },
+  "reddit": {
+    "label": "Reddit",
+    "capabilities": {
+      "connection": "beta",
+      "disconnect": "beta",
+      "publish_text": "beta",
+      "publish_image": "not_available",
+      "publish_video": "not_available",
+      "scheduling": "beta",
+      "analytics": "beta",
+      "inbox": "beta",
+      "comments": "beta",
+      "reviews": "not_available",
+      "webhooks": "not_available"
+    },
+    "features": {}
   }
 }

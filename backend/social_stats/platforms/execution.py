@@ -19,6 +19,7 @@ from .contracts import (
     ReplyRequest,
     HealthResult,
     HEALTH_STATES,
+    PollRequest,
 )
 from social_stats.publishers.base import PublishError, PublishResult
 
@@ -31,6 +32,8 @@ OPERATIONS = {
     'reply': None,
     'analytics': 'analytics',
     'health': None,
+    'poll_inbox': 'inbox',
+    'poll_comments': 'comments',
 }
 
 
@@ -85,6 +88,14 @@ class ProviderExecution:
                 'Unknown provider operation', code='unsupported', supported=False
             )
         capability = OPERATIONS[operation]
+        if operation in {'poll_inbox', 'poll_comments'} and (
+            not isinstance(request, PollRequest) or not isinstance(request.cursor, str)
+            or not isinstance(request.remote_id, str)
+        ):
+            raise ProviderError('Typed poll request required', code='invalid_request')
+        if operation in {'poll_inbox', 'poll_comments'}:
+            if not set(provider.manifest.capability(capability).scopes) <= set(self.credential.scope.split()):
+                raise ProviderError('Required provider permissions are missing', code='permission_denied')
         if operation == 'publish':
             if not isinstance(request, PublishRequest):
                 raise ProviderError(
@@ -120,8 +131,19 @@ class ProviderExecution:
                 raise ProviderError('Destination is unsupported', code='invalid_destination')
         if capability and not provider.manifest.capability(capability).enabled:
             provider._unsupported(operation)
-        if operation not in {'health', 'disconnect'} and self.credential.is_expired:
+        if operation not in {'health', 'disconnect', 'refresh'}:
+            try:
+                provider.ensure_credentials(self.credential, self.destination)
+            except PublishError as exc:
+                raise safe_provider_error(exc) from None
+            except Exception:
+                raise ProviderError('Provider credential refresh failed', code='provider_error') from None
+        if operation not in {'health', 'disconnect', 'refresh'} and self.credential.is_expired:
             raise ProviderError('Provider account token expired', code='token_expired')
+        if operation in {'poll_inbox', 'poll_comments', 'reply'} and not set(
+            provider.manifest.capability(capability).scopes
+        ) <= set(self.credential.scope.split()):
+            raise ProviderError('Required provider permissions are missing', code='permission_denied')
         if operation == 'publish':
             policy = descriptor.constraints
             if (
@@ -190,7 +212,7 @@ class ProviderExecution:
                 expected = (
                     StatsResult
                     if operation in {'sync', 'analytics'}
-                    else (InboxResult if operation == 'ingest' else ProviderResult)
+                    else (InboxResult if operation in {'ingest', 'poll_inbox', 'poll_comments'} else ProviderResult)
                 )
             if not isinstance(result, expected):
                 raise ProviderError(

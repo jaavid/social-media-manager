@@ -139,7 +139,7 @@ function ConnectionCollection({ workspaceId }) {
                 </div>
               </div>}
               {provider.readiness?.configured === true && <p className="mt-3 text-sm text-muted-foreground">{t('connections.providerReady')}</p>}
-              {account && <ProviderExtensions key={`${workspaceId}:${account.id}`} names={provider.contract.ui_extensions} workspaceId={workspaceId} accountId={account.id} />}
+              {account && <ProviderExtensions key={`${workspaceId}:${account.id}`} names={provider.contract.ui_extensions} workspaceId={workspaceId} accountId={account.id} permissions={account.permissions} />}
               {needsSetup && <p className="mt-3 text-sm text-muted-foreground">{t('connections.setup')}</p>}
               {oauthUnknown && <p className="mt-3 text-sm text-muted-foreground">{t('connections.readinessUnknown')}</p>}
               {allowed && !needsSetup && <Button className="mt-4" variant="secondary" size="sm" onClick={() => start(provider)}>{t('connections.add')}</Button>}

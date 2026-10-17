@@ -23,6 +23,12 @@ class PublishRequest:
 
 
 @dataclass(frozen=True)
+class PollRequest:
+    cursor: str = ''
+    remote_id: str = ''
+
+
+@dataclass(frozen=True)
 class InboundEvent:
     event_id: str
     payload: Mapping[str, Any] = field(default_factory=dict, repr=False)
