@@ -9,6 +9,10 @@
 import { api } from '../http/client';
 
 export const calendarAPI = {
+  getSources: (params) => api.get('/calendar/sources/', { params }),
+  addSource: (data) => api.post('/calendar/sources/', data),
+  removeSource: (id) => api.delete(`/calendar/sources/${id}/`),
+  syncSource: (id) => api.post(`/calendar/sources/${id}/sync/`),
   getPosts:     (params)   => api.get('/calendar/posts/',               { params }),
   getPost:      (id)       => api.get(`/calendar/posts/${id}/`),
   createPost:   (data)     => api.post('/calendar/posts/', data),

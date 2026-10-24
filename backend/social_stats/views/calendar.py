@@ -108,6 +108,10 @@ class CalendarPostViewSet(viewsets.ModelViewSet):
         if err:
             return err
 
+        source_id = request.query_params.get('source_id')
+        if source_id and (not source_id.isdecimal() or int(source_id) < 1):
+            return Response({'error': 'Invalid source_id.'}, status=400)
+
         qs = self.get_queryset().filter(client_id=client_id)
 
         if month and year:
@@ -132,7 +136,15 @@ class CalendarPostViewSet(viewsets.ModelViewSet):
         # Group by date string
         posts_by_date = defaultdict(list)
         serializer = self.get_serializer(qs.distinct(), many=True)
-        for post in serializer.data:
+        from social_stats.instagram_calendar import calendar_channel_posts
+        external_posts = calendar_channel_posts(request, client, month, year, platform)
+        if status_f and status_f != 'published':
+            external_posts = []
+        if request.query_params.get('source_id'):
+            owned_posts = []
+        else:
+            owned_posts = serializer.data
+        for post in [*owned_posts, *external_posts]:
             # Use scheduled_at or published_at for date key
             dt = post.get('scheduled_at') or post.get('published_at')
             if dt:

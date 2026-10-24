@@ -118,6 +118,13 @@ export default function PostDrawer({ post, isOpen, onClose, onEdit, onDelete, on
             <span>{dateDisplay}</span>
           </div>
 
+          {post.is_external && (
+            <p style={{ color: 'var(--text-secondary)', fontSize: 13 }}>
+              @{post.source_username} · {isPersian ? 'رصد عمومی؛ — یعنی آمار در دسترس نیست' : 'Public tracking; — means unavailable'}
+              <br />
+              {isPersian ? 'آخرین دریافت: ' : 'Last fetched: '}{formatDate(post.fetched_at)}
+            </p>
+          )}
           {post.caption && (
             <div style={{
               background: 'var(--surface-sunken)', borderRadius: 8, padding: '12px 14px',
@@ -159,14 +166,14 @@ export default function PostDrawer({ post, isOpen, onClose, onEdit, onDelete, on
                   { icon: '📤', label: 'Shares', value: post.shares },
                   { icon: '🔖', label: 'Saves', value: post.saves },
                   { icon: '▶️', label: 'Views', value: post.video_views },
-                ].filter(metric => metric.value > 0).map(metric => (
+                ].filter(metric => post.is_external || metric.value > 0).map(metric => (
                   <div key={metric.label} style={{
                     background: 'var(--surface-sunken)', borderRadius: 8, padding: '8px',
                     textAlign: 'center',
                   }}>
                     <div style={{ fontSize: 16 }}>{metric.icon}</div>
                     <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>
-                      {compactNumber(metric.value, formatNumber)}
+                      {metric.value == null ? '—' : compactNumber(metric.value, formatNumber)}
                     </div>
                     <div style={{ fontSize: 10, color: 'var(--text-tertiary)' }}>{tr(metric.label)}</div>
                   </div>

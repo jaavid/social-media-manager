@@ -30,6 +30,7 @@ app.conf.imports = (
     'social_stats.security.platform_compliance_tasks',
     'social_stats.events.publisher',
     'social_stats.competitor_tasks',
+    'social_stats.channel_calendar_tasks',
     'social_stats.meta_capi_tasks',
     'social_stats.bot_webhook_tasks',
     'social_stats.bot_engine.handlers.timed',

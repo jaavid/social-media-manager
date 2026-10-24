@@ -25,6 +25,7 @@ from social_stats.views.core import (
     gmb_info, gmb_reviews, setup_solo_client, sync_all_clients,
 )
 from social_stats.views.roi import ROISettingsView, ROICalculateView, ROIReportView, ROILiveView
+from social_stats.views.calendar_sources import CalendarSourceViewSet
 from social_stats.views.calendar import (
     CalendarPostViewSet, CalendarNoteViewSet,
     PostingScheduleViewSet, SuggestTimesView,
@@ -247,6 +248,7 @@ router.register(r'insights',    AIInsightViewSet,      basename='insight')
 router.register(r'top-posts',      WeeklyTopPostViewSet,  basename='top-post')
 router.register(r'shared-reports', SharedReportViewSet,   basename='shared-report')
 router.register(r'onboarding',     OnboardingViewSet,     basename='onboarding')
+router.register(r'calendar/sources', CalendarSourceViewSet, basename='calendar-source')
 router.register(r'calendar/posts',    CalendarPostViewSet,    basename='calendar-post')
 router.register(r'calendar/notes',    CalendarNoteViewSet,    basename='calendar-note')
 router.register(r'calendar/schedule', PostingScheduleViewSet, basename='calendar-schedule')

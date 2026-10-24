@@ -39,7 +39,7 @@ export function deriveCalendarStats(postsByDate, start, end, now = new Date()) {
 
   visibleEntries.forEach(([dateKey, posts]) => {
     (posts || []).forEach((post) => {
-      if (post?.status !== 'published') return;
+      if (post?.status !== 'published' || post.is_external) return;
       published.push(post);
       publishedDates.add(dateKey);
       increment(byPlatform, post.platform || 'unknown');

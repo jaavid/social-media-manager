@@ -166,6 +166,9 @@ __all__ = [
     'POST_TYPE_CHOICES',
     'CALENDAR_STATUS_CHOICES',
     'CalendarPost',
+    'CalendarSource',
+    'ChannelCalendarPost',
+    'InstagramReaderSession',
     'CalendarNote',
     'PostingSchedule',
     'PERMISSION_CATEGORY_CHOICES',
@@ -283,3 +286,5 @@ __all__ = [
     'Competitor',
     'AdsWaitlist',
 ]
+
+from .channel_calendar import CalendarSource, ChannelCalendarPost, InstagramReaderSession

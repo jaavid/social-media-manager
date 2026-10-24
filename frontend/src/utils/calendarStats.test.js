@@ -48,4 +48,12 @@ describe('deriveCalendarStats', () => {
       '2026-09-25',
     ]);
   });
+  test('public tracked posts do not inflate owned account statistics', () => {
+    const stats = deriveCalendarStats({
+      '2026-09-23': [{ id: 'channel:1', status: 'published', is_external: true, likes: 99999 }],
+    }, start, end, new Date(2026, 9, 22));
+    expect(stats.total_published).toBe(0);
+    expect(stats.best_performing_post).toBeNull();
+  });
+
 });

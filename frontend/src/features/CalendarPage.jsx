@@ -17,6 +17,7 @@ import {
   useCreatePost, useUpcomingPosts,
 } from '../hooks/useCalendar';
 import { PLATFORMS, usePlatformUiRegistry } from '../services/platforms';
+import ChannelSources from '../components/calendar/ChannelSources';
 import CalendarGrid from '../components/calendar/CalendarGrid';
 import PostDrawer from '../components/calendar/PostDrawer';
 import PostFormDrawer from '../components/calendar/PostFormDrawer';
@@ -258,6 +259,15 @@ export default function CalendarPage({ clientId: propClientId }) {
   const { upcoming } = useUpcomingPosts(clientId);
   const { create, update, remove, reschedule } = useCreatePost();
 
+  const [selectedSource, setSelectedSource] = useState('');
+  useEffect(() => { setSelectedSource(''); }, [clientId]);
+  const filteredPostsByDate = useMemo(() => {
+    if (!selectedSource) return postsByDate;
+    return Object.fromEntries(Object.entries(postsByDate).map(([date, posts]) => [date,
+      posts.filter(post => selectedSource === 'owned' ? !post.is_external : String(post.source_id) === selectedSource),
+    ]).filter(([, posts]) => posts.length));
+  }, [postsByDate, selectedSource]);
+
   const stats = useMemo(
     () => isPersian
       ? deriveCalendarStats(postsByDate, visibleRange.start, visibleRange.end)
@@ -391,6 +401,7 @@ export default function CalendarPage({ clientId: propClientId }) {
           ) : null}
         />
 
+        <ChannelSources key={clientId} clientId={clientId} onRefresh={refetchPosts} selectedSource={selectedSource} onSelectSource={setSelectedSource} />
         <div className="calendar-toolbar" style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 20, flexWrap: 'wrap', width: '100%' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', flex: '1 1 260px', minWidth: 0 }}>
             <button onClick={prevMonth} style={navBtnStyle} aria-label={tr('Previous month')}>
@@ -451,7 +462,7 @@ export default function CalendarPage({ clientId: propClientId }) {
               month={month}
               year={year}
               currentDate={currentDate}
-              postsByDate={postsByDate}
+              postsByDate={filteredPostsByDate}
               notesByDate={notesByDate}
               onDayClick={openFormForDate}
               onPostClick={openPostDetail}
@@ -471,7 +482,7 @@ export default function CalendarPage({ clientId: propClientId }) {
               </div>
             )}
             <ListView
-              postsByDate={postsByDate}
+              postsByDate={filteredPostsByDate}
               onPostClick={openPostDetail}
               onEditPost={openFormForEdit}
               onDeletePost={handleDeletePost}
@@ -498,7 +509,7 @@ export default function CalendarPage({ clientId: propClientId }) {
               currentDate={currentDate}
               rangeStart={visibleRange.start}
               rangeEnd={visibleRange.end}
-              postsByDate={postsByDate}
+              postsByDate={filteredPostsByDate}
             />
           </div>
         )}

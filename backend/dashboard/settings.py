@@ -493,3 +493,9 @@ LOGGING = {
         'celery.worker.strategy': {'level': 'WARNING'},
     },
 }
+
+# Read-only Instagram channel calendar refresh (each source is rate limited).
+CELERY_BEAT_SCHEDULE['channel-calendar-daily'] = {
+    'task': 'social_stats.channel_calendar_tasks.sync_calendar_sources',
+    'schedule': 86400.0,
+}
