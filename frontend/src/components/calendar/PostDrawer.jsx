@@ -120,6 +120,7 @@ export default function PostDrawer({ post, isOpen, onClose, onEdit, onDelete, on
 
           {post.is_external && (
             <p style={{ color: 'var(--text-secondary)', fontSize: 13 }}>
+              {post.is_competitor && <strong>{post.source_name} · {isPersian ? 'رقیب' : 'Competitor'} · </strong>}
               @{post.source_username} · {isPersian ? 'رصد عمومی؛ — یعنی آمار در دسترس نیست' : 'Public tracking; — means unavailable'}
               <br />
               {isPersian ? 'آخرین دریافت: ' : 'Last fetched: '}{formatDate(post.fetched_at)}

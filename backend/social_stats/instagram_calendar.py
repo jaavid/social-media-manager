@@ -116,7 +116,7 @@ def calendar_channel_posts(request, workspace, month=None, year=None, platform=N
         return []
     if not evaluate(request.user, workspace, 'view_posts').allowed:
         return []
-    qs = ChannelCalendarPost.objects.filter(source__client=workspace).select_related('source')
+    qs = ChannelCalendarPost.objects.filter(source__client=workspace).select_related('source', 'source__competitor')
     if month and year:
         qs = qs.filter(published_at__month=int(month), published_at__year=int(year))
     source_id = request.query_params.get('source_id')
@@ -127,8 +127,10 @@ def calendar_channel_posts(request, workspace, month=None, year=None, platform=N
         results.append({
             'id': f'channel:{post.pk}', 'client': workspace.pk, 'platform': post.source.platform,
             'source_id': post.source_id, 'source_username': post.source.username,
+            'is_competitor': post.source.competitor_id is not None,
+            'source_name': post.source.competitor.name if post.source.competitor_id else post.source.username,
             'is_external': True, 'status': 'published', 'post_type': post.post_type,
-            'title': f'@{post.source.username}', 'caption': post.caption, 'hashtags': '',
+            'title': f'{post.source.competitor.name} · @{post.source.username}' if post.source.competitor_id else f'@{post.source.username}', 'caption': post.caption, 'hashtags': '',
             'post_url': post.post_url, 'media_url': post.media_url,
             'scheduled_at': None, 'published_at': timezone.localtime(post.published_at).isoformat(),
             'external_id': post.external_id, 'fetched_at': post.fetched_at.isoformat(),

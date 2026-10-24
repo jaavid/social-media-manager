@@ -27,3 +27,16 @@ test('does not permit syncing until a server reader session is configured', asyn
   await waitFor(() => expect(screen.getByRole('button', { name: 'Sync posts' })).toBeDisabled());
   expect(screen.getByText(/Reader session required/)).toBeInTheDocument();
 });
+
+test('adds a named competitor in the selected brand', async () => {
+  calendarAPI.getSources.mockResolvedValue({ data: [] });
+  calendarAPI.addSource.mockResolvedValue({ data: {} });
+  render(<ChannelSources clientId={7} onRefresh={jest.fn()} selectedSource="" onSelectSource={jest.fn()} />);
+  fireEvent.click(screen.getByRole('checkbox', { name: 'Track as competitor' }));
+  fireEvent.change(screen.getByLabelText('Competitor name'), { target: { value: 'Rival' } });
+  fireEvent.change(screen.getByLabelText('Username or profile URL'), { target: { value: '@rival' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Add competitor' }));
+  await waitFor(() => expect(calendarAPI.addSource).toHaveBeenCalledWith({
+    client: 7, platform: 'instagram', username: '@rival', competitor_name: 'Rival',
+  }));
+});

@@ -13,6 +13,7 @@ class CalendarSource(models.Model):
     client = models.ForeignKey('Client', on_delete=models.CASCADE, related_name='calendar_sources')
     platform = models.CharField(max_length=30, default='instagram', choices=[('instagram', 'Instagram')])
     username = models.CharField(max_length=30)
+    competitor = models.ForeignKey('Competitor', on_delete=models.SET_NULL, null=True, blank=True, related_name='calendar_sources')
     is_active = models.BooleanField(default=True)
     last_synced_at = models.DateTimeField(null=True, blank=True)
     last_attempt_at = models.DateTimeField(null=True, blank=True)

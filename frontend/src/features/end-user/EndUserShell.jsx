@@ -1,3 +1,5 @@
+import AccountControls from './AccountControls';
+import useWorkspaceScope from '@/hooks/useWorkspaceScope';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import { useLanguage } from '../../i18n';
 /* ============================================================================
@@ -68,6 +70,7 @@ export default function EndUserShell({ children }) {
   const { tr } = useLanguage();
   const { user } = useAuth();
   const location = useLocation();
+  const { workspaceId } = useWorkspaceScope();
   const [badges, setBadges] = useState({ pendingApprovals: 0 });
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -190,7 +193,7 @@ export default function EndUserShell({ children }) {
                 {tr(section.title)}
               </div>
               {section.items.map((item) => (
-                <NavRow key={item.to} {...item} badge={item.badgeKey ? badges[item.badgeKey] : 0} />
+                <NavRow key={item.to} {...item} to={workspaceId && ['/u/calendar', '/u/connections'].includes(item.to) ? `${item.to}?workspace=${workspaceId}` : item.to} badge={item.badgeKey ? badges[item.badgeKey] : 0} />
               ))}
             </div>
           ))}
@@ -209,6 +212,7 @@ export default function EndUserShell({ children }) {
             <div style={{ color: 'var(--text-tertiary)', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               <bdi dir="ltr">{user.email}</bdi>
             </div>
+            <AccountControls key={user.id} />
           </div>
         )}
       </aside>

@@ -12,6 +12,8 @@ export default function ChannelSources({ clientId, onRefresh, selectedSource, on
   const { isPersian, formatDate } = useLanguage();
   const [sources, setSources] = useState([]);
   const [username, setUsername] = useState('');
+  const [isCompetitor, setIsCompetitor] = useState(false);
+  const [competitorName, setCompetitorName] = useState('');
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const generation = useRef(0);
@@ -80,30 +82,44 @@ export default function ChannelSources({ clientId, onRefresh, selectedSource, on
   if (!clientId) return null;
   return (
     <details style={{ marginBottom: 16, padding: 12, border: '1px solid var(--border-default)', borderRadius: 10 }}>
-      <summary style={{ cursor: 'pointer', minHeight: 32 }}>{text('کانال‌های تحت رصد · اینستاگرام', 'Tracked channels · Instagram')}</summary>
+      <summary style={{ cursor: 'pointer', minHeight: 32 }}>{text('رقبا و کانال‌های تحت رصد · اینستاگرام', 'Competitors and tracked channels · Instagram')}</summary>
       <p>{text('پروفایل عمومی را اضافه کنید؛ نیازی به مالکیت آن نیست. دریافت محتوا به نشست خواندن تنظیم‌شده روی سرور نیاز دارد.', 'Add a public profile without owning it. Content sync requires a reader session configured on the server.')}</p>
       <label htmlFor="calendar-channel-filter">{text('نمایش کانال', 'Channel filter')}</label>{' '}
       <select id="calendar-channel-filter" value={selectedSource} onChange={event => onSelectSource(event.target.value)} style={controlStyle}>
         <option value="">{text('همه محتواها', 'All content')}</option>
+        <option value="competitors">{text('فقط رقبا', 'Competitors only')}</option>
         <option value="owned">{text('فقط محتوای خودمان', 'Owned content only')}</option>
-        {sources.map(source => <option key={source.id} value={String(source.id)}>@{source.username}</option>)}
+        {sources.map(source => <option key={source.id} value={String(source.id)}>{source.display_name ? `${source.display_name} · ` : ''}@{source.username}</option>)}
       </select>
       <form onSubmit={event => {
         event.preventDefault();
         act(async () => {
-          await calendarAPI.addSource({ client: clientId, platform: 'instagram', username });
+          await calendarAPI.addSource({ client: clientId, platform: 'instagram', username,
+            ...(isCompetitor ? { competitor_name: competitorName.trim() } : {}),
+          });
           setUsername('');
+          setCompetitorName('');
         });
       }} style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
         <label htmlFor="calendar-instagram-username">{text('نام کاربری یا لینک پروفایل', 'Username or profile URL')}</label>
         <input id="calendar-instagram-username" value={username} onChange={event => setUsername(event.target.value)} required dir="ltr" style={controlStyle} />
-        <button type="submit" disabled={busy || !username.trim()} style={controlStyle}>{text('افزودن کانال', 'Add channel')}</button>
+        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minHeight: 44 }}>
+          <input type="checkbox" checked={isCompetitor} onChange={event => setIsCompetitor(event.target.checked)} />
+          {text('افزودن به‌عنوان رقیب', 'Track as competitor')}
+        </label>
+        {isCompetitor && <>
+          <label htmlFor="calendar-competitor-name">{text('نام رقیب', 'Competitor name')}</label>
+          <input id="calendar-competitor-name" value={competitorName} maxLength={200} required
+            onChange={event => setCompetitorName(event.target.value)} style={controlStyle} />
+        </>}
+        <button type="submit" disabled={busy || !username.trim() || (isCompetitor && !competitorName.trim())} style={controlStyle}>{isCompetitor ? text('افزودن رقیب', 'Add competitor') : text('افزودن کانال', 'Add channel')}</button>
         <button type="button" disabled={busy} onClick={() => act(load)} style={controlStyle}>{text('تازه‌سازی وضعیت', 'Refresh status')}</button>
       </form>
       {message && <p role="alert">{message}</p>}
       <ul style={{ paddingInlineStart: 20 }}>
         {sources.map(source => (
           <li key={source.id} style={{ marginBlock: 12 }}>
+            {source.is_competitor && <strong>{source.display_name} · {text('رقیب', 'Competitor')} · </strong>}
             <strong dir="ltr">@{source.username}</strong>{' · '}
             {source.last_synced_at ? formatDate(source.last_synced_at) : text('هنوز دریافت نشده', 'Not synced yet')}
             {source.error_code && <span> · {text('دریافت متوقف شد', 'Sync stopped')}: {errors[source.error_code] || errors.fetch_failed}</span>}

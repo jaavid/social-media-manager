@@ -264,7 +264,8 @@ export default function CalendarPage({ clientId: propClientId }) {
   const filteredPostsByDate = useMemo(() => {
     if (!selectedSource) return postsByDate;
     return Object.fromEntries(Object.entries(postsByDate).map(([date, posts]) => [date,
-      posts.filter(post => selectedSource === 'owned' ? !post.is_external : String(post.source_id) === selectedSource),
+      posts.filter(post => selectedSource === 'competitors' ? post.is_competitor
+        : selectedSource === 'owned' ? !post.is_external : String(post.source_id) === selectedSource),
     ]).filter(([, posts]) => posts.length));
   }, [postsByDate, selectedSource]);
 

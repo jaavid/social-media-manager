@@ -149,3 +149,35 @@ class ChannelCalendarTests(TestCase):
         response = self.api.post(f'/api/calendar/sources/{self.source.pk}/sync/')
         self.assertEqual(response.status_code, 429)
         delay.assert_not_called()
+
+    def test_add_named_competitor_uses_workspace_and_reuses_source(self):
+        from social_stats.models import Competitor
+        payload = {'client': self.workspace.pk, 'username': '@rival', 'competitor_name': 'Rival'}
+        first = self.api.post('/api/calendar/sources/', payload, format='json')
+        self.assertEqual(first.status_code, 201, first.data)
+        self.assertTrue(first.data['is_competitor'])
+        self.assertEqual(first.data['display_name'], 'Rival')
+        second = self.api.post('/api/calendar/sources/', payload, format='json')
+        self.assertEqual(second.status_code, 200, second.data)
+        self.assertEqual(first.data['id'], second.data['id'])
+        competitor = Competitor.objects.get(client=self.workspace, name='Rival')
+        self.assertEqual(competitor.public_handles['instagram'], 'rival')
+        source = CalendarSource.objects.get(pk=first.data['id'])
+        self.assertEqual(source.competitor_id, competitor.pk)
+        ChannelCalendarPost.objects.create(source=source, external_id='rival1', caption='Rival post',
+            post_type='image', post_url='https://www.instagram.com/p/rival1/', published_at=timezone.now())
+        response = self.api.get('/api/calendar/posts/', {'client_id': self.workspace.pk})
+        post = next(iter(response.data.values()))[0]
+        self.assertTrue(post['is_competitor'])
+        self.assertEqual(post['source_name'], 'Rival')
+
+    def test_same_competitor_name_in_another_workspace_is_not_reused(self):
+        from social_stats.models import Competitor
+        other = Competitor.objects.create(client=self.other, name='Rival')
+        response = self.api.post('/api/calendar/sources/', {
+            'client': self.workspace.pk, 'username': 'rival', 'competitor_name': 'Rival',
+        }, format='json')
+        self.assertEqual(response.status_code, 201, response.data)
+        source = CalendarSource.objects.get(pk=response.data['id'])
+        self.assertNotEqual(source.competitor_id, other.pk)
+        self.assertEqual(source.competitor.client_id, self.workspace.pk)
