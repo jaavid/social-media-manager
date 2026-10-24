@@ -88,10 +88,14 @@ class CalendarPostViewSet(viewsets.ModelViewSet):
         profile = getattr(self.request.user, 'profile', None)
         if not profile:
             return qs.none()
-        if profile.role == 'client':
-            qs = qs.filter(client=profile.client)
-        elif profile.role == 'staff':
-            qs = qs.filter(client__in=profile.assigned_clients.all())
+        from social_stats.authorization import accessible_workspaces
+        qs = qs.filter(client__in=accessible_workspaces(self.request.user))
+        # Calendar reads span authorized brands; retain existing write boundaries.
+        if self.action not in {'list', 'retrieve'}:
+            if profile.role == 'client':
+                qs = qs.filter(client=profile.client)
+            elif profile.role == 'staff':
+                qs = qs.filter(client__in=profile.assigned_clients.all())
         return qs
 
     def list(self, request, *args, **kwargs):
@@ -232,10 +236,8 @@ class CalendarPostViewSet(viewsets.ModelViewSet):
             scheduled_at__lte=until,
         ).select_related('client')
 
-        if profile.role == 'client':
-            qs = qs.filter(client=profile.client)
-        elif profile.role == 'staff':
-            qs = qs.filter(client__in=profile.assigned_clients.all())
+        from social_stats.authorization import accessible_workspaces
+        qs = qs.filter(client__in=accessible_workspaces(request.user))
 
         client_id = request.query_params.get('client_id')
         if client_id:
@@ -336,10 +338,10 @@ class CalendarNoteViewSet(viewsets.ModelViewSet):
         profile = getattr(self.request.user, 'profile', None)
         if not profile:
             return qs.none()
+        from social_stats.authorization import accessible_workspaces
+        qs = qs.filter(client__in=accessible_workspaces(self.request.user))
         if profile.role == 'client':
-            qs = qs.filter(client=profile.client, is_client_visible=True)
-        elif profile.role == 'staff':
-            qs = qs.filter(client__in=profile.assigned_clients.all())
+            qs = qs.filter(is_client_visible=True)
         return qs
 
     def list(self, request, *args, **kwargs):

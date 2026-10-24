@@ -33,7 +33,7 @@ const SECTIONS = [
       { to: '/u',             label: 'Dashboard',  icon: LayoutDashboard, end: true },
       { to: '/u/posts',       label: 'Posts',      icon: FileType,        comingSoon: true },
       { to: '/u/composer',    label: 'Composer',   icon: PenSquare,       comingSoon: true },
-      { to: '/u/calendar',    label: 'Calendar',   icon: CalendarDays,    comingSoon: true },
+      { to: '/u/calendar',    label: 'Calendar',   icon: CalendarDays },
       { to: '/u/inbox',       label: 'Inbox',      icon: Inbox,           comingSoon: true },
       { to: '/u/analytics',   label: 'Analytics',  icon: LineChart,       comingSoon: true },
     ],

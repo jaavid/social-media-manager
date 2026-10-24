@@ -118,3 +118,9 @@ test('active workspace and empty team have clear labels', async () => {
   expect(screen.getByText(/مالک مجموعه:/)).toHaveTextContent('شما');
   expect(screen.getByText(/هنوز همکاری به تیم اضافه نشده/)).toBeInTheDocument();
 });
+
+test('each brand links directly to its own calendar', async () => {
+  render(<OrganizationTeamPage />);
+  const links = await screen.findAllByRole('link', { name: 'تقویم محتوا' });
+  expect(links.map(link => link.getAttribute('href'))).toEqual(['/u/calendar?workspace=10', '/u/calendar?workspace=11']);
+});

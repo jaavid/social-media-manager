@@ -209,6 +209,7 @@ export default function OrganizationTeamPage() {
           <Button variant="secondary" disabled={busy || Number(user.workspace_id ?? user.client_id) === workspace.id} onClick={() => run(async () => {
             await organizationAPI.selectWorkspace(organizationId, workspace.id); await refreshAuth();
           }, 'فضای کاری فعال تغییر کرد.')}>انتخاب فضای کاری</Button>
+          <Link to={`/u/calendar?workspace=${workspace.id}`}>تقویم محتوا</Link>
           <Link to={`/u/connections?workspace=${workspace.id}`}>اتصال شبکه‌های اجتماعی</Link>
         </div>)}</div>
         {manager && <form onSubmit={createBrand} className={styles.brandForm}>
