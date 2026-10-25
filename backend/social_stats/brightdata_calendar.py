@@ -15,6 +15,11 @@ ORIGIN = 'https://api.brightdata.com'
 DATASET_ID = 'gd_lk5ns7kz21pck8jpis'
 
 
+def valid_snapshot_id(value):
+    # Bright Data returns both s_ and sd_ scraper snapshot identifiers.
+    return isinstance(value, str) and re.fullmatch(r's(?:d)?_[A-Za-z0-9_-]{1,100}', value) is not None
+
+
 def calendar_provider():
     provider = os.getenv('INSTAGRAM_CALENDAR_PROVIDER', 'instagrapi').strip().lower()
     if provider not in {'instagrapi', 'brightdata'}:
@@ -70,13 +75,18 @@ def start_discovery(username):
         'limit_per_input': limit, 'include_errors': 'true', 'format': 'json',
     }, json=[{'url': f'https://www.instagram.com/{username}/', 'num_of_posts': limit}])
     snapshot = payload.get('snapshot_id') if isinstance(payload, dict) else None
-    if not isinstance(snapshot, str) or not re.fullmatch(r's_[A-Za-z0-9_-]{1,100}', snapshot):
+    if not valid_snapshot_id(snapshot):
         raise InstagramReadError('brightdata_invalid_response')
     return snapshot
 
 
 def fetch_snapshot(snapshot, username):
-    if not re.fullmatch(r's_[A-Za-z0-9_-]{1,100}', snapshot):
+    rows = download_snapshot(snapshot)
+    return None if rows is None else normalize_posts(rows, username)
+
+
+def download_snapshot(snapshot):
+    if not valid_snapshot_id(snapshot):
         raise InstagramReadError('brightdata_invalid_response')
     progress = _request('GET', f'/datasets/v3/progress/{snapshot}')
     status = progress.get('status') if isinstance(progress, dict) else None
@@ -84,8 +94,7 @@ def fetch_snapshot(snapshot, username):
         return None
     if status != 'ready':
         raise InstagramReadError('brightdata_collection_failed')
-    rows = _request('GET', f'/datasets/v3/snapshot/{snapshot}', params={'format': 'json'})
-    return normalize_posts(rows, username)
+    return _request('GET', f'/datasets/v3/snapshot/{snapshot}', params={'format': 'json'})
 
 
 def normalize_posts(rows, username):

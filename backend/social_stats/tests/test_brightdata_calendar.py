@@ -1,8 +1,10 @@
 import os
+from io import StringIO
 from datetime import timedelta
 from unittest.mock import patch
 
 from django.test import SimpleTestCase, TestCase
+from django.core.management import call_command, CommandError
 from django.utils import timezone
 
 from social_stats import brightdata_calendar as provider
@@ -21,6 +23,21 @@ def record(**changes):
 
 
 class BrightDataAdapterTests(SimpleTestCase):
+    @patch('social_stats.brightdata_calendar._request')
+    def test_real_sd_snapshot_identifier_from_production(self, request):
+        snapshot = 'sd_mvnq33xsf3gy6hddy'
+        request.return_value = {'snapshot_id': snapshot}
+        self.assertEqual(provider.start_discovery('example'), snapshot)
+        request.side_effect = [{'status': 'ready'}, [record()]]
+        self.assertEqual(len(provider.fetch_snapshot(snapshot, 'example')), 1)
+
+    @patch('social_stats.brightdata_calendar._request')
+    def test_invalid_snapshot_cannot_change_request_path(self, request):
+        for snapshot in ['sd_../other', 'sd_x?token=bad', 'https://evil.test', '', None]:
+            with self.subTest(snapshot=snapshot), self.assertRaises(InstagramReadError):
+                provider.fetch_snapshot(snapshot, 'example')
+        request.assert_not_called()
+
     def test_normalization_preserves_zero_unknown_metrics_and_date(self):
         post = provider.normalize_posts([record()], 'example')[0]
         self.assertEqual(post['metrics'], {'likes': 0, 'comments': 2})
@@ -167,3 +184,38 @@ class BrightDataSyncTests(TestCase):
         sync_calendar_source(self.source.pk, snapshot_id='s_fixture')
         self.assertEqual(ChannelCalendarPost.objects.count(), 1)
         self.assertEqual(ChannelCalendarPost.objects.get().metrics['likes'], 5)
+
+    @patch('social_stats.management.commands.recover_brightdata_calendar.sync_calendar_source.delay')
+    @patch('social_stats.management.commands.recover_brightdata_calendar.download_snapshot')
+    @patch('social_stats.brightdata_calendar.start_discovery')
+    def test_recovery_queues_existing_snapshot_without_new_collection(self, start, download, delay):
+        download.return_value = [record()]
+        call_command('recover_brightdata_calendar', workspace=self.workspace.pk,
+                     snapshot=['sd_recovery'], stdout=StringIO())
+        self.source.refresh_from_db()
+        self.assertEqual(self.source.provider_snapshot_id, 'sd_recovery')
+        delay.assert_called_once_with(self.source.pk, snapshot_id='sd_recovery')
+        start.assert_not_called()
+
+    @patch('social_stats.management.commands.recover_brightdata_calendar.sync_calendar_source.delay')
+    @patch('social_stats.management.commands.recover_brightdata_calendar.download_snapshot')
+    def test_recovery_rejects_other_workspace_without_mutation(self, download, delay):
+        other = Client.objects.create(name='other', company='other', email='other@example.test')
+        download.return_value = [record()]
+        with self.assertRaises(CommandError):
+            call_command('recover_brightdata_calendar', workspace=other.pk,
+                         snapshot=['sd_recovery'], stdout=StringIO())
+        self.source.refresh_from_db()
+        self.assertEqual(self.source.provider_snapshot_id, '')
+        delay.assert_not_called()
+
+    @patch('social_stats.management.commands.recover_brightdata_calendar.sync_calendar_source.delay')
+    @patch('social_stats.management.commands.recover_brightdata_calendar.download_snapshot')
+    def test_recovery_validates_all_snapshots_before_mutating_any_source(self, download, delay):
+        download.side_effect = [[record()], [record(user_posted='unknown')]]
+        with self.assertRaises(CommandError):
+            call_command('recover_brightdata_calendar', workspace=self.workspace.pk,
+                         snapshot=['sd_first', 'sd_second'], stdout=StringIO())
+        self.source.refresh_from_db()
+        self.assertEqual(self.source.provider_snapshot_id, '')
+        delay.assert_not_called()
