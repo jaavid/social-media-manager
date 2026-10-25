@@ -1,4 +1,3 @@
-import json
 from datetime import timedelta
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
@@ -94,7 +93,7 @@ class ChannelCalendarTests(TestCase):
         build.return_value.get_settings.return_value = {'authorization_data': {'sessionid': 'secret'}}
         data = {'external_id': '1', 'caption': 'post', 'post_type': 'image', 'post_url': 'https://www.instagram.com/p/a/',
                 'media_url': '', 'published_at': timezone.now(), 'metrics': {'likes': 2}}
-        fetch.side_effect = lambda *args: [dict(data)]
+        fetch.side_effect = lambda *args, **kwargs: [dict(data)]
         sync_calendar_source(self.source.pk)
         self.assertEqual(ChannelCalendarPost.objects.count(), 1)
         CalendarSource.objects.filter(pk=self.source.pk).update(last_attempt_at=timezone.now() - timedelta(hours=1))
@@ -136,11 +135,12 @@ class ChannelCalendarTests(TestCase):
         })
         self.assertEqual(response.status_code, 400)
 
-    def test_reader_session_required_before_queueing(self):
+    @patch('social_stats.channel_calendar_tasks.sync_calendar_source.delay')
+    def test_anonymous_sync_can_be_queued_without_a_reader_session(self, delay):
         self.session.delete()
         response = self.api.post(f'/api/calendar/sources/{self.source.pk}/sync/')
-        self.assertEqual(response.status_code, 409)
-        self.assertEqual(response.data['error'], 'session_required')
+        self.assertEqual(response.status_code, 202)
+        delay.assert_called_once_with(self.source.pk)
 
     @patch('social_stats.channel_calendar_tasks.sync_calendar_source.delay')
     def test_cooldown_blocks_repeated_queueing(self, delay):
@@ -181,3 +181,44 @@ class ChannelCalendarTests(TestCase):
         source = CalendarSource.objects.get(pk=response.data['id'])
         self.assertNotEqual(source.competitor_id, other.pk)
         self.assertEqual(source.competitor.client_id, self.workspace.pk)
+
+    @patch('social_stats.channel_calendar_tasks.build_reader')
+    @patch('social_stats.channel_calendar_tasks.fetch_public_posts')
+    def test_public_success_never_loads_or_writes_session(self, fetch, build):
+        fetch.return_value = []
+        sync_calendar_source(self.source.pk)
+        build.assert_called_once_with()
+        fetch.assert_called_once_with(build.return_value, 'example', anonymous=True)
+        self.session.refresh_from_db()
+        self.assertEqual(self.session.settings_json, '{"secret":"session"}')
+
+    @patch('social_stats.channel_calendar_tasks.build_reader')
+    @patch('social_stats.channel_calendar_tasks.fetch_public_posts')
+    def test_anonymous_login_requirement_falls_back_to_saved_session(self, fetch, build):
+        fetch.side_effect = [InstagramReadError('session_required'), []]
+        build.return_value.get_settings.return_value = {'authorization_data': {'sessionid': 'refreshed'}}
+        sync_calendar_source(self.source.pk)
+        self.assertEqual(build.call_count, 2)
+        self.assertEqual(build.call_args.args, (self.session.settings_json,))
+        self.source.refresh_from_db()
+        self.assertEqual(self.source.sync_status, 'ok')
+
+    @patch('social_stats.channel_calendar_tasks.build_reader')
+    @patch('social_stats.channel_calendar_tasks.fetch_public_posts')
+    def test_anonymous_limit_without_saved_login_reports_session_required(self, fetch, build):
+        self.session.delete()
+        fetch.side_effect = InstagramReadError('anonymous_unavailable')
+        sync_calendar_source(self.source.pk)
+        self.source.refresh_from_db()
+        self.assertEqual(self.source.error_code, 'session_required')
+        build.assert_called_once_with()
+        self.assertFalse(InstagramReaderSession.objects.get(client=self.workspace).settings_json)
+
+    @patch('social_stats.channel_calendar_tasks.build_reader')
+    @patch('social_stats.channel_calendar_tasks.fetch_public_posts')
+    def test_gateway_failure_never_attempts_saved_login_or_direct_connection(self, fetch, build):
+        fetch.side_effect = InstagramReadError('gateway_unavailable')
+        sync_calendar_source(self.source.pk)
+        build.assert_called_once_with()
+        self.source.refresh_from_db()
+        self.assertEqual(self.source.error_code, 'gateway_unavailable')

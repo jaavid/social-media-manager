@@ -29,7 +29,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Optional
 
-import requests
+from social_stats.egress.meta import requests
 
 from .base import (
     PublishError, TokenExpiredError, RateLimitError, PermissionDeniedError,

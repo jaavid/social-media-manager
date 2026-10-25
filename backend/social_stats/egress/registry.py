@@ -55,6 +55,24 @@ SERVICES: dict[str, EgressService] = {
         gateway_route='meta',
         probe_url='https://graph.facebook.com/',
     ),
+    'instagram_graph': EgressService('instagram_graph', 'Instagram Graph',
+        'https://graph.instagram.com', 'instagram-graph', 'https://graph.instagram.com/'),
+    'instagram_oauth': EgressService('instagram_oauth', 'Instagram Oauth',
+        'https://api.instagram.com', 'instagram-oauth', 'https://api.instagram.com/'),
+    'instagram_web': EgressService('instagram_web', 'Instagram Web',
+        'https://www.instagram.com', 'instagram-web', 'https://www.instagram.com/'),
+    'instagram_root': EgressService('instagram_root', 'Instagram Root',
+        'https://instagram.com', 'instagram-root', 'https://instagram.com/'),
+    'instagram_private': EgressService('instagram_private', 'Instagram Private',
+        'https://i.instagram.com', 'instagram-private', 'https://i.instagram.com/'),
+    'instagram_private_b': EgressService('instagram_private_b', 'Instagram Private B',
+        'https://b.i.instagram.com', 'instagram-private-b', 'https://b.i.instagram.com/'),
+    'facebook_web': EgressService('facebook_web', 'Facebook Web',
+        'https://www.facebook.com', 'facebook-web', 'https://www.facebook.com/'),
+    'meta_b_graph': EgressService('meta_b_graph', 'Meta B Graph',
+        'https://b-graph.facebook.com', 'meta-b-graph', 'https://b-graph.facebook.com/'),
+    'meta_upload': EgressService('meta_upload', 'Meta Upload',
+        'https://rupload.facebook.com', 'meta-upload', 'https://rupload.facebook.com/'),
     'google': EgressService(
         key='google', label='Google APIs',
         direct_origin='https://www.googleapis.com',
@@ -93,6 +111,8 @@ def get_service(key: str) -> EgressService:
 
 def configured_mode(service: str) -> str:
     """Resolve per-service mode, falling back to the global default."""
+    if service == 'meta' or service.startswith(('instagram_', 'meta_')) or service == 'facebook_web':
+        return 'gateway'
     env_key = f"OUTBOUND_{service.upper().replace('-', '_')}_MODE"
     selected = (
         os.getenv(env_key, '').strip().lower()

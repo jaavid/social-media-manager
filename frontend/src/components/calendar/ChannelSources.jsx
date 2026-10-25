@@ -58,7 +58,7 @@ export default function ChannelSources({ clientId, onRefresh, selectedSource, on
       if (generation.current !== token) return;
       const code = error.response?.data?.error;
       setMessage(code === 'session_required'
-        ? text('نشست خواندن اینستاگرام باید توسط مدیر سرور تنظیم شود.', 'Ask the server administrator to configure the Instagram reader session.')
+        ? text('اینستاگرام دریافت عمومی را محدود کرده؛ نشست خواننده باید توسط مدیر سرور تنظیم شود.', 'Instagram restricted anonymous access. Ask the administrator to configure a reader session.')
         : code === 'cooldown'
           ? text('بین دریافت‌ها حداقل ۱۵ دقیقه فاصله لازم است.', 'Allow at least 15 minutes between syncs.')
           : text('عملیات انجام نشد؛ نام کاربری و دسترسی فضای کاری را بررسی کنید.', 'Operation failed. Check the username and workspace permissions.'));
@@ -76,6 +76,9 @@ export default function ChannelSources({ clientId, onRefresh, selectedSource, on
     private_profile: text('این پروفایل خصوصی است', 'This profile is private'),
     profile_not_found: text('پروفایل پیدا نشد', 'Profile not found'),
     reader_busy: text('نشست در حال دریافت کانال دیگری است', 'Reader is syncing another channel'),
+    gateway_required: text('درگاه کلودفلر روی سرور تنظیم نشده است', 'Cloudflare gateway is not configured'),
+    gateway_unavailable: text('درگاه کلودفلر یا مسیر اینستاگرام در دسترس نیست', 'Cloudflare gateway or Instagram route is unavailable'),
+    anonymous_unavailable: text('دریافت عمومی در دسترس نیست؛ نشست خواننده لازم است', 'Anonymous access unavailable; a reader session is needed'),
     dependency_missing: text('سرویس خواندن روی سرور نصب نشده است', 'Reader dependency is not installed'),
     fetch_failed: text('دریافت ناموفق بود؛ داده قبلی حفظ شده است', 'Sync failed; previous content was retained'),
   };
@@ -83,7 +86,7 @@ export default function ChannelSources({ clientId, onRefresh, selectedSource, on
   return (
     <details style={{ marginBottom: 16, padding: 12, border: '1px solid var(--border-default)', borderRadius: 10 }}>
       <summary style={{ cursor: 'pointer', minHeight: 32 }}>{text('رقبا و کانال‌های تحت رصد · اینستاگرام', 'Competitors and tracked channels · Instagram')}</summary>
-      <p>{text('پروفایل عمومی را اضافه کنید؛ نیازی به مالکیت آن نیست. دریافت محتوا به نشست خواندن تنظیم‌شده روی سرور نیاز دارد.', 'Add a public profile without owning it. Content sync requires a reader session configured on the server.')}</p>
+      <p>{text('دریافت ابتدا بدون ورود و از طریق درگاه کلودفلر امتحان می‌شود. اگر اینستاگرام ورود بخواهد، از نشست خواننده استفاده می‌شود.', 'Public access is tried first through Cloudflare. A reader session is used only if Instagram requires login.')}</p>
       <label htmlFor="calendar-channel-filter">{text('نمایش کانال', 'Channel filter')}</label>{' '}
       <select id="calendar-channel-filter" value={selectedSource} onChange={event => onSelectSource(event.target.value)} style={controlStyle}>
         <option value="">{text('همه محتواها', 'All content')}</option>
@@ -123,9 +126,9 @@ export default function ChannelSources({ clientId, onRefresh, selectedSource, on
             <strong dir="ltr">@{source.username}</strong>{' · '}
             {source.last_synced_at ? formatDate(source.last_synced_at) : text('هنوز دریافت نشده', 'Not synced yet')}
             {source.error_code && <span> · {text('دریافت متوقف شد', 'Sync stopped')}: {errors[source.error_code] || errors.fetch_failed}</span>}
-            {!source.reader_ready && <span> · {text('نیازمند تنظیم نشست', 'Reader session required')}</span>}
+            {!source.reader_ready && <span> · {text('دریافت عمومی بدون ورود', 'Anonymous public access')}</span>}
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 6 }}>
-              <button type="button" disabled={busy || !source.reader_ready} style={controlStyle} onClick={() => act(async () => {
+              <button type="button" disabled={busy} style={controlStyle} onClick={() => act(async () => {
                 await calendarAPI.syncSource(source.id);
                 setPending(true);
                 setMessage(text('درخواست دریافت ثبت شد؛ نتیجه به‌روزرسانی می‌شود.', 'Sync queued. Results will refresh automatically.'));

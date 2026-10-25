@@ -1,6 +1,5 @@
 """Bounded, read-only instagrapi adapter. No passwords or SDK errors in API output."""
 import json
-import os
 import re
 from urllib.parse import urlparse
 
@@ -29,40 +28,63 @@ def normalize_username(value):
     return value
 
 
-def build_reader(settings_json):
+def new_gateway_reader():
+    from social_stats.egress.meta import gateway_target, route_instagram_reader, MetaGatewayError
+    try:
+        gateway_target('instagram_web', 'https://www.instagram.com/')
+    except MetaGatewayError:
+        raise InstagramReadError('gateway_required') from None
     try:
         from instagrapi import Client
     except ImportError:
         raise InstagramReadError('dependency_missing') from None
-    try:
-        reader = Client()
-        reader.set_settings(json.loads(settings_json))
-        # Restore the existing session only. Never silently log in with a password.
-        if not reader.user_id:
-            raise InstagramReadError('session_required')
-        reader.request_timeout = 20
-        proxy = os.getenv('INSTAGRAPI_PROXY_URL', '').strip()
-        if proxy:
-            reader.set_proxy(proxy)
-        # Background workers cannot prompt for email/SMS verification codes.
-        def stop_for_challenge(*args, **kwargs):
-            raise InstagramReadError('challenge_required')
-        reader.challenge_resolve = stop_for_challenge
-        reader.challenge_code_handler = stop_for_challenge
-        return reader
-    except InstagramReadError:
-        raise
-    except Exception:
-        raise InstagramReadError('session_invalid') from None
+    # Both SDK transports are Requests sessions with our mandatory gateway
+    # adapter; curl/uTLS and environment proxies cannot bypass it.
+    return route_instagram_reader(Client(
+        public_transport='requests', private_transport='requests',
+        public_request_retries_count=1, session_retry_total=0,
+        with_challenge_flow=False,
+    ))
 
 
-def fetch_public_posts(reader, username, amount=50):
+def build_reader(settings_json=None):
+    reader = new_gateway_reader()
+    if settings_json:
+        try:
+            saved = json.loads(settings_json)
+            saved.update(public_transport='requests', private_transport='requests', tls_verify=True,
+                         session_retry_total=0, public_request_retries_count=1)
+            reader.set_settings(saved)
+            if not reader.user_id:
+                raise InstagramReadError('session_required')
+        except InstagramReadError:
+            raise
+        except Exception:
+            raise InstagramReadError('session_invalid') from None
+    reader.request_timeout = 1
+    # Background workers cannot prompt for email/SMS verification codes.
+    def stop_for_challenge(*args, **kwargs):
+        raise InstagramReadError('challenge_required')
+    reader.challenge_resolve = stop_for_challenge
+    reader.challenge_code_handler = stop_for_challenge
+    return reader
+
+
+def fetch_public_posts(reader, username, amount=50, *, anonymous=False):
     try:
-        user = reader.user_info_by_username_v1(username)
+        user = (reader.user_info_by_username_gql(username) if anonymous
+                else reader.user_info_by_username_v1(username))
         # A reader following a private profile must not make it publicly watchable.
         if user.is_private:
             raise InstagramReadError('private_profile')
-        media = reader.user_medias_v1(user.pk, amount=min(amount, 50))
+        if anonymous:
+            # The public-only primitive avoids the SDK's automatic private API
+            # fallback in user_medias_gql. One page keeps anonymous reads bounded.
+            media, _ = reader._user_medias_paginated_public_gql(user.pk, amount=min(amount, 50))
+            if not media and user.media_count > 0:
+                raise InstagramReadError('anonymous_unavailable')
+        else:
+            media = reader.user_medias_v1(user.pk, amount=min(amount, 50))
         posts = []
         for item in media:
             if not item.taken_at or not item.code:
@@ -94,9 +116,19 @@ def fetch_public_posts(reader, username, amount=50):
                 'metrics': metrics,
             })
         return posts
-    except InstagramReadError:
+    except InstagramReadError as exc:
+        if anonymous and exc.code == 'challenge_required':
+            raise InstagramReadError('session_required') from None
         raise
     except Exception as exc:
+        from social_stats.egress.meta import MetaGatewayError
+        chain = exc
+        seen = set()
+        while chain is not None and id(chain) not in seen:
+            if isinstance(chain, MetaGatewayError):
+                raise InstagramReadError('gateway_unavailable') from None
+            seen.add(id(chain))
+            chain = chain.__cause__ or chain.__context__
         name = type(exc).__name__
         code = {
             'ChallengeRequired': 'challenge_required', 'ChallengeUnknownStep': 'challenge_required',
@@ -104,7 +136,9 @@ def fetch_public_posts(reader, username, amount=50):
             'ClientLoginRequired': 'session_expired', 'ClientUnauthorizedError': 'session_expired',
             'PleaseWaitFewMinutes': 'rate_limited', 'ClientThrottledError': 'rate_limited',
             'FeedbackRequired': 'rate_limited', 'UserNotFound': 'profile_not_found',
-        }.get(name, 'fetch_failed')
+        }.get(name, 'anonymous_unavailable' if anonymous else 'fetch_failed')
+        if anonymous and code == 'session_expired':
+            code = 'session_required'
         raise InstagramReadError(code) from None
 
 

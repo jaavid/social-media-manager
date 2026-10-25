@@ -39,10 +39,10 @@ bot token و chat/channel destination را وارد کنید. bot باید اج�
 
 ## دسترسی شبکه
 
-Gateway فعلی در مسیر اجرایی Telegram و Bale استفاده می‌شود. [API Access Gateway](https://github.com/jaavid/api-access-gateway) باید `/_gateway/health`، `/_gateway/routes` و `/_gateway/probe/<route>` و مسیرهای `telegram`/`bale` به originهای provider را داشته باشد.
+Gateway فعلی در مسیر اجرایی Telegram و Bale استفاده می‌شود؛ درخواست‌های API بک‌اند Meta و Instagram نیز اکنون اجباری از همین درگاه می‌گذرند. [API Access Gateway](https://github.com/jaavid/api-access-gateway) باید `/_gateway/health`، `/_gateway/routes` و `/_gateway/probe/<route>` و مسیرهای `telegram`/`bale` به originهای provider را داشته باشد.
 `API_GATEWAY_URL/KEY` و `OUTBOUND_TELEGRAM_MODE` یا `OUTBOUND_BALE_MODE` را تنظیم کنید: `direct`، `gateway` یا `auto`. کلید با secret سمت gateway یکسان باشد.
 `auto` فقط برای خطای شبکه fallback می‌کند؛ HTTP `401/403/429/5xx` باعث تغییر مسیر نمی‌شود. زمان circuit از `OUTBOUND_CIRCUIT_TTL_SECONDS` می‌آید. توکن bot از header داخلی ارسال می‌شود و در URL عمومی gateway قرار نمی‌گیرد.
-آزمون اتصال در Settings → Connect Accounts → API Connectivity برای staff/superadmin است. وجود Meta/Google/LinkedIn در health registry به معنی استفادهٔ runtime آن‌ها از gateway نیست.
+آزمون اتصال در Settings → Connect Accounts → API Connectivity برای staff/superadmin است. Meta و Instagram فقط gateway هستند و direct/auto برای آن‌ها اعمال نمی‌شود. وجود Google/LinkedIn در health registry به معنی استفادهٔ runtime آن‌ها از gateway نیست. ثبت مسیرهای KV اینستاگرام و Meta طبق `CHANNEL_CONTENT_CALENDAR.md` پیش‌نیاز است.
 
 ## قرارداد Connected Accounts
 

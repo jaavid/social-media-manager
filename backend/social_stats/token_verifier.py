@@ -25,7 +25,7 @@ import logging
 from datetime import datetime, timedelta
 from typing import Any, Optional
 
-import requests
+from social_stats.egress.meta import requests
 from django.utils import timezone
 
 logger = logging.getLogger(__name__)

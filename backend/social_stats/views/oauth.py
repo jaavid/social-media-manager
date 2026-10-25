@@ -11,7 +11,7 @@ OAuth 2.0 handlers for all 5 platforms:
   Facebook, Instagram, YouTube, Google My Business, LinkedIn
 """
 import secrets
-import requests
+from social_stats.egress.meta import requests
 import logging
 import time
 from urllib.parse import urlencode

@@ -1,0 +1,42 @@
+[
+  {
+    "key": "/meta",
+    "value": "{\"upstream\": \"https://graph.facebook.com\", \"probe_path\": \"/\"}"
+  },
+  {
+    "key": "/instagram-graph",
+    "value": "{\"upstream\": \"https://graph.instagram.com\", \"probe_path\": \"/\"}"
+  },
+  {
+    "key": "/instagram-oauth",
+    "value": "{\"upstream\": \"https://api.instagram.com\", \"probe_path\": \"/\"}"
+  },
+  {
+    "key": "/instagram-web",
+    "value": "{\"upstream\": \"https://www.instagram.com\", \"probe_path\": \"/\"}"
+  },
+  {
+    "key": "/instagram-root",
+    "value": "{\"upstream\": \"https://instagram.com\", \"probe_path\": \"/\"}"
+  },
+  {
+    "key": "/instagram-private",
+    "value": "{\"upstream\": \"https://i.instagram.com\", \"probe_path\": \"/\"}"
+  },
+  {
+    "key": "/instagram-private-b",
+    "value": "{\"upstream\": \"https://b.i.instagram.com\", \"probe_path\": \"/\"}"
+  },
+  {
+    "key": "/facebook-web",
+    "value": "{\"upstream\": \"https://www.facebook.com\", \"probe_path\": \"/\"}"
+  },
+  {
+    "key": "/meta-b-graph",
+    "value": "{\"upstream\": \"https://b-graph.facebook.com\", \"probe_path\": \"/\"}"
+  },
+  {
+    "key": "/meta-upload",
+    "value": "{\"upstream\": \"https://rupload.facebook.com\", \"probe_path\": \"/\"}"
+  }
+]

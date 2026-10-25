@@ -20,15 +20,15 @@ class Command(BaseCommand):
         if InstagramReaderSession.objects.filter(client_id=workspace_id, locked_until__gt=timezone.now()).exists():
             raise CommandError('Reader is syncing. Wait before replacing its session.')
         try:
-            from instagrapi import Client as InstagramClient
             from instagrapi.exceptions import TwoFactorRequired
         except ImportError:
             raise CommandError('Install backend requirements first.') from None
-        import os
-        reader = InstagramClient()
-        proxy = os.getenv('INSTAGRAPI_PROXY_URL', '').strip()
-        if proxy:
-            reader.set_proxy(proxy)
+        from social_stats.instagram_calendar import new_gateway_reader, InstagramReadError
+        try:
+            reader = new_gateway_reader()
+        except InstagramReadError:
+            raise CommandError('Configure API_GATEWAY_URL and API_GATEWAY_KEY before login.') from None
+        reader.with_challenge_flow = True  # Only this interactive operator command may request a code.
         username = input('Instagram reader username: ').strip()
         password = getpass.getpass('Instagram reader password: ')
         reader.challenge_code_handler = lambda *args, **kwargs: getpass.getpass('Instagram verification code: ')

@@ -10,7 +10,7 @@
 Celery tasks — auto-sync all 5 platforms every few hours.
 """
 import logging
-import requests
+from social_stats.egress.meta import requests
 from datetime import date, timedelta
 from celery import shared_task
 from django.utils import timezone

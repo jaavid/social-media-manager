@@ -16,6 +16,8 @@ def _elapsed(started: float) -> int:
 
 def probe_direct(service: str, *, timeout: int = 4) -> dict:
     config = get_service(service)
+    if configured_mode(service) == 'gateway' and (service == 'meta' or service.startswith(('instagram_', 'meta_')) or service == 'facebook_web'):
+        return {'reachable': False, 'route': 'direct', 'error': 'direct_route_disabled'}
     started = time.monotonic()
     try:
         response = requests.get(

@@ -21,11 +21,11 @@ test('allows a public profile and explains the required reader session', async (
   await waitFor(() => expect(refresh).toHaveBeenCalled());
 });
 
-test('does not permit syncing until a server reader session is configured', async () => {
+test('allows anonymous sync without a reader session', async () => {
   calendarAPI.getSources.mockResolvedValue({ data: [{ id: 2, username: 'example', reader_ready: false }] });
   render(<ChannelSources clientId={1} onRefresh={jest.fn()} selectedSource="" onSelectSource={jest.fn()} />);
-  await waitFor(() => expect(screen.getByRole('button', { name: 'Sync posts' })).toBeDisabled());
-  expect(screen.getByText(/Reader session required/)).toBeInTheDocument();
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Sync posts' })).toBeEnabled());
+  expect(screen.getByText(/Anonymous public access/)).toBeInTheDocument();
 });
 
 test('adds a named competitor in the selected brand', async () => {

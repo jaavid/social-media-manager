@@ -31,7 +31,7 @@ import logging
 import re
 import time
 
-import requests
+from social_stats.egress.meta import requests
 from django.utils import timezone
 
 logger = logging.getLogger(__name__)

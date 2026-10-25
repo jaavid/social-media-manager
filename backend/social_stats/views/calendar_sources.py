@@ -33,7 +33,8 @@ class CalendarSourceSerializer(serializers.ModelSerializer):
         return obj.competitor_id is not None
 
     def get_reader_ready(self, obj):
-        return InstagramReaderSession.objects.filter(client_id=obj.client_id).exists()
+        session = InstagramReaderSession.objects.filter(client_id=obj.client_id).first()
+        return bool(session and session.settings_json)
 
     def validate_username(self, value):
         try:
@@ -93,8 +94,6 @@ class CalendarSourceViewSet(TenantScopedMixin, mixins.ListModelMixin, mixins.Cre
     def sync(self, request, pk=None):
         source = self.get_object()
         self.require_permission(source.client, 'connect_platforms')
-        if not InstagramReaderSession.objects.filter(client_id=source.client_id).exists():
-            return Response({'error': 'session_required'}, status=409)
         if source.last_attempt_at and source.last_attempt_at > timezone.now() - timedelta(minutes=15):
             return Response({'error': 'cooldown'}, status=429)
         from social_stats.channel_calendar_tasks import sync_calendar_source

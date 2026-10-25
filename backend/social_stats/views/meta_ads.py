@@ -28,7 +28,7 @@ from __future__ import annotations
 import logging
 import re
 
-import requests
+from social_stats.egress.meta import requests
 from django.utils import timezone
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated

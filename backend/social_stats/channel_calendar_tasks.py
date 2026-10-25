@@ -18,15 +18,15 @@ def sync_calendar_source(source_id):
     if not source:
         return
     lease_until = now + timedelta(minutes=6)
-    # Both manual and periodic tasks use the same database lease across workers.
-    claimed = InstagramReaderSession.objects.filter(client_id=source.client_id).filter(
+    # A blank encrypted row is only a workspace lease, not a login session.
+    session, _ = InstagramReaderSession.objects.get_or_create(
+        client_id=source.client_id, defaults={'settings_json': ''},
+    )
+    claimed = InstagramReaderSession.objects.filter(pk=session.pk).filter(
         Q(locked_until__isnull=True) | Q(locked_until__lte=now),
     ).update(locked_until=lease_until)
     if not claimed:
-        CalendarSource.objects.filter(pk=source_id).update(
-            sync_status='error', error_code=('reader_busy' if InstagramReaderSession.objects.filter(
-                client_id=source.client_id).exists() else 'session_required'),
-        )
+        CalendarSource.objects.filter(pk=source_id).update(sync_status='error', error_code='reader_busy')
         return
     try:
         source.refresh_from_db()
@@ -35,9 +35,18 @@ def sync_calendar_source(source_id):
         CalendarSource.objects.filter(pk=source_id).update(
             last_attempt_at=now, sync_status='syncing', error_code='',
         )
-        session = InstagramReaderSession.objects.get(client_id=source.client_id)
-        reader = build_reader(session.settings_json)
-        posts = fetch_public_posts(reader, source.username)
+        reader = build_reader()
+        used_session = False
+        try:
+            posts = fetch_public_posts(reader, source.username, anonymous=True)
+        except InstagramReadError as error:
+            if error.code not in {'session_required', 'anonymous_unavailable'}:
+                raise
+            if not session.settings_json:
+                raise InstagramReadError('session_required') from None
+            reader = build_reader(session.settings_json)
+            posts = fetch_public_posts(reader, source.username)
+            used_session = True
         with transaction.atomic():
             # Do not recreate content if its source was removed/disabled during I/O.
             current = CalendarSource.objects.select_for_update().filter(pk=source_id, is_active=True).first()
@@ -48,9 +57,10 @@ def sync_calendar_source(source_id):
                 ChannelCalendarPost.objects.update_or_create(
                     source=current, external_id=external_id, defaults=post,
                 )
-            InstagramReaderSession.objects.filter(pk=session.pk).update(
-                settings_json=json.dumps(reader.get_settings()),
-            )
+            if used_session:
+                InstagramReaderSession.objects.filter(pk=session.pk).update(
+                    settings_json=json.dumps(reader.get_settings()),
+                )
             CalendarSource.objects.filter(pk=source_id).update(
                 last_synced_at=timezone.now(), sync_status='ok', error_code='',
             )
@@ -68,6 +78,6 @@ def sync_calendar_source(source_id):
 def sync_calendar_sources():
     # Spread reads across the day instead of bursting one reader's requests.
     for index, source_id in enumerate(CalendarSource.objects.filter(
-        is_active=True, client__instagramreadersession__isnull=False,
-    ).exclude(error_code__in=['session_expired', 'session_invalid', 'challenge_required']).values_list('id', flat=True)):
+        is_active=True,
+    ).values_list('id', flat=True)):
         sync_calendar_source.apply_async(args=[source_id], countdown=index * 60)

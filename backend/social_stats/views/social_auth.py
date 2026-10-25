@@ -13,7 +13,7 @@ Client users only — superadmin/staff are blocked.
 import secrets
 import urllib.parse
 
-import requests as http_requests
+from social_stats.egress.meta import requests as http_requests
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.shortcuts import redirect

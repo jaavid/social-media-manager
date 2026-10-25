@@ -28,7 +28,7 @@ import logging
 from datetime import datetime, timedelta, timezone as dt_tz
 from typing import Optional
 
-import requests
+from social_stats.egress.meta import requests
 from celery import shared_task
 from django.db import transaction
 from django.utils import timezone
