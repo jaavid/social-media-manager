@@ -11,7 +11,7 @@ bridges canonical platform keys to their concrete output-service adapters.
 from dataclasses import replace
 from .publishing_defaults import builtin_modes
 from .analytics_defaults import builtin_metrics
-from .manifest import CAPABILITIES, PlatformManifest
+from .manifest import CAPABILITIES, PlatformManifest, Capability
 from .community_manifests import COMMUNITY_MANIFESTS
 
 
@@ -127,6 +127,8 @@ PLATFORM_REGISTRY = (
             reviews='not_available',
             webhooks='supported',
         ),
+        constraints={name: Capability('supported', scopes=('instagram_content_publish',))
+                     for name in ('publish_image', 'publish_video', 'scheduling')},
         publisher='social_stats.publishers.instagram.InstagramPublisher',
         egress_service='meta',
         connection_handler='social_stats.views.oauth.oauth_disconnect',

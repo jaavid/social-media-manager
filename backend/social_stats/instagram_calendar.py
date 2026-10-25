@@ -150,7 +150,7 @@ def calendar_channel_posts(request, workspace, month=None, year=None, platform=N
         return []
     if not evaluate(request.user, workspace, 'view_posts').allowed:
         return []
-    qs = ChannelCalendarPost.objects.filter(source__client=workspace).select_related('source', 'source__competitor')
+    qs = ChannelCalendarPost.objects.filter(source__client=workspace).select_related('source', 'source__competitor', 'source__social_account')
     if month and year:
         qs = qs.filter(published_at__month=int(month), published_at__year=int(year))
     source_id = request.query_params.get('source_id')
@@ -158,8 +158,11 @@ def calendar_channel_posts(request, workspace, month=None, year=None, platform=N
         qs = qs.filter(source_id=source_id)
     results = []
     for post in qs:
+        if not evaluate(request.user, workspace, 'view_posts', account=post.source.social_account).allowed:
+            continue
         results.append({
             'id': f'channel:{post.pk}', 'client': workspace.pk, 'platform': post.source.platform,
+            'social_account_id': post.source.social_account_id,
             'source_id': post.source_id, 'source_username': post.source.username,
             'is_competitor': post.source.competitor_id is not None,
             'source_name': post.source.competitor.name if post.source.competitor_id else post.source.username,

@@ -39,6 +39,18 @@ from social_stats.tenant_mixins import TenantScopedMixin
 logger = logging.getLogger(__name__)
 
 
+def observed_competitor_posts(competitor, user, cutoff):
+    from social_stats.models import ChannelCalendarPost
+    from social_stats.authorization import evaluate
+    posts = ChannelCalendarPost.objects.filter(source__competitor=competitor,
+        source__client=competitor.client, published_at__date__gte=cutoff).select_related('source__social_account')
+    return [{'id': p.external_id, 'caption': p.caption, 'permalink': p.post_url,
+             'url': p.post_url, 'platform': p.source.platform, 'published_at': p.published_at.isoformat(),
+             'snapshot_date': p.fetched_at.date().isoformat(), 'media_url': p.media_url,
+             **p.metrics} for p in posts[:100] if evaluate(user, competitor.client,
+             'view_posts', account=p.source.social_account).allowed]
+
+
 class CompetitorViewSet(TenantScopedMixin, viewsets.ModelViewSet):
     queryset = Competitor.objects.all()
     serializer_class = CompetitorSerializer
@@ -82,7 +94,8 @@ class CompetitorViewSet(TenantScopedMixin, viewsets.ModelViewSet):
         if platform:
             qs = qs.filter(platform=platform)
 
-        merged = []
+        merged = [p for p in observed_competitor_posts(competitor, request.user, cutoff)
+                  if not platform or p['platform'] == platform]
         for snap in qs.order_by('-date'):
             for post in (snap.sample_top_posts or []):
                 merged.append({
@@ -124,7 +137,8 @@ class CompetitorViewSet(TenantScopedMixin, viewsets.ModelViewSet):
             competitor=competitor, date__gte=cutoff,
         ).order_by('date'))
 
-        if not snapshots:
+        observed = observed_competitor_posts(competitor, request.user, cutoff)
+        if not snapshots and not observed:
             return Response({
                 'detail': 'No snapshots in the last 30 days. '
                           'Run "Sync now" first or wait for the daily job.',
@@ -136,7 +150,8 @@ class CompetitorViewSet(TenantScopedMixin, viewsets.ModelViewSet):
 
         # Build a compact prompt
         platform_summary = {}
-        sample_posts = []
+        sample_posts = [{'platform': p['platform'], 'date': p['published_at'],
+                         'caption': p['caption'][:280], 'likes': p.get('likes')} for p in observed[:20]]
         for s in snapshots:
             ps = platform_summary.setdefault(s.platform, {
                 'first_followers': s.followers, 'last_followers': s.followers,

@@ -1,6 +1,7 @@
 'use client';
+import CalendarPage from '@/features/CalendarPage';
 import Protected from '@/core/routes/Protected';
 import MyCalendarPage from '@/features/end-user/MyCalendarPage';
 export default function View() {
-  return <Protected accountTypes={['end_user']}><MyCalendarPage /></Protected>;
+  return <Protected accountTypes={['end_user']}><MyCalendarPage CalendarView={CalendarPage} /></Protected>;
 }

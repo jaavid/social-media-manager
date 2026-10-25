@@ -57,6 +57,10 @@ def connections(request, workspace_id):
                            manifest.status not in {'blocked', 'deprecated'})
         accounts = []
         for account in SocialAccount.objects.filter(client=workspace, platform=manifest.key).select_related('credential'):
+            if not any(evaluate(request.user, workspace, name, account=account).allowed for name in
+                       ['view_posts', 'view_analytics', 'view_inbox', 'draft_posts',
+                        'publish_posts', 'schedule_posts', 'connect_platforms']):
+                continue
             credential = getattr(account, 'credential', None)
             health = connection_health(provider, credential)
             secrets = (credential.access_token, credential.refresh_token) if credential else ()
@@ -92,7 +96,7 @@ def connections(request, workspace_id):
                     'publish': evaluate(request.user, workspace, 'publish_posts', account=account).allowed,
                     'schedule': evaluate(request.user, workspace, 'schedule_posts', account=account).allowed
                         and set(manifest.capability('scheduling').scopes) <= set(credential.scope.split() if credential else ()),
-                    'reconnect': connect_enabled and permitted(request.user, workspace, 'connect_platforms', account),
+                    'reconnect': not account.external_id.startswith('public:') and connect_enabled and permitted(request.user, workspace, 'connect_platforms', account),
                     'disconnect': manifest.capability('disconnect').enabled and permitted(request.user, workspace, 'disconnect_platforms', account),
                 },
             })

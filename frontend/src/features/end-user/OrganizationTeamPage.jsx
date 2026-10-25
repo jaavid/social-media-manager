@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { AppLink as Link } from '../../core/navigation';
+import { useLanguage } from '@/i18n';
 import { useSession } from '../../core/session';
 import { organizationAPI } from '@/services/domains/identity';
 import Button from '../../components/ui/Button';
@@ -66,6 +67,7 @@ function MemberEditor({ member, organization, workspaces, onSaved, onError }) {
 }
 
 export default function OrganizationTeamPage() {
+  const { t } = useLanguage();
   const { user, refreshAuth } = useSession();
   const [organizations, setOrganizations] = useState([]);
   const [organizationId, setOrganizationId] = useState('');
@@ -214,7 +216,7 @@ export default function OrganizationTeamPage() {
         </div>)}</div>
         {manager && <form onSubmit={createBrand} className={styles.brandForm}>
           <div className={styles.formIntro}><h3>افزودن برند</h3><p>نام برند یا واحدی را وارد کنید که می‌خواهید محتوایش را مدیریت کنید.</p></div>
-          <Input disabled={busy} label="نام برند یا واحد" placeholder="مثلاً School" value={brand} onChange={event => setBrand(event.target.value)} required maxLength={200} />
+          <Input disabled={busy} label="نام برند یا واحد" placeholder={t('workspace.brandExample')} value={brand} onChange={event => setBrand(event.target.value)} required maxLength={200} />
           {!user.email && <Input label="ایمیل تماس برند" type="email" dir="ltr" placeholder="name@example.com" value={contactEmail} onChange={event => setContactEmail(event.target.value)} required />}
           <Button type="submit" disabled={busy || !brand.trim()}>افزودن برند</Button>
         </form>}

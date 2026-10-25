@@ -9,7 +9,7 @@ from django.db.models import Q
 from django.utils import timezone
 
 from social_stats.instagram_calendar import build_reader, fetch_public_posts, InstagramReadError
-from social_stats.models import CalendarSource, ChannelCalendarPost, InstagramReaderSession
+from social_stats.models import CalendarSource, ChannelCalendarPost, InstagramReaderSession, ChannelPostObservation
 from social_stats import brightdata_calendar
 
 logger = logging.getLogger(__name__)
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 def sync_calendar_source(source_id, snapshot_id=None):
     now = timezone.now()
     source = CalendarSource.objects.filter(pk=source_id, is_active=True).first()
-    if not source:
+    if not source or not source.client.is_active or source.client.is_processing_paused:
         return
     # Delayed deliveries from an older collection must not start a new paid job.
     if snapshot_id and snapshot_id != source.provider_snapshot_id:
@@ -92,8 +92,12 @@ def sync_calendar_source(source_id, snapshot_id=None):
                 ).first()
                 if existing:
                     external_id = existing.external_id
-                ChannelCalendarPost.objects.update_or_create(
+                saved_post, _ = ChannelCalendarPost.objects.update_or_create(
                     source=current, external_id=external_id, defaults=post,
+                )
+                ChannelPostObservation.objects.create(
+                    post=saved_post, metrics=post['metrics'],
+                    provider='brightdata' if source.provider_snapshot_id else 'instagrapi',
                 )
             if used_session:
                 InstagramReaderSession.objects.filter(pk=session.pk).update(
@@ -123,6 +127,6 @@ def sync_calendar_source(source_id, snapshot_id=None):
 def sync_calendar_sources():
     # Spread reads across the day instead of bursting one reader's requests.
     for index, source_id in enumerate(CalendarSource.objects.filter(
-        is_active=True,
+        is_active=True, client__is_active=True, client__is_processing_paused=False,
     ).values_list('id', flat=True)):
         sync_calendar_source.apply_async(args=[source_id], countdown=index * 60)

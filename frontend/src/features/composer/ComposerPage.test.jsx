@@ -9,11 +9,12 @@ import { QK } from '@/services/queryClient';
 
 const mockNavigate = jest.fn();
 let mockId;
+let mockSearch;
 let mockUser;
 let fixture;
 const stored = { id: 900, client: 7, title: '', content: 'Keep this content', media_type: 'text', media_urls: [],
   target_platforms: ['contract_example'], platform_overrides: {}, status: 'draft', scheduled_at: null };
-jest.mock('@/core/navigation', () => ({ useAppNavigate: () => mockNavigate, useAppSearchParams: () => [new URLSearchParams()], useAppParams: () => ({ id: mockId }), useAppLocation: () => ({ pathname: globalThis.window.location.pathname }) }));
+jest.mock('@/core/navigation', () => ({ useAppNavigate: () => mockNavigate, useAppSearchParams: () => [new URLSearchParams(mockSearch)], useAppParams: () => ({ id: mockId }), useAppLocation: () => ({ pathname: globalThis.window.location.pathname }) }));
 jest.mock('@/core/session', () => ({ useSession: () => ({ user: mockUser }) }));
 jest.mock('@/services/domains/composer', () => ({ composer: { get: jest.fn(), save: jest.fn(), command: jest.fn(), queues: jest.fn(), resolve: jest.fn(), upload: jest.fn() } }));
 jest.mock('@/services/domains/connections', () => ({ connectionsAPI: { get: jest.fn() } }));
@@ -36,7 +37,7 @@ function command(label = 'Publish Now') { fireEvent.click(screen.getAllByRole('b
 beforeEach(() => {
   globalThis.crypto.randomUUID = () => '11111111-1111-4111-8111-111111111111';
   globalThis.structuredClone = value => JSON.parse(JSON.stringify(value));
-  jest.clearAllMocks(); window.sessionStorage.clear(); mockId = undefined; mockUser = { id: 1, workspace_id: 7 };
+  jest.clearAllMocks(); window.sessionStorage.clear(); mockId = undefined; mockSearch = ''; mockUser = { id: 1, workspace_id: 7 };
   window.history.replaceState({}, '', '/dashboard/analytics/composer'); setLanguage('en');
   fixture = connectionFixture(); fixture.providers[0].accounts = [connectionAccount(), connectionAccount(11)];
   connectionsAPI.get.mockImplementation(async () => fixture);
@@ -274,4 +275,13 @@ test('uploading two media items preserves an explicitly chosen album editor mode
   await waitFor(() => expect(composer.upload).toHaveBeenCalledTimes(2));
   await waitFor(() => expect(screen.getByLabelText('Upload')).toBeEnabled());
   expect(mode).toHaveValue('album');
+});
+
+
+test('watchlist deep link preselects only the accessible requested account', async () => {
+  mockSearch = 'workspace=7&account=11';
+  mount();
+  expect(await screen.findByRole('button', { name: 'Contract example', pressed: true })).toBeInTheDocument();
+  expect(screen.getByRole('checkbox', { name: /Second account/ })).toBeChecked();
+  expect(screen.getByRole('checkbox', { name: /First account/ })).not.toBeChecked();
 });

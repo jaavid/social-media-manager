@@ -1,11 +1,10 @@
 import { useLanguage } from '@/i18n';
 import { useWorkspaces } from '@/hooks/useData';
 import useWorkspaceScope from '@/hooks/useWorkspaceScope';
-import CalendarPage from '@/features/CalendarPage';
 import NativeSelect from '@/components/ui/NativeSelect';
 import DataState from '@/components/ui/DataState';
 
-export default function MyCalendarPage() {
+export default function MyCalendarPage({ CalendarView }) {
   const { isPersian, t } = useLanguage();
   const { workspaceId, selectWorkspace } = useWorkspaceScope();
   const { workspaces, loading, error, refetch } = useWorkspaces();
@@ -20,7 +19,7 @@ export default function MyCalendarPage() {
       <option value="">{isPersian ? 'یک برند انتخاب کنید' : 'Select a brand'}</option>
       {workspaces.map(workspace => <option key={workspace.id} value={String(workspace.id)}>{workspace.company || workspace.name}</option>)}
     </NativeSelect>
-    {selected ? <CalendarPage key={selected.id} clientId={selected.id} />
+    {selected ? <CalendarView key={selected.id} clientId={selected.id} />
       : <DataState state="empty" title={isPersian ? 'برای مشاهده تقویم، یک برند مجاز انتخاب کنید.' : 'Select an accessible brand to view its calendar.'} />}
   </>;
 }

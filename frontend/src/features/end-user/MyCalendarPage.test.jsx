@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react';
+import CalendarPage from '@/features/CalendarPage';
 import MyCalendarPage from './MyCalendarPage';
 
 let mockWorkspaceId = 10;
@@ -10,16 +11,16 @@ jest.mock('@/features/CalendarPage', () => ({ __esModule: true, default: ({ clie
 
 beforeEach(() => { mockWorkspaceId = 10; mockSelect.mockClear(); });
 test('opens the authorized brand calendar and switches workspace scope', () => {
-  const view = render(<MyCalendarPage />);
+  const view = render(<MyCalendarPage CalendarView={CalendarPage} />);
   expect(screen.getByTestId('calendar')).toHaveTextContent('10');
   fireEvent.change(screen.getByLabelText('Brand / workspace'), { target: { value: '11' } });
   expect(mockSelect).toHaveBeenCalledWith('11');
   mockWorkspaceId = 11;
-  view.rerender(<MyCalendarPage />);
+  view.rerender(<MyCalendarPage CalendarView={CalendarPage} />);
   expect(screen.getByTestId('calendar')).toHaveTextContent('11');
 });
 test('does not mount a calendar for an inaccessible explicit brand', () => {
   mockWorkspaceId = 99;
-  render(<MyCalendarPage />);
+  render(<MyCalendarPage CalendarView={CalendarPage} />);
   expect(screen.queryByTestId('calendar')).not.toBeInTheDocument();
 });
