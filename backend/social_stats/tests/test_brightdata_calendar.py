@@ -1,0 +1,169 @@
+import os
+from datetime import timedelta
+from unittest.mock import patch
+
+from django.test import SimpleTestCase, TestCase
+from django.utils import timezone
+
+from social_stats import brightdata_calendar as provider
+from social_stats.channel_calendar_tasks import sync_calendar_source
+from social_stats.instagram_calendar import InstagramReadError
+from social_stats.models import CalendarSource, ChannelCalendarPost, Client
+
+
+def record(**changes):
+    return dict({
+        'url': 'https://www.instagram.com/p/ABC123/', 'pk': '123',
+        'user_posted': 'example', 'description': 'hello',
+        'date_posted': '2026-10-24T12:30:00Z', 'likes': 0, 'num_comments': 2,
+        'photos': ['https://cdn.example/photo.jpg'],
+    }, **changes)
+
+
+class BrightDataAdapterTests(SimpleTestCase):
+    def test_normalization_preserves_zero_unknown_metrics_and_date(self):
+        post = provider.normalize_posts([record()], 'example')[0]
+        self.assertEqual(post['metrics'], {'likes': 0, 'comments': 2})
+        self.assertEqual(post['published_at'].hour, 12)
+        self.assertEqual(post['external_id'], '123')
+        self.assertEqual(post['post_type'], 'image')
+
+    def test_rejects_cross_channel_bad_urls_missing_dates_and_provider_errors(self):
+        for changes in [{'user_posted': 'other'}, {'url': 'https://evil.test/p/ABC123/'},
+                        {'url': 'https://www.instagram.com:invalid/p/ABC123/'},
+                        {'date_posted': None}, {'date_posted': 'yesterday'},
+                        {'error': 'token=secret'}, {'date_posted': '2026-10-24T12:30:00'}]:
+            with self.subTest(changes=changes), self.assertRaises(InstagramReadError):
+                provider.normalize_posts([record(**changes)], 'example')
+
+    @patch.dict(os.environ, {'BRIGHTDATA_API_KEY': 'test-secret', 'API_GATEWAY_KEY': 'gateway-secret',
+                            'API_GATEWAY_URL': 'https://gateway.example', 'BRIGHTDATA_CALENDAR_POST_LIMIT': '500'})
+    @patch('social_stats.brightdata_calendar.outbound_request')
+    def test_trigger_is_discovery_bounded_and_gateway_only(self, send):
+        send.return_value.status_code = 200
+        send.return_value.json.return_value = {'snapshot_id': 's_fixture'}
+        self.assertEqual(provider.start_discovery('example'), 's_fixture')
+        args, kwargs = send.call_args
+        self.assertEqual(args[:2], ('brightdata', 'POST'))
+        self.assertEqual(kwargs['mode'], 'gateway')
+        self.assertFalse(kwargs['allow_redirects'])
+        self.assertEqual(kwargs['params']['type'], 'discover_new')
+        self.assertEqual(kwargs['params']['discover_by'], 'url')
+        self.assertEqual(kwargs['params']['limit_per_input'], 50)
+        self.assertEqual(kwargs['json'][0]['num_of_posts'], 50)
+
+    @patch.dict(os.environ, {'BRIGHTDATA_API_KEY': ''})
+    @patch('social_stats.brightdata_calendar.outbound_request')
+    def test_missing_key_never_sends(self, send):
+        with self.assertRaises(InstagramReadError) as caught:
+            provider.start_discovery('example')
+        self.assertEqual(caught.exception.code, 'brightdata_not_configured')
+        send.assert_not_called()
+
+    @patch.dict(os.environ, {'BRIGHTDATA_API_KEY': 'secret', 'API_GATEWAY_KEY': 'gateway',
+                            'API_GATEWAY_URL': 'https://gateway.example'})
+    @patch('social_stats.brightdata_calendar.outbound_request')
+    def test_http_errors_are_safe_and_not_retried(self, send):
+        for status, code in [(401, 'brightdata_access_denied'), (402, 'brightdata_quota'),
+                             (429, 'rate_limited'), (302, 'brightdata_unavailable')]:
+            send.reset_mock()
+            send.return_value.status_code = status
+            with self.assertRaises(InstagramReadError) as caught:
+                provider.start_discovery('example')
+            self.assertEqual(caught.exception.code, code)
+            self.assertNotIn('secret', str(caught.exception))
+            self.assertEqual(send.call_count, 1)
+
+    @patch('social_stats.brightdata_calendar._request')
+    def test_progress_only_downloads_ready_snapshot(self, request):
+        request.return_value = {'status': 'running'}
+        self.assertIsNone(provider.fetch_snapshot('s_fixture', 'example'))
+        self.assertEqual(request.call_count, 1)
+        request.side_effect = [{'status': 'ready'}, [record()]]
+        self.assertEqual(len(provider.fetch_snapshot('s_fixture', 'example')), 1)
+
+
+@patch.dict(os.environ, {'INSTAGRAM_CALENDAR_PROVIDER': 'brightdata'})
+class BrightDataSyncTests(TestCase):
+    def setUp(self):
+        self.workspace = Client.objects.create(name='test', company='test', email='test@example.test')
+        self.source = CalendarSource.objects.create(client=self.workspace, username='example')
+
+    @patch('social_stats.channel_calendar_tasks.build_reader')
+    @patch('social_stats.channel_calendar_tasks.sync_calendar_source.apply_async')
+    @patch('social_stats.brightdata_calendar.fetch_snapshot')
+    @patch('social_stats.brightdata_calendar.start_discovery', return_value='s_fixture')
+    def test_trigger_poll_upsert_and_stale_delivery_never_retriggers(self, start, fetch, queue, reader):
+        sync_calendar_source(self.source.pk)
+        self.source.refresh_from_db()
+        self.assertEqual(self.source.provider_snapshot_id, 's_fixture')
+        self.assertEqual(self.source.sync_status, 'syncing')
+        self.assertIsNone(self.source.last_synced_at)
+        queue.assert_called_once_with(args=[self.source.pk], kwargs={'snapshot_id': 's_fixture'}, countdown=60)
+        fetch.return_value = provider.normalize_posts([record()], 'example')
+        sync_calendar_source(self.source.pk, snapshot_id='s_fixture')
+        self.source.refresh_from_db()
+        self.assertEqual(self.source.sync_status, 'ok')
+        self.assertFalse(self.source.provider_snapshot_id)
+        self.assertEqual(ChannelCalendarPost.objects.get().source.client_id, self.workspace.pk)
+        sync_calendar_source(self.source.pk, snapshot_id='s_fixture')
+        start.assert_called_once()
+        reader.assert_not_called()
+
+    @patch('social_stats.channel_calendar_tasks.sync_calendar_source.apply_async')
+    @patch('social_stats.brightdata_calendar.start_discovery')
+    @patch('social_stats.brightdata_calendar.fetch_snapshot')
+    def test_transient_failure_retains_snapshot_and_previous_posts(self, fetch, start, queue):
+        self.source.provider_snapshot_id = 's_fixture'
+        self.source.provider_started_at = timezone.now()
+        self.source.save()
+        post = provider.normalize_posts([record()], 'example')[0]
+        ChannelCalendarPost.objects.create(source=self.source, **post)
+        fetch.side_effect = InstagramReadError('brightdata_unavailable')
+        sync_calendar_source(self.source.pk, snapshot_id='s_fixture')
+        self.source.refresh_from_db()
+        self.assertEqual(self.source.provider_snapshot_id, 's_fixture')
+        self.assertEqual(self.source.error_code, 'brightdata_unavailable')
+        self.assertEqual(ChannelCalendarPost.objects.count(), 1)
+        start.assert_not_called()
+
+    @patch('social_stats.brightdata_calendar.start_discovery')
+    @patch('social_stats.brightdata_calendar.fetch_snapshot')
+    def test_expired_collection_stops_without_resubmitting(self, fetch, start):
+        self.source.provider_snapshot_id = 's_fixture'
+        self.source.provider_started_at = timezone.now() - timedelta(hours=1)
+        self.source.save()
+        sync_calendar_source(self.source.pk, snapshot_id='s_fixture')
+        self.source.refresh_from_db()
+        self.assertEqual(self.source.error_code, 'brightdata_timeout')
+        self.assertFalse(self.source.provider_snapshot_id)
+        fetch.assert_not_called()
+        start.assert_not_called()
+
+    @patch('social_stats.channel_calendar_tasks.build_reader')
+    @patch('social_stats.brightdata_calendar.start_discovery', side_effect=InstagramReadError('brightdata_access_denied'))
+    def test_provider_failure_never_falls_back_to_instagram(self, start, reader):
+        sync_calendar_source(self.source.pk)
+        self.source.refresh_from_db()
+        self.assertEqual(self.source.error_code, 'brightdata_access_denied')
+        reader.assert_not_called()
+
+    @patch('social_stats.brightdata_calendar.fetch_snapshot')
+    def test_deleted_source_does_not_download_snapshot(self, fetch):
+        source_id = self.source.pk
+        self.source.delete()
+        sync_calendar_source(source_id, snapshot_id='s_fixture')
+        fetch.assert_not_called()
+
+    @patch('social_stats.brightdata_calendar.fetch_snapshot')
+    def test_provider_switch_updates_same_post_without_duplicate(self, fetch):
+        old = provider.normalize_posts([record()], 'example')[0]
+        old.update(external_id='old-provider-id', post_url='https://www.instagram.com/reel/ABC123/')
+        ChannelCalendarPost.objects.create(source=self.source, **old)
+        self.source.provider_snapshot_id = 's_fixture'
+        self.source.provider_started_at = timezone.now()
+        self.source.save()
+        fetch.return_value = provider.normalize_posts([record(likes=5)], 'example')
+        sync_calendar_source(self.source.pk, snapshot_id='s_fixture')
+        self.assertEqual(ChannelCalendarPost.objects.count(), 1)
+        self.assertEqual(ChannelCalendarPost.objects.get().metrics['likes'], 5)

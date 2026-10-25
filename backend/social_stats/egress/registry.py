@@ -20,6 +20,8 @@ class EgressService:
 
 
 SERVICES: dict[str, EgressService] = {
+    'brightdata': EgressService('brightdata', 'Bright Data', 'https://api.brightdata.com',
+                               'brightdata', 'https://api.brightdata.com/'),
     'discord': EgressService('discord', 'Discord API', 'https://discord.com', 'discord', 'https://discord.com/api/v10/gateway'),
     'reddit': EgressService('reddit', 'Reddit API', 'https://oauth.reddit.com', 'reddit', 'https://oauth.reddit.com/'),
     'reddit_oauth': EgressService('reddit_oauth', 'Reddit OAuth', 'https://www.reddit.com', 'reddit-oauth', 'https://www.reddit.com/'),

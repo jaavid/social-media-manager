@@ -13,6 +13,7 @@ from social_stats.authorization import evaluate
 from social_stats.instagram_calendar import normalize_username
 from social_stats.models import CalendarSource, InstagramReaderSession, Competitor, Client
 from social_stats.tenant_mixins import TenantScopedMixin
+from social_stats.brightdata_calendar import calendar_provider
 
 
 class CalendarSourceSerializer(serializers.ModelSerializer):
@@ -21,16 +22,25 @@ class CalendarSourceSerializer(serializers.ModelSerializer):
     display_name = serializers.CharField(source='competitor.name', read_only=True, default='')
     is_competitor = serializers.SerializerMethodField()
     reader_ready = serializers.SerializerMethodField()
+    provider = serializers.SerializerMethodField()
 
     class Meta:
         model = CalendarSource
         fields = ['id', 'client', 'platform', 'username', 'is_active', 'last_synced_at',
-                  'last_attempt_at', 'sync_status', 'error_code', 'reader_ready', 'competitor_name', 'display_name', 'is_competitor']
+                  'last_attempt_at', 'sync_status', 'error_code', 'reader_ready', 'provider', 'competitor_name', 'display_name', 'is_competitor']
         read_only_fields = ['client', 'last_synced_at', 'last_attempt_at', 'sync_status', 'error_code']
         validators = []  # Workspace is stamped after validation; DB constraint is authoritative.
 
     def get_is_competitor(self, obj):
         return obj.competitor_id is not None
+
+    def get_provider(self, obj):
+        if obj.provider_snapshot_id:
+            return 'brightdata'
+        try:
+            return calendar_provider()
+        except Exception:
+            return 'unavailable'
 
     def get_reader_ready(self, obj):
         session = InstagramReaderSession.objects.filter(client_id=obj.client_id).first()

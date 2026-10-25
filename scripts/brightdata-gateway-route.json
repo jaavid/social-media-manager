@@ -1,0 +1,6 @@
+[
+  {
+    "key": "/brightdata",
+    "value": "{\"upstream\":\"https://api.brightdata.com\",\"probe_path\":\"/\"}"
+  }
+]

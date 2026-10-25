@@ -41,7 +41,7 @@ export default function ChannelSources({ clientId, onRefresh, selectedSource, on
     const timer = setInterval(() => {
       load().then(() => { if (!cancelled) onRefresh(); }).catch(() => {});
     }, 10000);
-    const stop = setTimeout(() => setPending(false), 300000);
+    const stop = setTimeout(() => setPending(false), 1800000);
     return () => { cancelled = true; clearInterval(timer); clearTimeout(stop); };
   }, [pending, load, onRefresh]);
 
@@ -81,12 +81,20 @@ export default function ChannelSources({ clientId, onRefresh, selectedSource, on
     anonymous_unavailable: text('دریافت عمومی در دسترس نیست؛ نشست خواننده لازم است', 'Anonymous access unavailable; a reader session is needed'),
     dependency_missing: text('سرویس خواندن روی سرور نصب نشده است', 'Reader dependency is not installed'),
     fetch_failed: text('دریافت ناموفق بود؛ داده قبلی حفظ شده است', 'Sync failed; previous content was retained'),
+    provider_invalid: text('سرویس دریافت روی سرور درست تنظیم نشده است', 'The collection provider is misconfigured'),
+    brightdata_not_configured: text('تنظیمات Bright Data روی سرور کامل نیست', 'Bright Data configuration is incomplete'),
+    brightdata_access_denied: text('دسترسی Bright Data رد شد؛ کلید سرویس یا درگاه را بررسی کنید', 'Bright Data access denied; check the service and gateway keys'),
+    brightdata_quota: text('اعتبار Bright Data کافی نیست', 'Bright Data credit is insufficient'),
+    brightdata_unavailable: text('سرویس Bright Data یا درگاه در دسترس نیست', 'Bright Data or the gateway is unavailable'),
+    brightdata_invalid_response: text('پاسخ Bright Data برای تقویم معتبر نیست', 'Bright Data returned invalid calendar data'),
+    brightdata_collection_failed: text('Bright Data نتوانست محتوای این کانال را دریافت کند', 'Bright Data could not collect this channel'),
+    brightdata_timeout: text('دریافت Bright Data در زمان تعیین‌شده تمام نشد', 'Bright Data collection timed out'),
   };
   if (!clientId) return null;
   return (
     <details style={{ marginBottom: 16, padding: 12, border: '1px solid var(--border-default)', borderRadius: 10 }}>
       <summary style={{ cursor: 'pointer', minHeight: 32 }}>{text('رقبا و کانال‌های تحت رصد · اینستاگرام', 'Competitors and tracked channels · Instagram')}</summary>
-      <p>{text('دریافت ابتدا بدون ورود و از طریق درگاه کلودفلر امتحان می‌شود. اگر اینستاگرام ورود بخواهد، از نشست خواننده استفاده می‌شود.', 'Public access is tried first through Cloudflare. A reader session is used only if Instagram requires login.')}</p>
+      <p>{text('دریافت محتوای عمومی از طریق سرویس تنظیم‌شده روی سرور انجام می‌شود. برای Bright Data به ورود اینستاگرام نیازی نیست.', 'Public content is collected using the server-configured provider. Bright Data does not require an Instagram login.')}</p>
       <label htmlFor="calendar-channel-filter">{text('نمایش کانال', 'Channel filter')}</label>{' '}
       <select id="calendar-channel-filter" value={selectedSource} onChange={event => onSelectSource(event.target.value)} style={controlStyle}>
         <option value="">{text('همه محتواها', 'All content')}</option>
@@ -125,6 +133,8 @@ export default function ChannelSources({ clientId, onRefresh, selectedSource, on
             {source.is_competitor && <strong>{source.display_name} · {text('رقیب', 'Competitor')} · </strong>}
             <strong dir="ltr">@{source.username}</strong>{' · '}
             {source.last_synced_at ? formatDate(source.last_synced_at) : text('هنوز دریافت نشده', 'Not synced yet')}
+            {source.provider === 'brightdata' && <span> · Bright Data</span>}
+            {source.sync_status === 'syncing' && <span> · {text('در حال دریافت؛ نتیجه خودکار به‌روزرسانی می‌شود', 'Collecting; results refresh automatically')}</span>}
             {source.error_code && <span> · {text('دریافت متوقف شد', 'Sync stopped')}: {errors[source.error_code] || errors.fetch_failed}</span>}
             {!source.reader_ready && <span> · {text('دریافت عمومی بدون ورود', 'Anonymous public access')}</span>}
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 6 }}>

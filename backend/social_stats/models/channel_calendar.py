@@ -19,6 +19,8 @@ class CalendarSource(models.Model):
     last_attempt_at = models.DateTimeField(null=True, blank=True)
     sync_status = models.CharField(max_length=24, default='idle')
     error_code = models.CharField(max_length=40, blank=True)
+    provider_snapshot_id = models.CharField(max_length=110, blank=True)
+    provider_started_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         constraints = [models.UniqueConstraint(
