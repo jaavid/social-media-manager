@@ -47,3 +47,34 @@ def mark_set_goals(sender, instance, created, **kwargs):
         ).update(is_completed=True, completed_at=timezone.now())
 
 
+
+
+@receiver(post_save, sender='social_stats.SocialAccount')
+def enroll_public_account(sender, instance, **kwargs):
+    if kwargs.get('raw'):
+        return
+    if instance.platform != 'instagram' or not instance.username or not instance.is_active:
+        return
+    # Public placeholders are created by enrollment itself.
+    if instance.external_id.startswith('public:'):
+        return
+    from .watchlist import enroll_instagram
+    try:
+        enroll_instagram(instance.client, instance.username, account=instance)
+    except ValueError:
+        pass  # A provider identity without a valid public handle is not scrapeable.
+
+
+@receiver(post_save, sender='social_stats.Competitor')
+def enroll_competitor(sender, instance, **kwargs):
+    if kwargs.get('raw'):
+        return
+    from .watchlist import enroll_instagram
+    handles = instance.public_handles if isinstance(instance.public_handles, dict) else {}
+    links = instance.social_links if isinstance(instance.social_links, dict) else {}
+    handle = handles.get('instagram') or links.get('instagram')
+    if handle:
+        try:
+            enroll_instagram(instance.client, handle, competitor=instance)
+        except ValueError:
+            pass

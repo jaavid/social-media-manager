@@ -167,6 +167,7 @@ __all__ = [
     'CALENDAR_STATUS_CHOICES',
     'CalendarPost',
     'CalendarSource',
+    'ChannelPostObservation',
     'ChannelCalendarPost',
     'InstagramReaderSession',
     'CalendarNote',
@@ -287,4 +288,4 @@ __all__ = [
     'AdsWaitlist',
 ]
 
-from .channel_calendar import CalendarSource, ChannelCalendarPost, InstagramReaderSession
+from .channel_calendar import CalendarSource, ChannelCalendarPost, InstagramReaderSession, ChannelPostObservation

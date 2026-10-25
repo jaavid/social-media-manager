@@ -11,6 +11,7 @@ class InstagramReaderSession(models.Model):
 
 class CalendarSource(models.Model):
     client = models.ForeignKey('Client', on_delete=models.CASCADE, related_name='calendar_sources')
+    social_account = models.ForeignKey('SocialAccount', on_delete=models.SET_NULL, null=True, blank=True, related_name='monitoring_sources')
     platform = models.CharField(max_length=30, default='instagram', choices=[('instagram', 'Instagram')])
     username = models.CharField(max_length=30)
     competitor = models.ForeignKey('Competitor', on_delete=models.SET_NULL, null=True, blank=True, related_name='calendar_sources')
@@ -45,3 +46,14 @@ class ChannelCalendarPost(models.Model):
             fields=['source', 'external_id'], name='channel_calendar_post_identity',
         )]
         ordering = ['-published_at', '-id']
+
+
+class ChannelPostObservation(models.Model):
+    """Append-only public metric history; never exposed through identity APIs."""
+    post = models.ForeignKey(ChannelCalendarPost, on_delete=models.CASCADE, related_name='observations')
+    provider = models.CharField(max_length=30)
+    metrics = models.JSONField(default=dict)
+    observed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-observed_at', '-id']

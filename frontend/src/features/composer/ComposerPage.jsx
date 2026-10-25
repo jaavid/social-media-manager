@@ -37,12 +37,14 @@ export default function ComposerPage() {
   const id = parameterId || pathname.match(/\/composer\/([1-9]\d*)$/)?.[1];
   const [search] = useAppSearchParams();
   const requested = Number(search.get('workspace'));
+  const requestedAccount = Number(search.get('account'));
+  const initialAccountId = Number.isSafeInteger(requestedAccount) && requestedAccount > 0 ? requestedAccount : null;
   const workspaceId = Number.isSafeInteger(requested) && requested > 0 ? requested : user?.workspace_id || user?.client_id;
-  const scope = `${user?.id}:${user?.role}:${user?.account_type}:${workspaceId}:${id || 'new'}`;
-  return <ComposerEditor key={scope} workspaceId={workspaceId} id={id} draftKey={`composer-draft:${scope}`} />;
+  const scope = `${user?.id}:${user?.role}:${user?.account_type}:${workspaceId}:${id || 'new'}${initialAccountId ? `:account:${initialAccountId}` : ''}`;
+  return <ComposerEditor key={scope} initialAccountId={initialAccountId} workspaceId={workspaceId} id={id} draftKey={`composer-draft:${scope}`} />;
 }
 
-function ComposerEditor({ workspaceId, id, draftKey }) {
+function ComposerEditor({ workspaceId, id, draftKey, initialAccountId }) {
   const { t, language } = useLanguage();
   const navigate = useAppNavigate();
   const { pathname } = useAppLocation();
@@ -81,6 +83,19 @@ function ComposerEditor({ workspaceId, id, draftKey }) {
   const queues = useQuery({ queryKey: ['composer.queues', workspaceId], enabled: !!workspaceId,
     queryFn: ({ signal }) => composer.queues(workspaceId, signal), retry: false });
   const providers = useMemo(() => accounts.data?.providers || [], [accounts.data]);
+  const [initialAccountApplied, setInitialAccountApplied] = useState(false);
+  if (initialAccountId && !initialAccountApplied && !id && !recovered && providers.length) {
+    setInitialAccountApplied(true);
+    const provider = providers.find(p => p.accounts.some(a => a.id === initialAccountId));
+    const account = provider?.accounts.find(a => a.id === initialAccountId);
+    if (account && (account.permissions.publish || account.permissions.schedule)) {
+      const mode = Object.keys(publishingModes(provider)).find(key => account.publishing_readiness?.[key] !== false);
+      if (mode) setDraft(current => current.targetPlatforms.length ? current : { ...current, mediaType: mode,
+        targetPlatforms: [provider.key], platformOverrides: { [provider.key]: { account_targets: [
+          { social_account_id: account.id, destination_id: account.destination.id },
+        ] } } });
+    }
+  }
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   useEffect(() => {
     if (hydrated.current || recovered || !post.data || !accounts.data) return;

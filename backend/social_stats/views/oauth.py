@@ -124,8 +124,23 @@ def _oauth_state_valid(request) -> bool:
     return bool(expected) and _hmac.compare_digest(returned, expected) and _oauth_callback_authorized(request)
 
 
+@transaction.atomic
 def _save_credential(client_id, platform, defaults, *, request=None):
     """Upsert a provider identity without overwriting another account's tokens."""
+    defaults = dict(defaults)
+    public_username = defaults.pop('_public_username', '')
+    Client.objects.select_for_update().get(pk=client_id)
+    placeholder = None
+    if platform == 'instagram' and public_username:
+        from social_stats.instagram_calendar import normalize_username
+        try:
+            public_username = normalize_username(public_username)
+        except ValueError:
+            public_username = ''
+        if public_username:
+            placeholder = SocialAccount.objects.filter(
+                client_id=client_id, platform=platform, external_id=f'public:{public_username}',
+            ).first()
     external_id = str(
         defaults.get('instagram_account_id') or defaults.get('channel_id')
         or defaults.get('organization_id') or defaults.get('gmb_location_id')
@@ -146,11 +161,11 @@ def _save_credential(client_id, platform, defaults, *, request=None):
             raise PermissionDenied('Connection permission changed')
         if context.get('account_id'):
             target = SocialAccount.objects.get(pk=context['account_id'], client_id=client_id)
-            if target.platform != platform or target.external_id != external_id:
+            if target.platform != platform or (target.external_id != external_id and target != placeholder):
                 return  # Consent selected a different identity; never overwrite it.
         from .connections import permitted
         workspace = Client.objects.get(pk=client_id)
-        existing = SocialAccount.objects.filter(client=workspace, platform=platform, external_id=external_id).first()
+        existing = SocialAccount.objects.filter(client=workspace, platform=platform, external_id=external_id).first() or placeholder
         if not permitted(request.user, workspace, 'connect_platforms', existing):
             from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied('Account connection permission denied')
@@ -160,9 +175,13 @@ def _save_credential(client_id, platform, defaults, *, request=None):
         defaults.get('channel_name') or defaults.get('organization_name')
         or defaults.get('page_name') or external_id
     )
+    if placeholder and not SocialAccount.objects.filter(client_id=client_id, platform=platform, external_id=external_id).exists():
+        placeholder.external_id = external_id
+        placeholder.save(update_fields=['external_id', 'updated_at'])
     account, _ = SocialAccount.objects.update_or_create(
         client_id=client_id, platform=platform, external_id=external_id,
-        defaults={'display_name': display_name, 'is_active': True},
+        defaults={'display_name': display_name, 'is_active': True,
+                  **({'username': public_username} if public_username else {})},
     )
     PlatformCredential.objects.update_or_create(
         social_account=account,
@@ -382,6 +401,7 @@ def facebook_consumer_callback(request):
                 'expires_at':           expires_at,
                 'page_id':              page_id,
                 'page_name':            ig_info.get('username', page_name),
+                '_public_username':     ig_info.get('username', ''),
                 'instagram_account_id': ig_id,
             }, request=request)
     else:
@@ -479,6 +499,7 @@ def facebook_oauth_callback(request):
     ).json()
     pages = provider_rows(request, provider_object(request, pages_response).get('data', []))
 
+    granted = []
     # Log granted permissions — helps diagnose if Meta stripped a scope
     # (e.g. instagram_manage_insights not yet approved by App Review).
     try:
@@ -486,7 +507,8 @@ def facebook_oauth_callback(request):
             f"https://graph.facebook.com/{settings.META_API_VERSION}/me/permissions",
             params={'access_token': long_token}, timeout=10
         ).json()
-        granted = [p.get('permission') for p in perms_resp.get('data', []) if p.get('status') == 'granted']
+        granted = [p['permission'] for p in perms_resp.get('data', [])
+                   if isinstance(p, dict) and p.get('status') == 'granted' and isinstance(p.get('permission'), str)]
         logger.info("FB granted permissions for client %s: %s", client_id, granted)
     except Exception:
         logger.warning("FB permissions probe failed for client %s", client_id)
@@ -510,11 +532,18 @@ def facebook_oauth_callback(request):
         ig_id = provider_object(request, provider_object(request, ig_resp).get('instagram_business_account') or {}).get('id', '')
         if source == 'instagram' and not ig_id:
             continue
+        if source == 'instagram' and reconnect and reconnect.external_id.startswith('public:'):
+            public_info = requests.get(
+                f'https://graph.facebook.com/{settings.META_API_VERSION}/{ig_id}',
+                params={'fields': 'username', 'access_token': page_token}, timeout=10,
+            ).json()
+            if str(public_info.get('username', '')).lower() != reconnect.username.lower():
+                continue
         identity = ig_id if source == 'instagram' else page_id
         candidates.append((identity, page.get('name', ''), (page, ig_id)))
     chosen_page, chosen_ig_id = choose_destination(
         request, candidates, 'instagram_account' if source == 'instagram' else 'facebook_page',
-        expected=reconnect.external_id if reconnect else None,
+        expected=reconnect.external_id if reconnect and not reconnect.external_id.startswith('public:') else None,
         secrets_to_scrub=(short_token, long_token, *(page.get('access_token', '') for page in pages)),
     )
 
@@ -527,6 +556,7 @@ def facebook_oauth_callback(request):
 
     # Save Facebook credential for the chosen page
     pending_credentials.append(('facebook', {
+        'scope': ' '.join(granted),
         'access_token':  page_token,
         'refresh_token': long_token,
         'expires_at':    expires_at,
@@ -543,11 +573,13 @@ def facebook_oauth_callback(request):
         ).json()
 
         pending_credentials.append(('instagram', {
+            'scope': ' '.join(granted),
             'access_token':          page_token,
             'refresh_token':         long_token,
             'expires_at':            expires_at,
             'page_id':               page_id,
             'page_name':             ig_info.get('username', page_name),
+            '_public_username':      ig_info.get('username', ''),
             'instagram_account_id':  chosen_ig_id,
         }))
         connected.append('instagram')

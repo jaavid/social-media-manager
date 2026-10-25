@@ -23,6 +23,7 @@ import SectionHeader from '@/components/ui/SectionHeader';
 import SocialPlatformIcon from '@/components/ui/SocialPlatformIcon';
 import ProviderExtensions from '@/components/connections/providerExtensions';
 import ApiConnectivityPanel from '@/components/ApiConnectivityPanel';
+import AccountWatchlist from '@/components/AccountWatchlist';
 import PlatformConnectModal from '@/components/PlatformConnectModal';
 
 const enabled = status => ['supported', 'beta'].includes(status);
@@ -148,6 +149,9 @@ function ConnectionCollection({ workspaceId }) {
         </div>
       </section>;
     })}
+    {data.providers.some(p => p.key === 'instagram') && <AccountWatchlist workspaceId={workspaceId}
+      canAdd={Boolean(data.providers.find(p => p.key === 'instagram')?.permissions.connect)}
+      canVerify={Boolean(data.providers.find(p => p.key === 'instagram')?.contract.auth.start_path)} />}
     <ApiConnectivityPanel />
     <PlatformConnectModal key={connect ? `${connect.provider.key}:${connect.account?.id || 'new'}` : 'closed'}
       open={Boolean(connect)} provider={connect?.provider} account={connect?.account} workspaceId={workspaceId}
