@@ -9,7 +9,7 @@ const controlStyle = {
 };
 
 export default function ChannelSources({ clientId, onRefresh, selectedSource, onSelectSource }) {
-  const { isPersian, formatDate } = useLanguage();
+  const { isPersian, formatDate, t } = useLanguage();
   const [sources, setSources] = useState([]);
   const [username, setUsername] = useState('');
   const [isCompetitor, setIsCompetitor] = useState(false);
@@ -133,7 +133,7 @@ export default function ChannelSources({ clientId, onRefresh, selectedSource, on
             {source.is_competitor && <strong>{source.display_name} · {text('رقیب', 'Competitor')} · </strong>}
             <strong dir="ltr">@{source.username}</strong>{' · '}
             {source.last_synced_at ? formatDate(source.last_synced_at) : text('هنوز دریافت نشده', 'Not synced yet')}
-            {source.provider === 'brightdata' && <span> · Bright Data</span>}
+            {source.provider === 'brightdata' && <span> · {t('watchlist.brightdata')}</span>}
             {source.sync_status === 'syncing' && <span> · {text('در حال دریافت؛ نتیجه خودکار به‌روزرسانی می‌شود', 'Collecting; results refresh automatically')}</span>}
             {source.error_code && <span> · {text('دریافت متوقف شد', 'Sync stopped')}: {errors[source.error_code] || errors.fetch_failed}</span>}
             {!source.reader_ready && <span> · {text('دریافت عمومی بدون ورود', 'Anonymous public access')}</span>}

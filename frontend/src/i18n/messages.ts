@@ -1,5 +1,7 @@
 // Semantic catalogs. Identical key sets and ICU placeholders are checked in CI.
 const accountsEn = {
+  "watchlist.brightdata": "Bright Data",
+  "workspace.brandExample": "e.g. School",
   "watchlist.title": "Account watchlist · Instagram",
   "watchlist.description": "Public accounts are collected automatically and shared within this workspace according to access. Connect through Instagram to verify management access for publishing.",
   "watchlist.username": "Instagram username or public profile URL",
@@ -513,6 +515,8 @@ const accountsEn = {
   'category.business': 'Business listings',
 } as const;
 const accountsFa = {
+  "watchlist.brightdata": "Bright Data",
+  "workspace.brandExample": "مثلاً مدرسه",
   "watchlist.title": "فهرست رصد اکانت‌ها · اینستاگرام",
   "watchlist.description": "اکانت‌های عمومی خودکار بررسی می‌شوند و داده‌ها بر اساس دسترسی در همین فضای کاری قابل استفاده‌اند. برای تأیید دسترسی مدیریت و انتشار، از طریق اینستاگرام متصل شوید.",
   "watchlist.username": "نام کاربری یا لینک پروفایل عمومی اینستاگرام",
