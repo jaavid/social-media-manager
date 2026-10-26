@@ -46,12 +46,12 @@ test('server-owned metadata and RTL survive hydration and public route navigatio
   const html = await (await request.get('/privacy')).text();
   expect(html).toContain('<title>سیاست حریم خصوصی · Ravinta</title>');
   expect(html).toContain('dir="rtl"');
-  expect(html).toMatch(/<h1[^>]*>سیاست حریم خصوصی<\/h1>/);
+  expect(html).toMatch(/<h1[^>]*>حریم خصوصی در راوینتا<\/h1>/);
   expect(html).not.toContain('access_token');
   const errors = [];
   page.on('pageerror', e => errors.push(e.message));
   await page.goto('/privacy');
-  await expect(page.getByRole('heading', { name: 'سیاست حریم خصوصی', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'حریم خصوصی در راوینتا', exact: true })).toBeVisible();
   await expect(page).toHaveTitle('سیاست حریم خصوصی · Ravinta');
   await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
   await page.getByRole('link', { name: 'شرایط استفاده', exact: true }).click();
@@ -142,13 +142,13 @@ test('dynamic public pages render content and per-slug metadata on the server', 
     if (path.startsWith('/product/')) expect(html).toContain('application/ld+json');
   }
   await page.goto('/product/analytics');
-  await expect(page).toHaveTitle('تحلیل و آمار چند پلتفرم · Ravinta');
+  await expect(page).toHaveTitle('تحلیل و آمار · Ravinta');
   const errors = [];
   page.on('pageerror', e => errors.push(e.message));
   await page.reload();
   // Next may retain hidden streamed content while hydration replaces it.
   // Check the accessible page heading, excluding that temporary hidden copy.
-  await expect(page.getByRole('heading', { level: 1, name: 'آمار پنج پلتفرم را یکجا ببینید', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'عملکرد حساب‌هایتان را کنار هم ببینید', exact: true })).toBeVisible();
   expect(errors).toEqual([]);
 });
 
@@ -217,7 +217,7 @@ test('returning signed-in user still reaches the appropriate dashboard from home
   await expect(page).toHaveURL(/\/dashboard$/);
 });
 
-test('public cookie choice persists locally and syncs consent without initializing auth', async ({ page }) => {
+test('public privacy page has no retired consent prompt or implicit consent writes', async ({ page }) => {
   await page.context().addCookies([{ name: 'sessionid', value: 'opaque-session-fixture', url: process.env.E2E_BASE_URL || 'http://127.0.0.1:3000' }]);
   await page.addInitScript(() => localStorage.setItem('access_token', 'test-token'));
   const consents = [];
@@ -228,13 +228,16 @@ test('public cookie choice persists locally and syncs consent without initializi
     return route.fulfill({ json: {} });
   });
   await page.goto('/privacy');
-  await page.getByRole('button', { name: 'پذیرش همه', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'حریم خصوصی در راوینتا', exact: true })).toBeVisible();
   await expect(page.getByRole('dialog', { name: 'تنظیمات کوکی‌ها' })).toHaveCount(0);
-  await expect.poll(() => consents.length).toBe(2);
-  expect(JSON.parse(await page.evaluate(() => localStorage.getItem('socialstats_cookie_choice'))).choices.analytics).toBe(true);
+  expect(consents).toEqual([]);
+  expect(await page.evaluate(() => localStorage.getItem('socialstats_cookie_choice'))).toBeNull();
   expect(authRequests).toEqual([]);
   await page.reload();
+  await expect(page.getByRole('heading', { name: 'حریم خصوصی در راوینتا', exact: true })).toBeVisible();
   await expect(page.getByRole('dialog', { name: 'تنظیمات کوکی‌ها' })).toHaveCount(0);
+  expect(consents).toEqual([]);
+  expect(authRequests).toEqual([]);
 });
 
 test('cookie-personalized public pages render server content without a shared HTML cache', async ({ request }) => {

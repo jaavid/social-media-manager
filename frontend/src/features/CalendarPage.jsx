@@ -6,7 +6,7 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { addMonths, subMonths, format, parseISO, endOfMonth } from 'date-fns';
 import { ChevronLeft, ChevronRight, Plus, Calendar, List, BarChart2 } from 'lucide-react';
 import { useAppSearchParams as useSearchParams } from '../core/navigation';
@@ -201,16 +201,9 @@ export default function CalendarPage({ clientId: propClientId }) {
   const queryClientId = searchParams.get('client');
   const queryView = searchParams.get('view');
   const parsedClientId = queryClientId ? parseInt(queryClientId, 10) : null;
-  const initialView = ['month', 'list', 'stats'].includes(queryView) ? queryView : 'month';
+  const view = ['month', 'list', 'stats'].includes(queryView) ? queryView : 'month';
 
-  const [selectedClientId, setSelectedClientId] = useState(
-    propClientId || parsedClientId || (isAdmin ? null : user?.client_id) || null
-  );
-  const clientId = selectedClientId;
-
-  useEffect(() => {
-    if (!clientId && !isAdmin && user?.client_id) setSelectedClientId(user.client_id);
-  }, [user, isAdmin, clientId]);
+  const clientId = propClientId || parsedClientId || (isAdmin ? null : user?.client_id) || null;
 
   const [currentDate, setCurrentDate] = useState(() => new Date());
   const month = currentDate.getMonth() + 1;
@@ -229,7 +222,6 @@ export default function CalendarPage({ clientId: propClientId }) {
     [isPersian, visibleRange.start, visibleRange.end]
   );
 
-  const [view, setView] = useState(initialView);
   const [platform, setPlatform] = useState('all');
 
   const updateSearch = useCallback((updates) => {
@@ -240,11 +232,6 @@ export default function CalendarPage({ clientId: propClientId }) {
     });
     setSearchParams(next, { replace: true });
   }, [searchParams, setSearchParams]);
-
-  useEffect(() => {
-    if (parsedClientId && parsedClientId !== clientId) setSelectedClientId(parsedClientId);
-    if (['month', 'list', 'stats'].includes(queryView) && queryView !== view) setView(queryView);
-  }, [parsedClientId, queryView, clientId, view]);
 
   const [detailPost, setDetailPost] = useState(null);
   const [detailOpen, setDetailOpen] = useState(false);
@@ -259,8 +246,10 @@ export default function CalendarPage({ clientId: propClientId }) {
   const { upcoming } = useUpcomingPosts(clientId);
   const { create, update, remove, reschedule } = useCreatePost();
 
-  const [selectedSource, setSelectedSource] = useState('');
-  useEffect(() => { setSelectedSource(''); }, [clientId]);
+  const [sourceSelection, setSourceSelection] = useState({ clientId, value: '' });
+  if (sourceSelection.clientId !== clientId) setSourceSelection({ clientId, value: '' });
+  const selectedSource = sourceSelection.clientId === clientId ? sourceSelection.value : '';
+  const setSelectedSource = value => setSourceSelection({ clientId, value });
   const filteredPostsByDate = useMemo(() => {
     if (!selectedSource) return postsByDate;
     return Object.fromEntries(Object.entries(postsByDate).map(([date, posts]) => [date,
@@ -358,7 +347,6 @@ export default function CalendarPage({ clientId: propClientId }) {
                 value=""
                 onChange={event => {
                   const nextClientId = event.target.value ? parseInt(event.target.value, 10) : null;
-                  setSelectedClientId(nextClientId);
                   updateSearch({ client: nextClientId });
                 }}
                 style={adminClientSelectStyle}
@@ -391,7 +379,6 @@ export default function CalendarPage({ clientId: propClientId }) {
               value={clientId || ''}
               onChange={event => {
                 const nextClientId = event.target.value ? parseInt(event.target.value, 10) : null;
-                setSelectedClientId(nextClientId);
                 updateSearch({ client: nextClientId });
               }}
               style={adminClientSelectStyle}
@@ -440,7 +427,7 @@ export default function CalendarPage({ clientId: propClientId }) {
             )}
             <div style={{ display: 'flex', border: '1px solid var(--border-default)', borderRadius: 8, overflow: 'hidden', flexWrap: 'wrap', maxWidth: '100%' }}>
               {views.map(item => (
-                <button key={item.key} onClick={() => { setView(item.key); updateSearch({ view: item.key, client: clientId }); }} style={{
+                <button key={item.key} onClick={() => updateSearch({ view: item.key, client: clientId })} style={{
                   display: 'flex', alignItems: 'center', gap: 5, padding: '7px 14px', border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 600,
                   background: view === item.key ? '#00d7ff' : '#fff', color: view === item.key ? '#fff' : 'var(--text-secondary)', transition: 'all 0.15s', whiteSpace: 'nowrap',
                 }}>
