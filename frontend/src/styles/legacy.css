@@ -24,8 +24,12 @@ body {
   overscroll-behavior: none;
 }
 
-a {
-  color: inherit;
+/* Resets belong below component/utility styles in the CSS cascade.
+   An unlayered anchor reset overrides the text color of link-buttons. */
+@layer base {
+  a {
+    color: inherit;
+  }
 }
 button {
   font-family: inherit;

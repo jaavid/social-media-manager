@@ -352,7 +352,7 @@ function CreateModal({ onClose, onCreated }) {
           <div>
             <label style={lbl}>Name</label>
             <input value={name} onChange={(e) => setName(e.target.value)}
-                   placeholder="Real-estate launch · Diwali" style={inputStyle} />
+                   placeholder="معرفی پروژهٔ مسکونی · کمپین یلدا" style={inputStyle} />
           </div>
           <div>
             <label style={lbl}>Bot flow</label>

@@ -281,13 +281,13 @@ export const productPages = {
       columns: 3,
       items: [
         { icon: Check, title: "ورود سریعتر", description: "بدون بررسی برنامه متا برای پیام‌رسانی - چند روز دیگر پخش زنده شوید." },
-        { icon: Shield, title: "متناسب با هند",     description: "پین‌بات از RBI آگاه + فاکتور GST است." },
+        { icon: Shield, title: "روش‌های پرداخت اشتراک",     description: "پرداخت ریالی و رمزارزی برای اشتراک راوینتا." },
         { icon: TrendingUp, title: "ارتقاء سطح بهتر", description: "پین‌بات درخواست‌های لایه‌ای را با متا مدیریت می‌کند." },
       ],
     },
     quote: {
       quote: "واتس‌اپ اکنون کانال ما با بالاترین تبدیل است. کار انطباق به تنهایی ما را 3 ماه در خانه زمان می برد.",
-      author: "کاران بهاتیا", role: "مدیر ارشد عملیات، بلووِیو",
+      author: "کیان نادری", role: "مدیر ارشد عملیات، بلووِیو",
       gradient: 'linear-gradient(135deg, #25D366, #00CCF5)',
     },
   },
@@ -351,7 +351,7 @@ export const productPages = {
     },
     quote: {
       quote: "اولین جریان جذب سرب را در 12 دقیقه ساختیم. در همان هفته 47 لید واجد شرایط را به دست آورد.",
-      author: "پریا شارما", role: "مدیر بازاریابی، آکمه املاک",
+      author: "نگار احمدی", role: "مدیر بازاریابی، آکمه املاک",
       gradient: 'linear-gradient(135deg, #f472b6, #a78bfa)',
     },
   },
@@ -415,7 +415,7 @@ export const productPages = {
     },
     quote: {
       quote: "دستیار هوش مصنوعی احساس می‌کند که یک هم تیمی اضافی دارد که هرگز نمی خوابد.",
-      author: "آدیتیا رائو", role: "موسس، هالسیون",
+      author: "امیر رضایی", role: "موسس، هالسیون",
       gradient: 'linear-gradient(135deg, #00CCF5, #8b5cf6)',
     },
   },
@@ -467,7 +467,7 @@ export const productPages = {
     },
     quote: {
       quote: "از آن خواستم «به من بگوید کدام پست‌ها را باید در این هفته تقویت کنم» و آن را تحلیل و آمار کرد، 3 مورد برتر را انتخاب کرد و در صف افزایش یافت.",
-      author: "ویکرام جوشی", role: "بنیانگذار، اِمبر",
+      author: "سامان کریمی", role: "بنیانگذار، اِمبر",
       gradient: 'linear-gradient(135deg, #8b5cf6, #00CCF5)',
     },
   },
@@ -531,7 +531,7 @@ export const productPages = {
     },
     quote: {
       quote: "گزارش‌هایی که قبلاً 4 ساعت جوان طول می‌کشید، اکنون خودشان می‌نویسند.",
-      author: "راوی کریشنان", role: "مدیر، آژانس Apex",
+      author: "علی مرادی", role: "مدیر، آژانس Apex",
       gradient: 'linear-gradient(135deg, #a78bfa, #f472b6)',
     },
   },
@@ -595,7 +595,7 @@ export const productPages = {
     },
     quote: {
       quote: "هر بررسی 5 ستاره اکنون در عرض 2 دقیقه یک پاسخ تشکر دریافت می‌کند. مشتریان آن را دوست دارند.",
-      author: "عایشه خان", role: "مدیر بازاریابی، لومن",
+      author: "مریم رحیمی", role: "مدیر بازاریابی، لومن",
       gradient: 'linear-gradient(135deg, #fbbf24, #00CCF5)',
     },
   },

@@ -83,9 +83,9 @@ export function ComposerPreview() {
 // ─────────────────────────────────────────────────────────────────────────────
 export function InboxPreview() {
   const messages = [
-    { name: "پریا اس.",    plat: 'IG', text: "آیا این هنوز موجود است؟",     tone: '#E4405F', delay: 0 },
+    { name: "نگار احمدی",    plat: 'IG', text: "آیا این هنوز موجود است؟",     tone: '#E4405F', delay: 0 },
     { name: "گروه آکمه",  plat: 'WA', text: "آیا می‌توانیم شنبه بازدید کنیم؟",    tone: '#25D366', delay: 0.15 },
-    { name: "راهول ورما", plat: 'FB', text: "محدوده قیمت چیست؟",     tone: '#1877F2', delay: 0.3 },
+    { name: "آرمان محمدی", plat: 'FB', text: "محدوده قیمت چیست؟",     tone: '#1877F2', delay: 0.3 },
   ];
   return (
     <div style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
