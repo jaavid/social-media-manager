@@ -40,3 +40,5 @@ django-storages[s3]==1.14.6
 
 # Read-only Instagram channel calendar (no video upload extras).
 instagrapi==3.2.0
+# Pinned SDK contract is exercised through the gateway transport in tests.
+brightdata-sdk==2.5.2

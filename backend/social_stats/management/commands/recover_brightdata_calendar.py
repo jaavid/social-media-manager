@@ -3,7 +3,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.utils import timezone
 
-from social_stats.brightdata_calendar import download_snapshot, normalize_posts
+from social_stats.brightdata_calendar import download_snapshot, normalize_posts, snapshot_owner
 from social_stats.channel_calendar_tasks import sync_calendar_source
 from social_stats.instagram_calendar import InstagramReadError
 from social_stats.models import CalendarSource
@@ -23,12 +23,13 @@ class Command(BaseCommand):
         for snapshot in options['snapshot']:
             try:
                 rows = download_snapshot(snapshot)
-                if not isinstance(rows, list) or not rows or any(not isinstance(row, dict) for row in rows):
-                    raise CommandError('Snapshot is not ready or has no usable posts; nothing changed.')
-                owners = {str(row.get('user_posted') or '').lower().lstrip('@') for row in rows}
-                if len(owners) != 1 or not next(iter(owners)):
-                    raise CommandError('Snapshot must contain posts from exactly one channel; nothing changed.')
-                username = next(iter(owners))
+                if rows is None:
+                    raise CommandError('Snapshot is still processing; nothing changed.')
+                if rows == []:
+                    raise CommandError('Snapshot is ready but contains zero posts; nothing can be recovered.')
+                if not isinstance(rows, list) or any(not isinstance(row, dict) for row in rows):
+                    raise CommandError('Snapshot returned an unexpected response shape; nothing changed.')
+                username = snapshot_owner(rows)
                 normalize_posts(rows, username)
             except InstagramReadError as error:
                 raise CommandError(error.code) from None

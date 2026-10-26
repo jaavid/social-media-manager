@@ -21,6 +21,7 @@ const accountsEn = {
   "watchlist.status.syncing": "Collecting data",
   "watchlist.status.ok": "Up to date",
   "watchlist.status.error": "Collection failed; previous data is retained",
+  "watchlist.emptyResult": "Bright Data returned no posts; content collection was not confirmed.",
 
   "reddit.editor": "Reddit post settings",
   "reddit.title": "Post title (up to 300 characters)",
@@ -536,6 +537,7 @@ const accountsFa = {
   "watchlist.status.syncing": "در حال دریافت اطلاعات",
   "watchlist.status.ok": "به‌روز",
   "watchlist.status.error": "دریافت ناموفق؛ داده‌های قبلی حفظ شده‌اند",
+  "watchlist.emptyResult": "Bright Data هیچ پستی برنگرداند؛ دریافت محتوا تأیید نشد.",
 
   "reddit.editor": "تنظیمات پست ردیت",
   "reddit.title": "عنوان پست (حداکثر ۳۰۰ نویسه)",

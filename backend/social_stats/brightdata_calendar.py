@@ -1,4 +1,5 @@
-"""Bounded Instagram post discovery through Bright Data's asynchronous REST API."""
+"""Official SDK Instagram discovery with durable polling and mandatory gateway egress."""
+import asyncio
 import math
 import os
 import re
@@ -34,7 +35,7 @@ def post_limit():
         raise InstagramReadError('brightdata_not_configured') from None
 
 
-def _request(method, path, **kwargs):
+def _send(method, path, **kwargs):
     token = os.getenv('BRIGHTDATA_API_KEY', '').strip()
     if not token:
         raise InstagramReadError('brightdata_not_configured')
@@ -59,22 +60,64 @@ def _request(method, path, **kwargs):
             raise InstagramReadError('brightdata_quota')
         if not 200 <= response.status_code < 300:
             raise InstagramReadError('brightdata_unavailable')
-        try:
-            return response.json()
-        except ValueError:
-            raise InstagramReadError('brightdata_invalid_response') from None
+    except Exception:
+        response.close()
+        raise
+    return response
+
+
+def _request(method, path, **kwargs):
+    """Safe read-only diagnostics and recovery; collection uses the official SDK."""
+    response = _send(method, path, **kwargs)
+    try:
+        return response.json()
+    except ValueError:
+        raise InstagramReadError('brightdata_invalid_response') from None
     finally:
         response.close()
 
 
-def start_discovery(username):
+def _sdk_components():
+    try:
+        from brightdata.scrapers.api_client import DatasetAPIClient
+        from brightdata.scrapers.instagram.search import InstagramSearchScraper
+        from brightdata.exceptions import DataNotReadyError
+        from social_stats.egress.brightdata_sdk import GatewayEngine, DurableDiscoveryWorkflow
+    except ImportError:
+        raise InstagramReadError('dependency_missing') from None
+    return DatasetAPIClient, InstagramSearchScraper, DataNotReadyError, GatewayEngine, DurableDiscoveryWorkflow
+
+
+def start_discovery(username, *, amount=None):
     username = normalize_username(username)
+    discovery = os.getenv('BRIGHTDATA_CALENDAR_DISCOVERY', 'profiles').strip().lower()
+    if discovery not in {'profiles', 'posts'}:
+        raise InstagramReadError('brightdata_not_configured')
     limit = post_limit()
-    payload = _request('POST', '/datasets/v3/trigger', params={
-        'dataset_id': DATASET_ID, 'type': 'discover_new', 'discover_by': 'url',
-        'limit_per_input': limit, 'include_errors': 'true', 'format': 'json',
-    }, json=[{'url': f'https://www.instagram.com/{username}/', 'num_of_posts': limit}])
-    snapshot = payload.get('snapshot_id') if isinstance(payload, dict) else None
+    if amount is not None:
+        if not isinstance(amount, int) or isinstance(amount, bool) or amount < 1:
+            raise InstagramReadError('brightdata_not_configured')
+        limit = min(limit, amount)
+    token = os.getenv('BRIGHTDATA_API_KEY', '').strip()
+    if not token:
+        raise InstagramReadError('brightdata_not_configured')
+    _, Search, _, Engine, Workflow = _sdk_components()
+
+    async def trigger():
+        async with Search(bearer_token=token, engine=Engine(_send)) as search:
+            search.workflow_executor = Workflow(
+                api_client=search.api_client, platform_name='instagram',
+                cost_per_record=search.COST_PER_RECORD, limit=1 if discovery == 'profiles' else limit,
+            )
+            if discovery == 'profiles':
+                return await search.profiles(user_name=username)
+            return await search.posts(url=f'https://www.instagram.com/{username}/', num_of_posts=limit)
+
+    try:
+        result = asyncio.run(trigger())
+    except (AttributeError, TypeError, ValueError):
+        raise InstagramReadError('brightdata_invalid_response') from None
+    snapshot = result.snapshot_id if result.success else None
     if not valid_snapshot_id(snapshot):
         raise InstagramReadError('brightdata_invalid_response')
     return snapshot
@@ -88,18 +131,70 @@ def fetch_snapshot(snapshot, username):
 def download_snapshot(snapshot):
     if not valid_snapshot_id(snapshot):
         raise InstagramReadError('brightdata_invalid_response')
-    progress = _request('GET', f'/datasets/v3/progress/{snapshot}')
-    status = progress.get('status') if isinstance(progress, dict) else None
-    if status in {'starting', 'running'}:
-        return None
-    if status != 'ready':
-        raise InstagramReadError('brightdata_collection_failed')
-    return _request('GET', f'/datasets/v3/snapshot/{snapshot}', params={'format': 'json'})
+    APIClient, _, NotReady, Engine, _ = _sdk_components()
+
+    async def download():
+        api = APIClient(Engine(_send))
+        status = await api.get_status(snapshot)
+        if status in {'starting', 'running'}:
+            return None
+        if status != 'ready':
+            raise InstagramReadError('brightdata_collection_failed')
+        try:
+            return await api.fetch_result(snapshot)
+        except NotReady:
+            return None
+
+    return asyncio.run(download())
+
+
+def snapshot_owner(rows):
+    """Both datasets name the owner differently; never infer it from a post URL."""
+    if not isinstance(rows, list) or not rows or any(not isinstance(row, dict) for row in rows):
+        raise InstagramReadError('brightdata_invalid_response')
+    try:
+        if any(not isinstance(row.get('account') if 'account' in row else row.get('user_posted'), str) for row in rows):
+            raise InstagramReadError('brightdata_invalid_response')
+        owners = {normalize_username(row.get('account') if 'account' in row else row.get('user_posted')) for row in rows}
+    except (ValueError, TypeError):
+        raise InstagramReadError('brightdata_invalid_response') from None
+    if len(owners) != 1:
+        raise InstagramReadError('brightdata_invalid_response')
+    return next(iter(owners))
+
+
+def _profile_posts(rows, username):
+    """Profiles discovery returns a recent-post sample, not full post analytics."""
+    if snapshot_owner(rows) != username.lower():
+        raise InstagramReadError('brightdata_invalid_response')
+    result = []
+    for profile in rows:
+        if profile.get('error') or profile.get('error_code'):
+            raise InstagramReadError('brightdata_collection_failed')
+        if profile.get('is_private') is not False:
+            raise InstagramReadError('private_profile')
+        nested = profile.get('posts')
+        if not isinstance(nested, list):
+            raise InstagramReadError('brightdata_invalid_response')
+        for post in nested[:post_limit()]:
+            if not isinstance(post, dict) or post.get('error') or post.get('error_code'):
+                raise InstagramReadError('brightdata_invalid_response')
+            result.append({
+                'user_posted': username, 'url': post.get('url'), 'pk': post.get('id'),
+                'description': post.get('caption'), 'date_posted': post.get('datetime'),
+                'thumbnail': post.get('image_url'), 'content_type': post.get('content_type'),
+            })
+    return result
 
 
 def normalize_posts(rows, username):
     if not isinstance(rows, list):
         raise InstagramReadError('brightdata_invalid_response')
+    if any(isinstance(row, dict) and 'account' in row for row in rows):
+        rows = _profile_posts(rows, username)
+    if not rows:
+        # A finished collection with no records is not a successful content sync.
+        raise InstagramReadError('brightdata_empty_result')
     posts = []
     for row in rows[:50]:
         if not isinstance(row, dict) or row.get('error') or row.get('error_code'):
@@ -129,9 +224,9 @@ def normalize_posts(rows, username):
                 metrics[target] = int(value)
         photos = row.get('photos') or []
         videos = row.get('videos') or []
-        kind = ('reel' if match[1] == 'reel' or row.get('product_type') == 'clips' else
-                'carousel' if isinstance(photos, list) and len(photos) > 1 else
-                'video' if videos else 'image')
+        kind = ('reel' if match[1] == 'reel' or row.get('product_type') == 'clips' or row.get('content_type') == 'Reel' else
+                'carousel' if row.get('content_type') == 'Carousel' or isinstance(photos, list) and len(photos) > 1 else
+                'video' if videos or row.get('content_type') == 'Video' else 'image')
         thumbnail = row.get('thumbnail') or (photos[0] if isinstance(photos, list) and photos else '')
         thumbnail = thumbnail if isinstance(thumbnail, str) and thumbnail.startswith('https://') else ''
         external_id = str(row.get('pk') or row.get('post_id') or match[2])

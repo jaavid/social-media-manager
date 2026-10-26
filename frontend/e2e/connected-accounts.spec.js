@@ -16,6 +16,29 @@ async function setup(page, { language = 'en', theme = 'light', role = 'superadmi
   await page.routeWebSocket('**/ws/**', socket => socket.close());
 }
 const open = page => page.goto('/admin/workspace/7/settings');
+test('empty Bright Data collection is explicit in the Persian account watchlist', async ({ page }) => {
+  const payload = connectionFixture();
+  payload.providers[0].key = 'instagram';
+  await setup(page, { language: 'fa', respond: route => route.fulfill({ json: payload }) });
+  await page.route('**/api/calendar/sources/**', route => route.fulfill({ json: [{
+    id: 1, username: 'example', is_active: true, sync_status: 'error',
+    error_code: 'brightdata_empty_result', publishing_ready: false, permissions: {},
+  }] }));
+  await open(page);
+  const notice = page.getByText('Bright Data هیچ پستی برنگرداند؛ دریافت محتوا تأیید نشد.');
+  await expect(notice).toBeVisible();
+  await expect(notice).toHaveAttribute('role', 'status');
+  if (process.env.BRIGHTDATA_SCREENSHOTS) {
+    const card = notice.locator('xpath=ancestor::ul/..');
+    await card.screenshot({ path: `${process.env.BRIGHTDATA_SCREENSHOTS}/after.png` });
+    await notice.evaluate(element => { element.hidden = true; });
+    await card.screenshot({ path: `${process.env.BRIGHTDATA_SCREENSHOTS}/before.png` });
+    await notice.evaluate(element => { element.hidden = false; });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(notice).toBeVisible();
+    await card.screenshot({ path: `${process.env.BRIGHTDATA_SCREENSHOTS}/mobile.png` });
+  }
+});
 test('slow initial read, failed read, explicit retry and failed background refresh preserve the shell and identity', async ({ page }) => {
   let resolveInitial;
   let calls = 0;
