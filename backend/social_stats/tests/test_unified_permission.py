@@ -17,6 +17,7 @@ These tests deliberately exercise the "agency without permission" path —
 the bug class the audit flagged.
 """
 import uuid
+from unittest.mock import patch
 
 from django.contrib.auth.models import User
 from django.test import TestCase, override_settings
@@ -274,6 +275,9 @@ class BotPublishPermissionTests(TestCase):
 @override_settings(CELERY_TASK_ALWAYS_EAGER=True)
 class ApprovalExecutorTests(TestCase):
     def setUp(self):
+        dns = patch('social_stats.security.ssrf.socket.gethostbyname', return_value='93.184.216.34')
+        dns.start()
+        self.addCleanup(dns.stop)
         self.client_obj = _client('ae')
         self.agency, self.member, self.relation = _agency_relation(self.client_obj)
 

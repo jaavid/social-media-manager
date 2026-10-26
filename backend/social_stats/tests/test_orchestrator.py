@@ -28,6 +28,10 @@ from social_stats.publishers import (
 @override_settings(CELERY_TASK_ALWAYS_EAGER=True, CELERY_TASK_EAGER_PROPAGATES=True)
 class OrchestratorTests(TestCase):
     def setUp(self):
+        # These are mocked publishing tests, not live DNS integration tests.
+        dns = patch('social_stats.security.ssrf.socket.gethostbyname', return_value='93.184.216.34')
+        dns.start()
+        self.addCleanup(dns.stop)
         self.client_obj = Client.objects.create(
             name='Acme', company='Acme Inc', email=f'acme-{id(self)}@x.test',
         )
@@ -41,6 +45,7 @@ class OrchestratorTests(TestCase):
                 access_token='tok',
                 page_id='100', instagram_account_id='200',
                 is_active=True,
+                scope='instagram_content_publish' if p == 'instagram' else '',
             )
 
     def _make_post(self, **kwargs):

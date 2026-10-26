@@ -14,7 +14,7 @@ def get(path):
 
 status, html = get('/privacy')
 assert status == 200, f'/privacy returned HTTP {status}'
-assert re.search(r'<h1[^>]*>سیاست حریم خصوصی</h1>', html), 'Persian privacy heading missing from SSR'
+assert re.search(r'<h1[^>]*>حریم خصوصی در راوینتا</h1>', html), 'Persian privacy heading missing from SSR'
 assert 'lang="fa"' in html and 'dir="rtl"' in html, 'Public SSR must be Persian/RTL'
 assert '<title>سیاست حریم خصوصی · Ravinta</title>' in html, 'Privacy route metadata missing or stale'
 for kind, pattern in [('JS', r'src="(/_next/static/[^"?]+\.js)'), ('CSS', r'href="(/_next/static/[^"?]+\.css)')]:

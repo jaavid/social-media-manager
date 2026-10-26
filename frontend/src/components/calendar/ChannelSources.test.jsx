@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import ChannelSources from './ChannelSources';
 import { calendarAPI } from '../../services/domains/publishing';
 
@@ -9,6 +9,22 @@ jest.mock('../../services/domains/publishing', () => ({ calendarAPI: {
 jest.mock('../../i18n', () => ({ useLanguage: () => ({ isPersian: false, formatDate: value => value, t: key => key }) }));
 
 beforeEach(() => { jest.clearAllMocks(); });
+
+test('switching workspace clears source and form state and ignores the old response', async () => {
+  let finishOld;
+  calendarAPI.getSources.mockImplementation(({ client_id }) => client_id === 1
+    ? new Promise(resolve => { finishOld = resolve; })
+    : Promise.resolve({ data: [{ id: 22, username: 'newbrand' }] }));
+  const props = { onRefresh: jest.fn(), selectedSource: '', onSelectSource: jest.fn() };
+  const view = render(<ChannelSources {...props} clientId={1} />);
+  fireEvent.change(screen.getByLabelText('Username or profile URL'), { target: { value: '@oldbrand' } });
+  view.rerender(<ChannelSources {...props} clientId={2} />);
+  expect(screen.getByLabelText('Username or profile URL')).toHaveValue('');
+  expect(await screen.findByRole('option', { name: '@newbrand' })).toBeInTheDocument();
+  await act(async () => finishOld({ data: [{ id: 11, username: 'oldbrand' }] }));
+  expect(screen.queryByRole('option', { name: '@oldbrand' })).not.toBeInTheDocument();
+  expect(props.onRefresh).not.toHaveBeenCalled();
+});
 
 test('explains a completed Bright Data collection with no posts as unconfirmed content', async () => {
   calendarAPI.getSources.mockResolvedValue({ data: [{

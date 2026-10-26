@@ -1127,7 +1127,9 @@
                 "image"
               ],
               "destination_types": [],
-              "scopes": [],
+              "scopes": [
+                "instagram_content_publish"
+              ],
               "min_items": 1,
               "max_items": 1,
               "max_bytes": 8388608,
@@ -1152,7 +1154,9 @@
                 "video"
               ],
               "destination_types": [],
-              "scopes": [],
+              "scopes": [
+                "instagram_content_publish"
+              ],
               "min_items": 1,
               "max_items": 1,
               "max_bytes": 1073741824,
@@ -1178,7 +1182,9 @@
                 "carousel"
               ],
               "destination_types": [],
-              "scopes": [],
+              "scopes": [
+                "instagram_content_publish"
+              ],
               "min_items": 1,
               "max_items": 10,
               "max_bytes": null,
@@ -1201,7 +1207,9 @@
                 "reel"
               ],
               "destination_types": [],
-              "scopes": [],
+              "scopes": [
+                "instagram_content_publish"
+              ],
               "min_items": 1,
               "max_items": 1,
               "max_bytes": 1073741824,
@@ -1226,7 +1234,9 @@
                 "story"
               ],
               "destination_types": [],
-              "scopes": [],
+              "scopes": [
+                "instagram_content_publish"
+              ],
               "min_items": 1,
               "max_items": 1,
               "max_bytes": 104857600,
@@ -1245,7 +1255,65 @@
             "ui_extension": ""
           }
         },
-        "constraints": {},
+        "constraints": {
+          "publish_image": {
+            "status": "supported",
+            "media_types": [],
+            "destination_types": [],
+            "scopes": [
+              "instagram_content_publish"
+            ],
+            "min_items": null,
+            "max_items": null,
+            "max_bytes": null,
+            "max_characters": null,
+            "mime_types": [],
+            "aspect_min": null,
+            "aspect_max": null,
+            "max_seconds": null,
+            "max_width": null,
+            "min_width": null,
+            "min_height": null
+          },
+          "publish_video": {
+            "status": "supported",
+            "media_types": [],
+            "destination_types": [],
+            "scopes": [
+              "instagram_content_publish"
+            ],
+            "min_items": null,
+            "max_items": null,
+            "max_bytes": null,
+            "max_characters": null,
+            "mime_types": [],
+            "aspect_min": null,
+            "aspect_max": null,
+            "max_seconds": null,
+            "max_width": null,
+            "min_width": null,
+            "min_height": null
+          },
+          "scheduling": {
+            "status": "supported",
+            "media_types": [],
+            "destination_types": [],
+            "scopes": [
+              "instagram_content_publish"
+            ],
+            "min_items": null,
+            "max_items": null,
+            "max_bytes": null,
+            "max_characters": null,
+            "mime_types": [],
+            "aspect_min": null,
+            "aspect_max": null,
+            "max_seconds": null,
+            "max_width": null,
+            "min_width": null,
+            "min_height": null
+          }
+        },
         "brand": {
           "icon": "instagram",
           "color": "#E1306C"

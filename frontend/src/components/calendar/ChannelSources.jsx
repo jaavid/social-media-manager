@@ -9,6 +9,12 @@ const controlStyle = {
 };
 
 export default function ChannelSources({ clientId, onRefresh, selectedSource, onSelectSource }) {
+  const { isPersian } = useLanguage();
+  return <ScopedChannelSources key={`${clientId}:${isPersian}`} clientId={clientId}
+    onRefresh={onRefresh} selectedSource={selectedSource} onSelectSource={onSelectSource} />;
+}
+
+function ScopedChannelSources({ clientId, onRefresh, selectedSource, onSelectSource }) {
   const { isPersian, formatDate, t } = useLanguage();
   const [sources, setSources] = useState([]);
   const [username, setUsername] = useState('');
@@ -27,10 +33,6 @@ export default function ChannelSources({ clientId, onRefresh, selectedSource, on
 
   useEffect(() => {
     generation.current += 1;
-    setSources([]);
-    setPending(false);
-    setBusy(false);
-    setMessage('');
     if (clientId) load().catch(() => setMessage(isPersian ? 'دریافت کانال‌ها ناموفق بود.' : 'Could not load channels.'));
     return () => { generation.current += 1; };
   }, [clientId, load, isPersian]);
@@ -53,6 +55,7 @@ export default function ChannelSources({ clientId, onRefresh, selectedSource, on
       await action();
       if (generation.current !== token) return;
       await load();
+      if (generation.current !== token) return;
       onRefresh();
     } catch (error) {
       if (generation.current !== token) return;
