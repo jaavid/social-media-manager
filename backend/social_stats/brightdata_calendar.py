@@ -1,4 +1,5 @@
-"""Bounded Instagram post discovery through Bright Data's asynchronous REST API."""
+"""Official SDK Instagram discovery with durable polling and mandatory gateway egress."""
+import asyncio
 import math
 import os
 import re
@@ -34,7 +35,7 @@ def post_limit():
         raise InstagramReadError('brightdata_not_configured') from None
 
 
-def _request(method, path, **kwargs):
+def _send(method, path, **kwargs):
     token = os.getenv('BRIGHTDATA_API_KEY', '').strip()
     if not token:
         raise InstagramReadError('brightdata_not_configured')
@@ -59,22 +60,59 @@ def _request(method, path, **kwargs):
             raise InstagramReadError('brightdata_quota')
         if not 200 <= response.status_code < 300:
             raise InstagramReadError('brightdata_unavailable')
-        try:
-            return response.json()
-        except ValueError:
-            raise InstagramReadError('brightdata_invalid_response') from None
+    except Exception:
+        response.close()
+        raise
+    return response
+
+
+def _request(method, path, **kwargs):
+    """Safe read-only diagnostics and recovery; collection uses the official SDK."""
+    response = _send(method, path, **kwargs)
+    try:
+        return response.json()
+    except ValueError:
+        raise InstagramReadError('brightdata_invalid_response') from None
     finally:
         response.close()
 
 
-def start_discovery(username):
+def _sdk_components():
+    try:
+        from brightdata.scrapers.api_client import DatasetAPIClient
+        from brightdata.scrapers.instagram.search import InstagramSearchScraper
+        from brightdata.exceptions import DataNotReadyError
+        from social_stats.egress.brightdata_sdk import GatewayEngine, DurableDiscoveryWorkflow
+    except ImportError:
+        raise InstagramReadError('dependency_missing') from None
+    return DatasetAPIClient, InstagramSearchScraper, DataNotReadyError, GatewayEngine, DurableDiscoveryWorkflow
+
+
+def start_discovery(username, *, amount=None):
     username = normalize_username(username)
     limit = post_limit()
-    payload = _request('POST', '/datasets/v3/trigger', params={
-        'dataset_id': DATASET_ID, 'type': 'discover_new', 'discover_by': 'url',
-        'limit_per_input': limit, 'include_errors': 'true', 'format': 'json',
-    }, json=[{'url': f'https://www.instagram.com/{username}/', 'num_of_posts': limit}])
-    snapshot = payload.get('snapshot_id') if isinstance(payload, dict) else None
+    if amount is not None:
+        if not isinstance(amount, int) or isinstance(amount, bool) or amount < 1:
+            raise InstagramReadError('brightdata_not_configured')
+        limit = min(limit, amount)
+    token = os.getenv('BRIGHTDATA_API_KEY', '').strip()
+    if not token:
+        raise InstagramReadError('brightdata_not_configured')
+    _, Search, _, Engine, Workflow = _sdk_components()
+
+    async def trigger():
+        async with Search(bearer_token=token, engine=Engine(_send)) as search:
+            search.workflow_executor = Workflow(
+                api_client=search.api_client, platform_name='instagram',
+                cost_per_record=search.COST_PER_RECORD, limit=limit,
+            )
+            return await search.posts(url=f'https://www.instagram.com/{username}/', num_of_posts=limit)
+
+    try:
+        result = asyncio.run(trigger())
+    except (AttributeError, TypeError, ValueError):
+        raise InstagramReadError('brightdata_invalid_response') from None
+    snapshot = result.snapshot_id if result.success else None
     if not valid_snapshot_id(snapshot):
         raise InstagramReadError('brightdata_invalid_response')
     return snapshot
@@ -88,18 +126,29 @@ def fetch_snapshot(snapshot, username):
 def download_snapshot(snapshot):
     if not valid_snapshot_id(snapshot):
         raise InstagramReadError('brightdata_invalid_response')
-    progress = _request('GET', f'/datasets/v3/progress/{snapshot}')
-    status = progress.get('status') if isinstance(progress, dict) else None
-    if status in {'starting', 'running'}:
-        return None
-    if status != 'ready':
-        raise InstagramReadError('brightdata_collection_failed')
-    return _request('GET', f'/datasets/v3/snapshot/{snapshot}', params={'format': 'json'})
+    APIClient, _, NotReady, Engine, _ = _sdk_components()
+
+    async def download():
+        api = APIClient(Engine(_send))
+        status = await api.get_status(snapshot)
+        if status in {'starting', 'running'}:
+            return None
+        if status != 'ready':
+            raise InstagramReadError('brightdata_collection_failed')
+        try:
+            return await api.fetch_result(snapshot)
+        except NotReady:
+            return None
+
+    return asyncio.run(download())
 
 
 def normalize_posts(rows, username):
     if not isinstance(rows, list):
         raise InstagramReadError('brightdata_invalid_response')
+    if not rows:
+        # A finished collection with no records is not a successful content sync.
+        raise InstagramReadError('brightdata_empty_result')
     posts = []
     for row in rows[:50]:
         if not isinstance(row, dict) or row.get('error') or row.get('error_code'):

@@ -88,6 +88,7 @@ export default function ChannelSources({ clientId, onRefresh, selectedSource, on
     brightdata_unavailable: text('سرویس Bright Data یا درگاه در دسترس نیست', 'Bright Data or the gateway is unavailable'),
     brightdata_invalid_response: text('پاسخ Bright Data برای تقویم معتبر نیست', 'Bright Data returned invalid calendar data'),
     brightdata_collection_failed: text('Bright Data نتوانست محتوای این کانال را دریافت کند', 'Bright Data could not collect this channel'),
+    brightdata_empty_result: text('Bright Data هیچ پستی برنگرداند؛ دریافت محتوا تأیید نشد', 'Bright Data returned no posts; content collection was not confirmed'),
     brightdata_timeout: text('دریافت Bright Data در زمان تعیین‌شده تمام نشد', 'Bright Data collection timed out'),
   };
   if (!clientId) return null;

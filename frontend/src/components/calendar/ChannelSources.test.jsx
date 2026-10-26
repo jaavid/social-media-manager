@@ -10,6 +10,15 @@ jest.mock('../../i18n', () => ({ useLanguage: () => ({ isPersian: false, formatD
 
 beforeEach(() => { jest.clearAllMocks(); });
 
+test('explains a completed Bright Data collection with no posts as unconfirmed content', async () => {
+  calendarAPI.getSources.mockResolvedValue({ data: [{
+    id: 2, username: 'example', provider: 'brightdata', reader_ready: false,
+    sync_status: 'error', error_code: 'brightdata_empty_result',
+  }] });
+  render(<ChannelSources clientId={1} onRefresh={jest.fn()} selectedSource="" onSelectSource={jest.fn()} />);
+  expect(await screen.findByText(/Bright Data returned no posts; content collection was not confirmed/)).toBeInTheDocument();
+});
+
 test('allows a public profile and explains the required reader session', async () => {
   calendarAPI.getSources.mockResolvedValue({ data: [] });
   calendarAPI.addSource.mockResolvedValue({ data: {} });
