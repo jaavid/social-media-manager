@@ -170,7 +170,7 @@ async function Hero() {
                     background: 'rgba(255,255,255,0.06)',
                     border: '1px solid rgba(255,255,255,0.18)',
                   }}>
-            <PlayCircle size={15} /> دمو دهه 90 را تماشا کنید
+            <PlayCircle size={15} /> دموی ۹۰ ثانیه‌ای را ببینید
           </Button>
         </MotionDiv>
 
@@ -229,7 +229,7 @@ function NotificationCard() {
         </span>
         <span style={floatLabel}>پیام جدید · اینستاگرام</span>
       </div>
-      <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)' }}>پریا شارما</div>
+      <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)' }}>نگار احمدی</div>
       <div style={{ marginTop: 2, fontSize: 11, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>
         آیا آپارتمان سه‌خوابه هنوز در دسترس است؟ آیا می‌توانم شنبه مراجعه کنم؟
       </div>
@@ -263,11 +263,11 @@ function LeadCapturedCard() {
         <span style={floatIconStyle('rgba(16,185,129,0.15)', '#34d399')}>
           <Check size={12} strokeWidth={3} />
         </span>
-        <span style={floatLabel}>سرب دستگیر شد</span>
+        <span style={floatLabel}>سرنخ جدید ثبت شد</span>
       </div>
-      <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)' }}>راهول ورما</div>
+      <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)' }}>آرمان محمدی</div>
       <div style={{ marginTop: 2, fontSize: 11, color: 'var(--text-secondary)' }}>
-        منبع: <strong style={{ color: '#34d399' }}>CTWA · کمپین دیوالی</strong>
+        منبع: <strong style={{ color: '#34d399' }}>CTWA · کمپین یلدا</strong>
       </div>
     </div>
   );
@@ -628,18 +628,18 @@ function AIEverywhere() {
 // Section 8 — COMPARISON
 // ─────────────────────────────────────────────────────────────────────────────
 function ComparisonSection() {
-  const columns = ["راوینتا", 'Hootsuite', "جوانه اجتماعی", "بافر"];
+  const columns = ["راوینتا", 'Hootsuite', "Sprout Social", "Buffer"];
   const rows = [
     { feature: "تحلیل و آمار چند پلتفرم",     cells: ['yes',          'yes',     'yes',     'partial'] },
     { feature: "دستیار عمیق هوش مصنوعی",            cells: ["راوینتا",    'partial', 'partial', 'no'] },
     { feature: 'API واتس‌اپ بیزینس',        cells: ['yes',          'no',      'no',      'no'] },
     { feature: "ربات‌های واتس‌اپ کلیک به‌رو",       cells: ['yes',          'no',      'no',      'no'] },
     { feature: "سازنده ربات بصری",           cells: ['yes',          'no',      'no',      'no'] },
-    { feature: "CRM سرب",             cells: ['yes',          'no',      'partial', 'no'] },
+    { feature: "مدیریت سرنخ‌ها در CRM",             cells: ['yes',          'no',      'partial', 'no'] },
     { feature: "بازار نمایندگی دو طرفه", cells: ['yes',          'no',      'no',      'no'] },
     { feature: "دنباله حسابرسی فعالیت",         cells: ['yes',          'partial', 'yes',     'no'] },
     { feature: "رایگان برای کاربران نهایی",           cells: ['yes',          'no',      'no',      'partial'] },
-    { feature: "پرداخت هندی + GST",         cells: ['yes',          'no',      'no',      'no'] },
+    { feature: "پرداخت ریالی و رمزارزی",         cells: ['yes',          'no',      'no',      'no'] },
   ];
   return (
     <section style={{
@@ -652,7 +652,7 @@ function ComparisonSection() {
         <ScrollReveal>
           <SectionHeading
             eyebrow={"مقایسه صادقانه"}
-            title={"چگونه راوینتا پشته"}
+            title={"مقایسهٔ راوینتا با ابزارهای دیگر"}
             subtitle={"ما برای همه نیستیم. ما برای آژانس‌ها + مشاغل جدی در مورد AI + واتس‌اپ ساخته شده ایم."}
           />
         </ScrollReveal>

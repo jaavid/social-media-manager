@@ -155,7 +155,7 @@ export default function MarketingNav() {
         position: 'fixed',
         top: 0, left: 0, right: 0,
         zIndex: 'var(--z-sticky)',
-        background: scrolled || openMenu || mobileOpen ? 'var(--surface-overlay)' : 'transparent',
+        background: 'var(--surface-card)',
         backdropFilter: scrolled || openMenu ? 'blur(14px) saturate(180%)' : 'none',
         WebkitBackdropFilter: scrolled || openMenu ? 'blur(14px) saturate(180%)' : 'none',
         borderBottom: scrolled || openMenu ? '1px solid var(--border-subtle)' : '1px solid transparent',
@@ -285,14 +285,19 @@ export default function MarketingNav() {
 // ─────────────────────────────────────────────────────────────────────────────
 // Nav primitives
 // ─────────────────────────────────────────────────────────────────────────────
+const navItemStyle = {
+  padding: '8px 12px', minHeight: 44,
+  display: 'inline-flex', alignItems: 'center',
+  fontSize: 14, fontWeight: 500, lineHeight: 'var(--line-height-body)',
+};
+
 function NavLink({ to, active, children, onMouseEnter }) {
   return (
     <Link
       to={to}
       onMouseEnter={(e) => { onMouseEnter?.(e); }}
       style={{
-        padding: '8px 12px',
-        fontSize: 14, fontWeight: 500,
+        ...navItemStyle,
         color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
         textDecoration: 'none',
         borderRadius: 'var(--radius-md)',
@@ -327,14 +332,13 @@ function MegaTrigger({ menuId, label, active, onEnter, onToggle }) {
       aria-controls={`mkt-${menuId}`}
       aria-expanded={active}
       style={{
-        padding: '8px 12px',
-        fontSize: 14, fontWeight: 500,
+        ...navItemStyle,
         color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
         background: active ? 'var(--surface-hover)' : 'transparent',
         border: 'none',
         borderRadius: 'var(--radius-md)',
         cursor: 'pointer',
-        display: 'inline-flex', alignItems: 'center', gap: 4,
+        gap: 4,
         transition: 'var(--transition-fast)',
         fontFamily: 'inherit',
       }}

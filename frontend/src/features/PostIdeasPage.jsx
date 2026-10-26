@@ -491,7 +491,7 @@ function SetupForm({ form, setForm, isAdmin, error, businessTypeOptions, monthOp
           <div style={{ ...styles.formField, gridColumn: '1 / -1' }}>
             <label id="ideas-field-6" style={styles.label}>Upcoming Events / Promotions</label>
             <textarea aria-labelledby="ideas-field-6"
-              placeholder="e.g. Diwali on Oct 20, New menu launching Nov 1, Anniversary sale last week of month"
+              placeholder="مثلاً کمپین یلدا، معرفی منوی تازه در آذر یا فروش ویژهٔ سالگرد"
               value={form.upcoming_events}
               onChange={e => setForm(f => ({ ...f, upcoming_events: e.target.value }))}
               style={styles.textarea}

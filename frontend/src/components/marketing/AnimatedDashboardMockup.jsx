@@ -29,6 +29,8 @@ import {
  * The chart line draws itself; stat counters tick up; the activity feed
  * has staggered fade-up entries.
  */
+const DEMO_APP_URL = 'https://ravinta.ir';
+
 export default function AnimatedDashboardMockup() {
   const reduced = useReducedMotion();
 
@@ -64,7 +66,7 @@ export default function AnimatedDashboardMockup() {
           fontSize: 10, fontFamily: 'var(--font-mono)', color: 'rgba(255,255,255,0.4)',
           background: 'rgba(255,255,255,0.06)',
           borderRadius: 'var(--radius-sm)',
-        }}>localhost:3000/dashboard</div>
+        }} dir="ltr">{DEMO_APP_URL}</div>
       </div>
 
       <div style={{ display: 'flex', height: 'calc(100% - 28px)' }}>

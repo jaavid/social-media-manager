@@ -378,7 +378,7 @@ export default function BrandVoicePage({ clientId: propClientId = null }) {
             <input
               value={testTopic}
               onChange={(e) => setTestTopic(e.target.value)}
-              placeholder="e.g. New summer collection, Diwali greetings…"
+              placeholder="مثلاً معرفی مجموعهٔ تابستانی، تبریک شب یلدا…"
               style={{ ...inputStyle, flex: '1 1 240px' }}
               onKeyDown={(e) => { if (e.key === 'Enter') handleTest(); }}
             />
