@@ -34,6 +34,44 @@ def response(payload, status=200):
     return result
 
 
+class BrightDataProfileTests(SimpleTestCase):
+    def profile(self, **changes):
+        return dict({'account': 'example', 'is_private': False, 'followers': 1531,
+                     'posts': [{'id': '3965842766798039999', 'url': 'https://www.instagram.com/p/ABC123',
+                                'caption': 'sample', 'datetime': '2026-08-17T00:00:00.000Z',
+                                'image_url': 'https://cdn.example/image.jpg', 'content_type': 'Carousel'}]}, **changes)
+
+    @patch.dict(os.environ, {'BRIGHTDATA_API_KEY': 'fixture', 'BRIGHTDATA_CALENDAR_DISCOVERY': 'profiles'})
+    @patch('social_stats.brightdata_calendar._send')
+    def test_real_sdk_profiles_uses_exact_username_and_one_profile_record(self, send):
+        send.return_value = response({'snapshot_id': 'sd_profiles'})
+        self.assertEqual(provider.start_discovery('example'), 'sd_profiles')
+        params = send.call_args.kwargs['params']
+        self.assertEqual(params['dataset_id'], 'gd_l1vikfch901nx3by4')
+        self.assertEqual(params['discover_by'], 'user_name')
+        self.assertEqual(send.call_args.kwargs['json'], {'input': [{'user_name': 'example'}], 'limit_per_input': 1})
+
+    def test_nested_sample_keeps_id_date_carousel_and_unknown_metrics(self):
+        post = provider.normalize_posts([self.profile()], 'example')[0]
+        self.assertEqual(post['external_id'], '3965842766798039999')
+        self.assertEqual(post['post_type'], 'carousel')
+        self.assertEqual(post['metrics'], {})
+        self.assertEqual(post['caption'], 'sample')
+        self.assertEqual(post['published_at'].isoformat(), '2026-08-17T00:00:00+00:00')
+
+    def test_private_wrong_owner_empty_and_malformed_samples_fail_closed(self):
+        for changes in [{'is_private': True}, {'is_private': None}, {'account': 'other'},
+                        {'posts': []}, {'posts': None}, {'posts': ['invalid']}, {'account': None}]:
+            with self.subTest(changes=changes), self.assertRaises(InstagramReadError):
+                provider.normalize_posts([self.profile(**changes)], 'example')
+
+    @patch.dict(os.environ, {'BRIGHTDATA_CALENDAR_POST_LIMIT': '1'})
+    def test_nested_posts_respect_local_cap(self):
+        profile = self.profile()
+        profile['posts'] *= 12
+        self.assertEqual(len(provider.normalize_posts([profile], 'example')), 1)
+
+
 class BrightDataProbeTests(SimpleTestCase):
     @patch('social_stats.management.commands.probe_brightdata_calendar.start_discovery', return_value='sd_probe')
     def test_collect_is_explicitly_capped_at_one_record(self, collect):
@@ -53,6 +91,7 @@ class BrightDataProbeTests(SimpleTestCase):
         })
 
 
+@patch.dict(os.environ, {'BRIGHTDATA_CALENDAR_DISCOVERY': 'posts'})
 class BrightDataAdapterTests(SimpleTestCase):
     @patch.dict(os.environ, {'BRIGHTDATA_API_KEY': 'fixture'})
     @patch('social_stats.brightdata_calendar._send')
@@ -190,6 +229,21 @@ class BrightDataSyncTests(TestCase):
     def setUp(self):
         self.workspace = Client.objects.create(name='test', company='test', email='test@example.test')
         self.source = CalendarSource.objects.create(client=self.workspace, username='example')
+
+    @patch('social_stats.brightdata_calendar.download_snapshot')
+    def test_profile_snapshot_imports_into_calendar_without_submission(self, download):
+        profile = BrightDataProfileTests().profile()
+        download.return_value = [profile]
+        self.source.provider_snapshot_id = 'sd_profile_ready'
+        self.source.provider_started_at = timezone.now()
+        self.source.save()
+        with patch('social_stats.brightdata_calendar.start_discovery') as submit:
+            sync_calendar_source(self.source.pk, snapshot_id='sd_profile_ready')
+        submit.assert_not_called()
+        self.source.refresh_from_db()
+        self.assertEqual(self.source.sync_status, 'ok')
+        post = ChannelCalendarPost.objects.get(source=self.source)
+        self.assertEqual(post.external_id, '3965842766798039999')
 
     @patch('social_stats.channel_calendar_tasks.build_reader')
     @patch('social_stats.channel_calendar_tasks.sync_calendar_source.apply_async')

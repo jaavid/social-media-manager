@@ -3,7 +3,7 @@ import json
 
 from django.core.management.base import BaseCommand, CommandError
 
-from social_stats.brightdata_calendar import download_snapshot, normalize_posts, start_discovery
+from social_stats.brightdata_calendar import download_snapshot, normalize_posts, snapshot_owner, start_discovery
 from social_stats.instagram_calendar import InstagramReadError, normalize_username
 
 
@@ -21,7 +21,7 @@ class Command(BaseCommand):
             if options['collect']:
                 username = normalize_username(options['collect'])
                 snapshot = start_discovery(username, amount=1)
-                result = {'status': 'submitted', 'snapshot_id': snapshot, 'max_posts': 1}
+                result = {'status': 'submitted', 'snapshot_id': snapshot, 'max_provider_records': 1}
             else:
                 rows = download_snapshot(options['snapshot'])
                 if rows is None:
@@ -31,10 +31,7 @@ class Command(BaseCommand):
                 else:
                     if not isinstance(rows, list) or any(not isinstance(row, dict) for row in rows):
                         raise InstagramReadError('brightdata_invalid_response')
-                    owners = {str(row.get('user_posted') or '').lower().lstrip('@') for row in rows}
-                    if len(owners) != 1:
-                        raise InstagramReadError('brightdata_invalid_response')
-                    owner = normalize_username(options['username'] or next(iter(owners)))
+                    owner = normalize_username(options['username'] or snapshot_owner(rows))
                     posts = normalize_posts(rows, owner)
                     result = {'status': 'content_verified', 'post_count': len(posts), 'content_confirmed': True,
                               'posts': [{'post_url': post['post_url'], 'published_at': post['published_at'].isoformat()}
