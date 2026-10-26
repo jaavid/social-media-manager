@@ -52,6 +52,8 @@ export default function AccountWatchlist({ workspaceId, canAdd, canVerify }) {
         <div>
           <p className="font-medium" dir="ltr">@{source.username}</p>
           <p className="text-sm text-muted-foreground">{t(source.is_active ? `watchlist.status.${source.sync_status}` : 'watchlist.paused')}</p>
+          {source.is_active && source.error_code === 'brightdata_empty_result' &&
+            <p role="status" className="text-sm text-muted-foreground">{t('watchlist.emptyResult')}</p>}
           {source.last_synced_at && <p className="text-xs text-muted-foreground">{t('watchlist.updated', undefined, { date: formatDate(source.last_synced_at) })}</p>}
           <p className="text-xs">{t(source.publishing_ready ? 'watchlist.connected' : 'watchlist.readOnly')}</p>
         </div>

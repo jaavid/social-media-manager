@@ -6,7 +6,7 @@ import { calendarAPI } from '../../services/domains/publishing';
 jest.mock('../../services/domains/publishing', () => ({ calendarAPI: {
   getSources: jest.fn(), addSource: jest.fn(), syncSource: jest.fn(), removeSource: jest.fn(),
 } }));
-jest.mock('../../i18n', () => ({ useLanguage: () => ({ isPersian: false, formatDate: value => value }) }));
+jest.mock('../../i18n', () => ({ useLanguage: () => ({ isPersian: false, formatDate: value => value, t: key => key }) }));
 
 beforeEach(() => { jest.clearAllMocks(); });
 

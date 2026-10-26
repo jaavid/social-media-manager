@@ -13,6 +13,13 @@ function setup(props = {}) {
   return render(<QueryClientProvider client={client}><AccountWatchlist workspaceId={7} canAdd {...props} /></QueryClientProvider>);
 }
 beforeEach(() => { jest.clearAllMocks(); calendarAPI.getSources.mockResolvedValue({ data: [] }); });
+test('shows an empty provider result without claiming that content is up to date', async () => {
+  calendarAPI.getSources.mockResolvedValue({ data: [{ id: 1, username: 'example', is_active: true,
+    sync_status: 'error', error_code: 'brightdata_empty_result', permissions: {} }] });
+  setup();
+  expect(await screen.findByText('watchlist.emptyResult')).toHaveAttribute('role', 'status');
+  expect(screen.queryByText('watchlist.status.ok')).not.toBeInTheDocument();
+});
 test('adding a public profile enrolls it without any ownership claim', async () => {
   setup();
   fireEvent.change(screen.getByLabelText('watchlist.username'), { target: { value: '@example' } });

@@ -34,6 +34,25 @@ def response(payload, status=200):
     return result
 
 
+class BrightDataProbeTests(SimpleTestCase):
+    @patch('social_stats.management.commands.probe_brightdata_calendar.start_discovery', return_value='sd_probe')
+    def test_collect_is_explicitly_capped_at_one_record(self, collect):
+        output = StringIO()
+        call_command('probe_brightdata_calendar', collect='example', stdout=output)
+        collect.assert_called_once_with('example', amount=1)
+        self.assertEqual(json.loads(output.getvalue())['snapshot_id'], 'sd_probe')
+
+    @patch('social_stats.management.commands.probe_brightdata_calendar.start_discovery')
+    @patch('social_stats.management.commands.probe_brightdata_calendar.download_snapshot', return_value=[])
+    def test_reading_empty_snapshot_never_submits_a_new_job_or_claims_content(self, download, collect):
+        output = StringIO()
+        call_command('probe_brightdata_calendar', snapshot='sd_empty', stdout=output)
+        collect.assert_not_called()
+        self.assertEqual(json.loads(output.getvalue()), {
+            'status': 'empty', 'post_count': 0, 'content_confirmed': False,
+        })
+
+
 class BrightDataAdapterTests(SimpleTestCase):
     @patch.dict(os.environ, {'BRIGHTDATA_API_KEY': 'fixture'})
     @patch('social_stats.brightdata_calendar._send')
