@@ -46,12 +46,12 @@ test('server-owned metadata and RTL survive hydration and public route navigatio
   const html = await (await request.get('/privacy')).text();
   expect(html).toContain('<title>سیاست حریم خصوصی · Ravinta</title>');
   expect(html).toContain('dir="rtl"');
-  expect(html).toMatch(/<h1[^>]*>سیاست حریم خصوصی<\/h1>/);
+  expect(html).toMatch(/<h1[^>]*>حریم خصوصی در راوینتا<\/h1>/);
   expect(html).not.toContain('access_token');
   const errors = [];
   page.on('pageerror', e => errors.push(e.message));
   await page.goto('/privacy');
-  await expect(page.getByRole('heading', { name: 'سیاست حریم خصوصی', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'حریم خصوصی در راوینتا', exact: true })).toBeVisible();
   await expect(page).toHaveTitle('سیاست حریم خصوصی · Ravinta');
   await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
   await page.getByRole('link', { name: 'شرایط استفاده', exact: true }).click();
