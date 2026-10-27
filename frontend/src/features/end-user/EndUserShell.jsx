@@ -37,7 +37,7 @@ const SECTIONS = [
     { to: '/u/connections', label: 'Connections', icon: Plug, scoped: true },
     { to: '/u/approvals', label: 'nav.approvalRequests', icon: ClipboardCheck },
     { to: '/u/activity', label: 'nav.activity', icon: ShieldCheck },
-    { to: '/u/agency', label: 'My agency', icon: Building2 },
+    { to: '/u/agency', label: 'My agency', icon: Building2, end: true },
     { to: '/u/notifications', label: 'Notifications', icon: Bell },
   ] },
   { title: 'nav.discover', items: [{ to: '/u/agency/find', label: 'Find an agency', icon: Search, end: true }] },

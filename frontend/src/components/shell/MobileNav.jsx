@@ -17,6 +17,7 @@ export default function MobileNav({ module, basePath }) {
   const priorities = module === 'messaging' ? ['/inbox', '/campaigns', '/templates', '/contacts'] : ['/dashboard', '/composer', '/inbox', '/reports'];
   const items = visibleSections(module, basePath, can).flatMap(section => section.items);
   const tabs = priorities.map(path => items.find(item => item.path === path)).filter(Boolean);
+  if (!tabs.length) return null;
   return (
     <nav
       className="mobile-bottom-nav ds-mobile-nav fixed inset-x-3 bottom-3 z-150 flex h-16 items-stretch overflow-x-auto rounded-2xl border border-border/70 bg-card/92 px-1.5 pb-[env(safe-area-inset-bottom)] shadow-xl backdrop-blur-2xl"

@@ -82,8 +82,8 @@ for (const scenario of [
 
 for (const scenario of [
   { name: 'agency with all core grants', grants: permissions, expected: ['Create post', 'Inbox', 'Reports'] },
-  { name: 'designer', grants: ['composer.view', 'calendar.view'], expected: ['Create post'], accountPermissions: { view_inbox: false, generate_reports: false } },
-  { name: 'approver', grants: ['composer.approve', 'reports.view', 'calendar.view'], expected: ['Reports'], accountPermissions: { view_inbox: false } },
+  { name: 'designer', grants: ['composer.view', 'calendar.view'], expected: ['Create post'], accountPermissions: { view_inbox: false, generate_reports: false, publish: false, schedule: false } },
+  { name: 'approver', grants: ['composer.approve', 'reports.view', 'calendar.view'], expected: ['Reports'], accountPermissions: { view_inbox: false, publish: false, schedule: false } },
   { name: 'revoked account permissions', grants: permissions, expected: [], accountPermissions: { view_posts: false, view_inbox: false, generate_reports: false } },
 ]) test(`${scenario.name}: sidebar, mobile and palette share granted destinations`, async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
@@ -135,9 +135,11 @@ test('workspace selection, alias, modified click, Back/Forward and reload keep l
   await create.click({ modifiers: ['Control'] }); const popup = await popupPromise;
   await expect(popup).toHaveURL(/\/dashboard\/composer\?workspace=8$/);
   await expect(popup.getByRole('heading', { name: 'Composer', exact: true })).toBeVisible(); await popup.close();
-  await page.goBack(); await expect(page).toHaveURL(/workspace=7/);
-  await expect(sidebar.locator('[data-workspace-context]')).toContainText('Synthetic brand A');
-  await page.goForward(); await page.reload();
+  await sidebar.getByRole('button', { name: 'Messages', exact: true }).click();
+  await sidebar.getByRole('link', { name: 'Inbox', exact: true }).click();
+  await expect(page).toHaveURL(/\/dashboard\/inbox\?workspace=8$/);
+  await page.goBack(); await expect(page).toHaveURL(/\/dashboard\/composer\?workspace=8$/);
+  await page.goForward(); await expect(page).toHaveURL(/\/dashboard\/inbox\?workspace=8$/); await page.reload();
   await expect(sidebar.locator('[data-workspace-context]')).toContainText('Synthetic brand B');
   // A conservative discovery menu does not replace direct-link authorization.
   await page.goto('/dashboard/reports?workspace=8'); await expect(page.locator('main')).toBeVisible();
@@ -163,4 +165,26 @@ test('a hidden discovery item does not replace backend-authorized direct access'
   // menu grant; the existing direct destination remains reachable.
   await expect(page.getByRole('heading', { name: 'Composer', exact: true })).toBeVisible();
   await expect(page.locator('main').getByText('Accounts / destinations', { exact: true })).toBeVisible();
+});
+
+test('reports read the explicit workspace and never the session default after a switch', async ({ page }) => {
+  await setup(page); const reads = [];
+  await page.context().route('**/api/shared-reports/**', route => {
+    reads.push(new URL(route.request().url()).searchParams.get('workspace'));
+    return route.fulfill({ json: [] });
+  });
+  await page.goto('/dashboard/reports?workspace=8');
+  await expect.poll(() => reads.at(-1)).toBe('8');
+  expect(reads).not.toContain('7');
+  await page.locator('main').getByRole('combobox', { name: 'Workspace', exact: true }).selectOption('7');
+  await expect(page).toHaveURL(/workspace=7/);
+  await expect.poll(() => reads.at(-1)).toBe('7');
+});
+
+test('agency discovery has one active menu destination', async ({ page }) => {
+  await setup(page, { endUser: true }); await page.goto('/u/agency/find');
+  const sidebar = page.locator('.eu-sidebar');
+  await expect(sidebar.getByRole('link', { name: 'Find an agency', exact: true })).toHaveAttribute('aria-current', 'page');
+  await expect(sidebar.getByRole('link', { name: 'My agency', exact: true })).not.toHaveAttribute('aria-current');
+  await expect(sidebar.locator('a[aria-current="page"]')).toHaveCount(1);
 });

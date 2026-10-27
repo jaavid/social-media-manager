@@ -276,9 +276,14 @@ test('account change and logout propagate across tabs without broadcasting crede
   await context.routeWebSocket('**/ws/**', socket => socket.close());
   const first = await context.newPage(), second = await context.newPage();
   await first.goto('/admin/account-settings'); await second.goto('/admin/account-settings');
+  await second.getByRole('button', { name: 'Account menu', exact: true }).click();
   await expect(second.getByText('first@example.test', { exact: true }).last()).toBeVisible();
   identity = { ...identity, id: 2, email: 'second@example.test' };
+  const changed = second.waitForResponse(response => new URL(response.url()).pathname.endsWith('/auth/me/'));
   await first.evaluate(() => localStorage.setItem('social-stats.session-changed', String(Date.now())));
+  await changed;
+  await expect(second.getByRole('menu')).toHaveCount(0);
+  await second.getByRole('button', { name: 'Account menu', exact: true }).click();
   await expect(second.getByText('second@example.test', { exact: true }).last()).toBeVisible();
   await expect(second.getByText('first@example.test', { exact: true }).last()).toHaveCount(0);
   identity = null;

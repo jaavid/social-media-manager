@@ -7,7 +7,7 @@ import NativeSelect from '../ui/NativeSelect';
 // Names come only from server-listed, accessible workspaces. A user/account name
 // or an organization role is not a workspace identity or a content permission.
 export default function WorkspaceContext({ basePath = '/u', compact = false }) {
-  const { workspaceId } = useWorkspaceScope();
+  const { workspaceId, selectWorkspace } = useWorkspaceScope();
   const { workspaces, error } = useWorkspaces();
   const { t } = useLanguage();
   const location = useAppLocation();
@@ -23,12 +23,17 @@ export default function WorkspaceContext({ basePath = '/u', compact = false }) {
         onChange={event => {
           const id = Number(event.target.value);
           if (!workspaces.some(row => row.id === id)) return;
-          const search = new URLSearchParams(location.search);
-          search.set('workspace', String(id));
-          // Detail routes encode workspace identity in their path; don't combine
-          // an old detail ID with a new query selection.
-          const pathname = location.pathname.replace(/^\/admin\/(workspace|client)\/[^/]+/, `/admin/workspace/${id}`);
-          navigate({ pathname, search: `?${search}`, hash: location.hash });
+          const match = location.pathname.match(/^\/admin\/(workspace|client)\/[^/]+/);
+          if (match) {
+            const search = new URLSearchParams(location.search);
+            if (search.has('workspace')) search.set('workspace', String(id));
+            navigate({ pathname: location.pathname.replace(match[0], `/admin/workspace/${id}`),
+              search: search.size ? `?${search}` : '', hash: location.hash });
+          } else {
+            // Reuse URL replacement / identity-owned path selection exactly as
+            // other workspace consumers do; don't create a competing contract.
+            selectWorkspace(id);
+          }
         }}>
         <option value="" disabled>{t('nav.chooseWorkspace')}</option>
         {!error && workspaces.map(row => <option key={row.id} value={String(row.id)}>{row.display_name || row.company || row.name || t('nav.unknownWorkspace')}</option>)}

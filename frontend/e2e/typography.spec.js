@@ -67,7 +67,7 @@ for (const language of ['fa', 'en']) for (const theme of ['light', 'dark']) for 
     }, language);
     await page.route('**/api/**', route => {
       const path = new URL(route.request().url()).pathname;
-      if (path === '/api/auth/me/') return route.fulfill({ json: { id: 1, role: 'staff', name: 'Typography tester', email: 'team@example.test', account_type: 'legacy', permissions: {} } });
+      if (path === '/api/auth/me/') return route.fulfill({ json: { id: 1, role: 'staff', name: 'Typography tester', email: 'team@example.test', account_type: 'legacy', permissions: { 'dashboard.view': true } } });
       if (path === '/api/profile/') return route.fulfill({ json: { id: 1, first_name: 'پیش‌نویس', last_name: 'ی ک پ چ ژ گ', email: 'team@example.test', avatar: null } });
       if (path === '/api/auth/session/') return route.fulfill({ json: { authenticated: true, csrfToken: 'test-csrf' } });
       return route.fulfill({ json: /\/(workspaces|alerts|notifications|invitations)\/$/.test(path) ? [] : {} });

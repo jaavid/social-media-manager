@@ -44,12 +44,12 @@ test('failed refresh and mismatched workspace metadata remove discovery grants',
   const view = renderHook(() => useNavigationAccess(), { wrapper: Wrapper });
   await waitFor(() => expect(view.result.current('inbox.view')).toBe(true));
   connectionsAPI.get.mockRejectedValue(new Error('Forbidden'));
-  await act(async () => { await client.invalidateQueries({ queryKey: ['navigation.access'] }); });
+  await act(async () => { await client.invalidateQueries({ queryKey: ['connections'] }); });
   await waitFor(() => expect(view.result.current('inbox.view')).toBe(false));
   mockScope = { workspaceId: 8, key: 'user-1:8' };
   connectionsAPI.get.mockResolvedValue({ workspace_id: 7, providers: [{ accounts: [account({ view_inbox: true })] }] });
   view.rerender();
-  await waitFor(() => expect(client.getQueryState(['navigation.access', 'user-1:8', {}])?.status).toBe('success'));
+  await waitFor(() => expect(client.getQueryState(['connections', 8])?.status).toBe('success'));
   expect(view.result.current('inbox.view')).toBe(false);
   view.unmount(); client.clear();
 });

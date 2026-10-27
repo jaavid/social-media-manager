@@ -219,7 +219,7 @@
     },
     {
       "file": "frontend/src/components/shell/MobileNav.jsx",
-      "sha256": "56c662f7b998ce700816783d0cd416e8b0515132e7aad010381f4912d8f6da83"
+      "sha256": "11c252bb6f78bcf673f253f772aff373b1c3d209a9c5fc12b89e639a6de8587c"
     },
     {
       "file": "frontend/src/components/shell/ModuleRail.jsx",
@@ -231,7 +231,7 @@
     },
     {
       "file": "frontend/src/components/shell/WorkspaceContext.jsx",
-      "sha256": "51998c649265bc731a3e6c7a6771554dc9f6fc8ef46defbac44d7cf3be742ab0"
+      "sha256": "52512dd3a2df7f0ff4aaacd0e9b9c560f393d650eb89a648dbd13d875dd9519d"
     },
     {
       "file": "frontend/src/components/shell/navigationItems.js",
@@ -239,15 +239,19 @@
     },
     {
       "file": "frontend/src/hooks/useNavigationAccess.js",
-      "sha256": "114b5b92bacccfe2c01cb077c98ad64cb03ffcf9592d73480914532531906ee1"
+      "sha256": "12ab2f954359b5b5b4a59da0d3ee92599d9e57bda52c076e727d312afbc2cbac"
     },
     {
       "file": "frontend/src/features/end-user/EndUserShell.jsx",
-      "sha256": "d1cd69338dc71e9f93229e3a4b7e0d5ba8dd839802dc3a884d925547c5527e8c"
+      "sha256": "9d5dc1c00207f00de08ed9a6ef41a49b19cd65ad437e20e49a087aae477512e5"
     },
     {
       "file": "frontend/src/i18n/messages.ts",
       "sha256": "8dc0b84c1f378cdf2414ef32fe231415737c72a5566f9ded5b6749c65103bb21"
+    },
+    {
+      "file": "frontend/src/features/ReportsPage.jsx",
+      "sha256": "74bf7136786a5cf4e978358764ed87c59e8698f042a930cc58c8bb20b4b3d88c"
     }
   ]
 }

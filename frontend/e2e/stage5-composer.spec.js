@@ -95,10 +95,12 @@ test('advanced draft media order, captions and destinations survive failed save 
 
 test('forbidden workspace refresh hides cached identities and recovered editor content', { tag: '@smoke' }, async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 1000 });
-  const state = await setup(page); await compose(page);
+  const state = await setup(page);
+  await page.route('**/api/auth/me/', route => route.fulfill({ json: { id: 1, role: 'client', account_type: 'legacy', workspace_id: 7, client_id: 7, permissions: { 'dashboard.view': true } } }));
+  await page.reload(); await compose(page);
   page.once('dialog', dialog => dialog.accept());
-  await page.getByRole('link', { name: 'Home', exact: true }).click();
-  await expect(page).toHaveURL(/\/dashboard$/);
+  await page.getByRole('link', { name: 'Dashboard', exact: true }).click();
+  await expect(page).toHaveURL(/\/dashboard\?workspace=7$/);
   state.failRead = 403;
   // Expire the shared query cache before remount so the denied refresh occurs.
   await page.clock.setFixedTime(new Date(Date.now() + 10 * 60 * 1000));

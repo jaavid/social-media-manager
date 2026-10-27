@@ -1,3 +1,4 @@
+import useWorkspaceScope from '@/hooks/useWorkspaceScope';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -64,17 +65,16 @@ export default function ReportsPage() {
   const { user } = useSession();
   const { t } = useLanguage();
   const { workspaces, error, refetch } = useWorkspaces();
-  const [chosen, setChosen] = useState('');
+  const { workspaceId: workspace, selectWorkspace } = useWorkspaceScope();
   const [tab, setTab] = useState('shared');
-  const workspace = Number(user?.workspace_id || user?.client_id || chosen) || null;
   return (
     <Page>
       <PageHeader title={t('reports.title')} subtitle={t('reports.description')} sticky={false} />
-      {!user?.workspace_id && !user?.client_id && (
+      {(
         <NativeSelect
           label={t('analytics.report.workspace')}
-          value={chosen}
-          onChange={(e) => setChosen(e.target.value)}
+          value={workspace ?? ''}
+          onChange={(e) => selectWorkspace(e.target.value)}
         >
           <option value="">{t('analytics.report.workspace')}</option>
           {workspaces.map((w) => (

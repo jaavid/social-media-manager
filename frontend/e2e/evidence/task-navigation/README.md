@@ -169,8 +169,8 @@ local Chromium **151.0.7922.173**. Production build/start, not a dev-server capt
 | Check | Result |
 | --- | --- |
 | Fresh baseline production build + controlled capture | 12 cases passed; 24 before images across two shells |
-| Final production build + targeted browser package (navigation, dashboard, backlog, legacy localization, workspace layout, brand) | **92 passed**, 3.6 minutes; includes 23 new navigation cases and 24 after images |
-| Full Jest | **98 suites / 542 passed** (35.85s); 49 focused navigation/scope/locale cases also passed during development |
+| Initial candidate production build + targeted browser package (navigation, dashboard, backlog, legacy localization, workspace layout, brand) | **92 passed**, 3.6 minutes; includes 23 new navigation cases and 24 after images |
+| Full Jest | **98 suites / 543 passed** (38.609s); 49 focused navigation/scope/locale cases also passed during development |
 | Existing backend authorization / team / calendar workspace reads | **34 passed**; SQLite test database, no production data; no backend source changed |
 | TypeScript / dependency / Next independence / architecture / i18n / lint / API + WebSocket proxy | Passed; **0 increases** in baselines; lint 0 errors / 0 file-rule regressions; i18n 0 beyond baseline / 958 semantic keys |
 | Active destination ownership | Every enabled descriptor in admin/client analytics/messaging is backed by an authored native page; admin-only entries excluded from client |
@@ -241,3 +241,58 @@ rows, preserving all checksums. Gitleaks 8.24.3 was rerun locally with redaction
 no scanner ignore, allowlist, baseline or workflow change was introduced. The
 branch's own initial commit was amended so PR history does not retain the false
 positive representation. Final CI results refer to the replacement head.
+
+### Scope-consumer and smoke follow-up
+
+On replacement head `8c0ea19`, external production contracts passed build/Jest/
+i18n/lint/architecture but smoke had 14 pass / 2 fail: the editor recovery test
+still selected the old mobile “Home” label, and the realtime workspace smoke
+missed an active-workspace event after the new selector introduced a separate
+URL navigation. The realtime test passed in isolation locally; a timing-independent
+CI reproduction is not claimed. The selector now delegates to the **existing**
+`useWorkspaceScope.selectWorkspace`: URL replacement when a workspace query is
+present, identity-owned path selection otherwise. This restores the delivered
+scope contract rather than adding a parallel selection/history mechanism. The
+realtime/count/foreign-event assertions in `nx02-workspace-scope` are unchanged.
+The editor test retains its denied-refresh/draft-privacy assertions and now has
+an explicit Dashboard discovery grant and the shared “Dashboard” label.
+
+A separate, confirmed consumer defect was found in `ReportsPage`: on a URL with
+`workspace=8`, its request trace sent `/shared-reports/?workspace=7`, taking the
+session default instead of URL scope. The page now consumes `useWorkspaceScope`
+and keys its existing collection by that resolved ID. A behavioral test requires
+first read 8 (never default 7), then read 7 after explicit selection. No endpoint,
+parameter vocabulary, report-generation feature or backend authorization changed.
+
+The four focused regressions (realtime scope, editor privacy, link/history scope,
+and report request scope) passed on the follow-up build. A review also correctly
+identified overlapping active states on `/u/agency/find`; My agency now uses an
+exact match and a separate test requires exactly one current destination.
+The review's suggested Messaging gate discrepancy did not match the current
+catalog: `inbox.view` belongs to unified inbox, while Messaging uses WhatsApp/bot
+permissions; both discovery paths evaluate those identically. A negative
+scenario verifies a unified-inbox grant cannot advertise the WhatsApp module.
+
+The completed ingress run on `8c0ea19` had **775 pass / 7 fail**. Besides the
+old Home selector, it exposed duplicate connection reads: discovery used a
+parallel cache key while ConnectedAccounts used `QK.connections`. Discovery now
+shares that delivered query and its retry/error state; identity isolation remains
+owned by SessionProviders. The existing connected-account test still requires
+loading → failure → explicit retry → stale refresh and **exactly three** reads.
+The other failures were obsolete identity/focus consumers: account identity is
+now read from the actual account menu (not a guessed workspace subtitle), and
+the typography focus fixture explicitly grants its real Dashboard tab. Their
+cross-tab identity/logout, credential, focus/viewport and typography assertions
+remain. A zero-grant mobile primary menu now renders no empty landmark.
+
+Final local follow-up: fresh production build, **25 navigation cases passed**
+(including report request scope and a single active agency destination), **543
+Jest tests passed**, and lint/i18n/architecture stayed at zero baseline increases.
+The refreshed 24 after captures replace the candidate images; all original before
+captures are retained. The report consumer is included in the source manifest.
+
+A separate **30-case** final run passed all 16 native smoke cases plus the slow
+connection/retry/read-count regression, cross-tab account/logout regression and
+all 12 active typography locale/theme/width cases. No retries, skips or timeouts
+were added. The unchanged backend authorization/team/calendar package remains
+34 passed.

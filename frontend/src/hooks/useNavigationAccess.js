@@ -1,10 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
 import { useSession } from '../core/session';
 import useWorkspaceScope from './useWorkspaceScope';
+import { QK } from '../services/queryClient';
 import { connectionsAPI } from '../services/domains/connections';
 
 // Legacy session grants alone cannot prove access to another workspace/account.
 // Missing metadata is unknown, never an inferred grant or a replacement for API authorization.
+// Share the delivered connections query; SessionProviders owns identity isolation.
 export function navigationPermission(code, can, accounts) {
   if (!can(code)) return false;
   const actions = {
@@ -17,10 +19,10 @@ export function navigationPermission(code, can, accounts) {
   return !actions || accounts.some(account => actions.every(action => account.permissions?.[action] === true));
 }
 export default function useNavigationAccess() {
-  const { can, user, status } = useSession();
+  const { can, status } = useSession();
   const scope = useWorkspaceScope();
   const query = useQuery({
-    queryKey: ['navigation.access', scope.key, user?.permissions],
+    queryKey: QK.connections(scope.workspaceId),
     enabled: status === 'authenticated' && scope.workspaceId !== null,
     queryFn: ({ signal }) => connectionsAPI.get(scope.workspaceId, signal),
     retry: false,

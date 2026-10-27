@@ -51,3 +51,7 @@ test('every active catalog destination is owned by a native page in the allowed 
     }
   }
 });
+
+test('a unified inbox grant does not advertise the separate WhatsApp module', () => {
+  expect(visibleSections('messaging', '/dashboard', code => code === 'inbox.view')).toEqual([]);
+});
