@@ -65,10 +65,10 @@ export const agencyInviteAPI = {
 };
 
 export const marketplaceAPI = {
-  list:       (params)        => api.get('/marketplace/agencies/', { params }),
+  list:       (params, signal) => api.get('/marketplace/agencies/', { params, signal }),
   get:        (slug)          => api.get(`/marketplace/agencies/${slug}/`),
-  featured:   ()              => api.get('/marketplace/featured/'),
-  categories: ()              => api.get('/marketplace/categories/'),
+  featured:   (signal)        => api.get('/marketplace/featured/', { signal }),
+  categories: (signal)        => api.get('/marketplace/categories/', { signal }),
   contact:    (slug, message) => api.post(`/marketplace/agencies/${slug}/contact/`, { message }),
 };
 
