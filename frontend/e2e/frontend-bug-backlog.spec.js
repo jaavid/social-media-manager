@@ -266,12 +266,22 @@ test('AI panel fits the resized mobile viewport and closes back above navigation
 
 for (const language of ['fa', 'en']) {
   test(`end-user main routes localize headings, navigation and actions in ${language}`, async ({ page }) => {
-    await session(page, { language, role: 'client', accountType: 'end_user', respond: (route, url) => {
+    await session(page, { language, role: 'client', accountType: 'end_user', respond: (route, url, request) => {
+      if (url.pathname.endsWith('/end-user/me/') && request.method() === 'GET') return route.fulfill({ json: {
+        user: { id: 1 }, workspace: { id: 7, company: 'Fixture workspace' }, relations: { active: 0, pending: 2 },
+      } });
       if (url.pathname.endsWith('/notifications/preferences/')) return route.fulfill({ json: preferenceData(false) });
       if (url.pathname.endsWith('/approvals/pending/')) return route.fulfill({ json: { rows: [{ id: 1, status: 'pending', action_type: 'publish_post', agency_name: 'Fixture agency', preview: 'Fixture content' }] } });
     } });
     await page.goto('/u');
-    await expect(page.getByRole('heading', { level: 1 })).toContainText(language === 'fa' ? 'سلام،' : 'Hi,');
+    const dashboard = page.locator('[data-end-user-dashboard]');
+    await expect(dashboard.getByRole('heading', { level: 1 })).toHaveText(language === 'fa' ? 'داشبورد شما' : 'Your dashboard');
+    await expect(dashboard.getByText('Fixture workspace', { exact: true })).toBeVisible();
+    await expect(dashboard.getByRole('link', { name: language === 'fa' ? 'مشاهدهٔ اتصال‌های شبکه‌های اجتماعی' : 'View social connections' })).toHaveAttribute('href', '/u/connections?workspace=7');
+    await expect(dashboard.locator('dd')).toHaveText(language === 'fa' ? ['۰', '۲'] : ['0', '2']);
+    await expect(dashboard.getByRole('alert')).toHaveCount(0);
+    await expect(page.locator('html')).toHaveAttribute('lang', language);
+    await expect(page.locator('html')).toHaveAttribute('dir', language === 'fa' ? 'rtl' : 'ltr');
     await expect(page.locator('.eu-sidebar')).toContainText(language === 'fa' ? 'فضای کاری من' : 'My workspace');
     await expect(page.locator('a[href="/u/billing"]')).toHaveCount(0);
     for (const [path, english, persian] of [['connections', 'Connections', 'اتصال‌ها'], ['approvals', 'Approvals', 'تأییدها'], ['notifications', 'Notifications', 'اعلان‌ها']]) {

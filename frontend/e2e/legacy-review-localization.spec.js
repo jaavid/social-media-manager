@@ -16,5 +16,17 @@ for(const language of ['fa','en'])for(const theme of ['light','dark'])for(const 
  const compact=new Intl.NumberFormat(fa?'fa-IR':'en-US',{notation:'compact',maximumFractionDigits:1});await expect(page.getByText(compact.format(1200).replace(/\u00a0/g,' '),{exact:true})).toBeVisible();await expect(page.getByText(compact.format(2000000).replace(/\u00a0/g,' '),{exact:true})).toBeVisible();await page.getByRole('button',{name:fa?'بستن':'Close',exact:true}).filter({visible:true}).first().click();
  if(width===360)await expect(page.getByRole('navigation',{name:fa?'تحلیل و آمار زبانه‌های پایین':'Analytics bottom tabs'})).toBeVisible();
  await page.keyboard.press('Control+k');const dialog=page.getByRole('dialog',{name:fa?'پالت فرمان':'Command palette'});await expect(dialog).toBeVisible();const input=dialog.getByRole('combobox');await input.fill('Public');await expect(dialog.getByText(fa?'پست · پیش‌نویس':'Post · draft',{exact:true})).toBeVisible();await page.keyboard.press('Escape');await expect(dialog).toHaveCount(0);
- await page.goto('/dashboard/analytics/synclogs');if(width===1440){await expect(page.locator('header').getByText(fa?'گزارش همگام‌سازی':'Sync Logs',{exact:true})).toHaveCount(1);await expect(page.locator('.ds-whats-new')).toHaveAttribute('aria-label',fa?'تازه‌ها':"What's new");}else{await expect(page.locator('.ds-whats-new')).toHaveCount(0);}await expect(page.locator('html')).toHaveAttribute('dir',fa?'rtl':'ltr');
+ await page.goto('/dashboard/analytics/synclogs');
+ const header=page.locator('header');
+ if(width===1440)await expect(header.getByText(fa?'گزارش همگام‌سازی':'Sync Logs',{exact:true})).toHaveCount(1);
+ // The changelog link was removed with its destination before #225. Exercise
+ // the retained localized header controls instead of requiring a dead action.
+ await expect(page.locator('a[href="/changelog"]')).toHaveCount(0);
+ await expect(header.getByRole('combobox',{name:fa?'زبان':'Language'})).toHaveValue(language);
+ const themeLabel=dark=>fa?(dark?'تغییر به حالت روشن':'تغییر به حالت تیره'):(dark?'Switch to light mode':'Switch to dark mode');
+ await header.getByRole('button',{name:themeLabel(theme==='dark'),exact:true}).click();
+ await expect(page.locator('html')).toHaveAttribute('data-theme',theme==='dark'?'light':'dark');
+ await header.getByRole('button',{name:themeLabel(theme!=='dark'),exact:true}).click();
+ await expect(page.locator('html')).toHaveAttribute('data-theme',theme);
+ await expect(page.locator('html')).toHaveAttribute('dir',fa?'rtl':'ltr');
 });
