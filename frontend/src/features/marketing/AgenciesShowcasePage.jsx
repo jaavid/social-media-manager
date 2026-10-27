@@ -176,10 +176,10 @@ export default function AgenciesShowcasePage() {
           justifyContent: 'center', alignItems: 'center',
           fontSize: 13, color: 'rgba(255,255,255,0.65)',
         }}>
-          <TrustItem icon={ShieldCheck} text={"هر شریک تأیید شده است"} />
-          <TrustItem icon={BadgeCheck}  text={"راوینتا بومی آموزش دیده است"} />
-          <TrustItem icon={Star}        text={"4.8+ میانگین رتبه بندی مشتری"} />
-          <TrustItem icon={Users}       text={"بیش از 50000 کمپین ارائه شده است"} />
+          <TrustItem icon={ShieldCheck} text={"پروفایل‌ها و نشان‌ها نمایشی‌اند"} />
+          <TrustItem icon={BadgeCheck}  text={"امکانات تنها به‌صورت نمونه نمایش داده شده‌اند"} />
+          <TrustItem icon={Star}        text={"امتیازها و نظرها واقعی نیستند"} />
+          <TrustItem icon={Users}       text={"پیش از همکاری، اطلاعات واقعی را بررسی کنید"} />
         </div>
       </section>
 
@@ -339,7 +339,7 @@ export default function AgenciesShowcasePage() {
                 color: 'rgba(255,255,255,0.75)',
                 lineHeight: 'var(--line-height-body)',
               }}>
-                آژانس‌های موجود در برنامه شریک راوینتا در این فهرست فهرست می‌شوند، 30 درصد از مشتریان ارجاع‌شده کسب می‌کنند و پشتیبانی اولویت‌دار را دریافت می‌کنند.
+                این فهرست صرفاً نسخهٔ نمایشی تجربهٔ معرفی آژانس‌هاست. شرایط واقعی همکاری یا ارجاع پس از بررسی و توافق جداگانه مشخص می‌شود.
               </p>
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                 <Button as={Link} to="/for-agencies" size="md"
@@ -367,10 +367,10 @@ export default function AgenciesShowcasePage() {
               gap: 12,
             }}>
               {[
-                { value: '50+',  label: "آژانس‌های شریک"   },
-                { value: '30%',  label: "کمیسیون ارجاع"},
-                { value: '4.8',  label: "میانگین رتبه شریک"},
-                { value: '14d',  label: "میانگین سوار شدن"   },
+                { value: '۱',  label: "جست‌وجوی آژانس نمونه"   },
+                { value: '۲',  label: "مقایسهٔ نمونه‌ها"},
+                { value: '۳',  label: "بررسی جزئیات نمایشی"},
+                { value: '۴',  label: "استعلام شرایط واقعی"   },
               ].map((s) => (
                 <div key={s.label} style={{
                   padding: 18,
