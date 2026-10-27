@@ -122,7 +122,7 @@ for (const scenario of [
 test('workspace selection, alias and modified click preserve the active destination', async ({ page, context }) => {
   await page.setViewportSize({ width: 1440, height: 1000 }); await setup(page);
   await page.goto('/dashboard/analytics/composer?workspace=7');
-  await expect(page).toHaveURL(/\\/dashboard\\/composer\\?workspace=7$/);
+  await expect(page).toHaveURL(/\/dashboard\/composer\?workspace=7$/);
   const sidebar = page.locator('.ds-feature-sidebar');
   const create = sidebar.getByRole('link', { name: 'Create post', exact: true });
   await expect(create).toHaveAttribute('aria-current', 'page');
@@ -133,7 +133,7 @@ test('workspace selection, alias and modified click preserve the active destinat
   await expect(create).toHaveAttribute('aria-current', 'page');
   const popupPromise = context.waitForEvent('page');
   await create.click({ modifiers: ['Control'] }); const popup = await popupPromise;
-  await expect(popup).toHaveURL(/\\/dashboard\\/composer\\?workspace=8$/);
+  await expect(popup).toHaveURL(/\/dashboard\/composer\?workspace=8$/);
   await expect(popup.getByRole('heading', { name: 'Composer', exact: true })).toBeVisible();
   await popup.close();
 });
@@ -150,12 +150,12 @@ test('Back/Forward and reload retain the workspace and active inbox route', asyn
   const inbox = sidebar.getByRole('link', { name: 'Inbox', exact: true });
   await expect(inbox).toHaveAttribute('href', '/dashboard/inbox?workspace=8');
   await inbox.click();
-  await expect(page).toHaveURL(/\\/dashboard\\/inbox\\?workspace=8$/);
+  await expect(page).toHaveURL(/\/dashboard\/inbox\?workspace=8$/);
   await expect(inbox).toHaveAttribute('aria-current', 'page');
   await page.goBack();
-  await expect(page).toHaveURL(/\\/dashboard\\/composer\\?workspace=8$/);
+  await expect(page).toHaveURL(/\/dashboard\/composer\?workspace=8$/);
   await page.goForward();
-  await expect(page).toHaveURL(/\\/dashboard\\/inbox\\?workspace=8$/);
+  await expect(page).toHaveURL(/\/dashboard\/inbox\?workspace=8$/);
   await page.reload();
   await expect(sidebar.locator('[data-workspace-context]')).toContainText('Synthetic brand B');
   await page.goto('/dashboard/reports?workspace=8');
