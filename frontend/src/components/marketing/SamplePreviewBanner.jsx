@@ -18,9 +18,8 @@ import { Info } from 'lucide-react';
  * before the hero loads.
  */
 export default function SamplePreviewBanner({ kind = 'agency' }) {
-  const label = kind === 'agency'
-    ? "نمونه فهرست آژانس - پیش‌نمایش گویا در حالی که بازار شرکای واقعی دارد."
-    : "نمونه مطالعه موردی - پیش‌نمایش گویا در حالی که ما شرکای راه‌اندازی را داریم.";
+  const label = kind === 'agency' ? 'فهرست نمونهٔ آژانس‌ها' : 'مطالعهٔ موردی نمونه';
+  const disclosure = 'این یک سناریوی نمایشی است. نام‌ها، نقل‌قول‌ها و آمار، نتیجهٔ واقعی مشتریان نیستند.';
   return (
     <div
       role="note"
@@ -44,7 +43,7 @@ export default function SamplePreviewBanner({ kind = 'agency' }) {
         verticalAlign: 'middle',
       }}>
         <Info size={13} strokeWidth={2.2} />
-        {label}
+        {label} — {disclosure}
       </span>
     </div>
   );

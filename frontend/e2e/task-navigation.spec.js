@@ -119,10 +119,10 @@ for (const scenario of [
   for (const name of ['Create post', 'Inbox', 'Reports']) await expect(bottom.getByRole('link', { name, exact: true })).toHaveCount(scenario.expected.includes(name) ? 1 : 0);
 });
 
-test('workspace selection, alias, modified click, Back/Forward and reload keep links and active state', async ({ page, context }) => {
+test('workspace selection, alias and modified click preserve the active destination', async ({ page, context }) => {
   await page.setViewportSize({ width: 1440, height: 1000 }); await setup(page);
   await page.goto('/dashboard/analytics/composer?workspace=7');
-  await expect(page).toHaveURL(/\/dashboard\/composer\?workspace=7$/);
+  await expect(page).toHaveURL(/\\/dashboard\\/composer\\?workspace=7$/);
   const sidebar = page.locator('.ds-feature-sidebar');
   const create = sidebar.getByRole('link', { name: 'Create post', exact: true });
   await expect(create).toHaveAttribute('aria-current', 'page');
@@ -133,25 +133,47 @@ test('workspace selection, alias, modified click, Back/Forward and reload keep l
   await expect(create).toHaveAttribute('aria-current', 'page');
   const popupPromise = context.waitForEvent('page');
   await create.click({ modifiers: ['Control'] }); const popup = await popupPromise;
-  await expect(popup).toHaveURL(/\/dashboard\/composer\?workspace=8$/);
-  await expect(popup.getByRole('heading', { name: 'Composer', exact: true })).toBeVisible(); await popup.close();
-  await sidebar.getByRole('button', { name: 'Messages', exact: true }).click();
-  await sidebar.getByRole('link', { name: 'Inbox', exact: true }).click();
-  await expect(page).toHaveURL(/\/dashboard\/inbox\?workspace=8$/);
-  await page.goBack(); await expect(page).toHaveURL(/\/dashboard\/composer\?workspace=8$/);
-  await page.goForward(); await expect(page).toHaveURL(/\/dashboard\/inbox\?workspace=8$/); await page.reload();
+  await expect(popup).toHaveURL(/\\/dashboard\\/composer\\?workspace=8$/);
+  await expect(popup.getByRole('heading', { name: 'Composer', exact: true })).toBeVisible();
+  await popup.close();
+});
+
+test('Back/Forward and reload retain the workspace and active inbox route', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 }); await setup(page);
+  await page.goto('/dashboard/composer?workspace=8');
+  const sidebar = page.locator('.ds-feature-sidebar');
   await expect(sidebar.locator('[data-workspace-context]')).toContainText('Synthetic brand B');
-  // A conservative discovery menu does not replace direct-link authorization.
-  await page.goto('/dashboard/reports?workspace=8'); await expect(page.locator('main')).toBeVisible();
+  const messages = sidebar.getByRole('button', { name: 'Messages', exact: true });
+  await expect(messages).toBeVisible();
+  if (await messages.getAttribute('aria-expanded') === 'false') await messages.click();
+  await expect(messages).toHaveAttribute('aria-expanded', 'true');
+  const inbox = sidebar.getByRole('link', { name: 'Inbox', exact: true });
+  await expect(inbox).toHaveAttribute('href', '/dashboard/inbox?workspace=8');
+  await inbox.click();
+  await expect(page).toHaveURL(/\\/dashboard\\/inbox\\?workspace=8$/);
+  await expect(inbox).toHaveAttribute('aria-current', 'page');
+  await page.goBack();
+  await expect(page).toHaveURL(/\\/dashboard\\/composer\\?workspace=8$/);
+  await page.goForward();
+  await expect(page).toHaveURL(/\\/dashboard\\/inbox\\?workspace=8$/);
+  await page.reload();
+  await expect(sidebar.locator('[data-workspace-context]')).toContainText('Synthetic brand B');
+  await page.goto('/dashboard/reports?workspace=8');
+  await expect(page.locator('main')).toBeVisible();
 });
 
 for (const language of ['fa', 'en']) test(`mobile end-user menu ${language} traps focus, restores trigger and follows scoped links`, async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 900 }); await setup(page, { endUser: true, language }); await page.goto('/u');
   const trigger = page.getByRole('button', { name: language === 'fa' ? 'باز کردن منو' : 'Open menu', exact: true });
+  await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+  const controls = await trigger.getAttribute('aria-controls'); expect(controls).toBeTruthy();
   await trigger.focus(); await page.keyboard.press('Enter');
   const drawer = page.getByRole('dialog'); await expect(drawer).toBeVisible();
+  await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+  await expect(drawer).toHaveAttribute('id', controls);
   for (let i = 0; i < 15; i++) { await page.keyboard.press('Tab'); expect(await drawer.evaluate(el => el.contains(document.activeElement))).toBe(true); }
-  await page.keyboard.press('Escape'); await expect(drawer).toHaveCount(0); await expect(trigger).toBeFocused();
+  await page.keyboard.press('Escape'); await expect(drawer).toHaveCount(0);
+  await expect(trigger).toHaveAttribute('aria-expanded', 'false'); await expect(trigger).toBeFocused();
   await trigger.click(); await page.getByRole('dialog').getByRole('link', { name: language === 'fa' ? 'تقویم' : 'Calendar', exact: true }).click();
   await expect(page).toHaveURL(/\/u\/calendar\?workspace=7$/); await expect(page.getByRole('dialog')).toHaveCount(0);
 });
