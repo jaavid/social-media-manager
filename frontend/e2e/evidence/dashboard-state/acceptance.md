@@ -80,7 +80,9 @@ E2E_BASE_URL=http://127.0.0.1:3000/ npm run test:next:smoke
 ```
 
 For ingress, build the repository Dockerfile and run its Compose stack with fresh
-synthetic configuration and isolated project/volumes on port 3002. Wait for
+synthetic configuration and isolated project/volumes with `APP_PORT=3002`
+(e.g. `APP_PORT=3002 docker compose -p dashboard-acceptance up -d`) so the
+Compose ingress binds port 3002. Wait for
 `/healthz` to return 200. Run the same three specs with
 `E2E_BASE_URL=http://127.0.0.1:3002/` and
 `--grep 'dashboard states|dashboard recovery|foreign workspace|main routes|legacy review'`.

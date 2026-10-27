@@ -1170,7 +1170,62 @@ const whatsappFa = {
   'whatsapp.inbox.reply': 'متن پاسخ',
   'whatsapp.inbox.send': 'ارسال پیام',
 } as const;
+const navigationEn = {
+  "nav.workspaceTools": "Workspace tools",
+  "nav.workspaceToolsHelp": "Content, messages and reports",
+  "nav.overview": "Overview",
+  "nav.content": "Content & publishing",
+  "nav.messages": "Messages",
+  "nav.reports": "Analytics & reports",
+  "nav.management": "Management",
+  "nav.createPost": "Create post",
+  "nav.workspace": "Active workspace",
+  "nav.unknownWorkspace": "Workspace name unavailable",
+  "nav.noWorkspace": "No workspace selected",
+  "nav.chooseWorkspace": "Choose workspace",
+  "nav.organizations": "Organizations & team",
+  "nav.future": "Unavailable in this interface",
+  "nav.futureHelp": "Post creation, messages and reports are not available here yet. Their availability in another interface does not grant access here.",
+  "nav.accountScope": "All accessible workspaces",
+  "nav.approvalRequests": "Approval requests · all workspaces",
+  "nav.activity": "Activity · all workspaces",
+  "nav.accessHelp": "Tools depend on your access. Each destination checks workspace and account permissions; ask an administrator if a tool is missing.",
+  "nav.selectHelp": "Select an accessible workspace to use its tools.",
+  "nav.account": "Account",
+  "nav.discover": "Discover",
+  "nav.notReady": "Unavailable",
+  "nav.adsHelp": "Advertising navigation is not available yet."
+} as const;
+
+const navigationFa = {
+  "nav.workspaceTools": "ابزارهای فضای کاری",
+  "nav.workspaceToolsHelp": "محتوا، پیام‌ها و گزارش‌ها",
+  "nav.overview": "نمای کلی",
+  "nav.content": "محتوا و انتشار",
+  "nav.messages": "پیام‌ها",
+  "nav.reports": "آمار و گزارش",
+  "nav.management": "مدیریت",
+  "nav.createPost": "ساخت پست",
+  "nav.workspace": "فضای کاری فعال",
+  "nav.unknownWorkspace": "نام فضای کاری در دسترس نیست",
+  "nav.noWorkspace": "فضای کاری انتخاب نشده است",
+  "nav.chooseWorkspace": "انتخاب فضای کاری",
+  "nav.organizations": "مجموعه‌ها و تیم",
+  "nav.future": "در این محیط در دسترس نیست",
+  "nav.futureHelp": "ساخت پست، پیام‌ها و گزارش‌ها هنوز در این محیط آماده نیستند. وجود آن‌ها در محیط دیگر به معنی دسترسی در اینجا نیست.",
+  "nav.accountScope": "همهٔ فضاهای کاری مجاز",
+  "nav.approvalRequests": "درخواست‌های تأیید · همهٔ فضاها",
+  "nav.activity": "فعالیت‌ها · همهٔ فضاها",
+  "nav.accessHelp": "ابزارها به دسترسی شما بستگی دارند. هر مقصد مجوز فضای کاری و حساب را بررسی می‌کند؛ برای ابزارهای نمایش‌داده‌نشده از مدیر درخواست دسترسی کنید.",
+  "nav.selectHelp": "برای استفاده از ابزارها، یک فضای کاری مجاز انتخاب کنید.",
+  "nav.account": "حساب کاربری",
+  "nav.discover": "کشف خدمات",
+  "nav.notReady": "در دسترس نیست",
+  "nav.adsHelp": "راه‌یابی تبلیغات هنوز آماده نیست."
+} as const;
+
 export const enMessages = {
+  ...navigationEn,
   "endDashboard.refreshFailed": "Status could not be updated",
   "endDashboard.staleHelp": "Showing the last received summary for this workspace. It may be out of date.",
   "endDashboard.title": "Your dashboard",
@@ -1497,6 +1552,7 @@ export const enMessages = {
  ...whatsappEn, ...composerEn, ...accountsEn, ...commonEn, ...marketingEn, ...catalogEn } as const;
 export type MessageKey = keyof typeof enMessages;
 export const faMessages = {
+  ...navigationFa,
   "endDashboard.refreshFailed": "به‌روزرسانی وضعیت ممکن نشد",
   "endDashboard.staleHelp": "آخرین خلاصهٔ دریافت‌شدهٔ همین فضای کاری نمایش داده می‌شود و ممکن است قدیمی باشد.",
   "endDashboard.title": "داشبورد شما",

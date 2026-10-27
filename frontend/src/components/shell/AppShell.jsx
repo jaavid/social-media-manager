@@ -1,3 +1,4 @@
+import { navigationHref, visibleSections } from './navigationItems';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -19,6 +20,7 @@ import Sheet from '../ui/Drawer';
 import { cn } from '../../lib/utils';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
+  AppLink as Link,
   useAppLocation as useLocation,
   useAppNavigate as useNavigate,
 } from '../../core/navigation';
@@ -46,7 +48,7 @@ export default function AppShell({ children, isAdmin }) {
   const { workspaceId } = useWorkspaceScope();
   const { isMobile } = useBreakpoint();
   const reducedMotion = useReducedMotion();
-  const { language, tr } = useLanguage();
+  const { language, tr, t } = useLanguage();
   const basePath = isAdmin ? '/admin' : '/dashboard';
   const currentModule = useMemo(
     () => deriveModule(location.pathname, basePath),
@@ -109,7 +111,7 @@ export default function AppShell({ children, isAdmin }) {
     const all = [
       {
         id: 'analytics',
-        label: tr('Analytics'),
+        label: t('nav.workspaceTools'),
         icon: BarChart3,
         enabled: true,
       },
@@ -117,7 +119,7 @@ export default function AppShell({ children, isAdmin }) {
         id: 'messaging',
         label: tr('Messaging'),
         icon: MessageCircle,
-        enabled: isAdmin || can?.('whatsapp.view'),
+        enabled: visibleSections('messaging', basePath, can).length > 0,
       },
       {
         id: 'ads',
@@ -127,8 +129,8 @@ export default function AppShell({ children, isAdmin }) {
         comingSoon: true,
       },
     ];
-    return all.filter((m) => m.enabled || m.comingSoon || isAdmin);
-  }, [isAdmin, can, language, tr]);
+    return all.filter((m) => m.enabled);
+  }, [isAdmin, can, language, tr, t, basePath]);
   const showRail = !isMobile;
   const showSidebar = !isMobile;
   return (
@@ -347,7 +349,7 @@ function MobileTopBar({ onMenuOpen, onOpenPalette }) {
   );
 }
 function MobileDrawer({ open, onClose, modules, currentModule, basePath }) {
-  const navigate = useNavigate();
+  const { workspaceId } = useWorkspaceScope();
   const { t } = useLanguage();
   return (
     <>
@@ -372,16 +374,8 @@ function MobileDrawer({ open, onClose, modules, currentModule, basePath }) {
             const active = m.id === currentModule;
             const disabled = !m.enabled || m.comingSoon;
             return (
-              <button
-                key={m.id}
-                type="button"
-                disabled={disabled}
-                onClick={() => {
-                  if (!disabled) {
-                    navigate(`${basePath}/${m.id}`);
-                    onClose();
-                  }
-                }}
+              <Link key={m.id} to={navigationHref(basePath, m.id, { path: '' }, workspaceId)}
+                onClick={onClose}
                 className={cn(
                   '[padding:12px]',
                   '[border:1px_solid_var(--border-subtle)]',
@@ -412,7 +406,7 @@ function MobileDrawer({ open, onClose, modules, currentModule, basePath }) {
                     {t('common.soon', 'Soon')}
                   </span>
                 )}
-              </button>
+              </Link>
             );
           })}
         </div>

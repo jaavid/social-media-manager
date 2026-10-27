@@ -1,3 +1,4 @@
+import useNavigationAccess from '../../hooks/useNavigationAccess';
 import Select from '../ui/Select';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
@@ -14,45 +15,10 @@ import {
   useAppLocation as useLocation,
   useAppNavigate as useNavigate,
 } from '../../core/navigation';
-import {
-  LayoutDashboard,
-  LineChart,
-  FileText,
-  FileType,
-  CalendarDays,
-  Wand2,
-  Lightbulb,
-  Hash,
-  TrendingUp,
-  AlertCircle,
-  FolderSync,
-  Inbox,
-  Send,
-  Users2,
-  ListChecks,
-  Settings,
-  Webhook,
-  Rocket,
-  ChevronDown,
-  Building2,
-  Search,
-  PenSquare,
-  Layers,
-  Images,
-  Star,
-  Zap,
-  Film,
-  Bell,
-  ShieldCheck,
-  ClipboardCheck,
-  Mic,
-  Sparkles,
-  Bot,
-  MessageSquare,
-  Megaphone,
-  UserPlus,
-} from 'lucide-react';
-import PermissionGate from '../ui/PermissionGate';
+import { ChevronDown, Rocket } from 'lucide-react';
+import { NAV_SETS, visibleSections, navigationHref, navigationText } from './navigationItems';
+import { routeIsActive } from '../../lib/runtime/navigation';
+import WorkspaceContext from './WorkspaceContext';
 import { useWorkspaces } from '../../hooks/useData';
 import useWorkspaceScope, { useScopedBadgeCount as useBadgeCount } from '../../hooks/useWorkspaceScope';
 import { useLanguage } from '../../i18n';
@@ -64,11 +30,16 @@ export default function FeatureSidebar({
   onSelectClient,
 }) {
   const location = useLocation();
-  const { isPersian, tr } = useLanguage();
+  const language = useLanguage();
+  const { isPersian, tr, t } = language;
+  const can = useNavigationAccess();
+  const { workspaceId } = useWorkspaceScope();
+  const text = value => navigationText(value, language);
+  const sections = visibleSections(module, basePath, can);
   const navSet = NAV_SETS[module] || NAV_SETS.analytics;
   return (
     <aside
-      aria-label={`${tr(navSet.label)} ${tr('navigation')}`}
+      aria-label={`${text(navSet.label)} ${tr('navigation')}`}
       className={cn(
         'ds-feature-sidebar',
         '[position:fixed]',
@@ -86,6 +57,7 @@ export default function FeatureSidebar({
       <header
         className={cn(
           '[height:var(--topbar-height)]',
+          '[flex-shrink:0]',
           '[padding:0_16px]',
           '[display:flex]',
           '[align-items:center]',
@@ -116,22 +88,24 @@ export default function FeatureSidebar({
               '[letter-spacing:-0.01em]',
             )}
           >
-            {tr(navSet.label)}
+            {text(navSet.label)}
           </div>
           {navSet.subtitle && (
             <div
               className={cn('[font-size:11px]', '[color:var(--text-tertiary)]')}
             >
-              {tr(navSet.subtitle)}
+              {text(navSet.subtitle)}
             </div>
           )}
         </div>
       </header>
 
+      <WorkspaceContext basePath={basePath} />
       <div
         className={cn(
           'sidebar-scroll',
           '[flex:1]',
+          '[min-height:0]',
           '[overflow-y:auto]',
           '[padding:12px_10px]',
         )}
@@ -139,43 +113,26 @@ export default function FeatureSidebar({
         {navSet.empty ? (
           <EmptyModule message={tr(navSet.empty)} />
         ) : (
-          navSet.sections.map((section) => (
-            <Section
-              key={`${module}/${section.title}`}
-              title={tr(section.title)}
+          sections.map((section) => (
+            <Section key={`${module}/${section.title}`} title={text(section.title)}
               pathname={location.pathname}
-              active={section.items.some((item) => {
-                const to = item.path.startsWith('/admin/')
-                  ? item.path
-                  : `${basePath}/${module}${item.path}`;
-                return !item.disabled && (location.pathname === to ||
-                  (!item.end && location.pathname.startsWith(`${to}/`)));
-              })}
-            >
-              {section.items.map((item) => (
-                <PermissionGate key={item.path} code={item.permission}>
-                  <NavItem
-                    to={
-                      item.path.startsWith('/admin/')
-                        ? item.path
-                        : `${basePath}/${module}${item.path}`
-                    }
-                    icon={item.icon}
-                    label={tr(item.label)}
-                    end={item.end}
-                    badge={item.badge}
-                    badgeKey={item.badgeKey}
-                    pathname={location.pathname}
-                    disabled={item.disabled}
-                    isPersian={isPersian}
-                  />
-                </PermissionGate>
-              ))}
+              active={section.items.some(item => routeIsActive(navigationHref(basePath, module, item, workspaceId), location.pathname, item.end))}>
+              {section.items.map(item => <NavItem key={item.path}
+                to={navigationHref(basePath, module, item, workspaceId)} icon={item.icon}
+                label={text(item.label)} end={item.end} badge={item.badge}
+                badgeKey={item.badgeKey} pathname={location.pathname} isPersian={isPersian} />)}
             </Section>
           ))
+
         )}
+        <details className="m-2 rounded-lg border border-border p-2 text-xs text-muted-foreground">
+          <summary className="cursor-pointer">{t('nav.future')}</summary>
+          <p className="mt-2">{t('nav.adsHelp')}</p>
+          <p>{tr('Webhooks')} — {t('nav.notReady')}</p>
+        </details>
       </div>
 
+      <p className="px-3 py-2 text-xs text-muted-foreground">{t('nav.accessHelp')}</p>
       {isAdmin && (
         <ClientSwitcher selected={selectedClient} onSelect={onSelectClient} />
       )}
@@ -195,9 +152,7 @@ function NavItem({
 }) {
   const liveBadge = useBadgeCount(badgeKey || '__none__');
   const effectiveBadge = badge ?? (badgeKey ? liveBadge : 0);
-  const isActive = end
-    ? pathname === to
-    : pathname === to || pathname.startsWith(`${to}/`);
+  const isActive = routeIsActive(to, pathname, end);
   if (disabled) {
     return (
       <div
@@ -386,325 +341,3 @@ function ClientSwitcher({ onSelect }) {
     </div>
   );
 }
-
-const NAV_SETS = {
-  analytics: {
-    label: 'Analytics',
-    subtitle: 'Social performance',
-    icon: LineChart,
-    sections: [
-      {
-        title: 'Publish',
-        items: [
-          {
-            label: 'Composer',
-            icon: PenSquare,
-            path: '/composer',
-            permission: 'composer.view',
-          },
-          {
-            label: 'Calendar',
-            icon: CalendarDays,
-            path: '/calendar',
-            permission: 'calendar.view',
-          },
-          {
-            label: 'Queues',
-            icon: Layers,
-            path: '/queues',
-            permission: 'composer.view',
-          },
-          {
-            label: 'Media Library',
-            icon: Images,
-            path: '/media',
-            permission: 'composer.view',
-          },
-          {
-            label: 'Video Studio',
-            icon: Film,
-            path: '/video',
-            permission: 'video.view',
-          },
-        ],
-      },
-      {
-        title: 'Engage',
-        items: [
-          {
-            label: 'Inbox',
-            icon: Inbox,
-            path: '/inbox',
-            permission: 'inbox.view',
-            badgeKey: 'unread_inbox',
-          },
-          {
-            label: 'Reviews',
-            icon: Star,
-            path: '/reviews',
-            permission: 'inbox.view',
-          },
-          {
-            label: 'Automations',
-            icon: Zap,
-            path: '/automations',
-            permission: 'automations.view',
-          },
-        ],
-      },
-      {
-        title: 'Overview',
-        items: [
-          {
-            label: 'Dashboard',
-            icon: LayoutDashboard,
-            path: '/dashboard',
-            end: true,
-            permission: 'dashboard.view',
-          },
-          {
-            label: 'Analytics',
-            icon: LineChart,
-            path: '/analytics',
-            permission: 'analytics.view',
-          },
-          {
-            label: 'Reports',
-            icon: FileText,
-            path: '/reports',
-            permission: 'reports.view',
-          },
-        ],
-      },
-      {
-        title: 'Content',
-        items: [
-          {
-            label: 'Posts',
-            icon: FileType,
-            path: '/posts',
-            permission: 'dashboard.posts_table',
-          },
-          {
-            label: 'Caption Writer',
-            icon: Wand2,
-            path: '/caption-writer',
-          },
-          {
-            label: 'Post Ideas',
-            icon: Lightbulb,
-            path: '/post-ideas',
-          },
-          {
-            label: 'Hashtags',
-            icon: Hash,
-            path: '/hashtags',
-          },
-          {
-            label: 'AI Studio',
-            icon: Sparkles,
-            path: '/ai-studio',
-          },
-          {
-            label: 'Brand Voice',
-            icon: Mic,
-            path: '/brand-voice',
-            permission: 'ai.brand_voice',
-          },
-          {
-            label: 'AI Insights',
-            icon: Sparkles,
-            path: '/insights',
-          },
-          {
-            label: 'AI Audit',
-            icon: ShieldCheck,
-            path: '/ai-audit',
-          },
-        ],
-      },
-      {
-        title: 'Performance',
-        items: [
-          {
-            label: 'ROI Calculator',
-            icon: TrendingUp,
-            path: '/roi',
-            permission: 'roi.view',
-          },
-          {
-            label: 'Alerts',
-            icon: AlertCircle,
-            path: '/alerts',
-            permission: 'alerts.view',
-          },
-          {
-            label: 'Sync Logs',
-            icon: FolderSync,
-            path: '/synclogs',
-          },
-        ],
-      },
-      {
-        title: 'Grow',
-        items: [
-          {
-            label: 'Audience',
-            icon: Users2,
-            path: '/audience',
-            permission: 'audience.view',
-          },
-          {
-            label: 'Competitors',
-            icon: TrendingUp,
-            path: '/competitors',
-            permission: 'competitors.view',
-          },
-        ],
-      },
-      {
-        title: 'Setup',
-        items: [
-          {
-            label: 'Approvals',
-            icon: ClipboardCheck,
-            path: '/approvals',
-            permission: 'composer.approve',
-            badgeKey: 'pending_approvals',
-          },
-          {
-            label: 'Notifications',
-            icon: Bell,
-            path: '/notifications',
-            badgeKey: 'unread_notifications',
-          },
-          {
-            label: 'Audit Log',
-            icon: ShieldCheck,
-            path: '/audit-log',
-            permission: 'audit.view',
-          },
-        ],
-      },
-    ],
-  },
-  messaging: {
-    label: 'Messaging',
-    subtitle: 'WhatsApp & SMS',
-    icon: Inbox,
-    sections: [
-      {
-        title: 'Inbox',
-        items: [
-          {
-            label: 'All conversations',
-            icon: Inbox,
-            path: '/inbox',
-            permission: 'whatsapp.view_inbox',
-          },
-        ],
-      },
-      {
-        title: 'Outreach',
-        items: [
-          {
-            label: 'Campaigns',
-            icon: Send,
-            path: '/campaigns',
-            permission: 'whatsapp.manage_campaigns',
-          },
-          {
-            label: 'Templates',
-            icon: FileType,
-            path: '/templates',
-            permission: 'whatsapp.manage_templates',
-          },
-          {
-            label: 'Contacts',
-            icon: Users2,
-            path: '/contacts',
-            permission: 'whatsapp.manage_contacts',
-          },
-          {
-            label: 'Lists',
-            icon: ListChecks,
-            path: '/lists',
-            permission: 'whatsapp.manage_contacts',
-          },
-        ],
-      },
-      {
-        title: 'Conversational AI',
-        items: [
-          {
-            label: 'Bot Flows',
-            icon: Bot,
-            path: '/admin/bot-flows',
-            permission: 'bot.view',
-          },
-          {
-            label: 'Conversations',
-            icon: MessageSquare,
-            path: '/admin/conversations',
-            permission: 'bot.view',
-          },
-          {
-            label: 'Handoff Queue',
-            icon: UserPlus,
-            path: '/admin/handoff',
-            permission: 'bot.view',
-          },
-          {
-            label: 'Leads',
-            icon: Users2,
-            path: '/admin/leads',
-            permission: 'leads.view',
-            badgeKey: 'new_leads',
-          },
-          {
-            label: 'CTWA Campaigns',
-            icon: Megaphone,
-            path: '/admin/ctwa',
-            permission: 'ctwa.view',
-          },
-          {
-            label: 'Templates',
-            icon: Sparkles,
-            path: '/admin/bot-templates',
-            permission: 'bot.view',
-          },
-          {
-            label: 'Bot Safety',
-            icon: ShieldCheck,
-            path: '/admin/bot-settings',
-            permission: 'bot.view',
-          },
-        ],
-      },
-      {
-        title: 'Setup',
-        items: [
-          {
-            label: 'Account',
-            icon: Settings,
-            path: '/account',
-            permission: 'whatsapp.manage_account',
-          },
-          {
-            label: 'Webhooks',
-            icon: Webhook,
-            path: '/account#webhooks',
-            disabled: true,
-          },
-        ],
-      },
-    ],
-  },
-  ads: {
-    label: 'Ads',
-    subtitle: 'Coming soon',
-    icon: Rocket,
-    empty: "Ads management is coming soon. We're building it next.",
-    sections: [],
-  },
-};

@@ -1,22 +1,11 @@
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from '../ui/DropdownMenu';
-import { useMemo, useState } from 'react';
+import WorkspaceContext from './WorkspaceContext';
 import {
   AppLink as Link,
   useAppLocation as useLocation,
-  useAppNavigate as useNavigate,
 } from '../../core/navigation';
 import {
-  Building2,
-  Check,
-  ChevronDown,
   ChevronRight,
   Search,
-  Settings,
 } from 'lucide-react';
 import ThemeToggle from '../ui/ThemeToggle';
 import NotificationBell from '../ui/NotificationBell';
@@ -102,113 +91,8 @@ export default function TopBar({ basePath, onOpenPalette }) {
     </header>
   );
 }
-function WorkspaceSwitcher({ user, basePath }) {
-  const navigate = useNavigate();
-  const { t } = useLanguage();
-  const [open, setOpen] = useState(false);
-  const workspaces = useMemo(() => normalizeWorkspaces(user), [user]);
-  const current =
-    workspaces.find((workspace) => workspace.current) || workspaces[0];
-  return (
-    <DropdownMenu open={open} onOpenChange={setOpen}>
-      <DropdownMenuTrigger asChild>
-        <button
-          type="button"
-          className="flex h-10 min-w-0 max-w-40 shrink xl:max-w-52 items-center gap-2 rounded-lg border-0 px-2 text-start transition hover:bg-accent"
-        >
-          <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-primary/12 text-primary">
-            <Building2 size={14} />
-          </span>
-          <span className="min-w-0">
-            <span className="block truncate text-[13px] font-semibold leading-relaxed text-foreground">
-              {current.name}
-            </span>
-            <span className="block truncate text-[11px] leading-relaxed text-muted-foreground">
-              <bdi dir="auto">{current.subtitle}</bdi>
-            </span>
-          </span>
-          <ChevronDown
-            size={13}
-            className={cn(
-              'ms-1 shrink-0 text-muted-foreground transition-transform',
-              open && 'rotate-180',
-            )}
-          />
-        </button>
-      </DropdownMenuTrigger>
-
-      <DropdownMenuContent side="bottom" align="start">
-        <div className="px-2.5 pb-1.5 pt-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-          {t('common.workspace', 'Workspace')}
-        </div>
-
-        {workspaces.map((workspace) => (
-          <DropdownMenuItem
-            key={workspace.id}
-            disabled={!workspace.path || workspace.current}
-            onSelect={() => {
-              if (!workspace.path || workspace.current) return;
-              setOpen(false);
-              navigate(workspace.path);
-            }}
-            className="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-start transition hover:bg-accent disabled:cursor-default disabled:opacity-100"
-          >
-            <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-muted text-muted-foreground">
-              <Building2 size={14} />
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block truncate text-xs font-semibold">
-                {workspace.name}
-              </span>
-              <span className="block truncate text-[11px] leading-relaxed text-muted-foreground">
-                <bdi dir="auto">{workspace.subtitle}</bdi>
-              </span>
-            </span>
-            {workspace.current && <Check size={14} className="text-primary" />}
-          </DropdownMenuItem>
-        ))}
-
-        <div className="my-1 h-px bg-border/70" />
-        <DropdownMenuItem
-          onSelect={() => {
-            setOpen(false);
-            navigate(`${basePath}/account-settings`);
-          }}
-          className="flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-xs font-medium text-muted-foreground transition hover:bg-accent hover:text-foreground"
-        >
-          <Settings size={14} />
-          {t('common.settings', 'Manage workspace')}
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
-function normalizeWorkspaces(user) {
-  const raw = Array.isArray(user?.workspaces) ? user.workspaces : [];
-  if (raw.length) {
-    return raw.map((workspace, index) => ({
-      id: String(workspace.id ?? index),
-      name: workspace.name || workspace.company || `Workspace ${index + 1}`,
-      subtitle:
-        workspace.role ||
-        workspace.plan ||
-        workspace.email ||
-        'Social workspace',
-      current: Boolean(
-        workspace.current ?? workspace.is_current ?? index === 0,
-      ),
-      path: workspace.path || workspace.url || null,
-    }));
-  }
-  return [
-    {
-      id: 'current',
-      name: user?.company || user?.organization || user?.name || 'Ravinta',
-      subtitle: user?.email || 'Social workspace',
-      current: true,
-      path: null,
-    },
-  ];
+function WorkspaceSwitcher({ basePath }) {
+  return <div className="min-w-0 max-w-64"><WorkspaceContext basePath={basePath} compact /></div>;
 }
 function NotificationBellWrapper() {
   try {

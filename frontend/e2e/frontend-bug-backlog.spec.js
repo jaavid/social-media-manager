@@ -118,11 +118,11 @@ test('Recent page selection navigates and closes without runtime errors', async 
   await page.goto('/admin/analytics/media');
   await expect(page.getByRole('heading', { name: 'Media Library', exact: true })).toBeVisible();
   await page.keyboard.press('Control+k');
-  const calendar = page.locator('[cmdk-item]').filter({ hasText: 'Content Calendar' });
-  await calendar.click(); await expect(page).toHaveURL(/\/calendar$/);
+  const calendar = page.locator('[cmdk-item]').filter({ hasText: /^CalendarContent & publishing$/ });
+  await calendar.click(); await expect(page).toHaveURL(/\/calendar\?workspace=7$/);
   await page.keyboard.press('Control+k');
   const recent = page.locator('[cmdk-group]').filter({ has: page.locator('[cmdk-group-heading]', { hasText: 'Recent' }) });
-  await recent.locator('[cmdk-item]').filter({ hasText: 'Content Calendar' }).click();
+  await recent.locator('[cmdk-item]').filter({ hasText: /^CalendarContent & publishing$/ }).click();
   await expect(page.getByRole('dialog', { name: 'Command palette' })).not.toBeVisible();
   expect(errors).toEqual([]);
 });
@@ -143,7 +143,7 @@ test('end-user Persian notifications save flat API values and Billing is unavail
   expect(write).toEqual({ matrix: [{ event_type: 'post_published', channel: 'email', enabled: true }] });
   await page.reload(); await expect(checkbox).toBeChecked();
   await expect(page.locator('a[href="/u/billing"]')).toHaveCount(0);
-  await expect(page.locator('aside')).toContainText('فضای کاری من');
+  await expect(page.locator('aside')).toContainText('فضای کاری فعال');
 });
 
 test('account settings saves to the shared server matrix and webhooks cannot claim success', async ({ page }) => {
@@ -282,7 +282,7 @@ for (const language of ['fa', 'en']) {
     await expect(dashboard.getByRole('alert')).toHaveCount(0);
     await expect(page.locator('html')).toHaveAttribute('lang', language);
     await expect(page.locator('html')).toHaveAttribute('dir', language === 'fa' ? 'rtl' : 'ltr');
-    await expect(page.locator('.eu-sidebar')).toContainText(language === 'fa' ? 'فضای کاری من' : 'My workspace');
+    await expect(page.locator('.eu-sidebar')).toContainText(language === 'fa' ? 'فضای کاری فعال' : 'Active workspace');
     await expect(page.locator('a[href="/u/billing"]')).toHaveCount(0);
     for (const [path, english, persian] of [['connections', 'Connections', 'اتصال‌ها'], ['approvals', 'Approvals', 'تأییدها'], ['notifications', 'Notifications', 'اعلان‌ها']]) {
       await page.goto(`/u/${path}`);
