@@ -25,13 +25,19 @@ test('admin workspace selector and route navigation scope badge requests', { tag
   await selector.selectOption('42');
   await expect.poll(() => counts.at(-1)).toBe(42);
   await expect.poll(() => Boolean(liveSocket)).toBe(true);
-  liveSocket.send(JSON.stringify({ type: 'composer.post_failed', client_id: '42', data: { title: 'Active workspace event' } }));
-  await expect(page.getByText('Publish failed: Active workspace event', { exact: true })).toBeVisible();
+  // The mocked WebSocket route can be created before the client effect has
+  // registered its subscriber. Retry the *fixture notification*, not a write.
+  await expect(async () => {
+    liveSocket.send(JSON.stringify({ type: 'composer.post_failed', client_id: '42', data: { title: 'Active workspace event' } }));
+    await expect(page.getByText('Publish failed: Active workspace event', { exact: true })).toBeVisible({ timeout: 600 });
+  }).toPass({ timeout: 8000 });
   await selector.selectOption('99');
   await expect.poll(() => counts.at(-1)).toBe(99);
   liveSocket.send(JSON.stringify({ type: 'composer.post_failed', client_id: 42, data: { title: 'Foreign workspace event' } }));
-  liveSocket.send(JSON.stringify({ type: 'composer.post_failed', workspace_id: 99, data: { title: 'Current workspace event' } }));
-  await expect(page.getByText('Publish failed: Current workspace event', { exact: true })).toBeVisible();
+  await expect(async () => {
+    liveSocket.send(JSON.stringify({ type: 'composer.post_failed', workspace_id: 99, data: { title: 'Current workspace event' } }));
+    await expect(page.getByText('Publish failed: Current workspace event', { exact: true })).toBeVisible({ timeout: 600 });
+  }).toPass({ timeout: 8000 });
   await expect(page.getByText('Publish failed: Foreign workspace event', { exact: true })).toHaveCount(0);
   await page.goto('/admin/analytics/analytics?workspace=42');
   await expect.poll(() => counts.at(-1)).toBe(42);
