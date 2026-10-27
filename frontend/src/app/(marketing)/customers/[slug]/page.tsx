@@ -12,7 +12,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const meta = contentMetadata(family, slug);
   if (!meta) notFound();
-  return publicMetadata(meta.title, meta.description, `/customers/${slug}`);
+  return publicMetadata(meta.title, meta.description, `/customers/${slug}`, true);
 }
 export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;

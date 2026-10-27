@@ -607,7 +607,7 @@ function AgencyCard({ a }) {
               border: '1px solid rgba(251,191,36,0.30)',
               borderRadius: 'var(--radius-pill)',
               whiteSpace: 'nowrap',
-            }}>1% برتر</span>
+            }}>نشان نمونه: ۱٪ برتر</span>
           )}
         </div>
 
@@ -644,7 +644,7 @@ function AgencyCard({ a }) {
           fontSize: 12, color: 'rgba(255,255,255,0.65)',
         }}>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#facc15' }}>
-            <Star size={11} fill="#facc15" /> {a.rating.score}
+            <Star size={11} fill="#facc15" /> {a.rating.score} <span className="sr-only">امتیاز فرضی</span>
             <span style={{ color: 'rgba(255,255,255,0.45)', marginLeft: 4 }}>· {a.rating.count}</span>
           </span>
           <span>از {a.pricing.from}</span>

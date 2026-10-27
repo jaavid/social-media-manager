@@ -16,7 +16,7 @@ export function contentMetadata(family, slug) {
   const entries = marketingContent[family];
   if (!entries || !Object.hasOwn(entries, slug)) return null;
   const entry = entries[slug];
-  const title = entry.seoTitle || entry.title || entry.name || slug;
+  const title = entry.seoTitle || entry.title || entry.name || entry.company || slug;
   const description = entry.seoDescription || entry.description || entry.heroSubtitle || entry.excerpt || entry.headline || entry.subtitle || '';
   // Fictional marketing records must not acquire the status of real customers
   // or verified agencies when their native Next metadata is generated.

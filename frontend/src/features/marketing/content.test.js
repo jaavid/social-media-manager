@@ -5,12 +5,12 @@ test('native route metadata is derived directly from each authored content famil
     for (const [slug, page] of Object.entries(pages)) {
       if (family === 'customers' || family === 'agencies') {
         expect(contentMetadata(family, slug)).toEqual({
-          title: `سناریوی نمایشی — ${page.seoTitle || page.title || page.name || slug}`,
+          title: `سناریوی نمایشی — ${page.seoTitle || page.title || page.name || page.company || slug}`,
           description: expect.stringContaining('دادهٔ واقعی یا تأییدشدهٔ مشتریان نیستند'),
         });
       } else {
         expect(contentMetadata(family, slug)).toEqual({
-          title: page.seoTitle || page.title || page.name || slug,
+          title: page.seoTitle || page.title || page.name || page.company || slug,
           description: page.seoDescription || page.description || page.heroSubtitle || page.excerpt || page.headline || page.subtitle || '',
         });
       }

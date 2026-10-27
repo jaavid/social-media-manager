@@ -133,7 +133,7 @@ export default function AgencyShowcasePage({ slug }) {
                     border: '1px solid rgba(0,204,245,0.25)',
                     borderRadius: 'var(--radius-pill)',
                   }}>
-                    <BadgeCheck size={11} /> {b}
+                    <BadgeCheck size={11} /> نشان نمایشی: {b}
                   </span>
                 ))}
               </div>
@@ -156,7 +156,7 @@ export default function AgencyShowcasePage({ slug }) {
               }}>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: '#facc15' }}>
                   <Star size={13} fill="#facc15" /> {rating.score}
-                  <span style={{ color: 'rgba(255,255,255,0.55)', marginLeft: 2 }}>· {rating.count} بررسی</span>
+                  <span style={{ color: 'rgba(255,255,255,0.55)', marginLeft: 2 }}>· {rating.count} نظر نمونه</span>
                 </span>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
                   <Briefcase size={13} /> از {pricing.from}
