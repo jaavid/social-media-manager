@@ -17,7 +17,7 @@ import { useLanguage } from '../../i18n';
  * and only the navigation that's relevant to a workspace owner. Pages that
  * are not yet built (later marketplace stages) are listed with `comingSoon`.
  */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { AppNavLink as NavLink, useAppLocation as useLocation } from '../../core/navigation';
 import {
   LayoutDashboard, CalendarDays,
@@ -52,6 +52,7 @@ export default function EndUserShell({ children }) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const menuTrigger = useRef(null);
+  const mobileMenuId = useId();
   const text = value => value.startsWith('nav.') ? t(value) : tr(value);
   // Close mobile drawer on route change
   useEffect(() => { void Promise.resolve().then(() => setMobileOpen(false)); }, [location.pathname, location.search]);
@@ -69,6 +70,7 @@ export default function EndUserShell({ children }) {
       }}>
         <button
           ref={menuTrigger} type="button" onClick={() => setMobileOpen(true)} aria-label={tr("Open menu")}
+          aria-expanded={mobileOpen} aria-controls={mobileMenuId}
           style={{
             width: 36, height: 36, padding: 0,
             display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
@@ -129,7 +131,7 @@ export default function EndUserShell({ children }) {
         )}
       </aside>
 
-      <Drawer open={mobileOpen} onClose={() => setMobileOpen(false)} side="start" width="min(320px, 100vw)"
+      <Drawer id={mobileMenuId} open={mobileOpen} onClose={() => setMobileOpen(false)} side="start" width="min(320px, 100vw)"
         title={tr('End-user navigation')} returnFocusRef={menuTrigger}>
         <WorkspaceContext />
         <EndUserMenu workspaceId={workspaceId} text={text} t={t} />

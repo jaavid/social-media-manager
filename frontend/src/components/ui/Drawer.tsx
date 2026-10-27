@@ -14,6 +14,7 @@ import { X } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useLanguage } from '../../i18n';
 export interface SheetProps {
+  id?: string;
   open: boolean;
   onClose?: () => void;
   returnFocusRef?: RefObject<HTMLElement>;
@@ -27,6 +28,7 @@ export interface SheetProps {
   showClose?: boolean;
 }
 export default function Drawer({
+  id,
   open,
   onClose,
   returnFocusRef,
@@ -71,6 +73,7 @@ export default function Drawer({
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay className="ds-overlay" />
         <DialogPrimitive.Content
+          id={id}
           ref={contentRef}
           onEscapeKeyDown={(event) => {
             if (event.target instanceof Node && !contentRef.current?.contains(event.target)) event.preventDefault();
