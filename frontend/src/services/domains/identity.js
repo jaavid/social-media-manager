@@ -22,7 +22,7 @@ export { authAPI } from './auth';
 
 export const endUserAPI = {
   signup:        (data) => api.post('/end-user/signup/',    data),
-  me:            ()     => api.get ('/end-user/me/'),
+  me:            (signal) => api.get ('/end-user/me/', { signal }),
   updateProfile: (data) => api.put ('/end-user/profile/',   data),
   workspace:     ()     => api.get ('/end-user/workspace/'),
   updateWorkspace: (data) => api.put('/end-user/workspace/', data),
