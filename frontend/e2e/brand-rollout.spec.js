@@ -28,9 +28,11 @@ for (const locale of ['fa', 'en']) for (const theme of ['light', 'dark']) for (c
   for (const state of ['--brand-primary-hover','--brand-primary-active']) expect(contrast(tokens[state], tokens['--text-on-brand'])).toBeGreaterThanOrEqual(4.5);
   for (const meta of await page.locator('meta[name=theme-color]').all()) await expect(meta).toHaveAttribute('content', tokens['--surface-page']);
   for (const logo of await page.locator('svg[viewBox="0 0 96 96"]').all()) expect(await logo.evaluate(el => getComputedStyle(el).transform)).toBe('none');
-  for (const mark of await page.getByRole('button',{name:'Ravinta home',exact:true}).locator('svg g').all()) {
-    const colors=await mark.evaluate(el=>{const hex=v=>'#'+v.match(/\d+/g).slice(0,3).map(n=>Number(n).toString(16).padStart(2,'0')).join('');return {foreground:hex(getComputedStyle(el).fill),background:hex(getComputedStyle(el.closest('button')).backgroundColor)};});
-    expect(contrast(colors.foreground,colors.background),'rail mark must remain visible over its actual button surface').toBeGreaterThanOrEqual(3);
+  const home = page.getByRole('link', { name: 'Ravinta home', exact: true });
+  await expect(home).toHaveCount(width === 1440 ? 1 : 0);
+  for (const mark of await home.locator('svg g').all()) {
+    const colors=await mark.evaluate(el=>{const hex=v=>'#'+v.match(/\d+/g).slice(0,3).map(n=>Number(n).toString(16).padStart(2,'0')).join('');return {foreground:hex(getComputedStyle(el).fill),background:hex(getComputedStyle(el.closest('a')).backgroundColor)};});
+    expect(contrast(colors.foreground,colors.background),'rail mark must remain visible over its actual link surface').toBeGreaterThanOrEqual(3);
   }
   await page.screenshot({ path: `e2e/evidence/brand/after-${locale}-${theme}-${width}.png`, fullPage: true });
   await page.evaluate(()=>{document.documentElement.style.zoom='2';});

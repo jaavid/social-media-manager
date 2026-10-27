@@ -17,79 +17,44 @@ import { useLanguage } from '../../i18n';
  * and only the navigation that's relevant to a workspace owner. Pages that
  * are not yet built (later marketplace stages) are listed with `comingSoon`.
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AppNavLink as NavLink, useAppLocation as useLocation } from '../../core/navigation';
 import {
-  LayoutDashboard, FileType, PenSquare, CalendarDays, Inbox, LineChart,
+  LayoutDashboard, CalendarDays,
   Building2, Plug, ShieldCheck, ClipboardCheck, Search,
-  Settings, CreditCard, Sparkles, Bell, Menu, X,
+  Sparkles, Bell, Menu,
 } from 'lucide-react';
 
 import { useSession as useAuth } from '../../core/session';
-import { approvalAPI } from '@/services/domains/accounts';
+import Drawer from '@/components/ui/Drawer';
+import WorkspaceContext from '@/components/shell/WorkspaceContext';
 
 const SECTIONS = [
-  {
-    title: 'My workspace',
-    items: [
-      { to: '/u',             label: 'Dashboard',  icon: LayoutDashboard, end: true },
-      { to: '/u/posts',       label: 'Posts',      icon: FileType,        comingSoon: true },
-      { to: '/u/composer',    label: 'Composer',   icon: PenSquare,       comingSoon: true },
-      { to: '/u/calendar',    label: 'Calendar',   icon: CalendarDays },
-      { to: '/u/inbox',       label: 'Inbox',      icon: Inbox,           comingSoon: true },
-      { to: '/u/analytics',   label: 'Analytics',  icon: LineChart,       comingSoon: true },
-    ],
-  },
-  {
-    title: 'Manage',
-    items: [
-      { to: '/u/organizations', label: 'مجموعه و تیم', icon: Building2 },
-      { to: '/u/agency',      label: 'My agency',   icon: Building2 },
-      { to: '/u/connections', label: 'Connections', icon: Plug },
-      { to: '/u/approvals',   label: 'Approvals',   icon: ClipboardCheck, badgeKey: 'pendingApprovals' },
-      { to: '/u/activity',    label: 'Activity log', icon: ShieldCheck },
-    ],
-  },
-  {
-    title: 'Discover',
-    items: [
-      { to: '/u/agency/find', label: 'Find an agency', icon: Search },
-    ],
-  },
-  {
-    title: 'Account',
-    items: [
-      { to: '/u/settings',      label: 'Settings',      icon: Settings,    comingSoon: true },
-      { to: '/u/notifications', label: 'Notifications', icon: Bell },
-      { to: '/u/billing',       label: 'Billing',       icon: CreditCard, comingSoon: true },
-    ],
-  },
+  { title: 'nav.overview', items: [{ to: '/u', label: 'Dashboard', icon: LayoutDashboard, end: true }] },
+  { title: 'nav.content', items: [{ to: '/u/calendar', label: 'Calendar', icon: CalendarDays, scoped: true }] },
+  { title: 'nav.management', items: [
+    { to: '/u/organizations', label: 'nav.organizations', icon: Building2 },
+    { to: '/u/connections', label: 'Connections', icon: Plug, scoped: true },
+    { to: '/u/approvals', label: 'nav.approvalRequests', icon: ClipboardCheck },
+    { to: '/u/activity', label: 'nav.activity', icon: ShieldCheck },
+    { to: '/u/agency', label: 'My agency', icon: Building2, end: true },
+    { to: '/u/notifications', label: 'Notifications', icon: Bell },
+  ] },
+  { title: 'nav.discover', items: [{ to: '/u/agency/find', label: 'Find an agency', icon: Search, end: true }] },
 ];
+const FUTURE = ['Posts', 'nav.createPost', 'Inbox', 'Analytics', 'Reports', 'Settings', 'Billing'];
 
 export default function EndUserShell({ children }) {
-  const { tr } = useLanguage();
+  const { tr, t } = useLanguage();
   const { user } = useAuth();
   const location = useLocation();
   const { workspaceId } = useWorkspaceScope();
-  const [badges, setBadges] = useState({ pendingApprovals: 0 });
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // Light poll of pending approvals so the sidebar badge stays current.
-  // 60s is plenty — the page itself refetches on focus.
-  useEffect(() => {
-    let cancelled = false;
-    function refresh() {
-      approvalAPI.pending()
-        .then((r) => { if (!cancelled) setBadges((b) => ({ ...b, pendingApprovals: r.data?.count || 0 })); })
-        .catch(() => {});
-    }
-    refresh();
-    const t = setInterval(refresh, 60_000);
-    return () => { cancelled = true; clearInterval(t); };
-  }, []);
-
+  const menuTrigger = useRef(null);
+  const text = value => value.startsWith('nav.') ? t(value) : tr(value);
   // Close mobile drawer on route change
-  useEffect(() => { void Promise.resolve().then(() => setMobileOpen(false)); }, [location.pathname]);
+  useEffect(() => { void Promise.resolve().then(() => setMobileOpen(false)); }, [location.pathname, location.search]);
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface-page)' }} className="eu-shell">
@@ -103,7 +68,7 @@ export default function EndUserShell({ children }) {
         borderBottom: '1px solid var(--border-subtle)',
       }}>
         <button
-          type="button" onClick={() => setMobileOpen(true)} aria-label={tr("Open menu")}
+          ref={menuTrigger} type="button" onClick={() => setMobileOpen(true)} aria-label={tr("Open menu")}
           style={{
             width: 36, height: 36, padding: 0,
             display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
@@ -124,47 +89,9 @@ export default function EndUserShell({ children }) {
         <strong style={{ fontSize: 14, color: 'var(--text-primary)' }}>{tr("Ravinta")}</strong>
       </header>
 
-      {/* Backdrop */}
-      {mobileOpen && (
-        <div
-          className="eu-mobile-backdrop"
-          onClick={() => setMobileOpen(false)}
-          aria-hidden
-          style={{
-            position: 'fixed', inset: 0, zIndex: 60,
-            background: 'rgba(10,14,20,0.45)', backdropFilter: 'blur(2px)',
-            display: 'none',
-          }}
-        />
-      )}
-
-      <aside
-        aria-label={tr("End-user navigation")}
-        className={mobileOpen ? "eu-sidebar eu-sidebar-open" : "eu-sidebar"}
-        style={{
-          width: 220,
-          background: 'var(--surface-card)',
-          borderRight: '1px solid var(--border-subtle)',
-          padding: 14,
-          display: 'flex', flexDirection: 'column', gap: 16,
-          position: 'sticky', top: 0, height: '100vh',
-        }}
-      >
-        {/* Mobile-only close button */}
-        <button
-          type="button" onClick={() => setMobileOpen(false)}
-          aria-label={tr("Close menu")}
-          className="eu-sidebar-close"
-          style={{
-            display: 'none', position: 'absolute', top: 10, right: 10,
-            width: 32, height: 32, padding: 0,
-            background: 'transparent', color: 'var(--text-tertiary)',
-            border: 'none', borderRadius: 'var(--radius-sm)', cursor: 'pointer',
-            alignItems: 'center', justifyContent: 'center',
-          }}
-        >
-          <X size={16} />
-        </button>
+      <aside aria-label={tr('End-user navigation')} className="eu-sidebar"
+        style={{ width: 240, background: 'var(--surface-card)', borderInlineEnd: '1px solid var(--border-subtle)',
+          padding: 14, display: 'flex', flexDirection: 'column', gap: 16, position: 'sticky', top: 0, height: '100vh' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingBottom: 14, borderBottom: '1px solid var(--border-subtle)' }}>
           <span style={{
             width: 28, height: 28,
@@ -181,23 +108,8 @@ export default function EndUserShell({ children }) {
           </div>
         </div>
 
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: 14, overflowY: 'auto', flex: 1 }}>
-          {SECTIONS.map((section) => (
-            <div key={tr(section.title)}>
-              <div style={{
-                fontSize: 10, fontWeight: 600,
-                letterSpacing: '0.06em', textTransform: 'uppercase',
-                color: 'var(--text-tertiary)',
-                padding: '4px 8px 6px',
-              }}>
-                {tr(section.title)}
-              </div>
-              {section.items.map((item) => (
-                <NavRow key={item.to} {...item} to={workspaceId && ['/u/calendar', '/u/connections'].includes(item.to) ? `${item.to}?workspace=${workspaceId}` : item.to} badge={item.badgeKey ? badges[item.badgeKey] : 0} />
-              ))}
-            </div>
-          ))}
-        </nav>
+        <WorkspaceContext />
+        <EndUserMenu workspaceId={workspaceId} text={text} t={t} />
 
         {user && (
           <div style={{
@@ -217,6 +129,12 @@ export default function EndUserShell({ children }) {
         )}
       </aside>
 
+      <Drawer open={mobileOpen} onClose={() => setMobileOpen(false)} side="start" width="min(320px, 100vw)"
+        title={tr('End-user navigation')} returnFocusRef={menuTrigger}>
+        <WorkspaceContext />
+        <EndUserMenu workspaceId={workspaceId} text={text} t={t} />
+        {user && <AccountControls key={user.id} />}
+      </Drawer>
       <main style={{ flex: 1, minWidth: 0, padding: 28 }} className="eu-main">
         <ErrorBoundary key={location.pathname}>{children}</ErrorBoundary>
       </main>
@@ -226,77 +144,34 @@ export default function EndUserShell({ children }) {
           .eu-shell { flex-direction: column; }
           .eu-mobile-bar { display: flex !important; }
           .eu-main { padding: 18px 14px !important; }
-          .eu-sidebar {
-            position: fixed !important;
-            top: 0; left: 0;
-            height: 100vh !important;
-            transform: translateX(-100%);
-            transition: transform 0.22s ease-out;
-            z-index: 70;
-            box-shadow: var(--shadow-xl);
-          }
-          .eu-sidebar-open { transform: translateX(0); }
-          .eu-sidebar-close { display: inline-flex !important; }
-          .eu-mobile-backdrop { display: block !important; }
+          .eu-sidebar { display: none !important; }
+
         }
       `}</style>
     </div>
   );
 }
 
-function NavRow({ to, label, icon: Icon, end, comingSoon, badge }) {
-  const { tr } = useLanguage();
-  if (comingSoon) {
-    return (
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 10,
-        padding: '8px 10px',
-        color: 'var(--text-tertiary)',
-        fontSize: 13, fontWeight: 500,
-        cursor: 'not-allowed',
-        opacity: 0.55,
-      }}>
-        <Icon size={15} strokeWidth={2} />
-        <span style={{ flex: 1 }}>{tr(label)}</span>
-        <span style={{
-          fontSize: 9, fontWeight: 600,
-          letterSpacing: '0.04em', textTransform: 'uppercase',
-          color: 'var(--text-tertiary)',
-          padding: '2px 6px',
-          background: 'var(--surface-card)',
-          border: '1px solid var(--border-subtle)',
-          borderRadius: 'var(--radius-pill)',
-        }}>{tr("Soon")}</span>
-      </div>
-    );
-  }
-  return (
-    <NavLink
-      to={to}
-      end={end}
-      style={({ isActive }) => ({
-        display: 'flex', alignItems: 'center', gap: 10,
-        padding: '8px 10px',
-        textDecoration: 'none',
-        borderRadius: 'var(--radius-sm)',
-        color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
-        background: isActive ? 'var(--brand-primary-glow)' : 'transparent',
-        fontSize: 13, fontWeight: isActive ? 600 : 500,
-        boxShadow: isActive ? 'inset 2px 0 0 var(--brand-primary)' : 'none',
-      })}
-    >
-      <Icon size={15} strokeWidth={2} />
-      <span style={{ flex: 1 }}>{tr(label)}</span>
-      {badge > 0 && (
-        <span style={{
-          minWidth: 18, padding: '0 5px',
-          background: 'var(--brand-primary-hover)', color: '#fff',
-          fontSize: 10, fontWeight: 700, lineHeight: '16px', height: 16,
-          borderRadius: 999, textAlign: 'center',
-        }}>
-          {badge > 99 ? '99+' : badge}
-        </span>
-      )}
-    </NavLink>
-  );
+function EndUserMenu({ workspaceId, text, t }) {
+  return <nav className="grid gap-4 overflow-y-auto" aria-label={t('nav.workspaceTools')}>
+    {SECTIONS.map(section => <section key={section.title}>
+      <h2 className="px-2 py-1 text-xs font-semibold text-muted-foreground">{text(section.title)}</h2>
+      {section.items.filter(item => !item.scoped || workspaceId).map(item => <NavRow key={item.to} {...item}
+        label={text(item.label)} to={item.scoped ? `${item.to}?workspace=${workspaceId}` : item.to} />)}
+    </section>)}
+    {!workspaceId && <p className="px-2 text-xs text-muted-foreground">{t('nav.selectHelp')}</p>}
+    <details className="rounded-lg border border-border p-3 text-xs text-muted-foreground">
+      <summary className="cursor-pointer font-semibold">{t('nav.future')}</summary>
+      <p className="mt-2 leading-relaxed">{t('nav.futureHelp')}</p>
+      <ul className="mt-2 grid gap-1">{FUTURE.map(label => <li key={label}>{text(label)} — {t('nav.notReady')}</li>)}</ul>
+    </details>
+  </nav>;
+}
+
+function NavRow({ to, label, icon: Icon, end }) {
+  return <NavLink to={to} end={end} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm no-underline focus-visible:ring-2 focus-visible:ring-ring"
+    style={({ isActive }) => ({ color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
+      background: isActive ? 'var(--brand-primary-glow)' : 'transparent', fontWeight: isActive ? 600 : 500 })}>
+    <Icon size={15} aria-hidden="true" /><span>{label}</span>
+  </NavLink>;
 }

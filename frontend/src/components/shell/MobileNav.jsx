@@ -1,36 +1,33 @@
+import { routeIsActive } from '../../lib/runtime/navigation';
+import useNavigationAccess from '../../hooks/useNavigationAccess';
+import { visibleSections, navigationHref, navigationText } from './navigationItems';
+import useWorkspaceScope from '../../hooks/useWorkspaceScope';
 import {
   AppNavLink as NavLink,
   useAppLocation as useLocation,
 } from '../../core/navigation';
-import {
-  LayoutDashboard,
-  FileText,
-  CalendarDays,
-  AlertCircle,
-  Inbox,
-  Send,
-  Users2,
-  FileType,
-  Rocket,
-} from 'lucide-react';
 import { useLanguage } from '../../i18n';
 import { cn } from '../../lib/utils';
 export default function MobileNav({ module, basePath }) {
   const location = useLocation();
-  const { tr } = useLanguage();
-  const tabs = MOBILE_TABS[module] || MOBILE_TABS.analytics;
+  const language = useLanguage();
+  const { tr, t } = language;
+  const can = useNavigationAccess();
+  const { workspaceId } = useWorkspaceScope();
+  const priorities = module === 'messaging' ? ['/inbox', '/campaigns', '/templates', '/contacts'] : ['/dashboard', '/composer', '/inbox', '/reports'];
+  const items = visibleSections(module, basePath, can).flatMap(section => section.items);
+  const tabs = priorities.map(path => items.find(item => item.path === path)).filter(Boolean);
+  if (!tabs.length) return null;
   return (
     <nav
       className="mobile-bottom-nav ds-mobile-nav fixed inset-x-3 bottom-3 z-150 flex h-16 items-stretch overflow-x-auto rounded-2xl border border-border/70 bg-card/92 px-1.5 pb-[env(safe-area-inset-bottom)] shadow-xl backdrop-blur-2xl"
-      aria-label={`${tr(module === 'analytics' ? 'Analytics' : module === 'messaging' ? 'Messaging' : 'Ads')} ${tr('bottom tabs')}`}
+      aria-label={`${module === 'analytics' ? t('nav.workspaceTools') : tr(module === 'messaging' ? 'Messaging' : 'Ads')} ${tr('bottom tabs')}`}
     >
       {tabs.map((tab) => {
-        const to = `${basePath}/${module}${tab.path}`;
-        const active = tab.end
-          ? location.pathname === to
-          : location.pathname.startsWith(to);
+        const to = navigationHref(basePath, module, tab, workspaceId);
+        const active = routeIsActive(to, location.pathname, tab.end);
         const Icon = tab.icon;
-        const label = tr(tab.label);
+        const label = navigationText(tab.label, language);
         return (
           <NavLink
             key={tab.path || tab.label}
@@ -67,57 +64,3 @@ export default function MobileNav({ module, basePath }) {
     </nav>
   );
 }
-const MOBILE_TABS = {
-  analytics: [
-    {
-      label: 'Home',
-      icon: LayoutDashboard,
-      path: '/dashboard',
-      end: true,
-    },
-    {
-      label: 'Calendar',
-      icon: CalendarDays,
-      path: '/calendar',
-    },
-    {
-      label: 'Reports',
-      icon: FileText,
-      path: '/reports',
-    },
-    {
-      label: 'Alerts',
-      icon: AlertCircle,
-      path: '/alerts',
-    },
-  ],
-  messaging: [
-    {
-      label: 'Inbox',
-      icon: Inbox,
-      path: '/inbox',
-    },
-    {
-      label: 'Campaigns',
-      icon: Send,
-      path: '/campaigns',
-    },
-    {
-      label: 'Templates',
-      icon: FileType,
-      path: '/templates',
-    },
-    {
-      label: 'Contacts',
-      icon: Users2,
-      path: '/contacts',
-    },
-  ],
-  ads: [
-    {
-      label: 'Soon',
-      icon: Rocket,
-      path: '',
-    },
-  ],
-};

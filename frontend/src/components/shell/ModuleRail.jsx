@@ -14,12 +14,14 @@ import {
 } from '../ui/DropdownMenu';
 import { cn } from '../../lib/utils';
 import { useEffect, useState } from 'react';
-import { useAppNavigate as useNavigate } from '../../core/navigation';
+import { AppLink as Link, useAppNavigate as useNavigate } from '../../core/navigation';
 import { Bell, Settings, LogOut, Briefcase, Store } from 'lucide-react';
 import { BrandMark } from '../ui/BrandLogo';
 import AccountTypeBadge from '../ui/AccountTypeBadge';
 import { useSession as useAuth } from '../../core/session';
 import { useLanguage } from '../../i18n';
+import useWorkspaceScope from '../../hooks/useWorkspaceScope';
+import { navigationHref } from './navigationItems';
 
 /**
  * 64px-wide module rail. Uses logical CSS properties so it mirrors correctly
@@ -32,6 +34,7 @@ export default function ModuleRail({
   notifCount = 0,
 }) {
   const navigate = useNavigate();
+  const { workspaceId } = useWorkspaceScope();
   const { user, logout } = useAuth();
   const { t, tr } = useLanguage();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -55,9 +58,8 @@ export default function ModuleRail({
         '[gap:6px]',
       )}
     >
-      <button
-        type="button"
-        onClick={() => navigate(`${basePath}/${currentModule || 'analytics'}`)}
+      <Link
+        to={navigationHref(basePath, currentModule || 'analytics', { path: '' }, workspaceId)}
         aria-label="Ravinta home"
         className={cn(
           '[width:36px]',
@@ -74,7 +76,7 @@ export default function ModuleRail({
         )}
       >
         <BrandMark size={22} monochrome="var(--text-on-brand)" />
-      </button>
+      </Link>
 
       <Divider />
 
@@ -93,10 +95,7 @@ export default function ModuleRail({
             module={m}
             active={currentModule === m.id}
             soonLabel={t('common.soon', 'Soon')}
-            onClick={() => {
-              if (!m.enabled || m.comingSoon) return;
-              navigate(`${basePath}/${m.id}`);
-            }}
+            to={navigationHref(basePath, m.id, { path: '' }, workspaceId)}
           />
         ))}
       </div>
@@ -113,14 +112,14 @@ export default function ModuleRail({
         <RailIconBtn
           icon={Bell}
           label={t('common.notifications', 'Notifications')}
-          onClick={() => navigate(`${basePath}/analytics/alerts`)}
+          to={`${basePath}/analytics/notifications`}
           dot={notifCount > 0}
         />
 
         <RailIconBtn
           icon={Settings}
           label={t('common.settings', 'Settings')}
-          onClick={() => navigate(`${basePath}/account-settings`)}
+          to={`${basePath}/account-settings`}
         />
 
         <UserMenu
@@ -138,7 +137,7 @@ export default function ModuleRail({
     </aside>
   );
 }
-function ModuleButton({ module: m, active, onClick, soonLabel }) {
+function ModuleButton({ module: m, active, to, soonLabel }) {
   const Icon = m.icon;
   const disabled = !m.enabled || m.comingSoon;
   const tooltip = m.comingSoon ? `${m.label} — ${soonLabel}` : m.label;
@@ -147,10 +146,8 @@ function ModuleButton({ module: m, active, onClick, soonLabel }) {
       data-tip={tooltip}
       className={cn('ds-rail-tip', '[position:relative]')}
     >
-      <button
-        type="button"
-        onClick={onClick}
-        disabled={disabled}
+      <Link
+        to={to}
         aria-label={tooltip}
         aria-current={active ? 'page' : undefined}
         className={cn(
@@ -222,16 +219,15 @@ function ModuleButton({ module: m, active, onClick, soonLabel }) {
             {m.badge > 99 ? '99+' : m.badge}
           </span>
         )}
-      </button>
+      </Link>
     </div>
   );
 }
-function RailIconBtn({ icon: Icon, label, onClick, dot }) {
+function RailIconBtn({ icon: Icon, label, to, dot }) {
   return (
     <div data-tip={label} className={cn('ds-rail-tip', '[position:relative]')}>
-      <button
-        type="button"
-        onClick={onClick}
+      <Link
+        to={to}
         aria-label={label}
         className={cn(
           cn(
@@ -267,7 +263,7 @@ function RailIconBtn({ icon: Icon, label, onClick, dot }) {
             )}
           />
         )}
-      </button>
+      </Link>
     </div>
   );
 }

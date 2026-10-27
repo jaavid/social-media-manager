@@ -7,29 +7,31 @@ jest.mock('../../core/navigation', () => ({
   useAppLocation: () => ({ pathname: mockPathname }),
   useAppNavigate: () => jest.fn(),
 }));
+jest.mock('../../hooks/useNavigationAccess', () => ({ __esModule: true, default: () => () => true }));
+jest.mock('./WorkspaceContext', () => () => null);
 jest.mock('../../core/session', () => ({ useSession: () => ({ can: () => true }) }));
 jest.mock('../../hooks/useData', () => ({ useWorkspaces: () => ({ workspaces: [] }) }));
 jest.mock('../../hooks/useWorkspaceScope', () => ({ __esModule: true, default: () => ({ workspaceId: null }), useScopedBadgeCount: () => 0 }));
-jest.mock('../../i18n', () => ({ useLanguage: () => ({ isPersian: false, tr: (text) => text }) }));
+jest.mock('../../i18n', () => ({ useLanguage: () => ({ isPersian: false, tr: (text) => text, t: key => ({ 'nav.overview': 'Overview', 'nav.content': 'Content & publishing', 'nav.createPost': 'Create post' }[key] || key) }) }));
 
 beforeEach(() => { mockPathname = '/workspace/analytics/dashboard'; });
 
 test('opens the current group and lets users expand and collapse other groups', () => {
   render(<FeatureSidebar module="analytics" basePath="/workspace" />);
   expect(screen.getByRole('button', { name: 'Overview' })).toHaveAttribute('aria-expanded', 'true');
-  const publish = screen.getByRole('button', { name: 'Publish' });
+  const publish = screen.getByRole('button', { name: 'Content & publishing' });
   expect(publish).toHaveAttribute('aria-expanded', 'false');
-  expect(screen.queryByRole('link', { name: 'Composer' })).not.toBeInTheDocument();
+  expect(screen.queryByRole('link', { name: 'Create post' })).not.toBeInTheDocument();
   fireEvent.click(publish);
-  expect(screen.getByRole('link', { name: 'Composer' })).toBeVisible();
+  expect(screen.getByRole('link', { name: 'Create post' })).toBeVisible();
   fireEvent.click(publish);
-  expect(screen.queryByRole('link', { name: 'Composer' })).not.toBeInTheDocument();
+  expect(screen.queryByRole('link', { name: 'Create post' })).not.toBeInTheDocument();
 });
 
 test('opens the destination group when the route changes, including nested routes', () => {
   const { rerender } = render(<FeatureSidebar module="analytics" basePath="/workspace" />);
   mockPathname = '/workspace/analytics/posts/42';
   rerender(<FeatureSidebar module="analytics" basePath="/workspace" />);
-  expect(screen.getByRole('button', { name: 'Content' })).toHaveAttribute('aria-expanded', 'true');
+  expect(screen.getByRole('button', { name: 'Content & publishing' })).toHaveAttribute('aria-expanded', 'true');
   expect(screen.getByRole('link', { name: 'Posts' })).toBeVisible();
 });

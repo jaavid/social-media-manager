@@ -1,3 +1,6 @@
+import useNavigationAccess from '../../hooks/useNavigationAccess';
+import { visibleSections, navigationHref, navigationText, searchNavigationResults } from './navigationItems';
+import useWorkspaceScope from '../../hooks/useWorkspaceScope';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -13,28 +16,16 @@ import { useEffect, useState } from 'react';
 import { useAppNavigate as useNavigate } from '../../core/navigation';
 import { Command } from 'cmdk';
 import {
-  LayoutDashboard,
-  LineChart,
-  FileText,
   Search,
   Send,
-  Inbox,
   Users2,
   FileType,
-  MessageCircle,
-  Settings,
   Plus,
   Upload,
-  Lightbulb,
-  Wand2,
-  TrendingUp,
-  AlertCircle,
-  CalendarDays,
   BookOpen,
   ShieldCheck,
   ExternalLink,
   MessageSquare,
-  UserSquare,
 } from 'lucide-react';
 import { useWorkspaces } from '../../hooks/useData';
 import useUnifiedSearch from '../../hooks/useUnifiedSearch';
@@ -46,7 +37,10 @@ export default function CommandPalette({ open, onOpenChange, basePath }) {
   const [recents, setRecents] = useState(() => readRecents());
   const [inputValue, setInputValue] = useState('');
   const { workspaces: clients } = useWorkspaces();
-  const { tr } = useLanguage();
+  const language = useLanguage();
+  const { tr } = language;
+  const can = useNavigationAccess();
+  const { workspaceId } = useWorkspaceScope();
   const {
     results: searchResults,
     isFetching: searchFetching,
@@ -66,8 +60,10 @@ export default function CommandPalette({ open, onOpenChange, basePath }) {
   useEffect(() => {
     if (!open) setInputValue('');
   }, [open]);
-  const pages = localizeItems(buildPages(basePath), tr);
-  const actions = localizeItems(buildActions(basePath), tr);
+  const pages = ['analytics', 'messaging'].flatMap(module => visibleSections(module, basePath, can).flatMap(section =>
+    section.items.map(item => ({ ...item, id: `${module}-${item.path}`, label: navigationText(item.label, language),
+      hint: navigationText(section.title, language), path: navigationHref(basePath, module, item, workspaceId) }))));
+  const actions = localizeItems(buildActions(basePath, workspaceId, navigate).filter(item => can(item.permission)), tr);
   const links = localizeItems(buildLinks(), tr);
   function pick(id, fn) {
     fn();
@@ -75,8 +71,9 @@ export default function CommandPalette({ open, onOpenChange, basePath }) {
     setRecents(readRecents());
     onOpenChange(false);
   }
+  const accessibleResults = searchNavigationResults(searchResults, basePath, can, workspaceId);
   const hasSearchQuery = (debouncedQuery || '').trim().length >= 2;
-  const hasSearchHits = hasSearchQuery && searchResults.total > 0;
+  const hasSearchHits = hasSearchQuery && accessibleResults.total > 0;
   if (!open) return null;
   return (
     <div
@@ -169,7 +166,7 @@ export default function CommandPalette({ open, onOpenChange, basePath }) {
 
           {hasSearchHits && (
             <SearchResultGroups
-              results={searchResults}
+              results={accessibleResults}
               onPick={(id, link) => pick(id, () => navigate(link))}
             />
           )}
@@ -206,7 +203,7 @@ export default function CommandPalette({ open, onOpenChange, basePath }) {
             ))}
           </Group>
 
-          {(clients || []).length > 0 && (
+          {basePath === '/admin' && (clients || []).length > 0 && (
             <Group heading={tr('Workspaces')}>
               {(clients || []).slice(0, 8).map((c) => (
                 <Item
@@ -418,137 +415,35 @@ function localizeItems(items, tr) {
     hint: item.hint ? tr(item.hint) : item.hint,
   }));
 }
-function buildPages(basePath) {
+function buildActions(basePath, workspaceId, navigate) {
   return [
     {
-      id: 'analytics-dashboard',
-      label: 'Dashboard',
-      hint: 'Analytics overview',
-      icon: LayoutDashboard,
-      path: `${basePath}/analytics/dashboard`,
-    },
-    {
-      id: 'analytics-analytics',
-      label: 'Analytics',
-      hint: 'Deep metrics',
-      icon: LineChart,
-      path: `${basePath}/analytics/analytics`,
-    },
-    {
-      id: 'analytics-reports',
-      label: 'Reports',
-      hint: 'PDF reports',
-      icon: FileText,
-      path: `${basePath}/analytics/reports`,
-    },
-    {
-      id: 'analytics-calendar',
-      label: 'Content Calendar',
-      hint: 'Plan & schedule',
-      icon: CalendarDays,
-      path: `${basePath}/analytics/calendar`,
-    },
-    {
-      id: 'analytics-roi',
-      label: 'ROI Calculator',
-      hint: 'Revenue forecasting',
-      icon: TrendingUp,
-      path: `${basePath}/analytics/roi`,
-    },
-    {
-      id: 'analytics-alerts',
-      label: 'Alerts',
-      hint: 'Anomaly notifications',
-      icon: AlertCircle,
-      path: `${basePath}/analytics/alerts`,
-    },
-    {
-      id: 'analytics-caption',
-      label: 'Caption Writer',
-      hint: 'AI-powered captions',
-      icon: Wand2,
-      path: `${basePath}/analytics/caption-writer`,
-    },
-    {
-      id: 'analytics-ideas',
-      label: 'Post Ideas',
-      hint: 'AI content brainstorm',
-      icon: Lightbulb,
-      path: `${basePath}/analytics/post-ideas`,
-    },
-    {
-      id: 'messaging-dashboard',
-      label: 'Messaging dashboard',
-      hint: 'WhatsApp overview',
-      icon: MessageCircle,
-      path: `${basePath}/messaging`,
-    },
-    {
-      id: 'messaging-inbox',
-      label: 'Inbox',
-      hint: 'Conversations',
-      icon: Inbox,
-      path: `${basePath}/messaging/inbox`,
-    },
-    {
-      id: 'messaging-campaigns',
-      label: 'Campaigns',
-      hint: 'Broadcast outreach',
-      icon: Send,
-      path: `${basePath}/messaging/campaigns`,
-    },
-    {
-      id: 'messaging-templates',
-      label: 'Templates',
-      hint: 'Approved templates',
-      icon: FileType,
-      path: `${basePath}/messaging/templates`,
-    },
-    {
-      id: 'messaging-contacts',
-      label: 'Contacts',
-      hint: 'Audience',
-      icon: Users2,
-      path: `${basePath}/messaging/contacts`,
-    },
-    {
-      id: 'messaging-account',
-      label: 'Pinbot account',
-      hint: 'WhatsApp setup',
-      icon: Settings,
-      path: `${basePath}/messaging/account`,
-    },
-  ];
-}
-function buildActions(basePath) {
-  return [
-    {
-      id: 'action-new-campaign',
+      id: 'action-new-campaign', permission: 'whatsapp.view_inbox',
       label: 'Send a message',
       hint: 'Open inbox to compose',
       icon: Send,
-      run: () => location.assign(`${basePath}/messaging/inbox`),
+      run: () => navigate(navigationHref(basePath, 'messaging', { path: '/inbox' }, workspaceId)),
     },
     {
-      id: 'action-create-campaign',
+      id: 'action-create-campaign', permission: 'whatsapp.manage_campaigns',
       label: 'Create a campaign',
       hint: 'New broadcast',
       icon: Plus,
-      run: () => location.assign(`${basePath}/messaging/campaigns?new=1`),
+      run: () => navigate(navigationHref(basePath, 'messaging', { path: '/campaigns?new=1' }, workspaceId)),
     },
     {
-      id: 'action-upload-contacts',
+      id: 'action-upload-contacts', permission: 'whatsapp.manage_contacts',
       label: 'Upload contacts',
       hint: 'Import a CSV',
       icon: Upload,
-      run: () => location.assign(`${basePath}/messaging/contacts?import=1`),
+      run: () => navigate(navigationHref(basePath, 'messaging', { path: '/contacts?import=1' }, workspaceId)),
     },
     {
-      id: 'action-new-template',
+      id: 'action-new-template', permission: 'whatsapp.manage_templates',
       label: 'Create a template',
       hint: 'WhatsApp template',
       icon: FileType,
-      run: () => location.assign(`${basePath}/messaging/templates?new=1`),
+      run: () => navigate(navigationHref(basePath, 'messaging', { path: '/templates?new=1' }, workspaceId)),
     },
   ];
 }
