@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import fs from 'node:fs';
 test.use({ launchOptions: { executablePath: process.env.DASHBOARD_CHROMIUM || undefined } });
 
-const origin = process.env.E2E_BASE_URL || 'http://127.0.0.1:3000';
+const origin = new URL(process.env.E2E_BASE_URL || 'http://127.0.0.1:3000').origin;
 const texts = {
   en: { heading: 'Your dashboard', failed: 'Workspace status could not be loaded', empty: 'No workspace is set up for this account yet', retry: 'Reload status', connections: 'View social connections', stats: 'Statistics are not available in this dashboard' },
   fa: { heading: 'داشبورد شما', failed: 'دریافت وضعیت فضای کاری ممکن نشد', empty: 'هنوز فضای کاری برای این حساب تنظیم نشده است', retry: 'دریافت دوباره وضعیت', connections: 'مشاهدهٔ اتصال‌های شبکه‌های اجتماعی', stats: 'آمار در این داشبورد در دسترس نیست' },
