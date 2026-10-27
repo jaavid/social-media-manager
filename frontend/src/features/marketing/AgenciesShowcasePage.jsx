@@ -19,6 +19,7 @@ import MeshGradient    from '../../components/marketing/MeshGradient';
 import ScrollReveal    from '../../components/marketing/ScrollReveal';
 import Button          from '../../components/ui/Button';
 import Meta            from '../../components/Meta';
+import SamplePreviewBanner from '../../components/marketing/SamplePreviewBanner';
 
 import {
   AGENCY_LIST, listIndustries, listServices,
@@ -68,9 +69,11 @@ export default function AgenciesShowcasePage() {
     <>
       <Meta
         noSuffix
-        title={"آژانس‌های شریک - راوینتا"}
-        description={"یک آژانس بازاریابی تایید شده بر اساس راوینتا پیدا کنید. بیش از 50 آژانس شریک در سرتاسر هند که از نظر انطباق، توانایی و نتایج مشتری بررسی شده‌اند."}
+        title={"فهرست نمونهٔ آژانس‌ها — راوینتا"}
+        description={"نمونه‌های فرضی برای نمایش پروفایل آژانس‌ها؛ هیچ شریک، امتیاز یا نظر واقعی در این فهرست تأیید نشده است."}
       />
+
+      <SamplePreviewBanner kind="agency" />
 
       {/* ╭──────────────╮
           │   1.  HERO   │
@@ -93,7 +96,7 @@ export default function AgenciesShowcasePage() {
             border: '1px solid rgba(0,204,245,0.25)',
             borderRadius: 'var(--radius-pill)',
           }}>
-            <Sparkles size={12} /> آژانس‌های شریک
+            <Sparkles size={12} /> پروفایل‌های نمونه
           </span>
 
           <h1 data-typography="display" style={{
@@ -104,9 +107,9 @@ export default function AgenciesShowcasePage() {
             color: '#fff',
             lineHeight: 1.05,
           }}>
-            یک آژانس بازاریابی پیدا کنید<br />
+            نمونهٔ معرفی آژانس‌ها<br />
             <span style={{ background: 'linear-gradient(135deg, #00CCF5, #8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              که در حال حاضر در راوینتا اجرا می‌شود
+              در محیط نمایشی راوینتا
             </span>
           </h1>
 
@@ -117,7 +120,7 @@ export default function AgenciesShowcasePage() {
             color: 'rgba(255,255,255,0.75)',
             lineHeight: 'var(--line-height-body)',
           }}>
-            بیش از 50 آژانس بررسی شده در سراسر هند. اعتبار تایید شده نظرات مشتریان واقعی آژانسی که در اینجا استخدام می‌کنید از همان ابزارهایی استفاده می‌کند که برای نظارت بر آنها استفاده می‌کنید.
+            این فهرست برای نمایش شکل جست‌وجو و مقایسهٔ آژانس‌ها ساخته شده است. نام‌ها، امتیازها، نظرها و تعرفه‌ها فرضی هستند و معرفی شریک تأییدشده نیستند.
           </p>
 
           {/* Search */}
@@ -551,7 +554,7 @@ function FeaturedCard({ a }) {
           flexWrap: 'wrap',
         }}>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#facc15' }}>
-            <Star size={12} fill="#facc15" /> {a.rating.score} · {a.rating.count} بررسی
+            <Star size={12} fill="#facc15" /> {a.rating.score} · {a.rating.count} نظر نمونه
           </span>
           <span>· از {a.pricing.from}</span>
         </div>

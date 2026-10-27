@@ -20,7 +20,7 @@ import SamplePreviewBanner from '../../components/marketing/SamplePreviewBanner'
 import Button          from '../../components/marketing/MarketingButton';
 import Meta            from '../../components/Meta';
 import JsonLd, {
-  buildLocalBusiness, buildBreadcrumbs, SITE_URL,
+  buildBreadcrumbs, SITE_URL,
 } from '../../components/JsonLd';
 
 import { getAgency, AGENCY_LIST } from './agencyProfiles';
@@ -57,16 +57,10 @@ export default function AgencyShowcasePage({ slug }) {
     <MarketingLayout>
       <Meta
         noSuffix
-        title={`${name} - آژانس همکار راوینتا`}
-        description={tagline}
+        title={`${name} — پروفایل نمایشی آژانس`}
+        description={`پروفایل نمایشی و فرضی؛ این آژانس، نظرها و رتبه‌های آن شریک تأییدشده نیستند. ${tagline}`}
       />
-      <JsonLd
-        id="business"
-        data={buildLocalBusiness({
-          name, slug, description: tagline,
-          location, rating, founded,
-        })}
-      />
+      {/* No real ProfessionalService/rating structured data for fictional agencies. */}
       <JsonLd
         id="breadcrumbs"
         data={buildBreadcrumbs([
@@ -424,7 +418,7 @@ export default function AgencyShowcasePage({ slug }) {
             <ScrollReveal>
               <div style={{ marginTop: 48 }}>
                 <SectionLabel accent={accent}>بازخوردها</SectionLabel>
-                <h2 style={sectionH2}>آنچه مشتریان می گویند</h2>
+                <h2 style={sectionH2}>نظرهای فرضی در این نمونه</h2>
                 <div style={{ marginTop: 18, display: 'grid', gap: 12 }}>
                   {reviews.map((r, i) => (
                     <article key={i} style={{

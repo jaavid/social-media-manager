@@ -54,8 +54,7 @@ export default function ProductPage({ slug }) {
         data={buildSoftwareApplication({
           name: data.title,
           description: data.description,
-          ratingValue: 4.9,
-          ratingCount: 1200,
+          // No verified ratings: omit aggregateRating from structured data.
         })}
       />
       <JsonLd
@@ -379,6 +378,7 @@ function CustomerQuote({ data }) {
             lineHeight: 0.5,
             fontFamily: 'var(--font-sans)',
           }}>"</span>
+          <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: '10px 0' }}>سناریوی نمایشی؛ این نقل‌قول از مشتری واقعی نیست.</p>
           <p style={{
             margin: '8px 0 0',
             fontSize: 'clamp(20px, 2.4vw, 28px)',
