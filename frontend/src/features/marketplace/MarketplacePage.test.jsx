@@ -23,7 +23,7 @@ const deferred = () => {
 let queryClient, view;
 const tree = () => <QueryClientProvider client={queryClient}><MarketplacePage /></QueryClientProvider>;
 beforeEach(() => {
-  jest.clearAllMocks();
+  jest.resetAllMocks();
   mockSearch = new URLSearchParams();
   mockSetSearch = jest.fn(next => { mockSearch = next; view.rerender(tree()); });
   queryClient = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
@@ -42,7 +42,8 @@ test.each([401, 403, 404, 429, 503])('HTTP %i never looks like an empty search; 
     .mockResolvedValueOnce(response([agency(1, 'Agency after recovery')]));
   mount();
   expect(await screen.findByRole('alert')).toHaveTextContent(
-    status === 401 || status === 403 ? 'دسترسی به این فهرست مجاز نیست' : 'دریافت'
+    status === 401 || status === 403 ? 'دسترسی به این فهرست مجاز نیست' :
+      status === 429 ? 'درخواست‌های زیادی ارسال شده است' : 'دریافت'
   );
   expect(screen.queryByText('آژانسی مطابق فیلترها پیدا نشد')).not.toBeInTheDocument();
   expect(screen.queryByText('Private diagnostic message')).not.toBeInTheDocument();
