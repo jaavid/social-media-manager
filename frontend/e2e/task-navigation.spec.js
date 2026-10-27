@@ -169,7 +169,7 @@ for (const language of ['fa', 'en']) test(`mobile end-user menu ${language} trap
   const controls = await trigger.getAttribute('aria-controls'); expect(controls).toBeTruthy();
   await trigger.focus(); await page.keyboard.press('Enter');
   const drawer = page.getByRole('dialog'); await expect(drawer).toBeVisible();
-  await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+  await expect(page.locator(`[aria-controls="${controls}"]`)).toHaveAttribute('aria-expanded', 'true');
   await expect(drawer).toHaveAttribute('id', controls);
   for (let i = 0; i < 15; i++) { await page.keyboard.press('Tab'); expect(await drawer.evaluate(el => el.contains(document.activeElement))).toBe(true); }
   await page.keyboard.press('Escape'); await expect(drawer).toHaveCount(0);
