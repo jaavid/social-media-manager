@@ -58,8 +58,8 @@ export default function CaseStudyPage({ slug }) {
     <MarketingLayout>
       <Meta
         noSuffix
-        title={`${company} - داستان مشتری راوینتا`}
-        description={tagline}
+        title={`${company} — داستان نمایشی`}
+        description={`سناریوی فرضی؛ این نتایج، مشتری و نقل‌قول‌ها واقعی یا تأییدشده نیستند. ${tagline}`}
       />
       <JsonLd
         id="breadcrumbs"
@@ -346,7 +346,7 @@ export default function CaseStudyPage({ slug }) {
                 background: `linear-gradient(135deg, ${accent}10, rgba(255,255,255,0.02))`,
                 border: `1px solid ${accent}30`,
               }}>
-                <SectionLabel accent={accent}>نتایج</SectionLabel>
+                <SectionLabel accent={accent}>نتایج فرضی در این سناریو</SectionLabel>
                 <h2 style={{
                   margin: '8px 0 12px',
                   fontSize: 'clamp(24px, 3vw, 32px)',
@@ -436,7 +436,7 @@ export default function CaseStudyPage({ slug }) {
             color: 'rgba(255,255,255,0.75)',
             lineHeight: 'var(--line-height-body)',
           }}>
-            رایگان شروع کنید. هر زمان خواستید لغو کنید. اکثر تیم ها در هفته اول نتایج را می بینند.
+            امکانات، محدودیت‌ها و شرایط استفاده را پیش از شروع بررسی کنید. این داستان و اعداد آن صرفاً برای نمایش هستند.
           </p>
 
           <div style={{

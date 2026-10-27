@@ -20,7 +20,7 @@ import SamplePreviewBanner from '../../components/marketing/SamplePreviewBanner'
 import Button          from '../../components/marketing/MarketingButton';
 import Meta            from '../../components/Meta';
 import JsonLd, {
-  buildLocalBusiness, buildBreadcrumbs, SITE_URL,
+  buildBreadcrumbs, SITE_URL,
 } from '../../components/JsonLd';
 
 import { getAgency, AGENCY_LIST } from './agencyProfiles';
@@ -57,16 +57,10 @@ export default function AgencyShowcasePage({ slug }) {
     <MarketingLayout>
       <Meta
         noSuffix
-        title={`${name} - آژانس همکار راوینتا`}
-        description={tagline}
+        title={`${name} — پروفایل نمایشی آژانس`}
+        description={`پروفایل نمایشی و فرضی؛ این آژانس، نظرها و رتبه‌های آن شریک تأییدشده نیستند. ${tagline}`}
       />
-      <JsonLd
-        id="business"
-        data={buildLocalBusiness({
-          name, slug, description: tagline,
-          location, rating, founded,
-        })}
-      />
+      {/* No real ProfessionalService/rating structured data for fictional agencies. */}
       <JsonLd
         id="breadcrumbs"
         data={buildBreadcrumbs([
@@ -139,7 +133,7 @@ export default function AgencyShowcasePage({ slug }) {
                     border: '1px solid rgba(0,204,245,0.25)',
                     borderRadius: 'var(--radius-pill)',
                   }}>
-                    <BadgeCheck size={11} /> {b}
+                    <BadgeCheck size={11} /> نشان نمایشی: {b}
                   </span>
                 ))}
               </div>
@@ -162,7 +156,7 @@ export default function AgencyShowcasePage({ slug }) {
               }}>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: '#facc15' }}>
                   <Star size={13} fill="#facc15" /> {rating.score}
-                  <span style={{ color: 'rgba(255,255,255,0.55)', marginLeft: 2 }}>· {rating.count} بررسی</span>
+                  <span style={{ color: 'rgba(255,255,255,0.55)', marginLeft: 2 }}>· {rating.count} نظر نمونه</span>
                 </span>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
                   <Briefcase size={13} /> از {pricing.from}
@@ -424,7 +418,7 @@ export default function AgencyShowcasePage({ slug }) {
             <ScrollReveal>
               <div style={{ marginTop: 48 }}>
                 <SectionLabel accent={accent}>بازخوردها</SectionLabel>
-                <h2 style={sectionH2}>آنچه مشتریان می گویند</h2>
+                <h2 style={sectionH2}>نظرهای فرضی در این نمونه</h2>
                 <div style={{ marginTop: 18, display: 'grid', gap: 12 }}>
                   {reviews.map((r, i) => (
                     <article key={i} style={{
