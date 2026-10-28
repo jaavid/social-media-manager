@@ -6,10 +6,10 @@ import toast from '../ui/toast';
 jest.mock('@/i18n', () => ({ useLanguage: () => ({ t: () => 'Write with AI' }) }));
 jest.mock('@/services/domains/intelligence', () => ({ aiV2API: { compose: jest.fn() } }));
 jest.mock('../ui/toast', () => ({ __esModule: true, default: { error: jest.fn(), success: jest.fn() } }));
-jest.mock('../ui/Button', () => function MockButton({
-  children, icon, variant, size, fullWidth, iconOnly, loading, ...props
-}) {
-  return <button type="button" {...props} disabled={props.disabled || loading}>{children || 'Close'}</button>;
+jest.mock('../ui/Button', () => function MockButton({ children, loading, ...props }) {
+  const validProps = Object.fromEntries(Object.entries(props).filter(([key]) =>
+    !['icon', 'variant', 'size', 'fullWidth', 'iconOnly'].includes(key)));
+  return <button type="button" {...validProps} disabled={validProps.disabled || loading}>{children || 'Close'}</button>;
 });
 
 function compose(topic = 'Topic') {
