@@ -29,7 +29,7 @@ test('completed proposal inserts into draft only; no publish endpoint or automat
   fireEvent.click(screen.getByRole('button', { name: 'Insert' }));
   expect(onInsert).toHaveBeenCalledWith('A draft\n\n#safe');
   expect(aiV2API.compose).toHaveBeenCalledTimes(1);
-  expect(toast.success).toHaveBeenCalledWith(expect.stringMatching(/Review before publishing/));
+  expect(toast.success).toHaveBeenCalledWith('ai.compose.inserted');
 });
 test.each([
   { data: { done: false, variants: [{ content: 'partial' }] } },
@@ -63,7 +63,7 @@ test('AI quota error does not change the draft, or claim success', async () => {
   const onInsert = jest.fn();
   render(<AIWriteButton clientId={7} label="AI" onInsert={onInsert} />);
   compose();
-  await waitFor(() => expect(toast.error).toHaveBeenCalledWith(expect.stringMatching(/quota/)));
+  await waitFor(() => expect(toast.error).toHaveBeenCalledWith('ai.compose.limit'));
   expect(onInsert).not.toHaveBeenCalled();
   expect(screen.queryByRole('button', { name: 'Insert' })).not.toBeInTheDocument();
 });
@@ -75,5 +75,5 @@ test('failed draft insertion does not claim success', async () => {
   const insert = await screen.findByRole('button', { name: 'Insert' });
   fireEvent.click(insert);
   expect(toast.success).not.toHaveBeenCalled();
-  expect(toast.error).toHaveBeenCalledWith(expect.stringMatching(/Could not update draft/));
+  expect(toast.error).toHaveBeenCalledWith('ai.compose.insertionFailed');
 });
