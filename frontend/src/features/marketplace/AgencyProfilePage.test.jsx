@@ -2,9 +2,9 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import AgencyProfilePage from './AgencyProfilePage';
 import { marketplaceAPI, reviewAPI } from '@/services/domains/accounts';
 
-let currentSlug = 'alpha';
+let mockSlug = 'alpha';
 jest.mock('../../core/navigation', () => ({
-  useAppParams: () => ({ slug: currentSlug }),
+  useAppParams: () => ({ slug: mockSlug }),
   AppLink: ({ to, children, ...props }) => <a href={to} {...props}>{children}</a>,
 }));
 jest.mock('../../core/session', () => ({ useSession: () => ({ user: { id: 1, role: 'client' } }) }));
@@ -37,7 +37,7 @@ let view;
 const mount = () => { view = render(<AgencyProfilePage />); };
 beforeEach(() => {
   jest.resetAllMocks();
-  currentSlug = 'alpha';
+  mockSlug = 'alpha';
   reviewAPI.list.mockResolvedValue({ data: { rows: [], count: 0 } });
 });
 afterEach(() => { view?.unmount(); view = null; });
@@ -72,7 +72,7 @@ test('slug switch synchronously hides old details, aborts old read and ignores l
   mount();
   await waitFor(() => expect(marketplaceAPI.get).toHaveBeenCalledTimes(1));
   const signal = marketplaceAPI.get.mock.calls[0][1];
-  currentSlug = 'beta'; view.rerender(<AgencyProfilePage />);
+  mockSlug = 'beta'; view.rerender(<AgencyProfilePage />);
   expect(await screen.findByRole('heading', { name: 'Correct agency' })).toBeInTheDocument();
   expect(signal.aborted).toBe(true);
   await act(async () => old.resolve(resolveAgency('alpha', 'Confidential previous agency')));
@@ -88,7 +88,7 @@ test('reviews from prior slug are aborted and cannot become new agency reviews',
   mount(); await screen.findByRole('heading', { name: 'Alpha agency' });
   await waitFor(() => expect(reviewAPI.list).toHaveBeenCalledTimes(1));
   const signal = reviewAPI.list.mock.calls[0][2];
-  currentSlug = 'beta'; view.rerender(<AgencyProfilePage />);
+  mockSlug = 'beta'; view.rerender(<AgencyProfilePage />);
   await screen.findByRole('heading', { name: 'Beta agency' });
   expect(signal.aborted).toBe(true);
   await act(async () => oldReviews.resolve({ data: { count: 1, rows: [{ id: 9, body: 'Previous private review' }] } }));
