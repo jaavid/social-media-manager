@@ -93,3 +93,17 @@ test('reviews from prior slug are aborted and cannot become new agency reviews',
   await act(async () => oldReviews.resolve({ data: { count: 1, rows: [{ id: 9, body: 'Previous private review' }] } }));
   expect(screen.queryByText('Previous private review')).not.toBeInTheDocument();
 });
+
+test('failed review read never claims there are zero reviews and can retry safely', async () => {
+  marketplaceAPI.get.mockResolvedValue(resolveAgency('alpha', 'Agency with reviews'));
+  reviewAPI.list.mockRejectedValueOnce(new Error('network unavailable'))
+    .mockResolvedValueOnce({ data: { rows: [], count: 0 } });
+  mount();
+  await screen.findByRole('heading', { name: 'Agency with reviews' });
+  expect(await screen.findByText('نظرهای این آژانس در دسترس نیست')).toBeInTheDocument();
+  expect(screen.queryByText(/هنوز نظری وجود ندارد/)).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: 'تلاش دوباره' }));
+  expect(await screen.findByText(/هنوز نظری وجود ندارد/)).toBeInTheDocument();
+  expect(reviewAPI.list).toHaveBeenCalledTimes(2);
+  expect(reviewAPI.list.mock.calls.every(([slug, , signal]) => slug === 'alpha' && signal instanceof AbortSignal)).toBe(true);
+});
