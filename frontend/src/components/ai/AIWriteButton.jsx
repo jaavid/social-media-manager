@@ -106,11 +106,11 @@ export default function AIWriteButton({
   async function generate() {
     const t = (topic || '').trim();
     if (!t) {
-      toast.error('Tell me what to write about');
+      toast.error(brandT('ai.compose.topicRequired'));
       return;
     }
     if (!clientId) {
-      toast.error('Pick a workspace first');
+      toast.error(brandT('ai.compose.workspaceRequired'));
       return;
     }
     const request = ++requestRef.current;
@@ -133,16 +133,14 @@ export default function AIWriteButton({
         res?.data?.done === false || !Array.isArray(list) || list.length === 0 ||
         !list.every(v => typeof v?.content === 'string' && v.content.trim() &&
           (v.hashtags == null || (Array.isArray(v.hashtags) && v.hashtags.every(h => typeof h === 'string'))))) {
-        toast.error('AI did not return a completed draft. Check the request before retrying.');
+        toast.error(brandT('ai.compose.incomplete'));
       } else {
         setResultScope(scope);
         setVariants(list);
       }
     } catch (e) {
       if (request !== requestRef.current || workspaceRef.current !== scope) return;
-      toast.error(e?.response?.status === 429
-        ? 'AI limit reached. Check your current quota before retrying.'
-        : 'AI generation was not confirmed. Your existing draft was not changed.');
+      toast.error(brandT(e?.response?.status === 429 ? 'ai.compose.limit' : 'ai.compose.requestFailed'));
     } finally {
       if (request === requestRef.current && workspaceRef.current === scope) setLoadingScope(null);
     }
@@ -156,9 +154,9 @@ export default function AIWriteButton({
       onInsert(text); // Proposes text in the parent's draft, never publishes.
       setOpen(false);
       reset();
-      toast.success('Suggestion inserted into draft. Review before publishing.');
+      toast.success(brandT('ai.compose.inserted'));
     } catch {
-      toast.error('Could not update draft. Your current text was kept.');
+      toast.error(brandT('ai.compose.insertionFailed'));
     }
   }
 
@@ -167,9 +165,9 @@ export default function AIWriteButton({
     const text = v.content + (v.hashtags?.length ? '\n\n' + v.hashtags.join(' ') : '');
     try {
       await navigator.clipboard.writeText(text);
-      toast.success('Copied to clipboard');
+      toast.success(brandT('ai.compose.copied'));
     } catch {
-      toast.error('Could not copy');
+      toast.error(brandT('ai.compose.copyFailed'));
     }
   }
 
