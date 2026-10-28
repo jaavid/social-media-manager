@@ -1,8 +1,15 @@
 import { test, expect } from '@playwright/test';
 
 test('admin workspace selector and route navigation scope badge requests', { tag: '@smoke' }, async ({ page }) => {
+  // Socket readiness + 2 notification retries can exceed the 30s default.
+  test.setTimeout(90_000);
   const counts = [];
-  let liveSocket;
+  const liveSockets = new Set();
+  const sendFixture = message => {
+    for (const socket of liveSockets) {
+      try { socket.send(JSON.stringify(message)); } catch { liveSockets.delete(socket); }
+    }
+  };
   await page.route('**/api/**', async route => {
     const url = new URL(route.request().url());
     const path = url.pathname;
@@ -17,27 +24,39 @@ test('admin workspace selector and route navigation scope badge requests', { tag
     }
     return route.fulfill({ json: [] });
   });
-  await page.routeWebSocket('**/ws/**', socket => { liveSocket = socket; });
+  await page.routeWebSocket('**/ws/**', socket => {
+    liveSockets.add(socket);
+    socket.onClose(() => liveSockets.delete(socket));
+  });
   await page.goto('/admin/analytics');
   const selector = page.locator('select').filter({ has: page.locator('option[value="42"]') }).first();
   await expect(selector).toBeVisible();
   expect(counts).toEqual([]);
   await selector.selectOption('42');
   await expect.poll(() => counts.at(-1)).toBe(42);
-  await expect.poll(() => Boolean(liveSocket)).toBe(true);
+  await expect.poll(() => liveSockets.size, { timeout: 15000 }).toBeGreaterThan(0);
+  // The legacy <select> is a transient navigation control; the scoped
+  // counts request, not the option value after navigation, is authoritative.
   // The mocked WebSocket route can be created before the client effect has
   // registered its subscriber. Retry the *fixture notification*, not a write.
   await expect(async () => {
-    liveSocket.send(JSON.stringify({ type: 'composer.post_failed', client_id: '42', data: { title: 'Active workspace event' } }));
-    await expect(page.getByText('Publish failed: Active workspace event', { exact: true })).toBeVisible({ timeout: 600 });
-  }).toPass({ timeout: 8000 });
+    sendFixture({ type: 'composer.post_failed', client_id: '42', data: { title: 'Active workspace event' } });
+    await expect(page.getByText('Publish failed: Active workspace event', { exact: true })).toBeVisible({ timeout: 1000 });
+  }).toPass({ timeout: 15000 });
   await selector.selectOption('99');
   await expect.poll(() => counts.at(-1)).toBe(99);
-  liveSocket.send(JSON.stringify({ type: 'composer.post_failed', client_id: 42, data: { title: 'Foreign workspace event' } }));
+  // For every attempt, send the rejected event and a *unique* permitted
+  // sentinel on the same active socket. Observing the sentinel proves that
+  // the foreign-event absence isn't merely a disconnected transport.
+  let sentinelSequence = 0;
   await expect(async () => {
-    liveSocket.send(JSON.stringify({ type: 'composer.post_failed', workspace_id: 99, data: { title: 'Current workspace event' } }));
-    await expect(page.getByText('Publish failed: Current workspace event', { exact: true })).toBeVisible({ timeout: 600 });
-  }).toPass({ timeout: 8000 });
+    const socket = Array.from(liveSockets).at(-1);
+    expect(socket).toBeDefined();
+    const title = `Current workspace event ${++sentinelSequence}`;
+    socket.send(JSON.stringify({ type: 'composer.post_failed', client_id: 42, data: { title: 'Foreign workspace event' } }));
+    socket.send(JSON.stringify({ type: 'composer.post_failed', workspace_id: 99, data: { title } }));
+    await expect(page.getByText(`Publish failed: ${title}`, { exact: true })).toBeVisible({ timeout: 1000 });
+  }).toPass({ timeout: 15000 });
   await expect(page.getByText('Publish failed: Foreign workspace event', { exact: true })).toHaveCount(0);
   await page.goto('/admin/analytics/analytics?workspace=42');
   await expect.poll(() => counts.at(-1)).toBe(42);

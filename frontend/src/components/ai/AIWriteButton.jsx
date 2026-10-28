@@ -7,8 +7,8 @@ import { useLanguage } from '@/i18n';
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
-import { useEffect, useRef, useState } from 'react';
-import { Sparkles, Loader2, X, Check, RefreshCw, Copy } from 'lucide-react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { Sparkles, X, Check, RefreshCw, Copy } from 'lucide-react';
 
 import Button from '../ui/Button';
 import { aiV2API } from '@/services/domains/intelligence';
@@ -70,9 +70,24 @@ export default function AIWriteButton({
   const [tone, setTone] = useState(initialTone);
   const [length, setLength] = useState('medium');
   const [plat, setPlat] = useState(platform);
-  const [loading, setLoading] = useState(false);
+  const [loadingScope, setLoadingScope] = useState(null);
   const [variants, setVariants] = useState([]);
+  const [resultScope, setResultScope] = useState(null);
   const wrapRef = useRef(null);
+  const requestRef = useRef(0);
+  const workspaceRef = useRef(clientId);
+  useLayoutEffect(() => { workspaceRef.current = clientId; }, [clientId]);
+  const loading = clientId != null && loadingScope === clientId;
+  const visibleVariants = resultScope === clientId ? variants : [];
+  // Closing the dialog or changing the workspace invalidates the in-flight
+  // request AND clears disabled/loading and cached proposal state. Otherwise
+  // a closed request may never run its finally branch, leaving Generate stuck.
+  useEffect(() => () => {
+    requestRef.current += 1;
+    setLoadingScope(null);
+    setResultScope(null);
+    setVariants([]);
+  }, [clientId, open]);
 
   // Close on outside click + Esc
   useEffect(() => {
@@ -91,20 +106,25 @@ export default function AIWriteButton({
 
   function reset() {
     setVariants([]);
+    setResultScope(null);
     setTopic('');
   }
 
   async function generate() {
     const t = (topic || '').trim();
     if (!t) {
-      toast.error('Tell me what to write about');
+      toast.error(brandT('ai.compose.topicRequired'));
       return;
     }
     if (!clientId) {
-      toast.error('Pick a workspace first');
+      toast.error(brandT('ai.compose.workspaceRequired'));
       return;
     }
-    setLoading(true);
+    const request = ++requestRef.current;
+    const scope = clientId;
+    setLoadingScope(scope);
+    setVariants([]);
+    setResultScope(null);
     try {
       const res = await aiV2API.compose({
         client_id: clientId,
@@ -113,35 +133,48 @@ export default function AIWriteButton({
         tone,
         length,
       });
-      const list = res.data?.variants || [];
-      if (list.length === 0) {
-        toast.error('No variants returned');
+      if (request !== requestRef.current || workspaceRef.current !== scope) return;
+      const list = res?.data?.variants;
+      const status = res?.data?.status;
+      if ((status && !['success', 'completed', 'complete'].includes(status)) ||
+        res?.data?.done === false || !Array.isArray(list) || list.length === 0 ||
+        !list.every(v => typeof v?.content === 'string' && v.content.trim() &&
+          (v.hashtags == null || (Array.isArray(v.hashtags) && v.hashtags.every(h => typeof h === 'string'))))) {
+        toast.error(brandT('ai.compose.incomplete'));
       } else {
+        setResultScope(scope);
         setVariants(list);
       }
     } catch (e) {
-      const detail = e?.response?.data?.error || 'Generation failed';
-      toast.error(detail);
+      if (request !== requestRef.current || workspaceRef.current !== scope) return;
+      toast.error(brandT(e?.response?.status === 429 ? 'ai.compose.limit' : 'ai.compose.requestFailed'));
     } finally {
-      setLoading(false);
+      if (request === requestRef.current && workspaceRef.current === scope) setLoadingScope(null);
     }
   }
 
   function pickVariant(v) {
-    const text = v.content + (v.hashtags?.length ? '\n\n' + v.hashtags.join(' ') : '');
-    onInsert?.(text);
-    setOpen(false);
-    reset();
-    toast.success('Inserted into draft');
-  }
-
-  function copyVariant(v) {
+    if (loading || resultScope !== clientId || typeof onInsert !== 'function' ||
+      typeof v?.content !== 'string' || !v.content.trim()) return;
     const text = v.content + (v.hashtags?.length ? '\n\n' + v.hashtags.join(' ') : '');
     try {
-      navigator.clipboard.writeText(text);
-      toast.success('Copied to clipboard');
+      onInsert(text); // Proposes text in the parent's draft, never publishes.
+      setOpen(false);
+      reset();
+      toast.success(brandT('ai.compose.inserted'));
     } catch {
-      toast.error('Could not copy');
+      toast.error(brandT('ai.compose.insertionFailed'));
+    }
+  }
+
+  async function copyVariant(v) {
+    if (typeof v?.content !== 'string') return;
+    const text = v.content + (v.hashtags?.length ? '\n\n' + v.hashtags.join(' ') : '');
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success(brandT('ai.compose.copied'));
+    } catch {
+      toast.error(brandT('ai.compose.copyFailed'));
     }
   }
 
@@ -180,7 +213,7 @@ export default function AIWriteButton({
             boxShadow: 'var(--shadow-lg)',
           }}
         >
-          {variants.length === 0 ? (
+          {visibleVariants.length === 0 ? (
             <>
               <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 12 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-primary)', fontWeight: 600, fontSize: 14 }}>
@@ -271,7 +304,7 @@ export default function AIWriteButton({
               </header>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 360, overflowY: 'auto' }}>
-                {variants.map((v, i) => (
+                {visibleVariants.map((v, i) => (
                   <article
                     key={i}
                     style={{
@@ -303,7 +336,7 @@ export default function AIWriteButton({
                       </div>
                     ) : null}
                     <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
-                      <Button size="xs" icon={Check} onClick={() => pickVariant(v)}>Insert</Button>
+                      <Button size="xs" icon={Check} disabled={loading} onClick={() => pickVariant(v)}>Insert</Button>
                       <Button size="xs" variant="ghost" icon={Copy} onClick={() => copyVariant(v)}>Copy</Button>
                     </div>
                   </article>
