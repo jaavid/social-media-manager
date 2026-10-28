@@ -77,3 +77,29 @@ test('failed draft insertion does not claim success', async () => {
   expect(toast.success).not.toHaveBeenCalled();
   expect(toast.error).toHaveBeenCalledWith('ai.compose.insertionFailed');
 });
+
+test('closing during an in-flight generation and reopening clears pending state', async () => {
+  let release;
+  aiV2API.compose.mockImplementation(() => new Promise(resolve => { release = resolve; }));
+  const onInsert = jest.fn();
+  render(<AIWriteButton clientId={7} label="AI" onInsert={onInsert} />);
+  compose();
+  expect(screen.getByRole('button', { name: /Ravinta is writing/ })).toBeDisabled();
+  fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+  fireEvent.click(screen.getByRole('button', { name: 'AI' }));
+  expect(screen.getByRole('button', { name: 'Generate' })).toBeEnabled();
+  await act(async () => { release({ data: { variants: [{ content: 'old result' }] } }); });
+  expect(screen.queryByText('old result')).not.toBeInTheDocument();
+  expect(onInsert).not.toHaveBeenCalled();
+  expect(toast.success).not.toHaveBeenCalled();
+});
+test('closing a completed proposal does not show it again when reopening', async () => {
+  aiV2API.compose.mockResolvedValue({ data: { variants: [{ content: 'previous result' }] } });
+  render(<AIWriteButton clientId={7} label="AI" onInsert={jest.fn()} />);
+  compose();
+  await screen.findByText('previous result');
+  fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+  fireEvent.click(screen.getByRole('button', { name: 'AI' }));
+  expect(screen.queryByText('previous result')).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'Insert' })).not.toBeInTheDocument();
+});

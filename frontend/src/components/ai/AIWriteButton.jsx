@@ -79,8 +79,15 @@ export default function AIWriteButton({
   useLayoutEffect(() => { workspaceRef.current = clientId; }, [clientId]);
   const loading = clientId != null && loadingScope === clientId;
   const visibleVariants = resultScope === clientId ? variants : [];
-  // Invalidate pending UI work on workspace switches or dialog close.
-  useEffect(() => () => { requestRef.current += 1; }, [clientId, open]);
+  // Closing the dialog or changing the workspace invalidates the in-flight
+  // request AND clears disabled/loading and cached proposal state. Otherwise
+  // a closed request may never run its finally branch, leaving Generate stuck.
+  useEffect(() => () => {
+    requestRef.current += 1;
+    setLoadingScope(null);
+    setResultScope(null);
+    setVariants([]);
+  }, [clientId, open]);
 
   // Close on outside click + Esc
   useEffect(() => {

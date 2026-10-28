@@ -1,6 +1,8 @@
 import { test, expect } from '@playwright/test';
 
 test('admin workspace selector and route navigation scope badge requests', { tag: '@smoke' }, async ({ page }) => {
+  // Socket readiness + 2 notification retries can exceed the 30s default.
+  test.setTimeout(90_000);
   const counts = [];
   const liveSockets = new Set();
   const sendFixture = message => {
@@ -43,10 +45,17 @@ test('admin workspace selector and route navigation scope badge requests', { tag
   await selector.selectOption('99');
   await expect.poll(() => counts.at(-1)).toBe(99);
   await expect(selector).toHaveValue('99');
-  sendFixture({ type: 'composer.post_failed', client_id: 42, data: { title: 'Foreign workspace event' } });
+  // For every attempt, send the rejected event and a *unique* permitted
+  // sentinel on the same active socket. Observing the sentinel proves that
+  // the foreign-event absence isn't merely a disconnected transport.
+  let sentinelSequence = 0;
   await expect(async () => {
-    sendFixture({ type: 'composer.post_failed', workspace_id: 99, data: { title: 'Current workspace event' } });
-    await expect(page.getByText('Publish failed: Current workspace event', { exact: true })).toBeVisible({ timeout: 1000 });
+    const socket = Array.from(liveSockets).at(-1);
+    expect(socket).toBeDefined();
+    const title = `Current workspace event ${++sentinelSequence}`;
+    socket.send(JSON.stringify({ type: 'composer.post_failed', client_id: 42, data: { title: 'Foreign workspace event' } }));
+    socket.send(JSON.stringify({ type: 'composer.post_failed', workspace_id: 99, data: { title } }));
+    await expect(page.getByText(`Publish failed: ${title}`, { exact: true })).toBeVisible({ timeout: 1000 });
   }).toPass({ timeout: 15000 });
   await expect(page.getByText('Publish failed: Foreign workspace event', { exact: true })).toHaveCount(0);
   await page.goto('/admin/analytics/analytics?workspace=42');

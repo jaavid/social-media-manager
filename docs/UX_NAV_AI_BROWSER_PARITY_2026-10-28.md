@@ -28,3 +28,8 @@ Base: merged #232 on `main` at `039a5a1`. This batch is a targeted follow-up to 
 - **#224:** AI Studio directs to a scoped composer. This PR fixes the concrete compose button unsafe-output/draft boundary. Other feature surfaces (reply, ideas, voice, insights, quotas, streaming and usage) still need contract-specific tests and copy review.
 
 All changes are safe to revert; no provider capability added, no permission or billing policy relaxed, no auto-repeat of non-idempotent writes. This batch must not auto-close these parents until full acceptance evidence exists.
+
+## CodeRabbit review hardening — PR #233
+
+- A scoped AI request invalidated on dialog close previously kept the disabled state, and completed variants could reappear. Cleanup now clears loading and result state as well as invalidating pending requests; two targeted regression tests cover closing during an unresolved request and reopening after a completed proposal.
+- Workspace notification test now sets a 90-second per-test deadline, retains stricter nested 15-second retry waits, and sends a rejected foreign-workspace event followed by a unique permitted sentinel through the same live socket. Observing that sentinel is required before checking that the rejected event did not produce a toast. The test still rejects any cross-workspace event.
