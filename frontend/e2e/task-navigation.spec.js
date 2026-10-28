@@ -219,3 +219,40 @@ test('agency discovery has one active menu destination', async ({ page }) => {
   await expect(sidebar.getByRole('link', { name: 'My agency', exact: true })).not.toHaveAttribute('aria-current');
   await expect(sidebar.locator('a[aria-current="page"]')).toHaveCount(1);
 });
+
+
+for (const language of ['fa', 'en']) test(`AI hub preserves role grants, selected workspace, locale and browser history (${language})`, async ({ page }) => {
+  await page.setViewportSize({ width: language === 'fa' ? 360 : 1440, height: 900 });
+  await setup(page, { language, grants: ['composer.view', 'inbox.view', 'ai.brand_voice'] });
+  await page.goto('/dashboard/ai-studio?workspace=7');
+  const hub = page.locator('[data-ai-studio]');
+  await expect(hub).toBeVisible();
+  const composer = hub.locator('a[href="/dashboard/composer?workspace=7"]');
+  const inbox = hub.locator('a[href="/dashboard/inbox?workspace=7"]');
+  await expect(composer).toBeVisible();
+  await expect(inbox).toBeVisible();
+  await capture(page, `ai-hub-${language}`);
+  await expect(page.locator('html')).toHaveAttribute('dir', language === 'fa' ? 'rtl' : 'ltr');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.goto('/dashboard/ai-studio?workspace=8');
+  await expect(hub.locator('a[href="/dashboard/composer?workspace=8"]')).toBeVisible();
+  await expect(hub.locator('a[href*="workspace=7"]')).toHaveCount(0);
+  await hub.locator('a[href="/dashboard/composer?workspace=8"]').click();
+  await expect(page).toHaveURL(/\/dashboard\/composer\?workspace=8$/);
+  await page.goBack();
+  await expect(page).toHaveURL(/\/dashboard\/ai-studio\?workspace=8$/);
+});
+
+test('AI hub does not advertise restricted actions to a navigation-limited role', async ({ page }) => {
+  await setup(page, {
+    grants: ['calendar.view'], accountPermissions: {
+      view_posts: false, view_inbox: false, view_analytics: false,
+    },
+  });
+  await page.goto('/dashboard/ai-studio?workspace=7');
+  const hub = page.locator('[data-ai-studio]');
+  await expect(hub).toBeVisible();
+  await expect(hub.locator('a[href*="/composer"]')).toHaveCount(0);
+  await expect(hub.locator('a[href*="/inbox"]')).toHaveCount(0);
+  await expect(hub.locator('a[href*="/brand-voice"]')).toHaveCount(0);
+});
