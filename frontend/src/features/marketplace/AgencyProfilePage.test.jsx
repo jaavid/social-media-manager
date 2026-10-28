@@ -17,9 +17,10 @@ jest.mock('@/services/domains/accounts', () => ({
 jest.mock('../../components/marketplace/InviteAgencyModal', () => () => null);
 jest.mock('../../components/marketplace/WriteReviewModal', () => () => null);
 jest.mock('../../components/ui/toast', () => ({ error: jest.fn(), success: jest.fn() }));
-jest.mock('../../components/ui/Button', () => ({ children, onClick }) => <button onClick={onClick}>{children}</button>);
-jest.mock('../../components/ui/DataState', () => ({ title, state, action }) =>
-  <div role={['error', 'forbidden', 'not-found'].includes(state) ? 'alert' : 'status'}>{title}{action}</div>);
+jest.mock('../../components/ui/Button', () => function MockButton({ children, onClick }) { return <button onClick={onClick}>{children}</button>; });
+jest.mock('../../components/ui/DataState', () => function MockDataState({ title, state, action }) {
+  return <div role={['error', 'forbidden', 'not-found'].includes(state) ? 'alert' : 'status'}>{title}{action}</div>;
+});
 
 const agency = (slug, name) => ({ slug, name, review_count: 0, services_offered: [], industries_served: [] });
 const resolveAgency = (slug, name) => ({ data: agency(slug, name) });
