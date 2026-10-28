@@ -49,6 +49,8 @@ function AgencyProfileForSlug({ slug, user }) {
   const [inviteOpen, setInviteOpen] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
   const [reviewsExtra, setReviewsExtra] = useState(null);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
+  const [reviewsError, setReviewsError] = useState(false);
   const [editReview, setEditReview] = useState(null);
   const reviewsAbort = useRef(null);
   const headingRef = useRef(null);
@@ -58,9 +60,18 @@ function AgencyProfileForSlug({ slug, user }) {
     reviewsAbort.current?.abort();
     const controller = new AbortController();
     reviewsAbort.current = controller;
+    setReviewsLoading(true);
+    setReviewsError(false);
+    setReviewsExtra(null);
     reviewAPI.list(agencySlug, { limit: 50 }, controller.signal)
-      .then(r => { if (!controller.signal.aborted) setReviewsExtra(r.data || null); })
-      .catch(() => {}); // Failure is not equivalent to zero reviews.
+      .then(r => {
+        if (controller.signal.aborted) return;
+        const data = r?.data;
+        if (!data || !Array.isArray(data.rows) || !Number.isSafeInteger(data.count)) throw new Error('Invalid review response');
+        setReviewsExtra(data);
+      })
+      .catch(() => { if (!controller.signal.aborted) setReviewsError(true); })
+      .finally(() => { if (!controller.signal.aborted) setReviewsLoading(false); });
   }, []);
   useEffect(() => {
     if (agency?.slug) reloadReviews(agency.slug);
@@ -102,10 +113,6 @@ function AgencyProfileForSlug({ slug, user }) {
 
   useEffect(() => {
     const controller = new AbortController();
-    setLoading(true);
-    setError(null);
-    setAgency(null);
-    setReviewsExtra(null);
     marketplaceAPI.get(slug, controller.signal)
       .then(r => {
         const row = r?.data;
@@ -132,7 +139,13 @@ function AgencyProfileForSlug({ slug, user }) {
         problem.status === 404 ? 'پروفایل آژانس پیدا نشد' : 'دریافت پروفایل آژانس ناموفق بود'}
       description="نتیجهٔ قبلی معتبر نیست. اتصال یا دسترسی را بررسی کنید."
       referenceId={problem.referenceId}
-      action={<Button variant="secondary" onClick={() => setRetryKey(value => value + 1)}>تلاش دوباره</Button>}
+      action={<Button variant="secondary" onClick={() => {
+        setLoading(true);
+        setError(null);
+        setAgency(null);
+        setReviewsExtra(null);
+        setRetryKey(value => value + 1);
+      }}>تلاش دوباره</Button>}
     /></Center>;
   }
 
@@ -229,7 +242,12 @@ function AgencyProfileForSlug({ slug, user }) {
           {reviewsExtra?.count > 0 && (
             <RatingSummary avg={reviewsExtra.avg_rating} distribution={reviewsExtra.distribution} count={reviewsExtra.count} />
           )}
-          {(reviewsExtra?.rows?.length || 0) === 0 ? (
+          {reviewsLoading ? (
+            <DataState compact state="loading" title="در حال دریافت نظرها" />
+          ) : reviewsError ? (
+            <DataState compact state="unavailable" title="نظرهای این آژانس در دسترس نیست"
+              action={<Button variant="secondary" onClick={() => reloadReviews(agency.slug)}>تلاش دوباره</Button>} />
+          ) : (reviewsExtra?.rows?.length || 0) === 0 ? (
             <p style={{ margin: 0, fontSize: 13, color: 'var(--text-tertiary)' }}>
               هنوز نظری وجود ندارد - اولین کسی باشید که پس از همکاری با یکدیگر به آنها امتیاز می دهید.
             </p>
@@ -564,14 +582,6 @@ const trustBox = {
   background: 'var(--surface-sunken)',
   border: '1px solid var(--border-subtle)',
   borderRadius: 'var(--radius-md)',
-};
-
-const errorBox = {
-  padding: 24,
-  background: 'var(--surface-card)',
-  border: '1px solid var(--danger)',
-  borderRadius: 'var(--radius-md)',
-  color: 'var(--text-primary)',
 };
 
 const btnPrimary = {
