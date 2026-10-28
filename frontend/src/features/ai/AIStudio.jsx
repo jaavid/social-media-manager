@@ -1,5 +1,4 @@
 'use client';
-import { useLanguage } from '@/i18n';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -8,7 +7,6 @@ import { useLanguage } from '@/i18n';
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
-/**
 
 import { useLanguage } from '@/i18n';
 import { AppLink as Link } from '../../core/navigation';
