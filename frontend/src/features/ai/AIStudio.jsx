@@ -1,3 +1,4 @@
+'use client';
 import { useLanguage } from '@/i18n';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
@@ -8,206 +9,105 @@ import { useLanguage } from '@/i18n';
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
 /**
- * AIStudio — central hub for every AI feature in Ravinta.
- *
- * Card grid linking to:
- *   - Brand Voice
- *   - AI Insights
- *   - AI Chat history
- *   - Caption Writer (existing)
- *   - Post Ideas (existing)
- *   - Hashtag Research (existing)
- *   - AI Usage (admin only)
- *
- * Each card has a "Try" button + a one-line description.
- */
-import { AppLink as Link } from '../../core/navigation';
-import {
-  Sparkles, Mic, BarChart3, MessageSquare, Wand2, Lightbulb, Hash,
-  Inbox, Activity, ArrowRight, Image, Video, AlertTriangle,
-} from 'lucide-react';
 
+import { useLanguage } from '@/i18n';
+import { AppLink as Link } from '../../core/navigation';
+import { Sparkles, Mic, BarChart3, MessageSquare, Wand2, Lightbulb, Hash, Inbox, ArrowRight } from 'lucide-react';
 import PageHeader from '../../components/layout/PageHeader';
 import Card from '../../components/ui/Card';
-import { useSession as useAuth } from '../../core/session';
+import useWorkspaceScope from '../../hooks/useWorkspaceScope';
+import useNavigationAccess from '../../hooks/useNavigationAccess';
+import { navigationHref, visibleSections } from '../../components/shell/navigationItems';
 
+// This is a task-oriented directory, NOT a second provider/permission
+// catalogue. The existing navigation registry is the sole source of routable,
+// permission-filtered destinations. AI can suggest a draft; none of these
+// links imply successful generation, supported reach, or automatic publishing.
 const FEATURE_GROUPS = [
   {
-    label: 'Create',
+    label: { fa: 'تولید محتوا', en: 'Create content' },
     items: [
-      { id: 'compose',      title: 'Smart Composer',   icon: Wand2,        body: 'Generate platform-tailored posts in seconds.', to: '/composer',        accent: 'var(--brand-primary)' },
-      { id: 'caption',      title: 'Caption Writer',   icon: Wand2,        body: 'Generate captions across platforms.',          to: '/caption-writer',  accent: 'var(--module-ai)' },
-      { id: 'post-ideas',   title: 'Post Ideas',       icon: Lightbulb,    body: 'AI-built monthly content calendar.',           to: '/post-ideas',      accent: '#f59e0b' },
-      { id: 'hashtags',     title: 'Hashtag Research', icon: Hash,         body: 'Research hashtags with reach + competition.',   to: '/hashtags',        accent: '#10b981' },
+      { id: 'compose', path: '/composer', icon: Wand2, title: { fa: 'ساخت پست', en: 'Create post' }, body: { fa: 'پیش‌نویس پست را بسازید و قبل از انتشار بررسی کنید.', en: 'Create a draft, then review it before publishing.' } },
+      { id: 'caption', path: '/caption-writer', icon: Wand2, title: { fa: 'نوشتن کپشن', en: 'Caption writer' }, body: { fa: 'متن پیشنهادی را ویرایش و برای مقصد مناسب آماده کنید.', en: 'Review and edit suggested captions for your destination.' } },
+      { id: 'post-ideas', path: '/post-ideas', icon: Lightbulb, title: { fa: 'ایده‌های پست', en: 'Post ideas' }, body: { fa: 'پیشنهادها را ببینید؛ انتخاب ایده به‌معنی انتشار نیست.', en: 'Explore ideas; selecting one does not publish anything.' } },
+      { id: 'hashtags', path: '/hashtags', icon: Hash, title: { fa: 'بررسی هشتگ‌ها', en: 'Explore hashtags' }, body: { fa: 'پیشنهادهای هشتگ را پیش از استفاده ارزیابی کنید.', en: 'Check hashtag suggestions before using them.' } },
     ],
   },
   {
-    label: 'Engage',
+    label: { fa: 'پیام‌ها', en: 'Messages' },
     items: [
-      { id: 'inbox',        title: 'AI Reply Suggestions', icon: Inbox,    body: 'Three-tone reply candidates for any message.', to: '/inbox',     accent: '#0891b2' },
+      { id: 'inbox', path: '/inbox', icon: Inbox, title: { fa: 'صندوق پیام', en: 'Inbox' }, body: { fa: 'پیام‌های حساب مجاز را ببینید و پاسخ را پیش از ارسال تأیید کنید.', en: 'Review messages in permitted accounts and confirm replies before sending.' } },
     ],
   },
   {
-    label: 'Understand',
+    label: { fa: 'تحلیل و راهنمایی', en: 'Insights and guidance' },
     items: [
-      { id: 'insights',     title: 'AI Insights',          icon: BarChart3, body: 'Actionable insights from your data.',         to: '/insights',     accent: 'var(--brand-primary)' },
-      { id: 'brand-voice',  title: 'Brand Voice',          icon: Mic,       body: 'Train Ravinta on your past posts.',            to: '/brand-voice',  accent: '#8b5cf6' },
-    ],
-  },
-  {
-    label: 'Chat',
-    items: [
-      { id: 'chat-history', title: 'Chat History',         icon: MessageSquare, body: 'Past conversations with Ravinta.',     to: '/chat-history', accent: 'var(--brand-primary-hover)' },
+      { id: 'insights', path: '/insights', icon: BarChart3, title: { fa: 'بینش‌ها', en: 'Insights' }, body: { fa: 'یافته‌های موجود را همراه با منبع و محدودیتشان بررسی کنید.', en: 'Review available insights alongside their source and limitations.' } },
+      { id: 'brand-voice', path: '/brand-voice', icon: Mic, title: { fa: 'لحن برند', en: 'Brand voice' }, body: { fa: 'تنظیمات لحن را بررسی کنید؛ آموزش اختصاصی مدل تضمین نشده است.', en: 'Review tone preferences; model training is not implied.' } },
     ],
   },
 ];
-
-const ADMIN_ITEMS = [
-  { id: 'ai-usage', title: 'AI Usage', icon: Activity, body: 'Cost dashboards, per-workspace + per-user breakdown.', to: '/ai-usage', accent: 'var(--warning)' },
-];
-
 
 export default function AIStudio() {
-  const { t: brandT } = useLanguage();
-  const { user } = useAuth();
-  const isAdmin = user?.role === 'superadmin' || user?.role === 'staff';
-  const basePath = isAdmin ? '/admin/analytics' : '/dashboard/analytics';
+  const language = useLanguage();
+  const lang = language.isPersian ? 'fa' : 'en';
+  const can = useNavigationAccess();
+  const { workspaceId } = useWorkspaceScope();
+  const root = '/dashboard';
+  const allowedPaths = new Set(visibleSections('analytics', root, can).flatMap(section => section.items.map(item => item.path)));
+  const groups = FEATURE_GROUPS.map(group => ({
+    ...group,
+    items: workspaceId === null ? [] : group.items.filter(item => allowedPaths.has(item.path)),
+  })).filter(group => group.items.length);
 
-  return (
-    <div className="app-page app-page--lg">
-      <PageHeader
-        title={brandT('brand.studio')}
-        subtitle="Every Ravinta surface in one place"
-        eyebrow="✨ Powered by Ravinta"
-      />
-
-      {FEATURE_GROUPS.map((group) => (
-        <section key={group.label} style={{ marginBottom: 24 }}>
-          <h2 style={sectionLabelStyle}>{group.label}</h2>
-          <div style={gridStyle} className="ai-studio-grid">
-            {group.items.map((it) => (
-              <FeatureCard key={it.id} item={it} basePath={basePath} />
-            ))}
-          </div>
-        </section>
-      ))}
-
-      {isAdmin && (
-        <section style={{ marginBottom: 24 }}>
-          <h2 style={sectionLabelStyle}>Admin</h2>
-          <div style={gridStyle} className="ai-studio-grid">
-            {ADMIN_ITEMS.map((it) => (
-              <FeatureCard key={it.id} item={it} basePath={basePath} />
-            ))}
-          </div>
-        </section>
-      )}
-
-      <Card padding="md" style={{ marginTop: 28 }}>
-        <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
-          <span style={{
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            flexShrink: 0,
-            width: 38, height: 38,
-            background: 'var(--brand-gradient)',
-            borderRadius: 'var(--radius-md)',
-            color: '#fff',
-          }}>
-            <Sparkles size={18} strokeWidth={2.4} />
-          </span>
-          <div style={{ minWidth: 0, flex: 1 }}>
-            <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
-              Press <kbd style={kbdStyle}>⌘ J</kbd>{brandT('brand.chatShortcut')}</div>
-            <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)' }}>
-              The chat assistant can pull your metrics, draft posts, search your inbox, and schedule actions —
-              all with confirmation gates on anything that touches live data.
-            </p>
-          </div>
-        </div>
+  return <div className="app-page app-page--lg" data-ai-studio>
+    <PageHeader
+      title={language.t('brand.studio')}
+      subtitle={lang === 'fa'
+        ? 'ابزارهای در دسترس همین فضای کاری؛ پیشنهادهای هوش مصنوعی پیش از استفاده نیاز به بررسی دارند.'
+        : 'Tools available in this workspace. Review AI suggestions before using them.'}
+    />
+    {workspaceId === null ? (
+      <Card as="section" aria-live="polite" className="space-y-2">
+        <h2 className="font-semibold">{lang === 'fa' ? 'فضای کاری مشخص نیست' : 'No workspace selected'}</h2>
+        <p className="text-sm text-[var(--text-secondary)]">
+          {lang === 'fa' ? 'برای نمایش ابزارهای مجاز ابتدا یک فضای کاری انتخاب کنید.' : 'Select a workspace to discover permitted tools.'}
+        </p>
       </Card>
-
-      <style>{`
-        @media (max-width: 980px) { .ai-studio-grid { grid-template-columns: 1fr 1fr !important; } }
-        @media (max-width: 560px) { .ai-studio-grid { grid-template-columns: 1fr !important; } }
-      `}</style>
-    </div>
-  );
-}
-
-
-function FeatureCard({ item, basePath }) {
-  const Icon = item.icon;
-  return (
-    <Link
-      to={`${basePath}${item.to}`}
-      style={{
-        display: 'flex', flexDirection: 'column',
-        padding: 18,
-        background: 'var(--surface-card)',
-        border: '1px solid var(--border-subtle)',
-        borderRadius: 'var(--radius-xl)',
-        boxShadow: 'var(--shadow-xs)',
-        textDecoration: 'none',
-        transition: 'var(--transition-fast)',
-        gap: 8,
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = 'translateY(-2px)';
-        e.currentTarget.style.boxShadow = 'var(--shadow-md)';
-        e.currentTarget.style.borderColor = 'var(--border-default)';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = 'translateY(0)';
-        e.currentTarget.style.boxShadow = 'var(--shadow-xs)';
-        e.currentTarget.style.borderColor = 'var(--border-subtle)';
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span style={{
-          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-          width: 36, height: 36,
-          background: item.accent, color: '#fff',
-          borderRadius: 'var(--radius-md)',
-        }}>
-          <Icon size={16} strokeWidth={2.2} />
-        </span>
-        <ArrowRight size={14} style={{ color: 'var(--text-tertiary)' }} />
-      </div>
-      <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
-        {item.title}
-      </div>
-      <p style={{ margin: 0, fontSize: 12, lineHeight: 'var(--line-height-body)', color: 'var(--text-secondary)' }}>
-        {item.body}
+    ) : groups.length ? groups.map(group => (
+      <section key={group.label.en} className="mb-6" aria-label={group.label[lang]}>
+        <h2 className="mb-3 text-sm font-semibold text-[var(--text-secondary)]">{group.label[lang]}</h2>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {group.items.map(item => <FeatureCard key={item.id} item={item} lang={lang}
+            to={navigationHref(root, 'analytics', { path: item.path }, workspaceId)} />)}
+        </div>
+      </section>
+    )) : (
+      <Card as="section" aria-live="polite">
+        <p className="text-sm text-[var(--text-secondary)]">
+          {lang === 'fa' ? 'در این فضای کاری ابزار مجازی برای این بخش یافت نشد.' : 'No permitted tools in this section for the selected workspace.'}
+        </p>
+      </Card>
+    )}
+    <Card as="aside" className="mt-5 flex items-start gap-3" aria-label={lang === 'fa' ? 'نکته درباره هوش مصنوعی' : 'AI guidance'}>
+      <Sparkles className="mt-0.5 shrink-0 text-[var(--brand-primary-hover)]" size={19} aria-hidden="true" />
+      <p className="text-sm text-[var(--text-secondary)]">
+        {lang === 'fa'
+          ? 'ساخت پیش‌نویس، تأیید و انتشار سه اقدام متفاوت‌اند. هیچ پیشنهادی به‌خودی‌خود منتشر نمی‌شود؛ نتیجه، هزینه و سهمیه را فقط از وضعیت واقعی همان ابزار بررسی کنید.'
+          : 'Drafting, approval and publishing are separate actions. Suggestions do not publish automatically; check results, costs and quotas in the actual tool.'}
       </p>
-    </Link>
-  );
+    </Card>
+  </div>;
 }
 
-
-const sectionLabelStyle = {
-  margin: '0 0 12px',
-  fontSize: 11,
-  fontWeight: 600,
-  letterSpacing: '0.08em',
-  textTransform: 'uppercase',
-  color: 'var(--text-tertiary)',
-};
-
-const gridStyle = {
-  display: 'grid',
-  gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
-  gap: 14,
-};
-
-const kbdStyle = {
-  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-  padding: '0 6px', minWidth: 22, height: 20,
-  background: 'var(--surface-sunken)',
-  border: '1px solid var(--border-default)',
-  borderRadius: 'var(--radius-xs)',
-  fontSize: 11, fontWeight: 600,
-  fontFamily: 'var(--font-mono)',
-  color: 'var(--text-secondary)',
-  lineHeight: 1,
-  margin: '0 2px',
-};
+function FeatureCard({ item, to, lang }) {
+  const Icon = item.icon;
+  return <Link to={to} className="flex min-w-0 flex-col gap-2 rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-card p-4 no-underline shadow-sm transition-[border-color,box-shadow] hover:border-border hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-primary)] motion-reduce:transition-none">
+    <span className="flex items-center justify-between text-[var(--brand-primary-hover)]">
+      <Icon size={19} aria-hidden="true" />
+      <ArrowRight size={15} aria-hidden="true" />
+    </span>
+    <span className="font-semibold text-foreground">{item.title[lang]}</span>
+    <span className="text-sm leading-relaxed text-[var(--text-secondary)]">{item.body[lang]}</span>
+  </Link>;
+}
