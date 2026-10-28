@@ -1,12 +1,12 @@
 # AI Studio task navigation acceptance — 2026-10-28
 
-Source: `frontend/src/features/ai/AIStudio.jsx`. The directory now consumes `visibleSections('analytics', '/dashboard', can)` and `navigationHref(..., workspaceId)` from the existing navigation contracts. The actual role determines the `/admin` or `/dashboard` shell. There is **no independent access matrix** or extra provider catalogue.
+Source: `frontend/src/features/ai/AIStudio.jsx`. The directory now consumes `visibleSections('analytics', '/dashboard', can)` and `navigationHref(..., workspaceId)` from the existing navigation contracts. The actual role determines the `/admin` or `/dashboard` shell; the table uses member examples and staff use `/admin/analytics/...` equivalents. There is **no independent access matrix** or extra provider catalogue.
 
 | Surface | Route / behavior | Security and content condition | Evidence |
 | --- | --- | --- | --- |
-| Composer | `/{admin|dashboard}/analytics/composer?workspace=ID` | Requires effective `composer.view`; suggestions are drafts, never publication | `AIStudio.test.jsx`, `navigationItems.test.js` (admin/client) |
-| Inbox | `/{admin|dashboard}/analytics/inbox?workspace=ID` | Requires effective `inbox.view`; sent replies require downstream authorization | `AIStudio.test.jsx` |
-| Brand voice | `/{admin|dashboard}/analytics/brand-voice?workspace=ID` | Requires registry grant `ai.brand_voice`; do not claim model training | `AIStudio.test.jsx` |
+| Composer | `/dashboard/analytics/composer?workspace=ID` | Requires effective `composer.view`; suggestions are drafts, never publication | `AIStudio.test.jsx`, `navigationItems.test.js` (admin/client) |
+| Inbox | `/dashboard/analytics/inbox?workspace=ID` | Requires effective `inbox.view`; sent replies require downstream authorization | `AIStudio.test.jsx` |
+| Brand voice | `/dashboard/analytics/brand-voice?workspace=ID` | Requires registry grant `ai.brand_voice`; do not claim model training | `AIStudio.test.jsx` |
 | Caption, post ideas, hashtags, insights | Registry-defined routes | No new permission invented here; see existing registry; downstream API authorization stays authoritative | `AIStudio.test.jsx` + existing route tests |
 | No workspace | No active tool links | Never infer a workspace from a previous user session | `AIStudio.test.jsx` |
 | Workspace changed | Old `workspace` query is absent | User-controlled scope is not a grant; API validates it | `AIStudio.test.jsx` |
