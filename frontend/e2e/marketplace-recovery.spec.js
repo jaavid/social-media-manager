@@ -24,20 +24,24 @@ async function fixture(page, responder) {
 
 test('marketplace GET failure is an alert, never an empty search, and retry recovers', async ({ page }) => {
   let reads = 0;
+  let recover = false;
   const writes = [];
   page.on('request', req => { if (req.method() !== 'GET') writes.push(req.url()); });
   await fixture(page, route => {
     reads++;
-    if (reads === 1) return route.fulfill({ status: 503, json: { detail: 'Sensitive backend failure' } });
+    // Initial hydration/remount may issue more than one read; all must fail
+    // until the user explicitly requests recovery.
+    if (!recover) return route.fulfill({ status: 503, json: { detail: 'Sensitive backend failure' } });
     return route.fulfill({ json: { agencies: [{ id: 10, slug: 'fixture', name: 'Recovered agency', review_count: 0 }], count: 1 } });
   });
   await page.goto('/marketplace');
   await expect(page.locator('[data-data-state="error"]')).toContainText('دریافت فهرست آژانس‌ها ناموفق بود');
   await expect(page.getByText('آژانسی مطابق فیلترها پیدا نشد')).toHaveCount(0);
   await expect(page.getByText('Sensitive backend failure')).toHaveCount(0);
+  recover = true;
   await page.getByRole('button', { name: 'تلاش دوباره' }).click();
   await expect(page.getByText('Recovered agency')).toBeVisible();
-  expect(reads).toBe(2);
+  expect(reads).toBeGreaterThanOrEqual(2);
   expect(writes.filter(url => url.includes('/marketplace/'))).toEqual([]);
 });
 
