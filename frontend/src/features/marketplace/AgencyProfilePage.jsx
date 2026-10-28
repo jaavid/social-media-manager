@@ -17,7 +17,7 @@ import { publicMessage } from '../../i18n/public-message';
  * InviteAgencyModal () pre-loaded with this agency.
  * - Anyone can send a non-binding inquiry via the Contact panel.
  */
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppLink as Link, useAppParams as useParams } from '../../core/navigation';
 import {
   Building2, ShieldCheck, Star, MapPin, Globe, Send, Mail, Sparkles, ChevronLeft,
@@ -29,26 +29,54 @@ import WriteReviewModal  from '../../components/marketplace/WriteReviewModal';
 import { marketplaceAPI, reviewAPI } from '@/services/domains/accounts';
 import { useSession as useAuth } from '../../core/session';
 import toast from '../../components/ui/toast';
+import DataState from '../../components/ui/DataState';
+import Button from '../../components/ui/Button';
+import { apiError } from '@/services/http/errors';
 
 export default function AgencyProfilePage() {
   const { slug } = useParams();
   const { user } = useAuth();
-  const [agency,  setAgency]  = useState(null);
+  // Changing slug remounts the detail state synchronously. No old agency's
+  // review data, modals or request error can appear in the new profile.
+  return <AgencyProfileForSlug key={slug} slug={slug} user={user} />;
+}
+
+function AgencyProfileForSlug({ slug, user }) {
+  const [agency, setAgency] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error,   setError]   = useState('');
+  const [error, setError] = useState(null);
+  const [retryKey, setRetryKey] = useState(0);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
-  const [reviewsExtra, setReviewsExtra] = useState(null);  // { count, avg_rating, distribution, rows }
+  const [reviewsExtra, setReviewsExtra] = useState(null);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
+  const [reviewsError, setReviewsError] = useState(false);
   const [editReview, setEditReview] = useState(null);
+  const reviewsAbort = useRef(null);
+  const headingRef = useRef(null);
 
-  // Reload reviews list (in full, with viewer-aware fields like is_owner / is_editable)
-  function reloadReviews() {
-    if (!agency?.slug) return;
-    reviewAPI.list(agency.slug, { limit: 50 })
-      .then((r) => setReviewsExtra(r.data || null))
-      .catch(() => {});
-  }
-  useEffect(() => { reloadReviews(); /* eslint-disable-next-line */ }, [agency?.slug]);
+  const reloadReviews = useCallback((agencySlug) => {
+    if (!agencySlug) return;
+    reviewsAbort.current?.abort();
+    const controller = new AbortController();
+    reviewsAbort.current = controller;
+    setReviewsLoading(true);
+    setReviewsError(false);
+    setReviewsExtra(null);
+    reviewAPI.list(agencySlug, { limit: 50 }, controller.signal)
+      .then(r => {
+        if (controller.signal.aborted) return;
+        const data = r?.data;
+        if (!data || !Array.isArray(data.rows) || !Number.isSafeInteger(data.count)) throw new Error('Invalid review response');
+        setReviewsExtra(data);
+      })
+      .catch(() => { if (!controller.signal.aborted) setReviewsError(true); })
+      .finally(() => { if (!controller.signal.aborted) setReviewsLoading(false); });
+  }, []);
+  useEffect(() => {
+    if (agency?.slug) reloadReviews(agency.slug);
+    return () => reviewsAbort.current?.abort();
+  }, [agency?.slug, reloadReviews]);
 
   async function markHelpful(id) {
     try {
@@ -67,7 +95,7 @@ export default function AgencyProfilePage() {
     try {
       await reviewAPI.delete(id);
       toast.success("نظر حذف شد");
-      reloadReviews();
+      reloadReviews(agency?.slug);
     } catch (e) {
       toast.error(publicMessage(e?.response?.data?.error || "حذف نشد"));
     }
@@ -77,24 +105,49 @@ export default function AgencyProfilePage() {
     try {
       await reviewAPI.respond(id, response);
       toast.success("پاسخ ارسال شد");
-      reloadReviews();
+      reloadReviews(agency?.slug);
     } catch (e) {
       toast.error(publicMessage(e?.response?.data?.error || "نتوانست پاسخ دهد"));
     }
   }
 
   useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    marketplaceAPI.get(slug)
-      .then((r) => { if (!cancelled) setAgency(r.data); })
-      .catch((e) => { if (!cancelled) setError(e?.response?.data?.error || "نمایندگی بارگیری نشد"); })
-      .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
-  }, [slug]);
+    const controller = new AbortController();
+    marketplaceAPI.get(slug, controller.signal)
+      .then(r => {
+        const row = r?.data;
+        if (!row || typeof row !== 'object' || row.slug !== slug || !row.name) {
+          throw new Error('Invalid agency response');
+        }
+        if (!controller.signal.aborted) setAgency(row);
+      })
+      .catch(e => { if (!controller.signal.aborted) setError(e); })
+      .finally(() => { if (!controller.signal.aborted) setLoading(false); });
+    return () => controller.abort();
+  }, [slug, retryKey]);
+  useEffect(() => {
+    if (retryKey && agency && !loading && !error) headingRef.current?.focus();
+  }, [retryKey, agency, loading, error]);
 
-  if (loading) return <Center><span style={{ color: 'var(--text-tertiary)' }}>در حال بارگذاری…</span></Center>;
-  if (error || !agency) return <Center><div style={errorBox}>{publicMessage(error) || "آژانس یافت نشد."}</div></Center>;
+  if (loading) return <Center><DataState state="loading" title="در حال دریافت پروفایل آژانس" /></Center>;
+  if (error || !agency) {
+    const problem = apiError(error);
+    const denied = ['authentication', 'permission'].includes(problem.kind);
+    return <Center><DataState
+      state={denied ? 'forbidden' : problem.status === 404 ? 'not-found' : 'error'}
+      title={denied ? 'دسترسی به این پروفایل مجاز نیست' :
+        problem.status === 404 ? 'پروفایل آژانس پیدا نشد' : 'دریافت پروفایل آژانس ناموفق بود'}
+      description="نتیجهٔ قبلی معتبر نیست. اتصال یا دسترسی را بررسی کنید."
+      referenceId={problem.referenceId}
+      action={<Button variant="secondary" onClick={() => {
+        setLoading(true);
+        setError(null);
+        setAgency(null);
+        setReviewsExtra(null);
+        setRetryKey(value => value + 1);
+      }}>تلاش دوباره</Button>}
+    /></Center>;
+  }
 
   const isEndUser = user?.role === 'client';
 
@@ -113,7 +166,7 @@ export default function AgencyProfilePage() {
               : <Building2 size={28} />}
           </span>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <h1 style={{ margin: 0, fontSize: 26, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <h1 ref={headingRef} tabIndex={-1} style={{ margin: 0, fontSize: 26, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
               {agency.name}
               {agency.is_verified && <ShieldCheck size={18} color="var(--success)" aria-label={"تأییدشده"} />}
             </h1>
@@ -189,7 +242,12 @@ export default function AgencyProfilePage() {
           {reviewsExtra?.count > 0 && (
             <RatingSummary avg={reviewsExtra.avg_rating} distribution={reviewsExtra.distribution} count={reviewsExtra.count} />
           )}
-          {(reviewsExtra?.rows?.length || 0) === 0 ? (
+          {reviewsLoading ? (
+            <DataState compact state="loading" title="در حال دریافت نظرها" />
+          ) : reviewsError ? (
+            <DataState compact state="unavailable" title="نظرهای این آژانس در دسترس نیست"
+              action={<Button variant="secondary" onClick={() => reloadReviews(agency.slug)}>تلاش دوباره</Button>} />
+          ) : (reviewsExtra?.rows?.length || 0) === 0 ? (
             <p style={{ margin: 0, fontSize: 13, color: 'var(--text-tertiary)' }}>
               هنوز نظری وجود ندارد - اولین کسی باشید که پس از همکاری با یکدیگر به آنها امتیاز می دهید.
             </p>
@@ -231,7 +289,7 @@ export default function AgencyProfilePage() {
         onClose={() => setEditReview(null)}
         agency={agency}
         existing={editReview}
-        onSaved={() => { setEditReview(null); reloadReviews(); }}
+        onSaved={() => { setEditReview(null); reloadReviews(agency.slug); }}
       />
 
       <ContactModal
@@ -524,14 +582,6 @@ const trustBox = {
   background: 'var(--surface-sunken)',
   border: '1px solid var(--border-subtle)',
   borderRadius: 'var(--radius-md)',
-};
-
-const errorBox = {
-  padding: 24,
-  background: 'var(--surface-card)',
-  border: '1px solid var(--danger)',
-  borderRadius: 'var(--radius-md)',
-  color: 'var(--text-primary)',
 };
 
 const btnPrimary = {

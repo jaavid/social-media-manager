@@ -66,7 +66,7 @@ export const agencyInviteAPI = {
 
 export const marketplaceAPI = {
   list:       (params, signal) => api.get('/marketplace/agencies/', { params, signal }),
-  get:        (slug)          => api.get(`/marketplace/agencies/${slug}/`),
+  get:        (slug, signal)  => api.get(`/marketplace/agencies/${slug}/`, { signal }),
   featured:   (signal)        => api.get('/marketplace/featured/', { signal }),
   categories: (signal)        => api.get('/marketplace/categories/', { signal }),
   contact:    (slug, message) => api.post(`/marketplace/agencies/${slug}/contact/`, { message }),
@@ -78,7 +78,7 @@ export const agencyAPI = {
 };
 
 export const reviewAPI = {
-  list:    (slug, params)        => api.get(`/agencies/${slug}/reviews/`, { params }),
+  list:    (slug, params, signal) => api.get(`/agencies/${slug}/reviews/`, { params, signal }),
   create:  (slug, payload)       => api.post(`/agencies/${slug}/reviews/`, payload),
   update:  (id, payload)         => api.put(`/reviews/${id}/`, payload),
   delete:  (id)                  => api.delete(`/reviews/${id}/`),
