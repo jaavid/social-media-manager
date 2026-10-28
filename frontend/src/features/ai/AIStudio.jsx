@@ -12,9 +12,10 @@ import { useLanguage } from '@/i18n';
 
 import { useLanguage } from '@/i18n';
 import { AppLink as Link } from '../../core/navigation';
-import { Sparkles, Mic, BarChart3, MessageSquare, Wand2, Lightbulb, Hash, Inbox, ArrowRight } from 'lucide-react';
+import { Sparkles, Mic, BarChart3, Wand2, Lightbulb, Hash, Inbox, ArrowRight } from 'lucide-react';
 import PageHeader from '../../components/layout/PageHeader';
 import Card from '../../components/ui/Card';
+import { useSession } from '../../core/session';
 import useWorkspaceScope from '../../hooks/useWorkspaceScope';
 import useNavigationAccess from '../../hooks/useNavigationAccess';
 import { navigationHref, visibleSections } from '../../components/shell/navigationItems';
@@ -52,8 +53,9 @@ export default function AIStudio() {
   const language = useLanguage();
   const lang = language.isPersian ? 'fa' : 'en';
   const can = useNavigationAccess();
+  const { user } = useSession();
   const { workspaceId } = useWorkspaceScope();
-  const root = '/dashboard';
+  const root = user?.role === 'staff' || user?.role === 'superadmin' ? '/admin' : '/dashboard';
   const allowedPaths = new Set(visibleSections('analytics', root, can).flatMap(section => section.items.map(item => item.path)));
   const groups = FEATURE_GROUPS.map(group => ({
     ...group,
