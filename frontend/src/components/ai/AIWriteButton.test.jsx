@@ -3,7 +3,7 @@ import AIWriteButton from './AIWriteButton';
 import { aiV2API } from '@/services/domains/intelligence';
 import toast from '../ui/toast';
 
-jest.mock('@/i18n', () => ({ useLanguage: () => ({ t: () => 'Write with AI' }) }));
+jest.mock('@/i18n', () => ({ useLanguage: () => ({ t: key => key }) }));
 jest.mock('@/services/domains/intelligence', () => ({ aiV2API: { compose: jest.fn() } }));
 jest.mock('../ui/toast', () => ({ __esModule: true, default: { error: jest.fn(), success: jest.fn() } }));
 jest.mock('../ui/Button', () => function MockButton({ children, loading, ...props }) {
