@@ -1,5 +1,14 @@
 // Semantic catalogs. Identical key sets and ICU placeholders are checked in CI.
 const accountsEn = {
+  "ai.compose.incomplete": "AI did not return a completed draft. Check the request before retrying.",
+  "ai.compose.inserted": "Suggestion inserted into draft. Review before publishing.",
+  "ai.compose.insertionFailed": "Could not update draft. Your current text was kept.",
+  "ai.compose.limit": "AI limit reached. Check your current quota before retrying.",
+  "ai.compose.requestFailed": "AI generation was not confirmed. Your existing draft was not changed.",
+  "ai.compose.topicRequired": "Tell me what to write about",
+  "ai.compose.workspaceRequired": "Pick a workspace first",
+  "ai.compose.copied": "Copied to clipboard",
+  "ai.compose.copyFailed": "Could not copy",
   "watchlist.brightdata": "Bright Data",
   "workspace.brandExample": "e.g. School",
   "watchlist.title": "Account watchlist · Instagram",
@@ -516,6 +525,15 @@ const accountsEn = {
   'category.business': 'Business listings',
 } as const;
 const accountsFa = {
+  "ai.compose.incomplete": "خروجی کامل برای پیش‌نویس دریافت نشد. پیش از تلاش دوباره درخواست را بررسی کنید.",
+  "ai.compose.inserted": "پیشنهاد به پیش‌نویس افزوده شد. پیش از انتشار آن را بازبینی کنید.",
+  "ai.compose.insertionFailed": "افزودن متن به پیش‌نویس ممکن نشد. متن فعلی شما حفظ شد.",
+  "ai.compose.limit": "سقف استفاده از هوش مصنوعی رسیده است. سهمیهٔ فعلی را پیش از تلاش دوباره بررسی کنید.",
+  "ai.compose.requestFailed": "نتیجهٔ تولید متن مشخص نشد. پیش‌نویس قبلی شما تغییر نکرد.",
+  "ai.compose.topicRequired": "موضوع پست را وارد کنید",
+  "ai.compose.workspaceRequired": "ابتدا فضای کاری را انتخاب کنید",
+  "ai.compose.copied": "متن کپی شد",
+  "ai.compose.copyFailed": "کپی متن ممکن نشد",
   "watchlist.brightdata": "Bright Data",
   "workspace.brandExample": "مثلاً مدرسه",
   "watchlist.title": "فهرست رصد اکانت‌ها · اینستاگرام",
