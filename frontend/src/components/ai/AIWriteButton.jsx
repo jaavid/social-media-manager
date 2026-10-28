@@ -7,8 +7,8 @@ import { useLanguage } from '@/i18n';
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
-import { useEffect, useRef, useState } from 'react';
-import { Sparkles, Loader2, X, Check, RefreshCw, Copy } from 'lucide-react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { Sparkles, X, Check, RefreshCw, Copy } from 'lucide-react';
 
 import Button from '../ui/Button';
 import { aiV2API } from '@/services/domains/intelligence';
@@ -76,7 +76,7 @@ export default function AIWriteButton({
   const wrapRef = useRef(null);
   const requestRef = useRef(0);
   const workspaceRef = useRef(clientId);
-  workspaceRef.current = clientId;
+  useLayoutEffect(() => { workspaceRef.current = clientId; }, [clientId]);
   const loading = clientId != null && loadingScope === clientId;
   const visibleVariants = resultScope === clientId ? variants : [];
   // Invalidate pending UI work on workspace switches or dialog close.
