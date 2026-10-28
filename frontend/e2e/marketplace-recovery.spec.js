@@ -32,7 +32,7 @@ test('marketplace GET failure is an alert, never an empty search, and retry reco
     return route.fulfill({ json: { agencies: [{ id: 10, slug: 'fixture', name: 'Recovered agency', review_count: 0 }], count: 1 } });
   });
   await page.goto('/marketplace');
-  await expect(page.getByRole('alert')).toContainText('دریافت فهرست آژانس‌ها ناموفق بود');
+  await expect(page.locator('[data-data-state="error"]')).toContainText('دریافت فهرست آژانس‌ها ناموفق بود');
   await expect(page.getByText('آژانسی مطابق فیلترها پیدا نشد')).toHaveCount(0);
   await expect(page.getByText('Sensitive backend failure')).toHaveCount(0);
   await page.getByRole('button', { name: 'تلاش دوباره' }).click();
@@ -45,5 +45,5 @@ test('successful empty marketplace response is a no-results state', async ({ pag
   await fixture(page, route => route.fulfill({ json: { agencies: [], count: 0 } }));
   await page.goto('/marketplace');
   await expect(page.getByText('آژانسی مطابق فیلترها پیدا نشد')).toBeVisible();
-  await expect(page.getByRole('alert')).toHaveCount(0);
+  await expect(page.locator('[data-data-state="error"], [data-data-state="forbidden"]')).toHaveCount(0);
 });

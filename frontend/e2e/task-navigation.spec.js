@@ -131,8 +131,17 @@ test('workspace selection, alias and modified click preserve the active destinat
   await expect(sidebar.locator('[data-workspace-context]')).toContainText('Synthetic brand B');
   await expect(create).toHaveAttribute('href', '/dashboard/composer?workspace=8');
   await expect(create).toHaveAttribute('aria-current', 'page');
-  const popupPromise = context.waitForEvent('page');
-  await create.click({ modifiers: ['Control'] }); const popup = await popupPromise;
+  // Unit-level modifier behavior is tested in core/navigation.test.jsx.
+  // A synthetic Ctrl-click checks that AppLink does not prevent the native
+  // default; OS window managers can suppress headless Ctrl-click popups.
+  const prevented = await create.evaluate(anchor => {
+    const event = new MouseEvent('click', { bubbles: true, cancelable: true, ctrlKey: true, button: 0 });
+    return !anchor.dispatchEvent(event);
+  });
+  expect(prevented).toBe(false);
+  await expect(page).toHaveURL(/\/dashboard\/composer\?workspace=8$/);
+  const popup = await context.newPage();
+  await popup.goto(new URL(await create.getAttribute('href'), origin).href);
   await expect(popup).toHaveURL(/\/dashboard\/composer\?workspace=8$/);
   await expect(popup.getByRole('heading', { name: 'Composer', exact: true })).toBeVisible();
   await popup.close();
