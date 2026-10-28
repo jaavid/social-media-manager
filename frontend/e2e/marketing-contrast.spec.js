@@ -11,7 +11,12 @@ for (const theme of ['light', 'dark']) for (const path of ['/', '/customers', '/
     await expect(page.locator('header nav').first()).toBeVisible();
     const buttons = page.locator('a[class*="text-[var(--text-on-brand)]"], header nav > a, header nav > button');
     expect(await buttons.count()).toBeGreaterThan(1);
-    const ratios = await buttons.evaluateAll(elements => {
+    let ratios;
+    // Hydration and theme-color transitions can briefly expose intermediate colors.
+    // Assert the same WCAG threshold on the settled rendered state; a persistent
+    // contrast regression still fails, with CSS colors included for diagnosis.
+    await expect(async () => {
+      ratios = await buttons.evaluateAll(elements => {
       // Chromium computes CSS Color 4 values as oklch()/color(srgb) too.
       // Decode every CSS color into actual sRGB rather than extracting the
       // first three numbers from a string and accidentally reporting 1:1.
@@ -49,10 +54,14 @@ for (const theme of ['light', 'dark']) for (const path of ['/', '/customers', '/
         const gradients = style.backgroundImage.match(/(?:rgba?|hsla?|oklch|oklab|lab|lch|color)\([^)]*\)/g) || [];
         const samples = gradients.length ? gradients.map(stop => composite(pixel(stop), background)) : [background];
         const foreground = composite(pixel(style.color), background);
-        return { text: element.textContent.trim(), ratios: samples.map(sample => contrast(foreground, sample)) };
+        return { text: element.textContent.trim(), color: style.color,
+          background: style.backgroundColor, ratios: samples.map(sample => contrast(foreground, sample)) };
       });
-    });
-    for (const button of ratios) for (const ratio of button.ratios) expect(ratio, button.text).toBeGreaterThanOrEqual(4.5);
+      });
+      for (const button of ratios) for (const ratio of button.ratios) {
+        expect(ratio, `${button.text} (color=${button.color}, background=${button.background})`).toBeGreaterThanOrEqual(4.5);
+      }
+    }).toPass({ timeout: 12000 });
     console.log(`${theme} ${path}: minimum CTA contrast ${Math.min(...ratios.flatMap(button => button.ratios)).toFixed(2)}:1`);
     const navigation = page.locator('header nav').first();
     const bounds = await navigation.locator(':scope > a, :scope > button').evaluateAll(elements => elements.map(element => {
