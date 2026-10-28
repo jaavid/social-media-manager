@@ -4,10 +4,12 @@ import AIStudio from './AIStudio';
 let mockLang = 'en';
 let mockGrants = [];
 let mockWorkspaceId = 7;
+let mockRole = 'client';
 jest.mock('@/i18n', () => ({ useLanguage: () => ({ isPersian: mockLang === 'fa', t: () => 'AI Studio' }) }));
 jest.mock('../../core/navigation', () => ({
   AppLink: function MockLink({ to, children, ...rest }) { return <a href={to} {...rest}>{children}</a>; },
 }));
+jest.mock('../../core/session', () => ({ useSession: () => ({ user: { role: mockRole } }) }));
 jest.mock('../../hooks/useNavigationAccess', () => ({
   __esModule: true, default: () => code => mockGrants.includes(code),
 }));
@@ -24,6 +26,7 @@ beforeEach(() => {
   mockLang = 'en';
   mockGrants = [];
   mockWorkspaceId = 7;
+  mockRole = 'client';
 });
 test('AI tool discovery reuses sidebar permissions and preserves scoped destinations', () => {
   mockGrants = ['composer.view', 'inbox.view', 'ai.brand_voice'];
@@ -59,4 +62,15 @@ test('Persian hub uses native language preference, accessible links and cautious
   expect(composer).toHaveAttribute('href', '/dashboard/analytics/composer?workspace=7');
   expect(screen.getByText(/هیچ پیشنهادی به‌خودی‌خود منتشر نمی‌شود/)).toBeInTheDocument();
   expect(screen.queryByText('Every Ravinta surface in one place')).not.toBeInTheDocument();
+});
+
+test('staff routes retain their admin shell and change workspace without carrying the old scope', () => {
+  mockRole = 'staff';
+  mockGrants = ['composer.view', 'inbox.view'];
+  const view = render(<AIStudio />);
+  expect(screen.getByRole('link', { name: /Create post/ })).toHaveAttribute('href', '/admin/analytics/composer?workspace=7');
+  mockWorkspaceId = 9;
+  view.rerender(<AIStudio />);
+  expect(screen.getByRole('link', { name: /Create post/ })).toHaveAttribute('href', '/admin/analytics/composer?workspace=9');
+  expect(document.querySelector('a[href*="workspace=7"]')).toBeNull();
 });
