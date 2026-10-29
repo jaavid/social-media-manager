@@ -22,7 +22,7 @@ function destinations(text) {
     if (text[i] !== ']' || text[i + 1] !== '(') continue;
     let depth = 1, quoted = false, start = i + 2, j = start;
     for (; j < text.length; j++) {
-      if (text[j] === '\\\\') { j++; continue; }
+      if (text[j] === '\\') { j++; continue; }
       if (text[j] === '<') quoted = true;
       if (text[j] === '>') quoted = false;
       if (!quoted && text[j] === '(') depth++;
