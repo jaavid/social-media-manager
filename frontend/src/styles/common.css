@@ -222,3 +222,8 @@
 .calendar-platform-button--active{background:var(--brand-primary);color:var(--text-on-brand,#fff);border-color:var(--brand-primary)}
 .calendar-view-button{display:flex;align-items:center;gap:5px;padding:7px 14px;border:0;cursor:pointer;font-size:12px;font-weight:600;background:var(--surface-card);color:var(--text-secondary);transition:background .15s,color .15s;white-space:nowrap}
 .calendar-view-button--active{background:var(--brand-primary);color:var(--text-on-brand,#fff)}
+
+/* Calendar public feed: all static layout is in CSS; only provider colors are runtime inputs. */
+.calendar-feed-post{display:flex;align-items:flex-start;gap:12px;background:var(--surface-card);border-radius:10px;border:1px solid var(--border-default);border-inline-start:4px solid var(--calendar-platform-color,var(--brand-primary));padding:12px 16px;margin-block-end:8px}
+.calendar-feed-avatar{width:36px;height:36px;border-radius:50%;background:var(--calendar-platform-tint,var(--surface-sunken));display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.calendar-status-badge{padding:1px 8px;border-radius:20px;font-size:10px;font-weight:700;background:var(--calendar-status-bg,var(--surface-sunken));color:var(--calendar-status-color,var(--text-primary))}
