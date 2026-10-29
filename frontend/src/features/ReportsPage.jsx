@@ -12,7 +12,6 @@ import { useEffect, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSession } from '@/core/session';
 import { useLanguage } from '@/i18n';
-import { useWorkspaces } from '@/hooks/useData';
 import { sharedReportsAPI, roiAPI } from '@/services/domains/reporting';
 import { apiError } from '@/services/http/errors';
 import Page from '@/components/ui/Page';
@@ -64,19 +63,11 @@ function parseRows(wire, kind, workspace) {
 export default function ReportsPage() {
   const { user } = useSession();
   const { t } = useLanguage();
-  const { workspaces, error, refetch } = useWorkspaces();
   const { workspaceId: workspace } = useWorkspaceScope();
   const [tab, setTab] = useState('shared');
   return (
     <Page>
       <PageHeader title={t('reports.title')} subtitle={t('reports.description')} sticky={false} />
-      {error && (
-        <DataState
-          state="error"
-          title={t('analytics.report.error')}
-          action={<Button onClick={refetch}>{t('analytics.report.retry')}</Button>}
-        />
-      )}
       <div className="reports-tabs">
       <SegmentedTabs
         items={[
@@ -87,6 +78,7 @@ export default function ReportsPage() {
         onChange={setTab}
       />
       </div>
+      {!workspace && <DataState state="empty" title={t('analytics.report.workspace')} />}
       {workspace && (
         <ReportCollection
           key={`${user?.id}:${workspace}:${tab}`}
