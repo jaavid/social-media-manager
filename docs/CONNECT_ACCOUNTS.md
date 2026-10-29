@@ -14,7 +14,7 @@ Quick Connect به برنامهٔ توسعه‌دهنده، credential واقع�
 
 callback کامل با scheme، دامنه، مسیر و `/` پایانی باید عیناً در provider ثبت شود. در Compose از origin عمومی برنامه؛ در توسعه از `http://localhost:8000` استفاده کنید.
 
-Scopeهای فعلی در [oauth_views.py](../backend/social_stats/oauth_views.py):
+Scopeهای فعلی در [oauth_views.py](../backend/social_stats/views/oauth.py):
 
 - Meta: `pages_show_list`، `pages_read_engagement`، `pages_manage_metadata`، `instagram_basic`، `instagram_content_publish`، `instagram_manage_insights`، `read_insights`. حساب Instagram باید شرایط Graph API و اتصال Page را داشته باشد.
 - YouTube: `https://www.googleapis.com/auth/youtube.force-ssl` و `https://www.googleapis.com/auth/yt-analytics.readonly` به‌همراه `openid email profile`. Data API v3 و Analytics API را فعال کنید؛ در حالت Testing کاربر را به test users اضافه کنید. API key به‌تنهایی کافی نیست.

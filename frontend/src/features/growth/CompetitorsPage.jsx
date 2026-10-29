@@ -1,4 +1,5 @@
 import { useLanguage } from '../../i18n';
+import useWorkspaceScope from '../../hooks/useWorkspaceScope';
 import PublicProfileSummary from '../../components/PublicProfileSummary';
 import PublicPostDetails from '../../components/calendar/PublicPostDetails';
 import { usePlatformOptions } from '@/services/platforms';
@@ -10,7 +11,7 @@ import { usePlatformOptions } from '@/services/platforms';
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Plus, Trash2, RefreshCw, Sparkles, TrendingUp, X,
   Loader2, Users, ChevronRight,
@@ -23,32 +24,67 @@ import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 import EmptyState from '../../components/ui/EmptyState';
+import DataState from '../../components/ui/DataState';
 import { competitorAPI } from '@/services/domains/reporting';
 
 
 export default function CompetitorsPage() {
+  const { workspaceId } = useWorkspaceScope();
+  return <ScopedCompetitorsPage key={workspaceId ?? 'none'} workspaceId={workspaceId} />;
+}
+
+function ScopedCompetitorsPage({ workspaceId }) {
+  const { t } = useLanguage();
+  const mounted = useRef(false);
+  const [loadedWorkspace, setLoadedWorkspace] = useState(null);
   const [list, setList] = useState([]);
+  const [loadError, setLoadError] = useState(false);
+  const requestSequence = useRef(0);
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState(null);  // selected competitor
   const [showCreate, setShowCreate] = useState(false);
 
-  async function load() {
+  async function load(scopeId = workspaceId) {
+    if (!mounted.current || scopeId !== workspaceId) return;
+    const requestId = ++requestSequence.current;
     setLoading(true);
+    setLoadError(false);
+    if (!scopeId) {
+      setList([]);
+      setActive(null);
+      setLoadedWorkspace(null);
+      setLoading(false);
+      return;
+    }
     try {
-      const res = await competitorAPI.list();
+      const res = await competitorAPI.list({ workspace_id: scopeId });
+      if (requestId !== requestSequence.current || !mounted.current) return;
       const data = res.data?.results || res.data || [];
+      setLoadedWorkspace(scopeId);
       setList(data);
       setActive(current => data.find(item => item.id === current?.id) || data[0] || null);
-    } finally { setLoading(false); }
+    } catch {
+      if (requestId !== requestSequence.current || !mounted.current) return;
+      setLoadedWorkspace(scopeId);
+      setList([]);
+      setActive(null);
+      setLoadError(true);
+    } finally { if (requestId === requestSequence.current && mounted.current) setLoading(false); }
   }
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, []);
+  useEffect(() => {
+    mounted.current = true;
+    load();
+    return () => { mounted.current = false; requestSequence.current += 1; };
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
+  }, [workspaceId]);
 
+  const ready = Boolean(workspaceId && loadedWorkspace === workspaceId);
   return (
     <div className="app-page app-page--content app-page--xl">
       <PageHeader
-        title="Competitors"
-        subtitle="Track public profile metrics and benchmark your workspace against them"
-        action={<Button icon={Plus} onClick={() => setShowCreate(true)}>Add Competitor</Button>}
+        title={t('competitors.title')}
+        subtitle={t('competitors.subtitle')}
+        action={workspaceId ? <Button icon={Plus} onClick={() => setShowCreate(true)}>{t('competitors.add')}</Button> : null}
       />
 
       <div style={{
@@ -56,10 +92,12 @@ export default function CompetitorsPage() {
         gap: 16, padding: 0,
       }} className="comp-grid">
         <Card padding="none" style={{ overflow: 'hidden', alignSelf: 'flex-start' }}>
-          {loading && <div style={{ padding: 16, color: 'var(--text-tertiary)' }}>
+          {!workspaceId && <EmptyState icon={Users} title={t('competitors.chooseWorkspace')} description={t('competitors.chooseWorkspaceDescription')} />}
+          {loadError && ready && <DataState state="error" title={t('competitors.loadError')} action={<Button onClick={() => load(workspaceId)}>{t('competitors.retry')}</Button>} />}
+          {loading && workspaceId && <div style={{ padding: 16, color: 'var(--text-tertiary)' }}>
             <Loader2 size={14} className="ds-spin" /> Loading…
           </div>}
-          {!loading && list.length === 0 && (
+          {!loading && ready && !loadError && list.length === 0 && (
             <EmptyState
               icon={Users}
               title="No competitors yet"
@@ -67,7 +105,7 @@ export default function CompetitorsPage() {
               action={<Button icon={Plus} onClick={() => setShowCreate(true)}>Add competitor</Button>}
             />
           )}
-          {list.map((c) => (
+          {ready && !loadError && list.map((c) => (
             <button
               key={c.id} type="button"
               onClick={() => setActive(c)}
@@ -96,20 +134,20 @@ export default function CompetitorsPage() {
         </Card>
 
         <div>
-          {!active ? (
+          {!ready || !active ? (
             <Card padding="none" style={{ overflow: 'hidden' }}>
               <EmptyState icon={Users} title="Select a competitor" />
             </Card>
           ) : (
-            <CompetitorDetail competitor={active} onChange={load} />
+            <CompetitorDetail key={`${workspaceId}:${active.id}`} workspaceId={workspaceId} competitor={active} onChange={() => { if (mounted.current) load(workspaceId); }} />
           )}
         </div>
       </div>
 
-      {showCreate && (
-        <CreateCompetitorModal
+      {showCreate && ready && workspaceId && (
+        <CreateCompetitorModal workspaceId={workspaceId}
           onClose={() => setShowCreate(false)}
-          onCreated={(c) => { setShowCreate(false); load(); setActive(c); }}
+          onCreated={(c) => { if (!mounted.current) return; setShowCreate(false); load(workspaceId); setActive(c); }}
         />
       )}
 
@@ -123,7 +161,7 @@ export default function CompetitorsPage() {
 }
 
 /* ── Detail ─────────────────────────────────────────────────────────────── */
-function CompetitorDetail({ competitor, onChange }) {
+function CompetitorDetail({ competitor, workspaceId, onChange }) {
   const { isPersian } = useLanguage();
   const PLATFORMS = usePlatformOptions('analytics').map(p => p.key);
   const [timeline, setTimeline] = useState([]);
@@ -131,13 +169,19 @@ function CompetitorDetail({ competitor, onChange }) {
   const [insights, setInsights] = useState(null);
   const [loadingInsights, setLoadingInsights] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const syncTimer = useRef(null);
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; if (syncTimer.current) clearTimeout(syncTimer.current); };
+  }, []);
   const [platform, setPlatform] = useState('');
 
   async function loadAll() {
     try {
       const [tl, p] = await Promise.all([
-        competitorAPI.timeline(competitor.id, { days: 90, ...(platform && { platform }) }),
-        competitorAPI.posts(competitor.id, { days: 30, ...(platform && { platform }) }),
+        competitorAPI.timeline(competitor.id, { workspace_id: workspaceId, days: 90, ...(platform && { platform }) }),
+        competitorAPI.posts(competitor.id, { workspace_id: workspaceId, days: 30, ...(platform && { platform }) }),
       ]);
       setTimeline(tl.data?.snapshots || []);
       setPosts(p.data?.posts || []);
@@ -149,10 +193,12 @@ function CompetitorDetail({ competitor, onChange }) {
     setSyncing(true);
     try {
       await competitorAPI.snapshotNow(competitor.id);
+      if (!mounted.current) return;
       toast.success('Sync queued — refresh in a few seconds');
-      setTimeout(() => { loadAll(); onChange?.(); }, 3000);
-    } catch (e) { toast.error('Sync failed'); }
-    finally { setSyncing(false); }
+      if (syncTimer.current) clearTimeout(syncTimer.current);
+      syncTimer.current = setTimeout(() => { if (!mounted.current) return; loadAll(); onChange?.(); }, 3000);
+    } catch (e) { if (mounted.current) toast.error('Sync failed'); }
+    finally { if (mounted.current) setSyncing(false); }
   }
 
   async function destroy() {
@@ -357,7 +403,7 @@ function InsightList({ title, items, variant }) {
 }
 
 /* ── Create modal ──────────────────────────────────────────────────────── */
-function CreateCompetitorModal({ onClose, onCreated }) {
+function CreateCompetitorModal({ workspaceId, onClose, onCreated }) {
   const PLATFORMS = usePlatformOptions('analytics').map(p => p.key);
   const [name, setName] = useState('');
   const [handles, setHandles] = useState({});
@@ -373,7 +419,7 @@ function CreateCompetitorModal({ onClose, onCreated }) {
     }
     setSaving(true);
     try {
-      const res = await competitorAPI.create({ name, public_handles: cleaned });
+      const res = await competitorAPI.create({ name, public_handles: cleaned, workspace: workspaceId });
       onCreated(res.data);
     } catch (e) {
       toast.error('Create failed');

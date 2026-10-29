@@ -8,7 +8,7 @@ Root entry points: [README](../README.md) · [Project](../PROJECT.md) · [Design
 
 ## Architecture and security
 - [Architecture](ARCHITECTURE.md) · [Backend architecture](BACKEND_ARCHITECTURE.md)
-- [Access and roles](ACCESS.md) · [Security](SECURITY.md) · [Workspace scope](NX_02_WORKSPACE_SCOPE.md)
+- [Domain boundaries](DOMAIN_BOUNDARIES.md) · [Access and roles](ACCESS.md) · [Security](SECURITY.md) · [Workspace scope](NX_02_WORKSPACE_SCOPE.md)
 - [Frontend contracts](FRONTEND_CONTRACTS.md) · [Shell composition](SHELL_COMPOSITION_CONTRACT.md) · [Next routing](NEXT_MIGRATION.md)
 
 ## Product features and integration
