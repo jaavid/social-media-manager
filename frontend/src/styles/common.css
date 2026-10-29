@@ -156,3 +156,18 @@
 .competitors-insight-items { display:flex; flex-direction:column; gap:6px; }
 .competitors-insight-item { display:flex; align-items:flex-start; gap:8px; font-size:13px; }
 @media (max-width:600px) { .competitors-metrics-grid { grid-template-columns:repeat(auto-fit,minmax(min(100%,140px),1fr)); } }
+
+/* Calendar list / empty states; platform-specific colors remain runtime values. */
+.calendar-empty { text-align:center; padding:60px 20px; color:var(--text-tertiary); }
+.calendar-empty-icon { font-size:48px; margin-block-end:12px; }
+.calendar-empty-heading { font-size:16px; font-weight:600; margin-block-end:8px; color:var(--text-primary); }
+.calendar-empty-description { font-size:13px; }
+.calendar-day-heading { position:sticky; top:0; z-index:10; background:var(--surface-page); padding-block:8px; border-bottom:2px solid var(--border-default); margin-block-end:8px; }
+.calendar-day-title { font-weight:700; font-size:14px; color:var(--text-primary); }
+.calendar-day-count { margin-inline-start:8px; font-size:12px; color:var(--text-tertiary); }
+.calendar-flex-fill { flex:1; min-width:0; }
+.calendar-post-heading { display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin-block-end:4px; }
+.calendar-post-title { font-weight:700; font-size:13px; color:var(--text-primary); }
+.calendar-post-link { color:var(--brand-primary); font-size:11px; }
+.calendar-post-meta { display:flex; gap:12px; font-size:11px; color:var(--text-secondary); margin-block-start:4px; }
+.calendar-post-actions { flex-shrink:0; text-align:end; }
