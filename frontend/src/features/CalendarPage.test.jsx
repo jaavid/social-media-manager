@@ -20,8 +20,8 @@ jest.mock('@/components/calendar/ChannelSources', () => ({ __esModule: true,
   default: ({ selectedSource, onSelectSource }) => <button onClick={() => onSelectSource('2')}>Filter:{selectedSource || 'all'}</button> }));
 jest.mock('@/components/calendar/CalendarGrid', () => ({ __esModule: true, default: () => <div>Month grid</div> }));
 jest.mock('@/components/calendar/CalendarStats', () => ({ __esModule: true, default: () => <div>Stats panel</div> }));
-jest.mock('@/components/calendar/PostDrawer', () => ({ __esModule: true, default: () => null }));
-jest.mock('@/components/calendar/PostFormDrawer', () => ({ __esModule: true, default: () => null }));
+jest.mock('@/components/calendar/PostDrawer', () => ({ __esModule: true, default: ({ isOpen, post, onEdit, returnFocusRef }) => isOpen ? <div><span data-testid="details-return-target">{returnFocusRef.current?.textContent}</span><button onClick={() => onEdit(post)}>Edit inside details</button></div> : null }));
+jest.mock('@/components/calendar/PostFormDrawer', () => ({ __esModule: true, default: ({ isOpen, returnFocusRef }) => isOpen ? <span data-testid="editor-return-target">{returnFocusRef.current?.textContent}</span> : null }));
 jest.mock('@/components/layout/PageHeader', () => ({ __esModule: true, default: ({ actions }) => <header>{actions}</header> }));
 
 beforeEach(() => {
@@ -71,4 +71,22 @@ test('admin can clear the workspace and view buttons update URL state', () => {
   view.rerender(<CalendarPage />);
   expect(useCalendarPosts.mock.lastCall[0]).toBeNull();
   expect(screen.getByText('Select a user from the top-right dropdown to view their content calendar.')).toBeInTheDocument();
+});
+
+test('calendar details → editor retain the original View trigger for focus restoration', () => {
+  mockUser = { role: 'staff' };
+  mockParams = new URLSearchParams('client=10&view=list');
+  const today = new Date();
+  const dateKey = [today.getFullYear(), String(today.getMonth() + 1).padStart(2, '0'), String(today.getDate()).padStart(2, '0')].join('-');
+  useCalendarPosts.mockImplementation(() => ({
+    postsByDate: { [dateKey]: [{ id: 19, platform: 'telegram', status: 'draft', title: 'Trigger fixture', caption: 'Calendar post' }] },
+    loading: false,
+    refetch: jest.fn(),
+  }));
+  render(<CalendarPage />);
+  const trigger = screen.getByRole('button', { name: 'View' });
+  fireEvent.click(trigger);
+  expect(screen.getByTestId('details-return-target')).toHaveTextContent('View');
+  fireEvent.click(screen.getByRole('button', { name: 'Edit inside details' }));
+  expect(screen.getByTestId('editor-return-target')).toHaveTextContent('View');
 });
