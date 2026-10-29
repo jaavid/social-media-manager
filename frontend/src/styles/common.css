@@ -171,3 +171,23 @@
 .calendar-post-link { color:var(--brand-primary); font-size:11px; }
 .calendar-post-meta { display:flex; gap:12px; font-size:11px; color:var(--text-secondary); margin-block-start:4px; }
 .calendar-post-actions { flex-shrink:0; text-align:end; }
+
+/* Competitor creation dialog and controls. */
+.competitors-platform-select,.competitors-input{width:100%;min-height:36px;padding-inline:12px;background:var(--surface-card);border:1px solid var(--border-default);border-radius:var(--radius-md);font-size:13px;color:var(--text-primary);outline:none;box-sizing:border-box}
+.competitors-platform-select{width:auto;height:36px}
+.competitors-input:focus-visible,.competitors-platform-select:focus-visible{outline:2px solid var(--brand-primary);outline-offset:2px}
+.competitors-primary-text{color:var(--text-primary)}
+.competitors-modal-backdrop{position:fixed;inset:0;z-index:200;background:rgba(10,14,20,.5);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:16px}
+.competitors-create-card{width:min(520px,100%);display:flex;flex-direction:column}
+.competitors-modal-title{font-size:16px}
+.competitors-modal-body{padding:16px}
+.competitors-field{display:block;margin-block-end:12px}
+.competitors-field-hint{margin-block:6px 8px;color:var(--text-tertiary);font-size:11px}
+.competitors-handle-row{display:grid;grid-template-columns:120px minmax(0,1fr);gap:8px;margin-block-end:6px}
+.competitors-handle-label{font-size:12px;color:var(--text-secondary);align-self:center}
+.competitors-field-label{display:block;font-size:11px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.4px;margin-block-end:6px}
+.competitors-modal-close{width:28px;height:28px;border-radius:var(--radius-sm);background:transparent;border:0;cursor:pointer;color:var(--text-tertiary);display:inline-flex;align-items:center;justify-content:center}
+.competitors-modal-close:focus-visible{outline:2px solid var(--brand-primary)}
+.competitors-modal-header{padding:14px 16px;border-bottom:1px solid var(--border-subtle);display:flex;align-items:center;justify-content:space-between}
+.competitors-modal-footer{padding:12px;border-top:1px solid var(--border-subtle);display:flex;justify-content:flex-end;gap:8px}
+@media(max-width:480px){.competitors-handle-row{grid-template-columns:minmax(0,1fr)}}
