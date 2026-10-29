@@ -11,7 +11,7 @@ import { usePlatformOptions } from '@/services/platforms';
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Plus, Trash2, RefreshCw, Sparkles, TrendingUp, X,
   Loader2, Users, ChevronRight,
@@ -32,11 +32,13 @@ export default function CompetitorsPage() {
   const { isPersian } = useLanguage();
   const [list, setList] = useState([]);
   const [loadError, setLoadError] = useState(false);
+  const requestSequence = useRef(0);
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState(null);  // selected competitor
   const [showCreate, setShowCreate] = useState(false);
 
   async function load() {
+    const requestId = ++requestSequence.current;
     setLoading(true);
     setLoadError(false);
     if (!workspaceId) {
@@ -47,16 +49,25 @@ export default function CompetitorsPage() {
     }
     try {
       const res = await competitorAPI.list({ workspace_id: workspaceId });
+      if (requestId !== requestSequence.current) return;
       const data = res.data?.results || res.data || [];
       setList(data);
       setActive(current => data.find(item => item.id === current?.id) || data[0] || null);
     } catch {
+      if (requestId !== requestSequence.current) return;
       setList([]);
       setActive(null);
       setLoadError(true);
-    } finally { setLoading(false); }
+    } finally { if (requestId === requestSequence.current) setLoading(false); }
   }
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [workspaceId]);
+  useEffect(() => {
+    setList([]);
+    setActive(null);
+    setShowCreate(false);
+    load();
+    return () => { requestSequence.current += 1; };
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
+  }, [workspaceId]);
 
   return (
     <div className="app-page app-page--content app-page--xl">
@@ -113,7 +124,7 @@ export default function CompetitorsPage() {
         </Card>
 
         <div>
-          {!active ? (
+          {!workspaceId || !active ? (
             <Card padding="none" style={{ overflow: 'hidden' }}>
               <EmptyState icon={Users} title="Select a competitor" />
             </Card>
