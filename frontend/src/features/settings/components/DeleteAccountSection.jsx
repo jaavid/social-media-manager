@@ -104,7 +104,7 @@ function ImmediateDelete({ enabled, logout, navigate }) {
         open={open}
         role="alertdialog"
         title={t('privacy.immediateTitle')}
-        description={t('privacy.immediateHint')}
+        description={t('settings.delete.summary')}
         initialFocusRef={cancel}
         returnFocusRef={confirmed || action.locked || action.denied ? heading : trigger}
         showClose={!action.busy && !exitBusy}
