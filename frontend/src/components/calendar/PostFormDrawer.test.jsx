@@ -32,7 +32,7 @@ test('calendar editor associates labels and error messages and exposes selection
   render(<PostFormDrawer isOpen clientId={7} onClose={jest.fn()} onSave={onSave}/>);
   expect(screen.getByRole('dialog', {name:'Schedule Post'})).toBeInTheDocument();
   expect(screen.getByRole('textbox', {name:'Caption'})).toBeInTheDocument();
-  expect(screen.getByRole('button', {name:'Instagram'})).toHaveAttribute('aria-pressed','true');
+  expect(screen.getByRole('button', {name:/Instagram$/})).toHaveAttribute('aria-pressed','true');
   fireEvent.click(screen.getByRole('button',{name:'Save as Draft'}));
   const caption=screen.getByRole('textbox',{name:'Caption'});
   await waitFor(()=>expect(caption).toHaveAttribute('aria-invalid','true'));
