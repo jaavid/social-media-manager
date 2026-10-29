@@ -99,3 +99,19 @@
     grid-template-columns: minmax(0, 1fr) !important;
   }
 }
+
+/* Reports: one global workspace selector belongs to the shell. */
+.reports-tabs { margin-block: 0.75rem 1rem; }
+.reports-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.75rem;
+  margin-block: 1rem;
+}
+.reports-toolbar > * { min-width: 0; }
+.reports-toolbar > .min-w-0 { width: auto; min-width: min(12rem, 100%); flex: 0 1 13rem; }
+@media (max-width: 600px) {
+  .reports-toolbar { align-items: stretch; }
+  .reports-toolbar > .min-w-0 { flex-basis: 100%; }
+}
