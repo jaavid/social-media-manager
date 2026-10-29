@@ -24,3 +24,27 @@ test('editing retains the saved platform across slow, incompatible and failed co
  mockConnection={status:{instagram:true},loaded:true,error:null};mockCompatible=[{key:'instagram',label:'Instagram',labels:{short:'Instagram'},color:'#c13584'}];view.rerender(<PostFormDrawer {...props}/>);expect(screen.getByRole('button',{name:/Telegram$/})).toHaveStyle({background:'#0088cc'});
  mockConnection={status:{},loaded:true,error:new Error('Public unavailable fixture')};mockCompatible=[];view.rerender(<PostFormDrawer {...props}/>);expect(screen.getByRole('button',{name:/Telegram$/})).toHaveStyle({background:'#0088cc'});expect(props.onSave).not.toHaveBeenCalled();fireEvent.click(screen.getByRole('button',{name:'Save as Draft'}));await waitFor(()=>expect(props.onSave).toHaveBeenCalledWith(expect.objectContaining({platform:'telegram'}),17));
 });
+
+test('calendar editor associates labels and error messages and exposes selection without color', async () => {
+  const onSave=jest.fn();
+  mockConnection={status:{instagram:true},loaded:true,error:null};
+  mockCompatible=[{key:'instagram',label:'Instagram',labels:{short:'Instagram'},color:'#c13584'}];
+  render(<PostFormDrawer isOpen clientId={7} onClose={jest.fn()} onSave={onSave}/>);
+  expect(screen.getByRole('dialog', {name:'Schedule Post'})).toBeInTheDocument();
+  expect(screen.getByRole('textbox', {name:'Caption'})).toBeInTheDocument();
+  expect(screen.getByRole('button', {name:/Instagram$/})).toHaveAttribute('aria-pressed','true');
+  fireEvent.click(screen.getByRole('button',{name:'Save as Draft'}));
+  const caption=screen.getByRole('textbox',{name:'Caption'});
+  await waitFor(()=>expect(caption).toHaveAttribute('aria-invalid','true'));
+  expect(caption).toHaveAccessibleDescription('Caption is required. Add a caption or at least an internal title.');
+  expect(onSave).not.toHaveBeenCalled();
+});
+
+test('scheduled time is announced as conditionally required, without requiring a caption for a title-only draft', () => {
+  mockConnection={status:{instagram:true},loaded:true,error:null};
+  mockCompatible=[{key:'instagram',label:'Instagram',labels:{short:'Instagram'},color:'#c13584'}];
+  render(<PostFormDrawer isOpen clientId={7} onClose={jest.fn()} onSave={jest.fn()}/>);
+  expect(screen.getByRole('textbox', { name: 'Caption' })).not.toHaveAttribute('required');
+  fireEvent.click(screen.getByRole('button', { name: 'scheduled' }));
+  expect(screen.getByLabelText('Scheduled Date & Time')).toHaveAttribute('aria-required', 'true');
+});

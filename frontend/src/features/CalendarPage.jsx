@@ -6,7 +6,7 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef } from 'react';
 import { addMonths, subMonths, format, parseISO, endOfMonth } from 'date-fns';
 import { ChevronLeft, ChevronRight, Plus, Calendar, List, BarChart2 } from 'lucide-react';
 import { useAppSearchParams as useSearchParams } from '../core/navigation';
@@ -163,10 +163,10 @@ function ListView({
                 <div style={{ flexShrink: 0, textAlign: 'end' }}>
                   <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 8 }}>{timeStr}</div>
                   <div style={{ display: 'flex', gap: 6 }}>
-                    <button onClick={() => onPostClick(post)} style={listBtnStyle}>{t('common.view', 'View')}</button>
+                    <button onClick={event => onPostClick(post, event.currentTarget)} style={listBtnStyle}>{t('common.view', 'View')}</button>
                     {isAdmin && post.status !== 'published' && (
                       <>
-                        <button onClick={() => onEditPost(post)} style={listBtnStyle}>{t('common.edit', 'Edit')}</button>
+                        <button onClick={event => onEditPost(post, event.currentTarget)} style={listBtnStyle}>{t('common.edit', 'Edit')}</button>
                         <button onClick={() => onDeletePost(post.id)} style={{ ...listBtnStyle, color: '#EF4444', borderColor: '#FECACA' }}>
                           {t('common.delete', 'Delete')}
                         </button>
@@ -238,6 +238,8 @@ export default function CalendarPage({ clientId: propClientId }) {
   const [formOpen, setFormOpen] = useState(false);
   const [formDate, setFormDate] = useState(null);
   const [editingPost, setEditingPost] = useState(null);
+  // Keep the calendar action alive as the detail panel is replaced by the editor.
+  const calendarReturnFocusRef = useRef(null);
 
   const { postsByDate, loading: postsLoading, refetch: refetchPosts } =
     useCalendarPosts(clientId, month, year, platform === 'all' ? '' : platform, queryMonths);
@@ -277,18 +279,24 @@ export default function CalendarPage({ clientId: propClientId }) {
     setCurrentDate(isPersian ? startOfPersianMonth(new Date()) : new Date());
   }
 
-  function openPostDetail(post) { setDetailPost(post); setDetailOpen(true); }
+  function openPostDetail(post, trigger) {
+    calendarReturnFocusRef.current = trigger || (document.activeElement instanceof HTMLElement ? document.activeElement : null);
+    setDetailPost(post);
+    setDetailOpen(true);
+  }
   function closeDetail() { setDetailOpen(false); setTimeout(() => setDetailPost(null), 300); }
 
-  function openFormForDate(date) {
+  function openFormForDate(date, trigger) {
     if (!isAdmin) return;
+    calendarReturnFocusRef.current = trigger || (document.activeElement instanceof HTMLElement ? document.activeElement : null);
     setEditingPost(null);
     setFormDate(date);
     setFormOpen(true);
   }
 
-  function openFormForEdit(post) {
+  function openFormForEdit(post, trigger) {
     if (!isAdmin) return;
+    if (trigger) calendarReturnFocusRef.current = trigger;
     setEditingPost(post);
     setFormDate(null);
     setFormOpen(true);
@@ -421,7 +429,7 @@ export default function CalendarPage({ clientId: propClientId }) {
 
           <div style={{ marginInlineStart: isEmbedded ? 0 : 'auto', display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: isEmbedded ? 'flex-start' : 'flex-end', flex: '1 1 260px', minWidth: 0 }}>
             {isAdmin && (
-              <button onClick={() => openFormForDate(new Date())} style={scheduleBtnStyle}>
+              <button onClick={event => openFormForDate(new Date(), event.currentTarget)} style={scheduleBtnStyle}>
                 <Plus size={16} /> {t('calendar.schedulePost', 'Schedule Post')}
               </button>
             )}
@@ -506,6 +514,7 @@ export default function CalendarPage({ clientId: propClientId }) {
           post={detailPost}
           isOpen={detailOpen}
           onClose={closeDetail}
+          returnFocusRef={calendarReturnFocusRef}
           onEdit={openFormForEdit}
           onDelete={handleDeletePost}
           onReschedule={handleReschedule}
@@ -515,6 +524,7 @@ export default function CalendarPage({ clientId: propClientId }) {
           post={editingPost}
           isOpen={formOpen}
           onClose={closeForm}
+          returnFocusRef={calendarReturnFocusRef}
           onSave={handleSavePost}
           clientId={clientId}
           readOnly={!isAdmin}

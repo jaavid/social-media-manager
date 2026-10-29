@@ -10,7 +10,7 @@ export const Table = forwardRef<
   HTMLTableElement,
   TableHTMLAttributes<HTMLTableElement>
 >(({ className, ...props }, ref) => (
-  <div className="max-w-full overflow-x-auto">
+  <div className="ds-table-scroll max-w-full overflow-x-auto" tabIndex={0}>
     <table
       ref={ref}
       className={cn(

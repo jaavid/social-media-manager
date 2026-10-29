@@ -7,16 +7,17 @@
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
 import { useState } from 'react';
-import { X, ExternalLink, Edit2, Trash2, Calendar, RefreshCw } from 'lucide-react';
+import { ExternalLink, Edit2, Trash2, Calendar, RefreshCw } from 'lucide-react';
+import Drawer from '../ui/Drawer';
 import { PLATFORMS } from '../../services/platforms';
 import SocialPlatformIcon from '../ui/SocialPlatformIcon';
 import { useLanguage } from '../../i18n';
 
 const STATUS_BADGE = {
-  published: { bg: '#D1FAE5', color: '#059669', label: 'Published' },
-  scheduled: { bg: '#DBEAFE', color: '#2563EB', label: 'Scheduled' },
-  draft: { bg: '#F1F5F9', color: '#64748B', label: 'Draft' },
-  failed: { bg: '#FEE2E2', color: '#EF4444', label: 'Failed' },
+  published: { bg: 'var(--success-bg)', color: 'var(--success)', label: 'Published' },
+  scheduled: { bg: 'var(--info-bg)', color: 'var(--info)', label: 'Scheduled' },
+  draft: { bg: 'var(--surface-sunken)', color: 'var(--text-secondary)', label: 'Draft' },
+  failed: { bg: 'var(--danger-bg)', color: 'var(--danger)', label: 'Failed' },
 };
 
 function compactNumber(value, formatNumber) {
@@ -25,7 +26,7 @@ function compactNumber(value, formatNumber) {
   return formatNumber(number);
 }
 
-export default function PostDrawer({ post, isOpen, onClose, onEdit, onDelete, onReschedule }) {
+export default function PostDrawer({ post, isOpen, onClose, onEdit, onDelete, onReschedule, returnFocusRef }) {
   const { isPersian, tr, formatDate, formatNumber } = useLanguage();
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [rescheduleMode, setRescheduleMode] = useState(false);
@@ -57,56 +58,8 @@ export default function PostDrawer({ post, isOpen, onClose, onEdit, onDelete, on
   }
 
   return (
-    <>
-      <div
-        onClick={onClose}
-        style={{
-          position: 'fixed', inset: 0,
-          background: 'var(--overlay-backdrop)',
-          zIndex: 1000,
-          opacity: isOpen ? 1 : 0,
-          transition: 'opacity 0.25s',
-          pointerEvents: isOpen ? 'auto' : 'none',
-        }}
-      />
-
-      <div style={{
-        position: 'fixed', top: 0, bottom: 0, insetInlineEnd: 0,
-        width: 420,
-        maxWidth: '100vw',
-        background: 'var(--surface-card)',
-        boxShadow: isPersian ? '4px 0 24px rgba(0,0,0,0.12)' : '-4px 0 24px rgba(0,0,0,0.12)',
-        zIndex: 1001,
-        transform: isOpen ? 'translateX(0)' : isPersian ? 'translateX(-100%)' : 'translateX(100%)',
-        transition: 'transform 0.25s ease-out',
-        display: 'flex', flexDirection: 'column',
-        overflowY: 'auto',
-      }}>
-        <div style={{
-          padding: '16px 20px', borderBottom: '1px solid var(--border-default)',
-          display: 'flex', alignItems: 'center', gap: 12,
-          background: platform.color + '10',
-          position: 'sticky', top: 0, zIndex: 1,
-        }}>
-          <SocialPlatformIcon platform={post.platform} size={28} />
-          <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--text-primary)' }}>
-              {platform.label}
-            </div>
-            <div style={{
-              display: 'inline-flex', alignItems: 'center',
-              padding: '1px 8px', borderRadius: 20, fontSize: 11, fontWeight: 700,
-              background: badge.bg, color: badge.color, marginTop: 2,
-            }}>
-              {tr(badge.label)}
-            </div>
-          </div>
-          <button onClick={onClose} aria-label={tr('Close')} style={iconButtonStyle}>
-            <X size={20} />
-          </button>
-        </div>
-
-        <div style={{ padding: '20px', flex: 1 }}>
+    <Drawer open={isOpen} onClose={onClose} returnFocusRef={returnFocusRef} side="end" width={420} title={<span className="inline-flex min-w-0 flex-wrap items-center gap-2"><SocialPlatformIcon platform={post.platform} size={24} /><span>{platform.label}</span><span className="rounded-lg px-2 py-1 text-xs font-semibold" style={{ background: badge.bg, color: badge.color }}>{tr(badge.label)}</span></span>}>
+        <div className="min-w-0">
           {post.title && (
             <div style={{ fontWeight: 700, fontSize: 16, color: 'var(--text-primary)', marginBottom: 8 }}>
               {post.title}
@@ -158,7 +111,7 @@ export default function PostDrawer({ post, isOpen, onClose, onEdit, onDelete, on
               <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-tertiary)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '.06em' }}>
                 {tr('Performance')}
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 {[
                   { icon: '👁', label: 'Impressions', value: post.impressions },
                   { icon: '📡', label: 'Reach', value: post.reach },
@@ -242,6 +195,7 @@ export default function PostDrawer({ post, isOpen, onClose, onEdit, onDelete, on
                     {tr('New scheduled time')}:
                   </div>
                   <input
+                    aria-label={tr('New scheduled time')}
                     type="datetime-local"
                     value={newDatetime}
                     onChange={event => setNewDatetime(event.target.value)}
@@ -321,14 +275,9 @@ export default function PostDrawer({ post, isOpen, onClose, onEdit, onDelete, on
             )}
           </div>
         )}
-      </div>
-    </>
+    </Drawer>
   );
 }
-
-const iconButtonStyle = {
-  background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', padding: 4,
-};
 
 const secondaryFullButtonStyle = {
   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,

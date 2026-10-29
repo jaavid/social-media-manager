@@ -22,11 +22,12 @@ import { AppNavLink as NavLink, useAppLocation as useLocation } from '../../core
 import {
   LayoutDashboard, CalendarDays,
   Building2, Plug, ShieldCheck, ClipboardCheck, Search,
-  Sparkles, Bell, Menu,
+  Bell, Menu,
 } from 'lucide-react';
 
 import { useSession as useAuth } from '../../core/session';
 import Drawer from '@/components/ui/Drawer';
+import { BrandMark } from '@/components/ui/BrandLogo';
 import WorkspaceContext from '@/components/shell/WorkspaceContext';
 
 const SECTIONS = [
@@ -72,7 +73,7 @@ export default function EndUserShell({ children }) {
           ref={menuTrigger} type="button" onClick={() => setMobileOpen(true)} aria-label={tr("Open menu")}
           aria-expanded={mobileOpen} aria-controls={mobileMenuId}
           style={{
-            width: 36, height: 36, padding: 0,
+            width: 44, height: 44, padding: 0,
             display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
             background: 'transparent', color: 'var(--text-primary)',
             border: '1px solid var(--border-default)', borderRadius: 'var(--radius-sm)',
@@ -81,13 +82,7 @@ export default function EndUserShell({ children }) {
         >
           <Menu size={18} />
         </button>
-        <span style={{
-          width: 26, height: 26, background: 'var(--brand-gradient)', color: '#fff',
-          borderRadius: 'var(--radius-sm)',
-          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-        }}>
-          <Sparkles size={13} strokeWidth={2.4} />
-        </span>
+        <BrandMark size={28} />
         <strong style={{ fontSize: 14, color: 'var(--text-primary)' }}>{tr("Ravinta")}</strong>
       </header>
 
@@ -95,15 +90,7 @@ export default function EndUserShell({ children }) {
         style={{ width: 240, background: 'var(--surface-card)', borderInlineEnd: '1px solid var(--border-subtle)',
           padding: 14, display: 'flex', flexDirection: 'column', gap: 16, position: 'sticky', top: 0, height: '100vh' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingBottom: 14, borderBottom: '1px solid var(--border-subtle)' }}>
-          <span style={{
-            width: 28, height: 28,
-            background: 'var(--brand-gradient)',
-            borderRadius: 'var(--radius-sm)',
-            color: '#fff',
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <Sparkles size={14} strokeWidth={2.4} />
-          </span>
+          <BrandMark size={28} />
           <div>
             <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>{tr("Ravinta")}</div>
             <div style={{ fontSize: 10, color: 'var(--text-tertiary)' }}>{tr("Personal account")}</div>
@@ -171,7 +158,7 @@ function EndUserMenu({ workspaceId, text, t }) {
 }
 
 function NavRow({ to, label, icon: Icon, end }) {
-  return <NavLink to={to} end={end} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm no-underline focus-visible:ring-2 focus-visible:ring-ring"
+  return <NavLink to={to} end={end} className="flex min-h-11 items-center gap-2 rounded-lg px-3 py-2 text-sm no-underline focus-visible:ring-2 focus-visible:ring-ring"
     style={({ isActive }) => ({ color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
       background: isActive ? 'var(--brand-primary-glow)' : 'transparent', fontWeight: isActive ? 600 : 500 })}>
     <Icon size={15} aria-hidden="true" /><span>{label}</span>

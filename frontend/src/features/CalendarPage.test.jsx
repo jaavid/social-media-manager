@@ -20,14 +20,24 @@ jest.mock('@/components/calendar/ChannelSources', () => ({ __esModule: true,
   default: ({ selectedSource, onSelectSource }) => <button onClick={() => onSelectSource('2')}>Filter:{selectedSource || 'all'}</button> }));
 jest.mock('@/components/calendar/CalendarGrid', () => ({ __esModule: true, default: () => <div>Month grid</div> }));
 jest.mock('@/components/calendar/CalendarStats', () => ({ __esModule: true, default: () => <div>Stats panel</div> }));
-jest.mock('@/components/calendar/PostDrawer', () => ({ __esModule: true, default: () => null }));
-jest.mock('@/components/calendar/PostFormDrawer', () => ({ __esModule: true, default: () => null }));
+let mockDetailReturnRef;
+let mockEditorReturnRef;
+jest.mock('@/components/calendar/PostDrawer', () => ({ __esModule: true, default: ({ isOpen, post, onEdit, returnFocusRef }) => {
+  mockDetailReturnRef = returnFocusRef;
+  return isOpen ? <button onClick={() => onEdit(post)}>Edit inside details</button> : null;
+} }));
+jest.mock('@/components/calendar/PostFormDrawer', () => ({ __esModule: true, default: ({ isOpen, returnFocusRef }) => {
+  mockEditorReturnRef = returnFocusRef;
+  return isOpen ? <span data-testid="editor-visible">Editor open</span> : null;
+} }));
 jest.mock('@/components/layout/PageHeader', () => ({ __esModule: true, default: ({ actions }) => <header>{actions}</header> }));
 
 beforeEach(() => {
   mockUser = { role: 'user', client_id: 10 };
   mockParams = new URLSearchParams();
   jest.clearAllMocks();
+  mockDetailReturnRef = null;
+  mockEditorReturnRef = null;
 });
 
 test('late session data selects its workspace and embedded scope overrides query scope', () => {
@@ -71,4 +81,24 @@ test('admin can clear the workspace and view buttons update URL state', () => {
   view.rerender(<CalendarPage />);
   expect(useCalendarPosts.mock.lastCall[0]).toBeNull();
   expect(screen.getByText('Select a user from the top-right dropdown to view their content calendar.')).toBeInTheDocument();
+});
+
+test('calendar details → editor retain the original View trigger for focus restoration', () => {
+  mockUser = { role: 'staff' };
+  mockParams = new URLSearchParams('client=10&view=list');
+  const today = new Date();
+  const dateKey = [today.getFullYear(), String(today.getMonth() + 1).padStart(2, '0'), String(today.getDate()).padStart(2, '0')].join('-');
+  useCalendarPosts.mockImplementation(() => ({
+    postsByDate: { [dateKey]: [{ id: 19, platform: 'telegram', status: 'draft', title: 'Trigger fixture', caption: 'Calendar post' }] },
+    loading: false,
+    refetch: jest.fn(),
+  }));
+  render(<CalendarPage />);
+  const trigger = screen.getByRole('button', { name: 'View' });
+  fireEvent.click(trigger);
+  expect(mockDetailReturnRef.current).toBe(trigger);
+  fireEvent.click(screen.getByRole('button', { name: 'Edit inside details' }));
+  expect(screen.getByTestId('editor-visible')).toBeInTheDocument();
+  expect(mockEditorReturnRef).toBe(mockDetailReturnRef);
+  expect(mockEditorReturnRef.current).toBe(trigger);
 });

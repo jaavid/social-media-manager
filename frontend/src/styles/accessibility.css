@@ -29,6 +29,10 @@ textarea {
   outline: 2px solid var(--brand-primary-hover);
   outline-offset: 3px;
 }
+/* The scroll region can live under overflow-hidden. Its focus ring must remain inside. */
+.ds-table-scroll:focus-visible {
+  outline-offset: -3px;
+}
 .ds-input-control:focus {
   box-shadow: none !important;
 }
@@ -47,7 +51,9 @@ textarea {
 }
 .ds-dialog-body {
   overflow-wrap: anywhere;
+  min-width: 0;
 }
+.eu-main, .eu-main > * { min-width: 0; max-width: 100%; }
 .ds-tooltip {
   pointer-events: none;
 }
