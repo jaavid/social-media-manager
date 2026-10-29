@@ -266,7 +266,7 @@ function CompetitorDetail({ competitor, workspaceId, onChange }) {
           subtitle="Last 90 days"
           action={
             <select value={platform} onChange={(e) => setPlatform(e.target.value)}
-                     style={{ ...inputStyle, height: 32, width: 'auto' }}>
+                     className="competitors-platform-select">
               <option value="">All</option>
               {PLATFORMS.map((p) => <option key={p} value={p}>{p}</option>)}
             </select>
@@ -363,7 +363,7 @@ function InsightList({ title, items, variant }) {
         {items.map((item, i) => (
           <div key={i} className="competitors-insight-item">
             <Badge variant={variant} dot>•</Badge>
-            <span style={{ color: 'var(--text-primary)' }}>{item}</span>
+            <span className="competitors-primary-text">{item}</span>
           </div>
         ))}
       </div>
@@ -397,26 +397,24 @@ function CreateCompetitorModal({ workspaceId, onClose, onCreated }) {
 
   return (
     <div onClick={onClose} style={modalBackdrop}>
-      <Card onClick={(e) => e.stopPropagation()} padding="none" style={{
-        width: 'min(520px, 100%)', display: 'flex', flexDirection: 'column',
-      }}>
+      <Card onClick={(e) => e.stopPropagation()} padding="none" className="competitors-create-card">
         <div style={modalHeader}>
-          <strong style={{ fontSize: 16 }}>Add competitor</strong>
+          <strong className="competitors-modal-title">Add competitor</strong>
           <button onClick={onClose} style={iconBtnStyle} aria-label="Close"><X size={14} /></button>
         </div>
-        <div style={{ padding: 16 }}>
-          <label style={{ display: 'block', marginBottom: 12 }}>
+        <div className="competitors-modal-body">
+          <label className="competitors-field">
             <span style={fieldLabel}>Name</span>
             <input value={name} onChange={(e) => setName(e.target.value)}
                     placeholder="Acme Rival" style={inputStyle} autoFocus />
           </label>
           <div style={fieldLabel}>Public handles</div>
-          <div style={{ marginTop: 6, color: 'var(--text-tertiary)', fontSize: 11, marginBottom: 8 }}>
+          <div className="competitors-field-hint">
             Channel ID for YouTube (UC…), page username for Facebook, @handle for Instagram.
           </div>
           {PLATFORMS.map((p) => (
-            <div key={p} style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: 8, marginBottom: 6 }}>
-              <span style={{ fontSize: 12, color: 'var(--text-secondary)', alignSelf: 'center' }}>{p}</span>
+            <div key={p} className="competitors-handle-row">
+              <span className="competitors-handle-label">{p}</span>
               <input value={handles[p] || ''}
                       onChange={(e) => setHandles({ ...handles, [p]: e.target.value })}
                       placeholder={p === 'youtube' ? 'UCxxxxxxxxxxxx' : '@handle or username'}
