@@ -371,10 +371,10 @@ export default function PostFormDrawer({ date, post, isOpen, onClose, onSave, cl
             display: 'flex', gap: 8,
             position: 'sticky', bottom: 0, background: 'var(--surface-card)', zIndex: 1,
           }}>
-            <button onClick={() => handleSave('draft')} disabled={saving} style={{ ...footerButtonStyle, background: 'var(--surface-sunken)', color: 'var(--text-primary)' }}>
+            <button type="button" onClick={() => handleSave('draft')} disabled={saving} style={{ ...footerButtonStyle, background: 'var(--surface-sunken)', color: 'var(--text-primary)' }}>
               {tr('Save as Draft')}
             </button>
-            <button onClick={() => handleSave('scheduled')} disabled={saving} style={{ ...footerButtonStyle, background: '#2563EB', color: '#fff', borderColor: '#2563EB' }}>
+            <button type="button" onClick={() => handleSave('scheduled')} disabled={saving} style={{ ...footerButtonStyle, background: '#2563EB', color: '#fff', borderColor: '#2563EB' }}>
               {saving ? tr('Saving…') : tr('Schedule Post')}
             </button>
           </div>
@@ -387,7 +387,7 @@ function Field({ label, htmlFor, required, suffix, error, children }) {
   return (
     <div style={{ marginBottom: 16, minWidth: 0 }}>
       <label htmlFor={htmlFor} style={labelStyle}>
-        {label} {required && <span style={requiredAsteriskStyle}>*</span>}
+        {label} {required && <span aria-hidden="true" style={requiredAsteriskStyle}>*</span>}
         {suffix && <span style={{ marginInlineStart: 8, fontWeight: 400, color: 'var(--text-tertiary)' }}>{suffix}</span>}
       </label>
       {children}
@@ -421,10 +421,6 @@ const fieldErrorStyle = {
   marginTop: 6,
   fontSize: 12,
   color: '#dc2626',
-};
-
-const closeButtonStyle = {
-  background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', padding: 4,
 };
 
 const footerButtonStyle = {
