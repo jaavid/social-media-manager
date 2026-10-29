@@ -109,17 +109,8 @@ function ListView({
               : '';
 
             return (
-              <div key={post.id} style={{
-                display: 'flex', alignItems: 'flex-start', gap: 12,
-                background: 'var(--surface-card)', borderRadius: 10,
-                border: '1px solid var(--border-default)',
-                borderInlineStart: `4px solid ${platform.color}`,
-                padding: '12px 16px', marginBottom: 8,
-              }}>
-                <div style={{
-                  width: 36, height: 36, borderRadius: '50%', background: platform.color + '20',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                }}>
+              <div key={post.id} className="calendar-feed-post" style={{ '--calendar-platform-color': platform.color }}>
+                <div className="calendar-feed-avatar" style={{ '--calendar-platform-tint': platform.color + '20' }}>
                   <SocialPlatformIcon platform={post.platform} size={18} />
                 </div>
 
@@ -128,10 +119,7 @@ function ListView({
                     <span className="calendar-post-title">
                       {post.title || tr('(no title)')}
                     </span>
-                    <span style={{
-                      padding: '1px 8px', borderRadius: 20, fontSize: 10, fontWeight: 700,
-                      background: badge.bg, color: badge.color,
-                    }}>
+                    <span className="calendar-status-badge" style={{ '--calendar-status-bg': badge.bg, '--calendar-status-color': badge.color }}>
                       {tr(post.status)}
                     </span>
                   </div>
