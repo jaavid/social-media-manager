@@ -65,25 +65,11 @@ export default function ReportsPage() {
   const { user } = useSession();
   const { t } = useLanguage();
   const { workspaces, error, refetch } = useWorkspaces();
-  const { workspaceId: workspace, selectWorkspace } = useWorkspaceScope();
+  const { workspaceId: workspace } = useWorkspaceScope();
   const [tab, setTab] = useState('shared');
   return (
     <Page>
       <PageHeader title={t('reports.title')} subtitle={t('reports.description')} sticky={false} />
-      {(
-        <NativeSelect
-          label={t('analytics.report.workspace')}
-          value={workspace ?? ''}
-          onChange={(e) => selectWorkspace(e.target.value)}
-        >
-          <option value="">{t('analytics.report.workspace')}</option>
-          {workspaces.map((w) => (
-            <option key={w.id} value={w.id}>
-              {w.company || w.name}
-            </option>
-          ))}
-        </NativeSelect>
-      )}
       {error && (
         <DataState
           state="error"
@@ -91,6 +77,7 @@ export default function ReportsPage() {
           action={<Button onClick={refetch}>{t('analytics.report.retry')}</Button>}
         />
       )}
+      <div className="reports-tabs">
       <SegmentedTabs
         items={[
           { id: 'shared', label: t('reports.shared') },
@@ -99,6 +86,7 @@ export default function ReportsPage() {
         active={tab}
         onChange={setTab}
       />
+      </div>
       {workspace && (
         <ReportCollection
           key={`${user?.id}:${workspace}:${tab}`}
@@ -172,7 +160,7 @@ function ReportCollection({ workspace, kind }) {
       : formatNumber(Number(value));
   return (
     <>
-      <div className="my-4 flex flex-wrap gap-3">
+      <div className="reports-toolbar">
         <Button onClick={() => query.refetch()} disabled={query.isFetching}>
           {t('analytics.report.refresh')}
         </Button>
