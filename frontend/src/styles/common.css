@@ -110,8 +110,8 @@
   margin-block: 1rem;
 }
 .reports-toolbar > * { min-width: 0; }
-.reports-toolbar > .min-w-0 { width: auto; min-width: min(12rem, 100%); flex: 0 1 13rem; }
+.reports-toolbar > .reports-filter { width: auto; min-width: min(12rem, 100%); flex: 0 1 13rem; }
 @media (max-width: 600px) {
   .reports-toolbar { align-items: stretch; }
-  .reports-toolbar > .min-w-0 { flex-basis: 100%; }
+  .reports-toolbar > .reports-filter { flex-basis: 100%; }
 }
