@@ -159,7 +159,7 @@ function ListView({
                     {isAdmin && post.status !== 'published' && (
                       <>
                         <button onClick={event => onEditPost(post, event.currentTarget)} style={listBtnStyle}>{t('common.edit', 'Edit')}</button>
-                        <button onClick={() => onDeletePost(post.id)} style={{ ...listBtnStyle, color: '#EF4444', borderColor: '#FECACA' }}>
+                        <button onClick={() => onDeletePost(post.id)} className="calendar-list-button calendar-list-button--danger">
                           {t('common.delete', 'Delete')}
                         </button>
                       </>
@@ -370,7 +370,7 @@ export default function CalendarPage({ clientId: propClientId }) {
 
   return (
     <div style={pageStyle}>
-      <div style={{ maxWidth: isEmbedded ? '100%' : 1480, margin: isEmbedded ? '0' : '0 auto' }}>
+      <div className={isEmbedded ? 'calendar-container calendar-container--embedded' : 'calendar-container'}>
         <PageHeader
           title={pageTitle}
           subtitle={pageSubtitle}
@@ -395,7 +395,7 @@ export default function CalendarPage({ clientId: propClientId }) {
             <button onClick={prevMonth} style={navBtnStyle} aria-label={tr('Previous month')}>
               <ChevronLeft size={16} style={isPersian ? { transform: 'rotate(180deg)' } : undefined} />
             </button>
-            <div style={{ fontWeight: 800, fontSize: 18, color: 'var(--text-primary)', minWidth: isEmbedded ? 140 : 160, textAlign: 'center' }}>
+            <div className={isEmbedded ? 'calendar-current-period calendar-current-period--embedded' : 'calendar-current-period'}>
               {monthTitle}
             </div>
             <button onClick={nextMonth} style={navBtnStyle} aria-label={tr('Next month')}>
@@ -406,11 +406,7 @@ export default function CalendarPage({ clientId: propClientId }) {
 
           <div className="calendar-platform-filter">
             {[{ key: 'all', label: t('common.all', 'All'), color: '#00d7ff' }, ...calendarPlatforms.map(p => ({ key: p.key, label: p.labels[language] || p.labels.en, color: p.color }))].map(item => (
-              <button key={item.key} onClick={() => setPlatform(item.key)} style={{
-                padding: '5px 10px', borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s',
-                background: platform === item.key ? '#00d7ff' : '#fff', color: platform === item.key ? '#fff' : 'var(--text-secondary)',
-                border: platform === item.key ? '1px solid #00d7ff' : '1px solid var(--border-default)',
-              }}>
+              <button key={item.key} onClick={() => setPlatform(item.key)} className={platform === item.key ? 'calendar-platform-button calendar-platform-button--active' : 'calendar-platform-button'}>
                 <span className="calendar-inline-control">
                   {item.key === 'all' ? null : <SocialPlatformIcon platform={item.key} size={14} />}
                   {item.label || t('common.all', 'All')}
@@ -419,7 +415,7 @@ export default function CalendarPage({ clientId: propClientId }) {
             ))}
           </div>
 
-          <div style={{ marginInlineStart: isEmbedded ? 0 : 'auto', display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: isEmbedded ? 'flex-start' : 'flex-end', flex: '1 1 260px', minWidth: 0 }}>
+          <div className={isEmbedded ? 'calendar-toolbar-actions calendar-toolbar-actions--embedded' : 'calendar-toolbar-actions'}>
             {isAdmin && (
               <button onClick={event => openFormForDate(new Date(), event.currentTarget)} style={scheduleBtnStyle}>
                 <Plus size={16} /> {t('calendar.schedulePost', 'Schedule Post')}
@@ -427,10 +423,7 @@ export default function CalendarPage({ clientId: propClientId }) {
             )}
             <div className="calendar-view-switcher">
               {views.map(item => (
-                <button key={item.key} onClick={() => updateSearch({ view: item.key, client: clientId })} style={{
-                  display: 'flex', alignItems: 'center', gap: 5, padding: '7px 14px', border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 600,
-                  background: view === item.key ? '#00d7ff' : '#fff', color: view === item.key ? '#fff' : 'var(--text-secondary)', transition: 'all 0.15s', whiteSpace: 'nowrap',
-                }}>
+                <button key={item.key} onClick={() => updateSearch({ view: item.key, client: clientId })} className={view === item.key ? 'calendar-view-button calendar-view-button--active' : 'calendar-view-button'}>
                   {item.icon} {item.label}
                 </button>
               ))}
