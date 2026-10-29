@@ -256,3 +256,27 @@ test('AI hub does not advertise restricted actions to a navigation-limited role'
   await expect(hub.locator('a[href*="/inbox"]')).toHaveCount(0);
   await expect(hub.locator('a[href*="/brand-voice"]')).toHaveCount(0);
 });
+
+for (const language of ['fa', 'en']) for (const theme of ['light', 'dark']) {
+  test(`320 CSS px reflow keeps the end-user navigation operable (${language}, ${theme})`, async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 900 });
+    await setup(page, { language, theme, endUser: true });
+    await page.goto('/u');
+    const trigger = page.getByRole('button', { name: language === 'fa' ? 'باز کردن منو' : 'Open menu', exact: true });
+    await expect(trigger).toBeVisible();
+    await trigger.click();
+    const drawer = page.getByRole('dialog');
+    await expect(drawer).toBeVisible();
+    await expect(drawer.getByRole('link', { name: language === 'fa' ? 'تقویم' : 'Calendar', exact: true })).toBeVisible();
+    const bounds = await drawer.boundingBox();
+    expect(bounds).not.toBeNull();
+    expect(bounds.x).toBeGreaterThanOrEqual(-1);
+    expect(bounds.x + bounds.width).toBeLessThanOrEqual(321);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await page.keyboard.press('Shift+Tab');
+    expect(await drawer.evaluate(el => el.contains(document.activeElement))).toBe(true);
+    await page.keyboard.press('Escape');
+    await expect(drawer).toHaveCount(0);
+    await expect(trigger).toBeFocused();
+  });
+}
