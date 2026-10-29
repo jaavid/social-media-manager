@@ -73,12 +73,12 @@ function ListView({
 
   if (entries.length === 0) {
     return (
-      <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-tertiary)' }}>
-        <div style={{ fontSize: 48, marginBottom: 12 }}>📅</div>
-        <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 8, color: 'var(--text-primary)' }}>
+      <div className="calendar-empty">
+        <div className="calendar-empty-icon">📅</div>
+        <div className="calendar-empty-heading">
           {t('calendar.noPosts', 'No posts this month')}
         </div>
-        <div style={{ fontSize: 13 }}>{t('calendar.noPostsHint', 'Schedule your first post using the "+" button above.')}</div>
+        <div className="calendar-empty-description">{t('calendar.noPostsHint', 'Schedule your first post using the "+" button above.')}</div>
       </div>
     );
   }
@@ -87,17 +87,13 @@ function ListView({
     <div>
       {entries.map(([dateStr, posts]) => (
         <div key={dateStr} style={{ marginBottom: 24 }}>
-          <div style={{
-            position: 'sticky', top: 0, zIndex: 10,
-            background: 'var(--surface-page)', padding: '8px 0',
-            borderBottom: '2px solid var(--border-default)', marginBottom: 8,
-          }}>
-            <span style={{ fontWeight: 700, fontSize: 14, color: 'var(--text-primary)' }}>
+          <div className="calendar-day-heading">
+            <span className="calendar-day-title">
               {isPersian
                 ? formatDate(parseISO(dateStr), { weekday: 'long', month: 'long', day: 'numeric' })
                 : format(parseISO(dateStr), 'EEEE, MMMM d')}
             </span>
-            <span style={{ marginInlineStart: 8, fontSize: 12, color: 'var(--text-tertiary)' }}>
+            <span className="calendar-day-count">
               {formatNumber(posts.length)} {t('common.posts', posts.length === 1 ? 'post' : 'posts')}
             </span>
           </div>
@@ -127,9 +123,9 @@ function ListView({
                   <SocialPlatformIcon platform={post.platform} size={18} />
                 </div>
 
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
-                    <span style={{ fontWeight: 700, fontSize: 13, color: 'var(--text-primary)' }}>
+                <div className="calendar-flex-fill">
+                  <div className="calendar-post-heading">
+                    <span className="calendar-post-title">
                       {post.title || tr('(no title)')}
                     </span>
                     <span style={{
@@ -147,12 +143,12 @@ function ListView({
                     {post.caption || tr('(no caption)')}
                   </div>
                   {post.hashtags && (
-                    <div style={{ fontSize: 11, color: '#007a9a' }}>
+                    <div className="calendar-post-link">
                       {formatNumber(post.hashtags.split(' ').filter(h => h.startsWith('#')).length)} {tr('hashtags')}
                     </div>
                   )}
                   {post.status === 'published' && (post.impressions > 0 || post.likes > 0) && (
-                    <div style={{ display: 'flex', gap: 12, fontSize: 11, color: 'var(--text-secondary)', marginTop: 4 }}>
+                    <div className="calendar-post-meta">
                       {post.impressions > 0 && <span>👁 {fmt(post.impressions, formatNumber)}</span>}
                       {post.likes > 0 && <span>❤️ {fmt(post.likes, formatNumber)}</span>}
                       {post.comments > 0 && <span>💬 {fmt(post.comments, formatNumber)}</span>}
@@ -160,7 +156,7 @@ function ListView({
                   )}
                 </div>
 
-                <div style={{ flexShrink: 0, textAlign: 'end' }}>
+                <div className="calendar-post-actions">
                   <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 8 }}>{timeStr}</div>
                   <div style={{ display: 'flex', gap: 6 }}>
                     <button onClick={event => onPostClick(post, event.currentTarget)} style={listBtnStyle}>{t('common.view', 'View')}</button>
