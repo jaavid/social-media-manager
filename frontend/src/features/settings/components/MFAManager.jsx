@@ -161,9 +161,11 @@ function Mfa({ identity, enabled }) {
           returnFocusRef={heading}
         />
         {(!dialog || resource.denied || action.denied) && (
-          <SensitiveActionInfo summaryKey="settings.mfa.summary" detailKeys={['mfa.uncertain', 'settings.mfa.recovery']} />
+          <>
+<SensitiveActionInfo summaryKey="settings.mfa.summary" detailKeys={['mfa.uncertain', 'settings.mfa.recovery']} />
           <WriteState action={action} recover={refresh} uncertainKey="mfa.uncertain" />
-        )}
+        </>
+)}
         {lost && !denied && <DataState compact state="partial" title={t(lost)} />}
         {!denied && status && (
           <>
