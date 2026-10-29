@@ -1,4 +1,5 @@
 import { useLanguage } from '../../i18n';
+import useWorkspaceScope from '../../hooks/useWorkspaceScope';
 import PublicProfileSummary from '../../components/PublicProfileSummary';
 import PublicPostDetails from '../../components/calendar/PublicPostDetails';
 import { usePlatformOptions } from '@/services/platforms';
@@ -27,28 +28,42 @@ import { competitorAPI } from '@/services/domains/reporting';
 
 
 export default function CompetitorsPage() {
+  const { workspaceId } = useWorkspaceScope();
+  const { isPersian } = useLanguage();
   const [list, setList] = useState([]);
+  const [loadError, setLoadError] = useState(false);
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState(null);  // selected competitor
   const [showCreate, setShowCreate] = useState(false);
 
   async function load() {
     setLoading(true);
+    setLoadError(false);
+    if (!workspaceId) {
+      setList([]);
+      setActive(null);
+      setLoading(false);
+      return;
+    }
     try {
-      const res = await competitorAPI.list();
+      const res = await competitorAPI.list({ workspace_id: workspaceId });
       const data = res.data?.results || res.data || [];
       setList(data);
       setActive(current => data.find(item => item.id === current?.id) || data[0] || null);
+    } catch {
+      setList([]);
+      setActive(null);
+      setLoadError(true);
     } finally { setLoading(false); }
   }
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, []);
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [workspaceId]);
 
   return (
     <div className="app-page app-page--content app-page--xl">
       <PageHeader
-        title="Competitors"
-        subtitle="Track public profile metrics and benchmark your workspace against them"
-        action={<Button icon={Plus} onClick={() => setShowCreate(true)}>Add Competitor</Button>}
+        title={isPersian ? 'رقبا' : 'Competitors'}
+        subtitle={isPersian ? 'پایش رقبای عمومی در فضای کاری انتخاب‌شده' : 'Public competitors in the selected workspace'}
+        action={workspaceId ? <Button icon={Plus} onClick={() => setShowCreate(true)}>{isPersian ? 'افزودن رقیب' : 'Add competitor'}</Button> : null}
       />
 
       <div style={{
@@ -56,10 +71,12 @@ export default function CompetitorsPage() {
         gap: 16, padding: 0,
       }} className="comp-grid">
         <Card padding="none" style={{ overflow: 'hidden', alignSelf: 'flex-start' }}>
-          {loading && <div style={{ padding: 16, color: 'var(--text-tertiary)' }}>
+          {!workspaceId && <EmptyState icon={Users} title={isPersian ? 'فضای کاری انتخاب نشده است' : 'Select a workspace'} description={isPersian ? 'برای مشاهده و ثبت رقبا، ابتدا یک فضای کاری انتخاب کنید.' : 'Choose a workspace before viewing or adding competitors.'} />}
+          {loadError && <EmptyState icon={Users} title={isPersian ? 'دریافت رقبا ناموفق بود' : 'Could not load competitors'} action={<Button onClick={load}>{isPersian ? 'تلاش دوباره' : 'Retry'}</Button>} />}
+          {loading && workspaceId && <div style={{ padding: 16, color: 'var(--text-tertiary)' }}>
             <Loader2 size={14} className="ds-spin" /> Loading…
           </div>}
-          {!loading && list.length === 0 && (
+          {!loading && workspaceId && !loadError && list.length === 0 && (
             <EmptyState
               icon={Users}
               title="No competitors yet"
@@ -67,7 +84,7 @@ export default function CompetitorsPage() {
               action={<Button icon={Plus} onClick={() => setShowCreate(true)}>Add competitor</Button>}
             />
           )}
-          {list.map((c) => (
+          {workspaceId && list.map((c) => (
             <button
               key={c.id} type="button"
               onClick={() => setActive(c)}
@@ -101,13 +118,13 @@ export default function CompetitorsPage() {
               <EmptyState icon={Users} title="Select a competitor" />
             </Card>
           ) : (
-            <CompetitorDetail competitor={active} onChange={load} />
+            <CompetitorDetail key={`${workspaceId}:${active.id}`} workspaceId={workspaceId} competitor={active} onChange={load} />
           )}
         </div>
       </div>
 
-      {showCreate && (
-        <CreateCompetitorModal
+      {showCreate && workspaceId && (
+        <CreateCompetitorModal workspaceId={workspaceId}
           onClose={() => setShowCreate(false)}
           onCreated={(c) => { setShowCreate(false); load(); setActive(c); }}
         />
@@ -123,7 +140,7 @@ export default function CompetitorsPage() {
 }
 
 /* ── Detail ─────────────────────────────────────────────────────────────── */
-function CompetitorDetail({ competitor, onChange }) {
+function CompetitorDetail({ competitor, workspaceId, onChange }) {
   const { isPersian } = useLanguage();
   const PLATFORMS = usePlatformOptions('analytics').map(p => p.key);
   const [timeline, setTimeline] = useState([]);
@@ -136,8 +153,8 @@ function CompetitorDetail({ competitor, onChange }) {
   async function loadAll() {
     try {
       const [tl, p] = await Promise.all([
-        competitorAPI.timeline(competitor.id, { days: 90, ...(platform && { platform }) }),
-        competitorAPI.posts(competitor.id, { days: 30, ...(platform && { platform }) }),
+        competitorAPI.timeline(competitor.id, { workspace_id: workspaceId, days: 90, ...(platform && { platform }) }),
+        competitorAPI.posts(competitor.id, { workspace_id: workspaceId, days: 30, ...(platform && { platform }) }),
       ]);
       setTimeline(tl.data?.snapshots || []);
       setPosts(p.data?.posts || []);
@@ -357,7 +374,7 @@ function InsightList({ title, items, variant }) {
 }
 
 /* ── Create modal ──────────────────────────────────────────────────────── */
-function CreateCompetitorModal({ onClose, onCreated }) {
+function CreateCompetitorModal({ workspaceId, onClose, onCreated }) {
   const PLATFORMS = usePlatformOptions('analytics').map(p => p.key);
   const [name, setName] = useState('');
   const [handles, setHandles] = useState({});
@@ -373,7 +390,7 @@ function CreateCompetitorModal({ onClose, onCreated }) {
     }
     setSaving(true);
     try {
-      const res = await competitorAPI.create({ name, public_handles: cleaned });
+      const res = await competitorAPI.create({ name, public_handles: cleaned, workspace: workspaceId });
       onCreated(res.data);
     } catch (e) {
       toast.error('Create failed');
