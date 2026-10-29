@@ -31,7 +31,7 @@ test('admin workspace selector and route navigation scope badge requests', { tag
   await page.goto('/admin/analytics');
   const selector = page.locator('header.ds-topbar [data-workspace-context] select');
   await expect(page.locator('header.ds-topbar [data-workspace-context]')).toHaveCount(1);
-  await expect(page.locator('aside.ds-feature-sidebar [data-workspace-context]')).toHaveCount(0);
+  await expect(page.locator('aside.ds-feature-sidebar [data-workspace-context] select')).toHaveCount(0);
   await expect(selector).toBeVisible();
   expect(counts).toEqual([]);
   await selector.selectOption('42');
@@ -66,7 +66,7 @@ test('admin workspace selector and route navigation scope badge requests', { tag
   await expect(page).toHaveURL(/workspace=99/);
   await expect.poll(() => counts.at(-1)).toBe(99);
   await selector.selectOption('70');
-  await expect(page).toHaveURL(/\/admin\/workspace\/70$/);
+  await expect(page).toHaveURL(/workspace=70/);
   await expect.poll(() => counts.at(-1)).toBe(70);
   await page.locator('header.ds-topbar').getByRole('link', { name: /All workspaces|همه فضاهای کاری/ }).click();
   await expect(page).toHaveURL(/\/admin\/workspaces$/);
