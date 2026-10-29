@@ -1,5 +1,13 @@
 // Semantic catalogs. Identical key sets and ICU placeholders are checked in CI.
 const accountsEn = {
+  "competitors.title": "Competitors",
+  "competitors.subtitle": "Public competitors in the selected workspace",
+  "competitors.add": "Add competitor",
+  "competitors.chooseWorkspace": "Select a workspace",
+  "competitors.chooseWorkspaceDescription": "Choose a workspace before viewing or adding competitors.",
+  "competitors.loadError": "Could not load competitors",
+  "competitors.retry": "Retry",
+
   "settings.details": "Consequences and recovery details",
   "settings.keys.summary": "API keys give applications workspace access. The secret appears only once.",
   "settings.keys.scope": "Scopes and IP restrictions limit access. Reading status cannot reveal the secret or prove an uncertain issuance.",
@@ -537,6 +545,14 @@ const accountsEn = {
   'category.business': 'Business listings',
 } as const;
 const accountsFa = {
+  "competitors.title": "رقبا",
+  "competitors.subtitle": "پایش رقبای عمومی در فضای کاری انتخاب‌شده",
+  "competitors.add": "افزودن رقیب",
+  "competitors.chooseWorkspace": "فضای کاری انتخاب نشده است",
+  "competitors.chooseWorkspaceDescription": "برای مشاهده و ثبت رقبا، ابتدا یک فضای کاری انتخاب کنید.",
+  "competitors.loadError": "دریافت رقبا ناموفق بود",
+  "competitors.retry": "تلاش دوباره",
+
   "settings.details": "پیامدها و جزئیات بازیابی",
   "settings.keys.summary": "کلیدهای API به برنامه‌ها در فضای کاری دسترسی می‌دهند. مقدار محرمانه فقط یک بار نمایش داده می‌شود.",
   "settings.keys.scope": "دامنه‌ها و محدودیت IP دسترسی را محدود می‌کنند. بررسی وضعیت، مقدار کلید را نشان نمی‌دهد و صدور نامطمئن را اثبات نمی‌کند.",
