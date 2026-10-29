@@ -87,14 +87,11 @@ function ScopedCompetitorsPage({ workspaceId }) {
         action={workspaceId ? <Button icon={Plus} onClick={() => setShowCreate(true)}>{t('competitors.add')}</Button> : null}
       />
 
-      <div style={{
-        display: 'grid', gridTemplateColumns: '320px minmax(0, 1fr)',
-        gap: 16, padding: 0,
-      }} className="comp-grid">
-        <Card padding="none" style={{ overflow: 'hidden', alignSelf: 'flex-start' }}>
+      <div className="competitors-layout">
+        <Card padding="none" className="competitors-list-panel">
           {!workspaceId && <EmptyState icon={Users} title={t('competitors.chooseWorkspace')} description={t('competitors.chooseWorkspaceDescription')} />}
           {loadError && ready && <DataState state="error" title={t('competitors.loadError')} action={<Button onClick={() => load(workspaceId)}>{t('competitors.retry')}</Button>} />}
-          {loading && workspaceId && <div style={{ padding: 16, color: 'var(--text-tertiary)' }}>
+          {loading && workspaceId && <div className="competitors-loading">
             <Loader2 size={14} className="ds-spin" /> Loading…
           </div>}
           {!loading && ready && !loadError && list.length === 0 && (
@@ -119,11 +116,11 @@ function ScopedCompetitorsPage({ workspaceId }) {
                 transition: 'var(--transition-fast)',
               }}
             >
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>
+              <div className="competitors-flex-fill">
+                <div className="competitors-item-name">
                   {c.name}
                 </div>
-                <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2 }}>
+                <div className="competitors-item-meta">
                   {Object.keys(c.public_handles || {}).length || 0} platform{(Object.keys(c.public_handles || {}).length === 1) ? '' : 's'}
                   {c.last_synced_at && ` · synced ${new Date(c.last_synced_at).toLocaleDateString()}`}
                 </div>
@@ -135,7 +132,7 @@ function ScopedCompetitorsPage({ workspaceId }) {
 
         <div>
           {!ready || !active ? (
-            <Card padding="none" style={{ overflow: 'hidden' }}>
+            <Card padding="none" className="competitors-panel">
               <EmptyState icon={Users} title="Select a competitor" />
             </Card>
           ) : (
@@ -151,11 +148,6 @@ function ScopedCompetitorsPage({ workspaceId }) {
         />
       )}
 
-      <style>{`
-        .ds-spin { animation: ds-spin 0.9s linear infinite; }
-        @keyframes ds-spin { to { transform: rotate(360deg); } }
-        @media (max-width: 1024px) { .comp-grid { grid-template-columns: 1fr !important; } }
-      `}</style>
     </div>
   );
 }
@@ -232,21 +224,21 @@ function CompetitorDetail({ competitor, workspaceId, onChange }) {
   const platformsInData = Array.from(new Set(timeline.map((s) => s.platform)));
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div className="competitors-detail">
       {/* Header card */}
       <Card padding="md">
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)' }}>
+        <div className="competitors-detail-heading">
+          <div className="competitors-flex-fill">
+            <div className="competitors-title">
               {competitor.name}
             </div>
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
+            <div className="competitors-handle-list">
               {Object.entries(competitor.public_handles || {}).map(([p, h]) => (
                 <Badge key={p} variant="default">{p}: {h}</Badge>
               ))}
             </div>
           </div>
-          <div style={{ display: 'flex', gap: 6 }}>
+          <div className="competitors-actions">
             <Button variant="secondary" icon={RefreshCw} loading={syncing} onClick={syncNow}>
               Sync
             </Button>
