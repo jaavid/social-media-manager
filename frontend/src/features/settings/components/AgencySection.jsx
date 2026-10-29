@@ -14,6 +14,7 @@ import { parseAgency, parseDisconnect } from '@/lib/settingsRecovery';
 import { AccountScope, useAccountRead, useCheckedAction, ReadState, WriteState } from './accountRecovery';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
+import SensitiveActionInfo from './SensitiveActionInfo';
 import Modal from '@/components/ui/Modal';
 export default function AgencySection() {
   return <AccountScope>{(identity, enabled, key) => <Agency key={`${key}:${enabled}`} identity={identity} enabled={enabled} />}</AccountScope>;
@@ -53,6 +54,7 @@ function Agency({ identity, enabled }) {
     <Modal open={open && !resource.denied && !action.denied} role="alertdialog" title={t('agency.disconnect')} description={t('agency.hint')} initialFocusRef={cancel} returnFocusRef={action.success ? heading : trigger}
       showClose={!action.busy} closeOnBackdrop={!action.busy} onClose={() => { if (!action.busy && !action.uncertain) setOpen(false); }}
       footer={<><Button ref={cancel} variant="ghost" disabled={action.busy || action.uncertain} onClick={() => setOpen(false)}>{t('recovery.cancel')}</Button><Button variant="danger" disabled={action.locked} onClick={disconnect}>{t('agency.disconnect')}</Button></>}>
+      <SensitiveActionInfo summaryKey="settings.agency.summary" detailKeys={['agency.hint', 'agency.unknown']} />
       <WriteState action={action} recover={refresh} uncertainKey="agency.unknown" />
     </Modal>
   </section></Card>;
