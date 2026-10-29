@@ -162,6 +162,7 @@ function ReportCollection({ workspace, kind }) {
         ) : (
           <>
             <NativeSelect
+              className="reports-filter"
               label={t('reports.year')}
               value={year}
               onChange={(e) => setYear(Number(e.target.value))}
@@ -173,6 +174,7 @@ function ReportCollection({ workspace, kind }) {
               ))}
             </NativeSelect>
             <NativeSelect
+              className="reports-filter"
               label={t('reports.month')}
               value={month}
               onChange={(e) => setMonth(e.target.value)}
