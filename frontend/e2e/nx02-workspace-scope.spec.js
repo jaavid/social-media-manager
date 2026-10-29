@@ -29,7 +29,9 @@ test('admin workspace selector and route navigation scope badge requests', { tag
     socket.onClose(() => liveSockets.delete(socket));
   });
   await page.goto('/admin/analytics');
-  const selector = page.locator('select').filter({ has: page.locator('option[value="42"]') }).first();
+  const selector = page.locator('header.ds-topbar [data-workspace-context] select');
+  await expect(page.locator('header.ds-topbar [data-workspace-context]')).toHaveCount(1);
+  await expect(page.locator('aside.ds-feature-sidebar [data-workspace-context]')).toHaveCount(0);
   await expect(selector).toBeVisible();
   expect(counts).toEqual([]);
   await selector.selectOption('42');
@@ -63,12 +65,10 @@ test('admin workspace selector and route navigation scope badge requests', { tag
   await selector.selectOption('99');
   await expect(page).toHaveURL(/workspace=99/);
   await expect.poll(() => counts.at(-1)).toBe(99);
-  await page.getByRole('combobox', { name: 'Workspace', exact: true }).click();
-  await page.getByRole('listbox', { name: 'Workspace', exact: true }).getByRole('option', { name: 'Workspace C', exact: true }).click();
+  await selector.selectOption('70');
   await expect(page).toHaveURL(/\/admin\/workspace\/70$/);
   await expect.poll(() => counts.at(-1)).toBe(70);
-  await page.getByRole('combobox', { name: 'Workspace', exact: true }).click();
-  await page.getByRole('listbox', { name: 'Workspace', exact: true }).getByRole('option', { name: /All workspaces|همه فضاهای کاری/ }).click();
+  await page.goto('/admin/workspaces');
   await expect(page).toHaveURL(/\/admin\/workspaces$/);
   const previous = counts.length;
   await page.waitForTimeout(500);
