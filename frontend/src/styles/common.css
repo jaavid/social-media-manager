@@ -132,3 +132,27 @@
 .ds-spin { animation:ds-spin 0.9s linear infinite; }
 @keyframes ds-spin { to { transform:rotate(360deg); } }
 @media (max-width:1024px) { .competitors-layout { grid-template-columns:minmax(0,1fr); } }
+
+/* Competitor list, metrics, chart and insights: static presentation. */
+.competitors-list-item { display:flex; align-items:center; gap:10px; width:100%; padding:12px 14px; background:transparent; border:0; border-bottom:1px solid var(--border-subtle); cursor:pointer; text-align:start; min-height:unset; min-width:unset; transition:var(--transition-fast); }
+.competitors-list-item[aria-current="true"] { background:var(--brand-primary-glow); }
+.competitors-list-item:focus-visible { outline:2px solid var(--brand-primary); outline-offset:-2px; }
+.competitors-metrics-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:8px; margin-block-start:16px; }
+.competitors-metric-card,.competitors-post { background:var(--surface-sunken); border:1px solid var(--border-subtle); border-radius:var(--radius-md); }
+.competitors-metric-card { padding:10px 12px; }
+.competitors-metric-label,.competitors-insight-heading { font-size:11px; font-weight:600; text-transform:uppercase; color:var(--text-tertiary); letter-spacing:.4px; }
+.competitors-metric-value { margin-block-start:4px; font-size:20px; font-weight:700; color:var(--text-primary); }
+.competitors-chart { height:280px; min-width:0; }
+.competitors-posts { display:flex; flex-direction:column; gap:8px; }
+.competitors-post { padding:12px; }
+.competitors-post-heading { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-block-end:6px; }
+.competitors-post-caption { font-size:13px; color:var(--text-primary); white-space:pre-wrap; overflow-wrap:anywhere; }
+.competitors-post-stats { display:flex; flex-wrap:wrap; gap:12px; color:var(--text-tertiary); font-size:11px; margin-block-start:6px; }
+.competitors-insights { display:flex; flex-direction:column; gap:12px; }
+.competitors-insights-summary { font-size:14px; line-height:var(--line-height-body); color:var(--text-primary); }
+.competitors-muted-text { font-size:12px; color:var(--text-tertiary); }
+.competitors-small-muted { font-size:11px; color:var(--text-tertiary); }
+.competitors-insight-heading { margin-block-end:6px; }
+.competitors-insight-items { display:flex; flex-direction:column; gap:6px; }
+.competitors-insight-item { display:flex; align-items:flex-start; gap:8px; font-size:13px; }
+@media (max-width:600px) { .competitors-metrics-grid { grid-template-columns:repeat(auto-fit,minmax(min(100%,140px),1fr)); } }
