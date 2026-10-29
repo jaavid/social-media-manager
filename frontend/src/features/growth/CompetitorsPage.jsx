@@ -170,7 +170,11 @@ function CompetitorDetail({ competitor, workspaceId, onChange }) {
   const [loadingInsights, setLoadingInsights] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const syncTimer = useRef(null);
-  useEffect(() => () => { if (syncTimer.current) clearTimeout(syncTimer.current); }, []);
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; if (syncTimer.current) clearTimeout(syncTimer.current); };
+  }, []);
   const [platform, setPlatform] = useState('');
 
   async function loadAll() {
@@ -189,11 +193,12 @@ function CompetitorDetail({ competitor, workspaceId, onChange }) {
     setSyncing(true);
     try {
       await competitorAPI.snapshotNow(competitor.id);
+      if (!mounted.current) return;
       toast.success('Sync queued — refresh in a few seconds');
       if (syncTimer.current) clearTimeout(syncTimer.current);
-      syncTimer.current = setTimeout(() => { loadAll(); onChange?.(); }, 3000);
-    } catch (e) { toast.error('Sync failed'); }
-    finally { setSyncing(false); }
+      syncTimer.current = setTimeout(() => { if (!mounted.current) return; loadAll(); onChange?.(); }, 3000);
+    } catch (e) { if (mounted.current) toast.error('Sync failed'); }
+    finally { if (mounted.current) setSyncing(false); }
   }
 
   async function destroy() {
