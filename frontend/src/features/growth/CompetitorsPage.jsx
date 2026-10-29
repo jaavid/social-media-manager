@@ -64,7 +64,7 @@ function ScopedCompetitorsPage({ workspaceId }) {
       setList(data);
       setActive(current => data.find(item => item.id === current?.id) || data[0] || null);
     } catch {
-      if (requestId !== requestSequence.current || scopeId !== currentWorkspace.current) return;
+      if (requestId !== requestSequence.current || !mounted.current) return;
       setLoadedWorkspace(scopeId);
       setList([]);
       setActive(null);
