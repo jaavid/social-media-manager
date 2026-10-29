@@ -396,19 +396,19 @@ function CreateCompetitorModal({ workspaceId, onClose, onCreated }) {
   }
 
   return (
-    <div onClick={onClose} style={modalBackdrop}>
+    <div onClick={onClose} className="competitors-modal-backdrop">
       <Card onClick={(e) => e.stopPropagation()} padding="none" className="competitors-create-card">
-        <div style={modalHeader}>
+        <div className="competitors-modal-header">
           <strong className="competitors-modal-title">Add competitor</strong>
-          <button onClick={onClose} style={iconBtnStyle} aria-label="Close"><X size={14} /></button>
+          <button onClick={onClose} className="competitors-modal-close" aria-label="Close"><X size={14} /></button>
         </div>
         <div className="competitors-modal-body">
           <label className="competitors-field">
-            <span style={fieldLabel}>Name</span>
+            <span className="competitors-field-label">Name</span>
             <input value={name} onChange={(e) => setName(e.target.value)}
-                    placeholder="Acme Rival" style={inputStyle} autoFocus />
+                    placeholder="Acme Rival" className="competitors-input" autoFocus />
           </label>
-          <div style={fieldLabel}>Public handles</div>
+          <div className="competitors-field-label">Public handles</div>
           <div className="competitors-field-hint">
             Channel ID for YouTube (UC…), page username for Facebook, @handle for Instagram.
           </div>
@@ -418,11 +418,11 @@ function CreateCompetitorModal({ workspaceId, onClose, onCreated }) {
               <input value={handles[p] || ''}
                       onChange={(e) => setHandles({ ...handles, [p]: e.target.value })}
                       placeholder={p === 'youtube' ? 'UCxxxxxxxxxxxx' : '@handle or username'}
-                      style={inputStyle} />
+                      className="competitors-input" />
             </div>
           ))}
         </div>
-        <div style={modalFooter}>
+        <div className="competitors-modal-footer">
           <Button variant="secondary" onClick={onClose}>Cancel</Button>
           <Button onClick={save} loading={saving}>Add</Button>
         </div>
@@ -435,36 +435,3 @@ function CreateCompetitorModal({ workspaceId, onClose, onCreated }) {
 const COLORS = ['#00CCF5', '#10b981', '#f59e0b', '#3b82f6', '#ef4444', '#8b5cf6'];
 function lineColor(i) { return COLORS[i % COLORS.length]; }
 
-const inputStyle = {
-  width: '100%', height: 36, padding: '0 12px',
-  background: 'var(--surface-card)',
-  border: '1px solid var(--border-default)',
-  borderRadius: 'var(--radius-md)',
-  fontSize: 13, color: 'var(--text-primary)',
-  outline: 'none', boxSizing: 'border-box', minHeight: 'unset',
-};
-const fieldLabel = {
-  display: 'block', fontSize: 11, fontWeight: 600,
-  color: 'var(--text-tertiary)',
-  textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 6,
-};
-const iconBtnStyle = {
-  width: 28, height: 28, borderRadius: 'var(--radius-sm)',
-  background: 'transparent', border: 'none', cursor: 'pointer',
-  color: 'var(--text-tertiary)',
-  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-  minHeight: 'unset', minWidth: 'unset',
-};
-const modalBackdrop = {
-  position: 'fixed', inset: 0, zIndex: 200,
-  background: 'rgba(10,14,20,0.5)', backdropFilter: 'blur(4px)',
-  display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16,
-};
-const modalHeader = {
-  padding: '14px 16px', borderBottom: '1px solid var(--border-subtle)',
-  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-};
-const modalFooter = {
-  padding: 12, borderTop: '1px solid var(--border-subtle)',
-  display: 'flex', justifyContent: 'flex-end', gap: 8,
-};
