@@ -89,7 +89,7 @@ function ImmediateDelete({ enabled, logout, navigate }) {
       <h3 ref={heading} tabIndex={-1} className="font-semibold text-destructive">
         {t('privacy.immediateTitle')}
       </h3>
-      <SensitiveActionInfo summaryKey="settings.delete.summary" detailKeys={['privacy.immediateHint', 'privacy.immediateUnknown']} />
+      <SensitiveActionInfo summaryKey="settings.delete.summary" detailKeys={['privacy.immediateHint']} />
       <Button
         ref={trigger}
         variant="danger"
