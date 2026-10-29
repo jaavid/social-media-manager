@@ -47,7 +47,9 @@ textarea {
 }
 .ds-dialog-body {
   overflow-wrap: anywhere;
+  min-width: 0;
 }
+.eu-main, .eu-main > * { min-width: 0; max-width: 100%; }
 .ds-tooltip {
   pointer-events: none;
 }

@@ -8,7 +8,8 @@
  * ========================================================================== */
 import { useState, useEffect, useMemo } from 'react';
 import { isBefore } from 'date-fns';
-import { X, AlertCircle } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
+import Drawer from '../ui/Drawer';
 import { connectedPlatforms, PLATFORMS, usePlatformUiRegistry } from '../../services/platforms';
 import usePlatformConnections from '../../hooks/usePlatformConnections';
 import { useSuggestedTimes } from '../../hooks/useCalendar';
@@ -65,7 +66,7 @@ function SuggestRow({ clientId, platform }) {
 }
 
 export default function PostFormDrawer({ date, post, isOpen, onClose, onSave, clientId, readOnly }) {
-  const { isPersian, tr, formatDate, formatNumber } = useLanguage();
+  const { tr, formatDate, formatNumber } = useLanguage();
   const isEdit = !!post;
   const {
     status: connectionStatus,
@@ -214,50 +215,11 @@ export default function PostFormDrawer({ date, post, isOpen, onClose, onSave, cl
   }
 
   return (
-    <>
-      <div
-        onClick={onClose}
-        style={{
-          position: 'fixed', inset: 0,
-          background: 'var(--overlay-backdrop)', zIndex: 1000,
-          opacity: isOpen ? 1 : 0,
-          transition: 'opacity 0.25s',
-          pointerEvents: isOpen ? 'auto' : 'none',
-        }}
-      />
-
-      <div style={{
-        position: 'fixed', top: 0, bottom: 0, insetInlineEnd: 0,
-        width: 460, maxWidth: '100vw',
-        background: 'var(--surface-card)',
-        boxShadow: isPersian ? '4px 0 24px rgba(0,0,0,0.12)' : '-4px 0 24px rgba(0,0,0,0.12)',
-        zIndex: 1001,
-        transform: isOpen ? 'translateX(0)' : isPersian ? 'translateX(-100%)' : 'translateX(100%)',
-        transition: 'transform 0.25s ease-out',
-        display: 'flex', flexDirection: 'column',
-        overflowY: 'auto',
-      }}>
-        <div style={{
-          padding: '16px 20px', borderBottom: '1px solid var(--border-default)',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
-          position: 'sticky', top: 0, background: 'var(--surface-card)', zIndex: 1,
-        }}>
-          <div style={{ fontWeight: 700, fontSize: 16, color: 'var(--text-primary)' }}>
-            {isEdit ? tr('Edit Post') : tr('Schedule Post')}
-          </div>
-          {date && !isEdit && (
-            <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
-              {formatDate(date instanceof Date ? date : new Date(date), { weekday: 'long', month: 'long', day: 'numeric' })}
-            </div>
-          )}
-          <button onClick={onClose} aria-label={tr('Close')} style={closeButtonStyle}>
-            <X size={20} />
-          </button>
-        </div>
-
-        <div style={{ padding: '20px', flex: 1 }}>
+    <Drawer open={isOpen} onClose={onClose} side="end" width={460} title={isEdit ? tr('Edit Post') : tr('Schedule Post')}>
+        <div className="min-w-0" aria-busy={saving}>
+          {date && !isEdit && <p className="mb-4 text-sm text-muted-foreground">{formatDate(date instanceof Date ? date : new Date(date), { weekday: 'long', month: 'long', day: 'numeric' })}</p>}
           <Field label={tr('Platform')} required error={errors.platform}>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <div role="group" aria-label={tr('Platform')} style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {selectablePlatforms.map(item => {
                 const key = item.key;
                 const active = platform === key;
@@ -266,6 +228,7 @@ export default function PostFormDrawer({ date, post, isOpen, onClose, onSave, cl
                     key={key}
                     type="button"
                     onClick={() => { setPlatform(key); clearFieldError('platform'); }}
+                    aria-pressed={active}
                     style={{
                       display: 'flex', alignItems: 'center', gap: 5,
                       padding: '6px 12px', borderRadius: 8,
@@ -292,14 +255,14 @@ export default function PostFormDrawer({ date, post, isOpen, onClose, onSave, cl
             </div>
           </Field>
 
-          <Field label={tr('Post Type')}>
-            <select value={postType} onChange={event => setPostType(event.target.value)} style={inputStyle}>
+          <Field label={tr('Post Type')} htmlFor="calendar-post-type">
+            <select id="calendar-post-type" value={postType} onChange={event => setPostType(event.target.value)} style={inputStyle}>
               {POST_TYPES.map(type => <option key={type} value={type}>{tr(type)}</option>)}
             </select>
           </Field>
 
-          <Field label={tr('Internal Title')}>
-            <input
+          <Field label={tr('Internal Title')} htmlFor="calendar-post-title">
+            <input id="calendar-post-title"
               type="text"
               value={title}
               onChange={event => { setTitle(event.target.value); clearFieldError('caption'); }}
@@ -308,8 +271,8 @@ export default function PostFormDrawer({ date, post, isOpen, onClose, onSave, cl
             />
           </Field>
 
-          <Field label={tr('Caption')} required error={errors.caption}>
-            <textarea
+          <Field label={tr('Caption')} htmlFor="calendar-post-caption" required error={errors.caption}>
+            <textarea id="calendar-post-caption" aria-invalid={!!errors.caption} aria-describedby={errors.caption ? 'calendar-post-caption-error' : undefined}
               value={caption}
               onChange={event => { setCaption(event.target.value); clearFieldError('caption'); }}
               placeholder={`${tr('Write your')} ${selectedPlatform.label} ${tr('caption')}…`}
@@ -319,8 +282,8 @@ export default function PostFormDrawer({ date, post, isOpen, onClose, onSave, cl
             <CharCounter text={caption} limit={charLimit} formatNumber={formatNumber} />
           </Field>
 
-          <Field label={tr('Hashtags')} suffix={hashCount > 0 ? `${formatNumber(hashCount)} ${tr(hashCount === 1 ? 'hashtag' : 'hashtags')}` : null}>
-            <input
+          <Field label={tr('Hashtags')} htmlFor="calendar-post-hashtags" suffix={hashCount > 0 ? `${formatNumber(hashCount)} ${tr(hashCount === 1 ? 'hashtag' : 'hashtags')}` : null}>
+            <input id="calendar-post-hashtags"
               type="text"
               value={hashtags}
               onChange={event => setHashtags(event.target.value)}
@@ -330,21 +293,22 @@ export default function PostFormDrawer({ date, post, isOpen, onClose, onSave, cl
             />
           </Field>
 
-          <Field label={tr('Media URL (optional)')}>
-            <input type="url" value={mediaUrl} onChange={event => setMediaUrl(event.target.value)} placeholder="https://…" style={inputStyle} data-ltr="true" />
+          <Field label={tr('Media URL (optional)')} htmlFor="calendar-media-url">
+            <input id="calendar-media-url" type="url" value={mediaUrl} onChange={event => setMediaUrl(event.target.value)} placeholder="https://…" style={inputStyle} data-ltr="true" />
           </Field>
 
-          <Field label={tr('Post URL (optional)')}>
-            <input type="url" value={postUrl} onChange={event => setPostUrl(event.target.value)} placeholder="https://…" style={inputStyle} data-ltr="true" />
+          <Field label={tr('Post URL (optional)')} htmlFor="calendar-post-url">
+            <input id="calendar-post-url" type="url" value={postUrl} onChange={event => setPostUrl(event.target.value)} placeholder="https://…" style={inputStyle} data-ltr="true" />
           </Field>
 
           <Field label={tr('Status')}>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div role="group" aria-label={tr('Status')} style={{ display: 'flex', gap: 8 }}>
               {['draft', 'scheduled'].map(item => (
                 <button
                   key={item}
                   type="button"
                   onClick={() => setStatus(item)}
+                  aria-pressed={status === item}
                   style={{
                     flex: 1, padding: '8px', borderRadius: 8,
                     background: status === item ? (item === 'scheduled' ? '#2563EB' : 'var(--surface-sunken)') : 'var(--surface-card)',
@@ -360,8 +324,8 @@ export default function PostFormDrawer({ date, post, isOpen, onClose, onSave, cl
           </Field>
 
           {status === 'scheduled' && (
-            <Field label={tr('Scheduled Date & Time')} required error={errors.scheduledAt}>
-              <input
+            <Field label={tr('Scheduled Date & Time')} htmlFor="calendar-scheduled-at" required error={errors.scheduledAt}>
+              <input id="calendar-scheduled-at" aria-invalid={!!errors.scheduledAt} aria-describedby={errors.scheduledAt ? 'calendar-scheduled-at-error' : undefined}
                 type="datetime-local"
                 value={scheduledAt}
                 onChange={event => { setScheduledAt(event.target.value); clearFieldError('scheduledAt'); }}
@@ -378,8 +342,8 @@ export default function PostFormDrawer({ date, post, isOpen, onClose, onSave, cl
             </Field>
           )}
 
-          <Field label={tr('Internal Notes (not shown to user)')}>
-            <textarea
+          <Field label={tr('Internal Notes (not shown to user)')} htmlFor="calendar-post-notes">
+            <textarea id="calendar-post-notes"
               value={notes}
               onChange={event => setNotes(event.target.value)}
               placeholder={tr('e.g. Waiting on final image from designer')}
@@ -415,20 +379,19 @@ export default function PostFormDrawer({ date, post, isOpen, onClose, onSave, cl
             </button>
           </div>
         )}
-      </div>
-    </>
+    </Drawer>
   );
 }
 
-function Field({ label, required, suffix, error, children }) {
+function Field({ label, htmlFor, required, suffix, error, children }) {
   return (
-    <div style={{ marginBottom: 16 }}>
-      <label style={labelStyle}>
+    <div style={{ marginBottom: 16, minWidth: 0 }}>
+      <label htmlFor={htmlFor} style={labelStyle}>
         {label} {required && <span style={requiredAsteriskStyle}>*</span>}
         {suffix && <span style={{ marginInlineStart: 8, fontWeight: 400, color: 'var(--text-tertiary)' }}>{suffix}</span>}
       </label>
       {children}
-      {error && <div style={fieldErrorStyle}>{error}</div>}
+      {error && <div id={htmlFor ? `${htmlFor}-error` : undefined} role="alert" style={fieldErrorStyle}>{error}</div>}
     </div>
   );
 }
