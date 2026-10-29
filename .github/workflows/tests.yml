@@ -33,6 +33,9 @@ jobs:
           persist-credentials: false
       - name: Verify CI change selection
         run: python3 -m unittest discover -s scripts/tests -v
+      - name: Validate documentation links
+        run: node scripts/check-docs.cjs
+
       - name: Select checks (unknown paths and diff errors run everything)
         id: paths
         env:
@@ -250,8 +253,8 @@ jobs:
           fi
 
   docker:
-    needs: changes
-    if: ${{ needs.changes.outputs.docker == 'true' }}
+    needs: [changes, frontend_checks]
+    if: ${{ always() && needs.changes.outputs.docker == 'true' && (needs.changes.outputs.frontend != 'true' || needs.frontend_checks.result == 'success') }}
     name: Docker — unified stack boots
     runs-on: ubuntu-latest
     timeout-minutes: 30
