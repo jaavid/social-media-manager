@@ -30,6 +30,7 @@ import toast from '../ui/toast';
 import { useRealtime } from '../../hooks/useRealtime';
 import ModuleRail from './ModuleRail';
 import FeatureSidebar from './FeatureSidebar';
+import WorkspaceContext from './WorkspaceContext';
 import TopBar from './TopBar';
 import CommandPalette from './CommandPalette';
 import MobileNav from './MobileNav';
@@ -411,6 +412,7 @@ function MobileDrawer({ open, onClose, modules, currentModule, basePath }) {
           })}
         </div>
 
+        <WorkspaceContext basePath={basePath} />
         <div className={cn('sidebar-scroll', '[flex:1]', '[overflow-y:auto]')}>
           <FeatureSidebar module={currentModule} basePath={basePath} />
         </div>
