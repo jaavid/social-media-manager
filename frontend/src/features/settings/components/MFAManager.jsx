@@ -162,7 +162,7 @@ function Mfa({ identity, enabled }) {
         />
         {(!dialog || resource.denied || action.denied) && (
           <>
-<SensitiveActionInfo summaryKey="settings.mfa.summary" detailKeys={['mfa.uncertain', 'settings.mfa.recovery']} />
+<SensitiveActionInfo summaryKey="settings.mfa.summary" detailKeys={['settings.mfa.recovery']} />
           <WriteState action={action} recover={refresh} uncertainKey="mfa.uncertain" />
         </>
 )}
