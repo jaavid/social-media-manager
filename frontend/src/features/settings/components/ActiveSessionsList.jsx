@@ -18,6 +18,7 @@ import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import DataState from '@/components/ui/DataState';
 import Skeleton from '@/components/ui/Skeleton';
+import SensitiveActionInfo from './SensitiveActionInfo';
 
 export default function ActiveSessionsList() {
   const { user, status } = useSession();
@@ -179,7 +180,7 @@ function SessionList({ identity, enabled }) {
         {sessions &&
           (sessions.length ? (
             <>
-              <p className="text-sm text-muted-foreground">{t('sessions.allHint')}</p>
+              <SensitiveActionInfo summaryKey="settings.sessions.summary" detailKeys={['sessions.allHint', 'sessions.uncertain']} />
               {sessions.some((row) => row.is_active) && (
                 <Button
                   variant="danger"
