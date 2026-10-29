@@ -61,7 +61,7 @@ export default function CompetitorsPage() {
       setList(data);
       setActive(current => data.find(item => item.id === current?.id) || data[0] || null);
     } catch {
-      if (requestId !== requestSequence.current) return;
+      if (requestId !== requestSequence.current || scopeId !== currentWorkspace.current) return;
       setLoadedWorkspace(scopeId);
       setList([]);
       setActive(null);
@@ -105,7 +105,7 @@ export default function CompetitorsPage() {
               action={<Button icon={Plus} onClick={() => setShowCreate(true)}>Add competitor</Button>}
             />
           )}
-          {ready && list.map((c) => (
+          {ready && !loadError && list.map((c) => (
             <button
               key={c.id} type="button"
               onClick={() => setActive(c)}
@@ -144,7 +144,7 @@ export default function CompetitorsPage() {
         </div>
       </div>
 
-      {showCreate && workspaceId && (
+      {showCreate && ready && workspaceId && (
         <CreateCompetitorModal workspaceId={workspaceId}
           onClose={() => setShowCreate(false)}
           onCreated={(c) => { if (workspaceId !== currentWorkspace.current) return; setShowCreate(false); load(workspaceId); setActive(c); }}
