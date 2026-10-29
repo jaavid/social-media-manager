@@ -106,15 +106,7 @@ function ScopedCompetitorsPage({ workspaceId }) {
             <button
               key={c.id} type="button"
               onClick={() => setActive(c)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 10,
-                width: '100%', padding: '12px 14px',
-                background: active?.id === c.id ? 'var(--brand-primary-glow)' : 'transparent',
-                border: 'none', borderBottom: '1px solid var(--border-subtle)',
-                cursor: 'pointer', textAlign: 'left',
-                minHeight: 'unset', minWidth: 'unset',
-                transition: 'var(--transition-fast)',
-              }}
+              className="competitors-list-item" aria-current={active?.id === c.id ? 'true' : undefined}
             >
               <div className="competitors-flex-fill">
                 <div className="competitors-item-name">
@@ -249,24 +241,16 @@ function CompetitorDetail({ competitor, workspaceId, onChange }) {
         <PublicProfileSummary data={competitor.public_data} />
         {/* Latest snapshot stats */}
         {(competitor.latest_snapshots || []).length > 0 && (
-          <div style={{
-            display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
-            gap: 8, marginTop: 16,
-          }}>
+          <div className="competitors-metrics-grid">
             {competitor.latest_snapshots.map((s) => (
-              <div key={`${s.platform}-${s.date}`} style={{
-                padding: '10px 12px', borderRadius: 'var(--radius-md)',
-                background: 'var(--surface-sunken)',
-                border: '1px solid var(--border-subtle)',
-              }}>
-                <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase',
-                              color: 'var(--text-tertiary)', letterSpacing: 0.4 }}>
+              <div key={`${s.platform}-${s.date}`} className="competitors-metric-card">
+                <div className="competitors-metric-label">
                   {s.platform}
                 </div>
-                <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)', marginTop: 4 }}>
+                <div className="competitors-metric-value">
                   {s.followers == null ? '—' : Number(s.followers).toLocaleString()}
                 </div>
-                <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
+                <div className="competitors-small-muted">
                   {s.posts_count == null ? '—' : s.posts_count} posts · {new Date(s.date).toLocaleDateString()}
                 </div>
               </div>
@@ -292,7 +276,7 @@ function CompetitorDetail({ competitor, workspaceId, onChange }) {
           <EmptyState icon={TrendingUp} compact title="No data yet"
                        description={isPersian ? 'دریافت خودکار هر ۴۸ ساعت انجام می‌شود؛ درخواست دستی از دادهٔ تازهٔ موجود استفاده می‌کند.' : 'Public data refreshes every 48 hours; manual requests reuse fresh data.'} />
         ) : (
-          <div style={{ height: 280 }}>
+          <div className="competitors-chart">
             <ResponsiveContainer>
               <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" />
@@ -316,25 +300,21 @@ function CompetitorDetail({ competitor, workspaceId, onChange }) {
           <EmptyState icon={TrendingUp} compact title="No public posts captured"
                        description="Available once snapshot helpers can scrape this competitor's public feed." />
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div className="competitors-posts">
             {posts.slice(0, 12).map((p, i) => (
-              <div key={i} style={{
-                padding: 12, borderRadius: 'var(--radius-md)',
-                background: 'var(--surface-sunken)',
-                border: '1px solid var(--border-subtle)',
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+              <div key={i} className="competitors-post">
+                <div className="competitors-post-heading">
                   <Badge variant="default">{p.platform}</Badge>
-                  <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
+                  <span className="competitors-small-muted">
                     {p.snapshot_date && new Date(p.snapshot_date).toLocaleDateString()}
                   </span>
                 </div>
-                <div style={{ fontSize: 13, color: 'var(--text-primary)', whiteSpace: 'pre-wrap' }}>
+                <div className="competitors-post-caption">
                   {p.caption || p.title || p.text || '(no caption)'}
                 </div>
                 <PublicPostDetails details={p.details} />
                 {p.url && <a className="inline-flex min-h-11 items-center underline" href={p.url} target="_blank" rel="noreferrer">{p.platform} ↗</a>}
-                <div style={{ display: 'flex', gap: 12, fontSize: 11, color: 'var(--text-tertiary)', marginTop: 6 }}>
+                <div className="competitors-post-stats">
                   {p.likes != null && <span>♥ {p.likes}</span>}
                   {p.comments != null && <span>💬 {p.comments}</span>}
                 </div>
@@ -354,8 +334,8 @@ function CompetitorDetail({ competitor, workspaceId, onChange }) {
           </Button>}
         />
         {insights ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <div style={{ fontSize: 14, lineHeight: 'var(--line-height-body)', color: 'var(--text-primary)' }}>
+          <div className="competitors-insights">
+            <div className="competitors-insights-summary">
               {insights.summary}
             </div>
             <InsightList title="Strengths" items={insights.strengths} variant="success" />
@@ -363,7 +343,7 @@ function CompetitorDetail({ competitor, workspaceId, onChange }) {
             <InsightList title="Top themes" items={insights.top_themes} variant="brand" />
           </div>
         ) : (
-          <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
+          <div className="competitors-muted-text">
             Click <strong>Generate</strong> for an AI-written analysis.
           </div>
         )}
@@ -376,15 +356,12 @@ function InsightList({ title, items, variant }) {
   if (!items || !items.length) return null;
   return (
     <div>
-      <div style={{
-        fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)',
-        textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 6,
-      }}>
+      <div className="competitors-insight-heading">
         {title}
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <div className="competitors-insight-items">
         {items.map((item, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 13 }}>
+          <div key={i} className="competitors-insight-item">
             <Badge variant={variant} dot>•</Badge>
             <span style={{ color: 'var(--text-primary)' }}>{item}</span>
           </div>
