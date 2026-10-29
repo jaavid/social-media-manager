@@ -86,7 +86,7 @@ function ListView({
   return (
     <div>
       {entries.map(([dateStr, posts]) => (
-        <div key={dateStr} style={{ marginBottom: 24 }}>
+        <div key={dateStr} className="calendar-section-spacing">
           <div className="calendar-day-heading">
             <span className="calendar-day-title">
               {isPersian
@@ -135,11 +135,7 @@ function ListView({
                       {tr(post.status)}
                     </span>
                   </div>
-                  <div style={{
-                    fontSize: 12, color: 'var(--text-secondary)', lineHeight: 'var(--line-height-body)',
-                    overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2,
-                    WebkitBoxOrient: 'vertical', marginBottom: 4,
-                  }}>
+                  <div className="calendar-post-excerpt">
                     {post.caption || tr('(no caption)')}
                   </div>
                   {post.hashtags && (
@@ -157,8 +153,8 @@ function ListView({
                 </div>
 
                 <div className="calendar-post-actions">
-                  <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 8 }}>{timeStr}</div>
-                  <div style={{ display: 'flex', gap: 6 }}>
+                  <div className="calendar-post-actions-heading">{timeStr}</div>
+                  <div className="calendar-inline-actions">
                     <button onClick={event => onPostClick(post, event.currentTarget)} style={listBtnStyle}>{t('common.view', 'View')}</button>
                     {isAdmin && post.status !== 'published' && (
                       <>
@@ -342,7 +338,7 @@ export default function CalendarPage({ clientId: propClientId }) {
   if (showClientSelector && !clientId) {
     return (
       <div style={pageStyle}>
-        <div style={{ maxWidth: 1480, margin: '0 auto' }}>
+        <div className="calendar-container">
           <PageHeader
             title={pageTitle}
             subtitle={pageSubtitle}
@@ -360,10 +356,10 @@ export default function CalendarPage({ clientId: propClientId }) {
               </select>
             )}
           />
-          <div style={{ padding: 40, maxWidth: 500, margin: '60px auto', textAlign: 'center' }}>
-            <div style={{ fontSize: 48, marginBottom: 16 }}>📅</div>
-            <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 8 }}>{pageTitle}</h2>
-            <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginBottom: 0 }}>
+          <div className="calendar-error-panel">
+            <div className="calendar-error-icon">📅</div>
+            <h2 className="calendar-error-heading">{pageTitle}</h2>
+            <p className="calendar-error-description">
               {t('calendar.selectUser', 'Select a user from the top-right dropdown to view their content calendar.')}
             </p>
           </div>
@@ -394,8 +390,8 @@ export default function CalendarPage({ clientId: propClientId }) {
         />
 
         <ChannelSources key={clientId} clientId={clientId} onRefresh={refetchPosts} selectedSource={selectedSource} onSelectSource={setSelectedSource} />
-        <div className="calendar-toolbar" style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 20, flexWrap: 'wrap', width: '100%' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', flex: '1 1 260px', minWidth: 0 }}>
+        <div className="calendar-toolbar" className="calendar-toolbar">
+          <div className="calendar-toolbar-title">
             <button onClick={prevMonth} style={navBtnStyle} aria-label={tr('Previous month')}>
               <ChevronLeft size={16} style={isPersian ? { transform: 'rotate(180deg)' } : undefined} />
             </button>
@@ -408,14 +404,14 @@ export default function CalendarPage({ clientId: propClientId }) {
             <button onClick={goToday} style={todayBtnStyle}>{t('common.today', 'Today')}</button>
           </div>
 
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', flex: '999 1 420px', minWidth: 0 }}>
+          <div className="calendar-platform-filter">
             {[{ key: 'all', label: t('common.all', 'All'), color: '#00d7ff' }, ...calendarPlatforms.map(p => ({ key: p.key, label: p.labels[language] || p.labels.en, color: p.color }))].map(item => (
               <button key={item.key} onClick={() => setPlatform(item.key)} style={{
                 padding: '5px 10px', borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s',
                 background: platform === item.key ? '#00d7ff' : '#fff', color: platform === item.key ? '#fff' : 'var(--text-secondary)',
                 border: platform === item.key ? '1px solid #00d7ff' : '1px solid var(--border-default)',
               }}>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <span className="calendar-inline-control">
                   {item.key === 'all' ? null : <SocialPlatformIcon platform={item.key} size={14} />}
                   {item.label || t('common.all', 'All')}
                 </span>
@@ -429,7 +425,7 @@ export default function CalendarPage({ clientId: propClientId }) {
                 <Plus size={16} /> {t('calendar.schedulePost', 'Schedule Post')}
               </button>
             )}
-            <div style={{ display: 'flex', border: '1px solid var(--border-default)', borderRadius: 8, overflow: 'hidden', flexWrap: 'wrap', maxWidth: '100%' }}>
+            <div className="calendar-view-switcher">
               {views.map(item => (
                 <button key={item.key} onClick={() => updateSearch({ view: item.key, client: clientId })} style={{
                   display: 'flex', alignItems: 'center', gap: 5, padding: '7px 14px', border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 600,
@@ -443,7 +439,7 @@ export default function CalendarPage({ clientId: propClientId }) {
         </div>
 
         {postsLoading && (
-          <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-tertiary)', fontSize: 14 }}>
+          <div className="calendar-loading-state">
             {t('calendar.loading', 'Loading calendar…')}
           </div>
         )}
@@ -466,8 +462,8 @@ export default function CalendarPage({ clientId: propClientId }) {
         {!postsLoading && view === 'list' && (
           <div className="cal-fade">
             {upcoming.length > 0 && (
-              <div style={{ background: 'var(--surface-card)', borderRadius: 12, border: '1px solid var(--border-default)', padding: '16px 20px', marginBottom: 20 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 12 }}>
+              <div className="calendar-filter-panel">
+                <div className="calendar-filter-title">
                   📅 {t('calendar.comingUp', 'Coming up this week')}
                 </div>
                 <UpcomingPosts posts={upcoming} />
