@@ -115,3 +115,20 @@
   .reports-toolbar { align-items: stretch; }
   .reports-toolbar > .reports-filter { flex-basis: 100%; }
 }
+
+/* Competitor screens: shared layouts and responsive behavior. */
+.competitors-layout { display:grid; grid-template-columns:320px minmax(0,1fr); gap:16px; }
+.competitors-list-panel { overflow:hidden; align-self:flex-start; }
+.competitors-panel { overflow:hidden; }
+.competitors-loading { padding:16px; color:var(--text-tertiary); }
+.competitors-flex-fill { flex:1; min-width:0; }
+.competitors-item-name { font-size:13px; font-weight:600; color:var(--text-primary); }
+.competitors-item-meta { font-size:11px; color:var(--text-tertiary); margin-block-start:2px; }
+.competitors-detail { display:flex; flex-direction:column; gap:16px; }
+.competitors-detail-heading { display:flex; align-items:flex-start; gap:12px; }
+.competitors-title { font-size:18px; font-weight:700; color:var(--text-primary); }
+.competitors-handle-list { display:flex; flex-wrap:wrap; gap:6px; margin-block-start:8px; }
+.competitors-actions { display:flex; gap:6px; }
+.ds-spin { animation:ds-spin 0.9s linear infinite; }
+@keyframes ds-spin { to { transform:rotate(360deg); } }
+@media (max-width:1024px) { .competitors-layout { grid-template-columns:minmax(0,1fr); } }
