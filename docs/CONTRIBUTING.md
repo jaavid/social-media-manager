@@ -23,7 +23,7 @@ npm run build
 ```
 
 برای تغییر مسیرهای Next، [تست browser](NEXT_MIGRATION.md) را هم اجرا کنید. CI تست Django، Jest، build Next، TypeScript، مرورگر و راه‌اندازی Docker را دارد.
-از ریشه: `pre-commit install`؛ بررسی فایل‌ها: `pre-commit run --all-files`.
+از ریشه: `pre-commit install`؛ بررسی فایل‌ها: `pre-commit run --all-files`؛ بررسی پیوندهای مستندات: `node scripts/check-docs.cjs`.
 
 ## قواعد کد
 
@@ -39,4 +39,4 @@ npm run build
 `useLanguage()` و `tr()` مسیر ترجمه‌اند. تاریخ نمایشی از `formatDate()` و عدد از `formatNumber()`؛ identifier، URL و ورودی فنی را از جریان RTL جدا کنید.
 `npm run i18n:inventory` متن‌های مستقیم را فهرست می‌کند. guard مبتنی بر parser تمام JS/JSX/TS/TSX را بررسی می‌کند و افزایش baseline متن legacy را رد می‌کند؛ این شمارش به معنی ترجمهٔ کامل نیست. قراردادها: [Frontend contracts](FRONTEND_CONTRACTS.md). منبع: [اسکریپت](../frontend/scripts/check-user-facing-strings.js).
 
-مستندات فقط در `docs/` باشند؛ فایل کوتاه، دستور قابل‌اجرا و لینک به مرجع کد بنویسید. گزارش PR، screenshot مقایسه‌ای و backlog را به‌عنوان راهنمای دائمی اینجا نگه ندارید. جدول PLATFORM_SUPPORT باید عین خروجی registry باشد.
+اسناد ورودی ثابت (`README.md`، `PROJECT.md`، `DESIGN.md`، `AGENTS.md` و `CONTRIBUTING.md`) در ریشه و راهنماهای موضوعی در `docs/` باشند؛ فایل کوتاه، دستور قابل‌اجرا و لینک به مرجع کد بنویسید. گزارش‌های تاریخی و شواهد PR را از قراردادهای جاری جدا کنید و از فهرست اسناد به‌عنوان تاریخچه معرفی کنید، نه مرجع اجرایی. جدول PLATFORM_SUPPORT باید عین خروجی registry باشد.

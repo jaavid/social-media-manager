@@ -1,5 +1,4 @@
 import useNavigationAccess from '../../hooks/useNavigationAccess';
-import Select from '../ui/Select';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -18,16 +17,13 @@ import {
 import { ChevronDown, Rocket } from 'lucide-react';
 import { NAV_SETS, visibleSections, navigationHref, navigationText } from './navigationItems';
 import { routeIsActive } from '../../lib/runtime/navigation';
-import WorkspaceContext from './WorkspaceContext';
-import { useWorkspaces } from '../../hooks/useData';
 import useWorkspaceScope, { useScopedBadgeCount as useBadgeCount } from '../../hooks/useWorkspaceScope';
 import { useLanguage } from '../../i18n';
+import { useWorkspaces } from '../../hooks/useData';
 export default function FeatureSidebar({
   module,
   basePath,
   isAdmin = false,
-  selectedClient,
-  onSelectClient,
 }) {
   const location = useLocation();
   const language = useLanguage();
@@ -100,7 +96,7 @@ export default function FeatureSidebar({
         </div>
       </header>
 
-      <WorkspaceContext basePath={basePath} />
+      <WorkspaceIdentity />
       <div
         className={cn(
           'sidebar-scroll',
@@ -133,9 +129,7 @@ export default function FeatureSidebar({
       </div>
 
       <p className="px-3 py-2 text-xs text-muted-foreground">{t('nav.accessHelp')}</p>
-      {isAdmin && (
-        <ClientSwitcher selected={selectedClient} onSelect={onSelectClient} />
-      )}
+
     </aside>
   );
 }
@@ -311,33 +305,16 @@ function EmptyModule({ message }) {
     </div>
   );
 }
-function ClientSwitcher({ onSelect }) {
-  const navigate = useNavigate();
-  const { workspaces = [] } = useWorkspaces();
+/** Read-only current workspace label; the Shell owns the interactive selector. */
+function WorkspaceIdentity() {
   const { workspaceId } = useWorkspaceScope();
+  const { workspaces = [], error } = useWorkspaces();
   const { t } = useLanguage();
-  return (
-    <div className="border-t border-border p-2.5">
-      <Select
-        searchable
-        placement="top"
-        aria-label={t('common.workspace', 'Workspace')}
-        value={workspaceId ?? 'all'}
-        options={[
-          { value: 'all', label: t('common.allWorkspaces', 'All workspaces') },
-          ...workspaces.map((workspace) => ({
-            value: workspace.id,
-            label: workspace.company,
-          })),
-        ]}
-        onChange={(value) => {
-          const workspace =
-            workspaces.find((item) => item.id === value) || null;
-          onSelect?.(workspace);
-          if (workspace) navigate(`/admin/workspace/${workspace.id}`);
-          else if (value === 'all') navigate('/admin/workspaces');
-        }}
-      />
-    </div>
-  );
+  const selected = !error && workspaces.find(row => row.id === workspaceId);
+  const label = selected ? selected.display_name || selected.company || selected.name || t('nav.unknownWorkspace')
+    : t(workspaceId ? 'nav.unknownWorkspace' : 'nav.noWorkspace');
+  return <section data-workspace-context aria-label={t('nav.workspace')} className="grid min-w-0 gap-1 border-b border-border px-3 py-3">
+    <span className="text-xs text-muted-foreground">{t('nav.workspace')}</span>
+    <strong className="break-words text-sm"><bdi>{label}</bdi></strong>
+  </section>;
 }

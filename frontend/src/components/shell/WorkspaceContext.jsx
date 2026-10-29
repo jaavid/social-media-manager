@@ -38,5 +38,7 @@ export default function WorkspaceContext({ basePath = '/u', compact = false }) {
         <option value="" disabled>{t('nav.chooseWorkspace')}</option>
         {!error && workspaces.map(row => <option key={row.id} value={String(row.id)}>{row.display_name || row.company || row.name || t('nav.unknownWorkspace')}</option>)}
       </NativeSelect>}
+    {basePath === '/admin' && !compact && <Link to="/admin/workspaces" className="text-xs underline">{t('common.allWorkspaces')}</Link>}
+    
   </section>;
 }

@@ -1,23 +1,30 @@
-# راهنمای Social Stats
+# Documentation index
 
-Social Stats ابزار متن‌باز مدیریت شبکه‌های اجتماعی است: فضای کاری، اتصال حساب‌ها، ساخت و زمان‌بندی پست، تأیید محتوا، آمار، صندوق پیام و ربات WhatsApp. قابلیت‌های AI از Anthropic استفاده می‌کنند. پرداخت فعال ندارد؛ هزینهٔ سرور و APIها با شماست.
+Root entry points: [README](../README.md) · [Project](../PROJECT.md) · [Design](../DESIGN.md) · [Agent rules](../AGENTS.md) · [Contributing](../CONTRIBUTING.md)
 
-| دنبال چه هستید؟ | بخوانید |
-| --- | --- |
-| اجرا و ورود آزمایشی | [شروع](GETTING_STARTED.md) |
-| ساختار کد و مسیرهای برنامه | [معماری](ARCHITECTURE.md) |
-| فایل‌های محیط و تنظیمات | [پیکربندی](CONFIGURATION.md) |
-| اتصال شبکه‌ها و WhatsApp | [حساب‌ها](CONNECT_ACCOUNTS.md) |
-| چه قابلیتی واقعاً موجود است؟ | [پلتفرم‌ها](PLATFORM_SUPPORT.md) |
-| نقش‌ها، فضای کاری و تأیید | [دسترسی](ACCESS.md) |
-| سرور واقعی، ارتقا و بکاپ | [استقرار](DEPLOYMENT.md) |
-| متریک task، صف و سلامت sync | [پایش](OBSERVABILITY.md) |
-| مسیریابی و اجرای Next.js | [Next](NEXT_MIGRATION.md) |
-| خطاهای رایج | [رفع مشکل](TROUBLESHOOTING.md) |
-| توسعه، تست و مشارکت | [مشارکت](CONTRIBUTING.md) |
-| گزارش آسیب‌پذیری و رخداد | [امنیت](SECURITY.md) |
-| قواعد همکاری | [رفتار](CODE_OF_CONDUCT.md) |
+## Getting started and operations
+- [Getting started](GETTING_STARTED.md) · [Configuration](CONFIGURATION.md) · [Deployment](DEPLOYMENT.md)
+- [Troubleshooting](TROUBLESHOOTING.md) · [CI and verification](CI.md) · [Observability](OBSERVABILITY.md) · [Object storage](OBJECT_STORAGE.md)
 
-شروع کار: برنامه را اجرا کنید، وارد شوید، فضای کاری را انتخاب کنید، حساب وصل کنید و یک پست آزمایشی منتشر کنید. دادهٔ دمو مصنوعی است؛ انتشار واقعی به حساب، مجوز پلتفرم و دسترسی کاربر نیاز دارد.
+## Architecture and security
+- [Architecture](ARCHITECTURE.md) · [Backend architecture](BACKEND_ARCHITECTURE.md)
+- [Access and roles](ACCESS.md) · [Security](SECURITY.md) · [Workspace scope](NX_02_WORKSPACE_SCOPE.md)
+- [Frontend contracts](FRONTEND_CONTRACTS.md) · [Shell composition](SHELL_COMPOSITION_CONTRACT.md) · [Next routing](NEXT_MIGRATION.md)
 
-مرجع رفتار، کد فعلی است. این پوشه تنها محل راهنماهاست؛ تاریخچهٔ تغییرات در Git و [Releases](https://github.com/jaavid/social-media-manager/releases) است.
+## Product features and integration
+- [Provider support](PLATFORM_SUPPORT.md) · [Provider integration contract](PLATFORM_INTEGRATION_CONTRACT.md) · [Provider checklist](PLATFORM_PROVIDER_CHECKLIST.md)
+- [Connected accounts](CONNECT_ACCOUNTS.md) · [Shared public monitoring](SHARED_PUBLIC_MONITORING.md)
+- [Managed messenger bots](MANAGED_MESSENGER_BOTS.md) · [Telegram cloud](TELEGRAM_CLOUD_LINK.md) · [Reddit and Discord](REDDIT_DISCORD.md)
+- [Content calendar](CHANNEL_CONTENT_CALENDAR.md) · [Organization billing](ORGANIZATION_BILLING.md)
+
+## Design and historical implementation records
+- [Typography calibration](TYPOGRAPHY_CALIBRATION.md) · [Brand references](brand/ravinta/README.md)
+- [Frontend simplification audit](FRONTEND_SIMPLIFICATION_AUDIT.md) · [Implementation report](FRONTEND_SIMPLIFICATION_IMPLEMENTATION.md)
+- [Stage 5 composer](STAGE5_COMPOSER.md) · [Stage 6 surfaces](STAGE6_SURFACE_CONTRACTS.md) · [Stage 6 gaps](STAGE6_GAP_ASSESSMENT.md)
+- [UX issue 219 acceptance](UX_219_CONVERGENCE_ACCEPTANCE.md) · [Navigation/AI browser parity](UX_NAV_AI_BROWSER_PARITY_2026-10-28.md) · [AI studio acceptance](AI_STUDIO_NAVIGATION_ACCEPTANCE_2026-10-28.md)
+- [Review debt audit](REVIEW_DEBT_AUDIT.md) · [Review evidence](review-evidence/README.md)
+
+## Governance
+- [Contributing details](CONTRIBUTING.md) · [Code of conduct](CODE_OF_CONDUCT.md)
+
+Historical reports are retained as evidence, not as current normative contracts. The code and tested current contracts take precedence.

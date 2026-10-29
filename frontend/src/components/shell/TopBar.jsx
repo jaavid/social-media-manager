@@ -10,19 +10,17 @@ import {
 import ThemeToggle from '../ui/ThemeToggle';
 import NotificationBell from '../ui/NotificationBell';
 import LanguageToggle from '../ui/LanguageToggle';
-import { useSession as useAuth } from '../../core/session';
 import { useLanguage } from '../../i18n';
 import { cn } from '../../lib/utils';
 export default function TopBar({ basePath, onOpenPalette }) {
   const location = useLocation();
-  const { user } = useAuth();
   const { isPersian, t, tr } = useLanguage();
   const crumbs = buildBreadcrumbs(location.pathname, basePath);
   const isMac =
     typeof navigator !== 'undefined' && /mac/i.test(navigator.platform);
   return (
     <header className="ds-topbar fixed inset-x-0 top-0 z-80 ms-[calc(var(--module-rail-width)+var(--feature-sidebar-width))] flex h-[var(--topbar-height)] items-center gap-2 border-b border-border/70 bg-card/90 px-3 xl:gap-3 xl:px-5 backdrop-blur-xl">
-      <WorkspaceSwitcher user={user} basePath={basePath} />
+      <WorkspaceSwitcher basePath={basePath} />
 
       <nav
         aria-label={t('common.navigation', 'Breadcrumb')}
@@ -92,14 +90,11 @@ export default function TopBar({ basePath, onOpenPalette }) {
   );
 }
 function WorkspaceSwitcher({ basePath }) {
-  return <div className="min-w-0 max-w-64"><WorkspaceContext basePath={basePath} compact /></div>;
+  const { t } = useLanguage();
+  return <div className="flex min-w-0 items-center gap-2"><div className="min-w-0 max-w-64"><WorkspaceContext basePath={basePath} compact /></div>{basePath === '/admin' && <Link to="/admin/workspaces" className="shrink-0 text-xs text-muted-foreground underline hover:text-foreground">{t('common.allWorkspaces')}</Link>}</div>;
 }
 function NotificationBellWrapper() {
-  try {
-    return <NotificationBell variant="ghost" />;
-  } catch {
-    return null;
-  }
+  return <NotificationBell variant="ghost" />;
 }
 function buildBreadcrumbs(pathname, basePath) {
   const rest = pathname.startsWith(basePath)
