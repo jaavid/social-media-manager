@@ -54,7 +54,7 @@ function Agency({ identity, enabled }) {
     <Modal open={open && !resource.denied && !action.denied} role="alertdialog" title={t('agency.disconnect')} description={t('settings.agency.summary')} initialFocusRef={cancel} returnFocusRef={action.success ? heading : trigger}
       showClose={!action.busy} closeOnBackdrop={!action.busy} onClose={() => { if (!action.busy && !action.uncertain) setOpen(false); }}
       footer={<><Button ref={cancel} variant="ghost" disabled={action.busy || action.uncertain} onClick={() => setOpen(false)}>{t('recovery.cancel')}</Button><Button variant="danger" disabled={action.locked} onClick={disconnect}>{t('agency.disconnect')}</Button></>}>
-      <SensitiveActionInfo summaryKey="settings.agency.summary" detailKeys={['agency.hint', 'agency.unknown']} />
+      <SensitiveActionInfo summaryKey="settings.agency.summary" detailKeys={['agency.hint']} />
       <WriteState action={action} recover={refresh} uncertainKey="agency.unknown" />
     </Modal>
   </section></Card>;
