@@ -16,7 +16,7 @@ jest.mock('../../services/platforms', () => ({
 }));
 jest.mock('../ui/SocialPlatformIcon', () => ({
   __esModule: true,
-  default: () => <span aria-hidden="true">Icon</span>,
+  default: () => null,
 }));
 
 test('post details use the shared named modal, trap focus and restore the trigger on Escape', async () => {
