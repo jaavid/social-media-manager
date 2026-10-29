@@ -112,7 +112,7 @@ test('unconfirmed revocation preserves target; verification unlocks a manual ret
   click('sessions.revoke');
   const dialog = screen.getByRole('alertdialog');
   fireEvent.click(within(dialog).getByRole('button', { name: mockMessages['sessions.revoke'] }));
-  await screen.findByText(mockMessages['sessions.uncertain']);
+  await within(dialog).findByText(mockMessages['sessions.uncertain']);
   expect(
     within(dialog).getByRole('button', { name: mockMessages['sessions.revoke'] }),
   ).toBeDisabled();
@@ -142,7 +142,7 @@ test('malformed write never claims success; late writes after context switch do 
       name: mockMessages['sessions.revoke'],
     }),
   );
-  await screen.findByText(mockMessages['sessions.uncertain']);
+  await within(dialog).findByText(mockMessages['sessions.uncertain']);
   expect(screen.queryByText(mockMessages['sessions.revoked'])).toBeNull();
   click('recovery.retry');
   await waitFor(() =>
@@ -191,7 +191,7 @@ test('pending revocation locks duplicate submission and dismissal; authoritative
   fireEvent.keyDown(dialog, { key: 'Escape' });
   expect(dialog).toBeInTheDocument();
   await act(async () => reject(failure(503)));
-  await screen.findByText(mockMessages['sessions.uncertain']);
+  await within(dialog).findByText(mockMessages['sessions.uncertain']);
   sessionsAPI.list.mockResolvedValue(response([{ ...row, is_active: false }]));
   fireEvent.click(within(dialog).getByRole('button', { name: mockMessages['recovery.retry'] }));
   await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull());
@@ -206,7 +206,7 @@ test('sign-out-everywhere retains the current-session warning and validates the 
   const dialog = screen.getByRole('alertdialog');
   expect(within(dialog).getByText(mockMessages['sessions.allHint'])).toBeVisible();
   fireEvent.click(within(dialog).getByRole('button', { name: mockMessages['sessions.revoke'] }));
-  await screen.findByText(mockMessages['sessions.uncertain']);
+  await within(dialog).findByText(mockMessages['sessions.uncertain']);
   expect(sessionsAPI.revokeAll).toHaveBeenCalledTimes(1);
   expect(sessionsAPI.revoke).not.toHaveBeenCalled();
   expect(screen.queryByText(mockMessages['sessions.revoked'])).toBeNull();
@@ -220,7 +220,7 @@ test('cancelled refetch with cached success cannot unlock an ambiguous revocatio
   const dialog = screen.getByRole('alertdialog');
   const submit = within(dialog).getByRole('button', { name: mockMessages['sessions.revoke'] });
   fireEvent.click(submit);
-  await screen.findByText(mockMessages['sessions.uncertain']);
+  await within(dialog).findByText(mockMessages['sessions.uncertain']);
   sessionsAPI.list.mockImplementationOnce(() => new Promise(() => {}));
   fireEvent.click(within(dialog).getByRole('button', { name: mockMessages['recovery.retry'] }));
   await waitFor(() => expect(sessionsAPI.list).toHaveBeenCalledTimes(2));
