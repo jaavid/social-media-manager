@@ -10,12 +10,10 @@ import {
 import ThemeToggle from '../ui/ThemeToggle';
 import NotificationBell from '../ui/NotificationBell';
 import LanguageToggle from '../ui/LanguageToggle';
-import { useSession as useAuth } from '../../core/session';
 import { useLanguage } from '../../i18n';
 import { cn } from '../../lib/utils';
 export default function TopBar({ basePath, onOpenPalette }) {
   const location = useLocation();
-  const { user } = useAuth();
   const { isPersian, t, tr } = useLanguage();
   const crumbs = buildBreadcrumbs(location.pathname, basePath);
   const isMac =
@@ -96,11 +94,7 @@ function WorkspaceSwitcher({ basePath }) {
   return <div className="flex min-w-0 items-center gap-2"><div className="min-w-0 max-w-64"><WorkspaceContext basePath={basePath} compact /></div>{basePath === '/admin' && <Link to="/admin/workspaces" className="shrink-0 text-xs text-muted-foreground underline hover:text-foreground">{t('common.allWorkspaces')}</Link>}</div>;
 }
 function NotificationBellWrapper() {
-  try {
-    return <NotificationBell variant="ghost" />;
-  } catch {
-    return null;
-  }
+  return <NotificationBell variant="ghost" />;
 }
 function buildBreadcrumbs(pathname, basePath) {
   const rest = pathname.startsWith(basePath)
