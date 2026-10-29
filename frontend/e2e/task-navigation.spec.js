@@ -207,7 +207,7 @@ test('reports read the explicit workspace and never the session default after a 
   await page.goto('/dashboard/reports?workspace=8');
   await expect.poll(() => reads.at(-1)).toBe('8');
   expect(reads).not.toContain('7');
-  await page.locator('main').getByRole('combobox', { name: 'Workspace', exact: true }).selectOption('7');
+  await page.locator('header.ds-topbar').getByRole('combobox', { name: 'Choose workspace' }).selectOption('7');
   await expect(page).toHaveURL(/workspace=7/);
   await expect.poll(() => reads.at(-1)).toBe('7');
 });

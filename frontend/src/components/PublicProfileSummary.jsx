@@ -1,4 +1,5 @@
 import { useLanguage } from '@/i18n';
+import Image from 'next/image';
 
 /** Public facts only. Missing metrics are unknown, including on partial syncs. */
 export default function PublicProfileSummary({ data }) {
@@ -21,7 +22,7 @@ export default function PublicProfileSummary({ data }) {
   };
   return <section className="min-w-0 space-y-3 rounded-lg border p-3 text-sm" aria-label={text('اطلاعات عمومی پیج', 'Public profile data')}>
     <p className="m-0 text-xs text-muted-foreground" role="status">{statuses[data.status] || statuses.idle}</p>
-    {/^https:\/\//i.test(profile.profile_image_link || '') && <img src={profile.profile_image_link} alt={text('تصویر پروفایل', 'Profile photo')} width={48} height={48} className="size-12 rounded-full object-cover" onError={event => { event.currentTarget.hidden = true; }} />}
+    {/^https:\/\//i.test(profile.profile_image_link || '') && <Image unoptimized src={profile.profile_image_link} alt={text('تصویر پروفایل', 'Profile photo')} width={48} height={48} className="size-12 rounded-full object-cover" onError={event => { event.currentTarget.hidden = true; }} />}
     {(profile.full_name || profile.is_verified) && <p className="m-0 font-semibold break-words">
       {profile.full_name} {profile.is_verified && <span>{text('· تأییدشده', '· Verified')}</span>}
     </p>}
