@@ -23,7 +23,7 @@ npm run build
 ```
 
 برای تغییر مسیرهای Next، [تست browser](NEXT_MIGRATION.md) را هم اجرا کنید. CI تست Django، Jest، build Next، TypeScript، مرورگر و راه‌اندازی Docker را دارد.
-از ریشه: `pre-commit install`؛ بررسی فایل‌ها: `pre-commit run --all-files`.
+از ریشه: `pre-commit install`؛ بررسی فایل‌ها: `pre-commit run --all-files`؛ بررسی پیوندهای مستندات: `node scripts/check-docs.cjs`.
 
 ## قواعد کد
 
