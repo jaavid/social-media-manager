@@ -65,7 +65,7 @@ function SuggestRow({ clientId, platform }) {
   );
 }
 
-export default function PostFormDrawer({ date, post, isOpen, onClose, onSave, clientId, readOnly }) {
+export default function PostFormDrawer({ date, post, isOpen, onClose, onSave, clientId, readOnly, returnFocusRef }) {
   const { tr, formatDate, formatNumber } = useLanguage();
   const isEdit = !!post;
   const {
@@ -215,7 +215,7 @@ export default function PostFormDrawer({ date, post, isOpen, onClose, onSave, cl
   }
 
   return (
-    <Drawer open={isOpen} onClose={onClose} side="end" width={460} title={isEdit ? tr('Edit Post') : tr('Schedule Post')}>
+    <Drawer open={isOpen} onClose={onClose} returnFocusRef={returnFocusRef} side="end" width={460} title={isEdit ? tr('Edit Post') : tr('Schedule Post')}>
         <div className="min-w-0" aria-busy={saving}>
           {date && !isEdit && <p className="mb-4 text-sm text-muted-foreground">{formatDate(date instanceof Date ? date : new Date(date), { weekday: 'long', month: 'long', day: 'numeric' })}</p>}
           <Field label={tr('Platform')} required error={errors.platform}>
@@ -325,7 +325,7 @@ export default function PostFormDrawer({ date, post, isOpen, onClose, onSave, cl
 
           {status === 'scheduled' && (
             <Field label={tr('Scheduled Date & Time')} htmlFor="calendar-scheduled-at" required error={errors.scheduledAt}>
-              <input id="calendar-scheduled-at" aria-invalid={!!errors.scheduledAt} aria-describedby={errors.scheduledAt ? 'calendar-scheduled-at-error' : undefined}
+              <input id="calendar-scheduled-at" aria-required={status === 'scheduled'} aria-invalid={!!errors.scheduledAt} aria-describedby={errors.scheduledAt ? 'calendar-scheduled-at-error' : undefined}
                 type="datetime-local"
                 value={scheduledAt}
                 onChange={event => { setScheduledAt(event.target.value); clearFieldError('scheduledAt'); }}

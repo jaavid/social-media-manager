@@ -40,7 +40,7 @@ test('post details use the shared named modal, trap focus and restore the trigge
   await userEvent.click(trigger);
   const dialog = screen.getByRole('dialog', { name: /Telegram.*Draft/ });
   expect(dialog).toHaveAttribute('dir', 'ltr');
-  expect(dialog).toHaveAttribute('aria-modal', 'true');
+  expect(trigger.closest('[aria-hidden="true"]')).not.toBeNull();
   for (let index = 0; index < 8; index += 1) {
     await userEvent.tab();
     expect(dialog.contains(document.activeElement)).toBe(true);

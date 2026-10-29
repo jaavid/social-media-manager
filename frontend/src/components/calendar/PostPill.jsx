@@ -65,12 +65,16 @@ export default function PostPill({ post, onClick }) {
 
   return (
     <div style={{ position: 'relative', display: 'block', width: '100%', minWidth: 0 }}>
-      <div
-        onClick={(e) => { e.stopPropagation(); onClick && onClick(post); }}
+      <button
+        type="button"
+        aria-label={label}
+        onClick={(e) => { e.stopPropagation(); onClick?.(post, e.currentTarget); }}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={() => setHovered(false)}
         style={{
           ...statusStyle,
+          fontFamily: 'inherit',
+          textAlign: 'start',
           borderRadius: 4,
           padding: '2px 5px',
           marginBottom: 2,
@@ -98,7 +102,7 @@ export default function PostPill({ post, onClick }) {
         {timeStr && (
           <span style={{ color: '#64748b', fontSize: 10, flexShrink: 0 }}>{timeStr}</span>
         )}
-      </div>
+      </button>
 
       {/* Hover tooltip */}
       {hovered && (
