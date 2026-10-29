@@ -3,7 +3,7 @@ import SensitiveActionInfo from './SensitiveActionInfo';
 import { enMessages, faMessages } from '@/i18n/messages';
 
 let mockLocale = 'en';
-jest.mock('@/i18n', () => ({ useLanguage: () => ({ t: key => require('@/i18n/messages')[mockLocale === 'fa' ? 'faMessages' : 'enMessages'][key] }) }));
+jest.mock('@/i18n', () => ({ useLanguage: () => ({ t: key => jest.requireActual('@/i18n/messages')[mockLocale === 'fa' ? 'faMessages' : 'enMessages'][key] }) }));
 
 describe('sensitive settings progressive disclosure', () => {
   afterEach(() => { mockLocale = 'en'; });
