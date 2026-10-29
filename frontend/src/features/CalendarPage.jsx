@@ -378,7 +378,7 @@ export default function CalendarPage({ clientId: propClientId }) {
         />
 
         <ChannelSources key={clientId} clientId={clientId} onRefresh={refetchPosts} selectedSource={selectedSource} onSelectSource={setSelectedSource} />
-        <div className="calendar-toolbar" className="calendar-toolbar">
+        <div className="calendar-toolbar">
           <div className="calendar-toolbar-title">
             <button onClick={prevMonth} style={navBtnStyle} aria-label={tr('Previous month')}>
               <ChevronLeft size={16} style={isPersian ? { transform: 'rotate(180deg)' } : undefined} />
