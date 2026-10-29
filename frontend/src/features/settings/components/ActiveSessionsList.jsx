@@ -180,7 +180,7 @@ function SessionList({ identity, enabled }) {
         {sessions &&
           (sessions.length ? (
             <>
-              <SensitiveActionInfo summaryKey="settings.sessions.summary" detailKeys={['sessions.allHint', 'sessions.uncertain']} />
+              <SensitiveActionInfo summaryKey="settings.sessions.summary" detailKeys={['sessions.allHint']} />
               {sessions.some((row) => row.is_active) && (
                 <Button
                   variant="danger"
