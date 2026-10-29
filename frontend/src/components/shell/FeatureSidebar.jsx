@@ -1,5 +1,4 @@
 import useNavigationAccess from '../../hooks/useNavigationAccess';
-import Select from '../ui/Select';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
  *  Author    : Chandrabhan Shekhawat
@@ -18,16 +17,12 @@ import {
 import { ChevronDown, Rocket } from 'lucide-react';
 import { NAV_SETS, visibleSections, navigationHref, navigationText } from './navigationItems';
 import { routeIsActive } from '../../lib/runtime/navigation';
-import WorkspaceContext from './WorkspaceContext';
-import { useWorkspaces } from '../../hooks/useData';
 import useWorkspaceScope, { useScopedBadgeCount as useBadgeCount } from '../../hooks/useWorkspaceScope';
 import { useLanguage } from '../../i18n';
 export default function FeatureSidebar({
   module,
   basePath,
   isAdmin = false,
-  selectedClient,
-  onSelectClient,
 }) {
   const location = useLocation();
   const language = useLanguage();
@@ -100,7 +95,6 @@ export default function FeatureSidebar({
         </div>
       </header>
 
-      <WorkspaceContext basePath={basePath} />
       <div
         className={cn(
           'sidebar-scroll',
@@ -133,9 +127,7 @@ export default function FeatureSidebar({
       </div>
 
       <p className="px-3 py-2 text-xs text-muted-foreground">{t('nav.accessHelp')}</p>
-      {isAdmin && (
-        <ClientSwitcher selected={selectedClient} onSelect={onSelectClient} />
-      )}
+
     </aside>
   );
 }
@@ -308,36 +300,6 @@ function EmptyModule({ message }) {
         className={cn('[margin-bottom:8px]')}
       />
       <div>{message}</div>
-    </div>
-  );
-}
-function ClientSwitcher({ onSelect }) {
-  const navigate = useNavigate();
-  const { workspaces = [] } = useWorkspaces();
-  const { workspaceId } = useWorkspaceScope();
-  const { t } = useLanguage();
-  return (
-    <div className="border-t border-border p-2.5">
-      <Select
-        searchable
-        placement="top"
-        aria-label={t('common.workspace', 'Workspace')}
-        value={workspaceId ?? 'all'}
-        options={[
-          { value: 'all', label: t('common.allWorkspaces', 'All workspaces') },
-          ...workspaces.map((workspace) => ({
-            value: workspace.id,
-            label: workspace.company,
-          })),
-        ]}
-        onChange={(value) => {
-          const workspace =
-            workspaces.find((item) => item.id === value) || null;
-          onSelect?.(workspace);
-          if (workspace) navigate(`/admin/workspace/${workspace.id}`);
-          else if (value === 'all') navigate('/admin/workspaces');
-        }}
-      />
     </div>
   );
 }
