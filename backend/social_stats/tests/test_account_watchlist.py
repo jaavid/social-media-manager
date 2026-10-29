@@ -1,3 +1,4 @@
+import os
 from datetime import timedelta
 from unittest.mock import patch
 
@@ -15,6 +16,7 @@ from social_stats.channel_calendar_tasks import sync_calendar_source
 from social_stats.views.oauth import _save_credential
 
 
+@patch.dict(os.environ, {'INSTAGRAM_CALENDAR_PROVIDER': 'instagrapi'})
 class WatchlistTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='watch-owner')

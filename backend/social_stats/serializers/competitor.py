@@ -26,6 +26,25 @@ class CompetitorSnapshotSerializer(serializers.ModelSerializer):
 
 class CompetitorSerializer(serializers.ModelSerializer):
     latest_snapshots = serializers.SerializerMethodField()
+    public_data = serializers.SerializerMethodField()
+    follower_history = serializers.SerializerMethodField()
+
+    def get_follower_history(self, obj):
+        history = dict(obj.follower_history or {})
+        from social_stats.public_monitoring import can_read_competitor_instagram
+        request = self.context.get('request')
+        if request and not can_read_competitor_instagram(request.user, obj):
+            history.pop('instagram', None)
+        return history
+
+    def get_public_data(self, obj):
+        from social_stats.public_monitoring import profile_summary
+        from social_stats.authorization import evaluate
+        request = self.context.get('request')
+        for source in obj.calendar_sources.filter(is_active=True).select_related('public_profile__profile_collection', 'public_profile__posts_collection', 'social_account'):
+            if request and evaluate(request.user, obj.client, 'view_posts', account=source.social_account).allowed:
+                return profile_summary(source.public_profile)
+        return None
 
     class Meta:
         model = Competitor
@@ -34,7 +53,7 @@ class CompetitorSerializer(serializers.ModelSerializer):
             'name', 'social_links', 'public_handles',
             'follower_history', 'last_synced_at',
             'created_at',
-            'latest_snapshots',
+            'latest_snapshots', 'public_data',
         ]
         read_only_fields = ['follower_history', 'last_synced_at',
                             'created_at', 'latest_snapshots']
@@ -58,4 +77,8 @@ class CompetitorSerializer(serializers.ModelSerializer):
             platform__in=[k[0] for k in keys],
             date__in=[k[1] for k in keys],
         )
+        from social_stats.public_monitoring import can_read_competitor_instagram
+        request = self.context.get('request')
+        if request and not can_read_competitor_instagram(request.user, obj):
+            rows = rows.exclude(platform='instagram')
         return CompetitorSnapshotSerializer(rows, many=True).data

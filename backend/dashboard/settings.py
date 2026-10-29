@@ -494,8 +494,8 @@ LOGGING = {
     },
 }
 
-# Read-only Instagram channel calendar refresh (each source is rate limited).
+# Sweep durable public collections hourly; each shared target refreshes at most every 48h.
 CELERY_BEAT_SCHEDULE['channel-calendar-daily'] = {
     'task': 'social_stats.channel_calendar_tasks.sync_calendar_sources',
-    'schedule': 86400.0,
+    'schedule': 3600.0,
 }

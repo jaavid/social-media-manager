@@ -79,7 +79,7 @@ class SocialAccountViewSet(viewsets.ReadOnlyModelViewSet):
         def row(post):
             return {'id': post.pk, 'social_account_id': account.pk, 'caption': post.caption,
                     'post_url': post.post_url, 'post_type': post.post_type, 'media_url': post.media_url,
-                    'published_at': post.published_at, 'fetched_at': post.fetched_at, 'metrics': post.metrics}
+                    'published_at': post.published_at, 'fetched_at': post.observed_at or post.fetched_at, 'metrics': post.metrics, 'details': post.details}
         rows = [row(p) for p in (page if page is not None else posts[:100])]
         return self.get_paginated_response(rows) if page is not None else Response(rows)
 

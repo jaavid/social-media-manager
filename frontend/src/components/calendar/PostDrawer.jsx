@@ -6,6 +6,7 @@
  *  Copyright (c) 2026 Chandrabhan Shekhawat / Gigai Kripa Services.
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
+import PublicPostDetails from './PublicPostDetails';
 import { useState } from 'react';
 import { ExternalLink, Edit2, Trash2, Calendar, RefreshCw } from 'lucide-react';
 import Drawer from '../ui/Drawer';
@@ -89,6 +90,7 @@ export default function PostDrawer({ post, isOpen, onClose, onEdit, onDelete, on
             </div>
           )}
 
+          {post.is_external && <PublicPostDetails details={post.details} />}
           {post.hashtags && (
             <div style={{ marginBottom: 12, fontSize: 13, color: '#2563EB' }}>
               {post.hashtags}

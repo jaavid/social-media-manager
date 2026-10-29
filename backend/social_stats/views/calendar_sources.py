@@ -24,14 +24,19 @@ class CalendarSourceSerializer(serializers.ModelSerializer):
     reader_ready = serializers.SerializerMethodField()
     provider = serializers.SerializerMethodField()
     publishing_ready = serializers.SerializerMethodField()
+    public_data = serializers.SerializerMethodField()
     permissions = serializers.SerializerMethodField()
 
     class Meta:
         model = CalendarSource
         fields = ['id', 'client', 'platform', 'username', 'is_active', 'last_synced_at',
-                  'last_attempt_at', 'sync_status', 'error_code', 'reader_ready', 'provider', 'competitor_name', 'display_name', 'is_competitor', 'social_account', 'publishing_ready', 'permissions']
+                  'last_attempt_at', 'sync_status', 'error_code', 'reader_ready', 'provider', 'competitor_name', 'display_name', 'is_competitor', 'social_account', 'publishing_ready', 'permissions', 'public_data']
         read_only_fields = ['client', 'last_synced_at', 'last_attempt_at', 'sync_status', 'error_code', 'social_account']
         validators = []  # Workspace is stamped after validation; DB constraint is authoritative.
+
+    def get_public_data(self, obj):
+        from social_stats.public_monitoring import profile_summary
+        return profile_summary(obj.public_profile)
 
     def get_permissions(self, obj):
         user = self.context['request'].user
@@ -79,7 +84,7 @@ class CalendarSourceSerializer(serializers.ModelSerializer):
 class CalendarSourceViewSet(TenantScopedMixin, mixins.ListModelMixin, mixins.CreateModelMixin,
                             mixins.DestroyModelMixin, viewsets.GenericViewSet):
     permission_classes = [IsAuthenticated]
-    queryset = CalendarSource.objects.select_related('client', 'competitor', 'social_account', 'social_account__credential')
+    queryset = CalendarSource.objects.select_related('client', 'competitor', 'social_account', 'social_account__credential', 'public_profile__profile_collection', 'public_profile__posts_collection')
     serializer_class = CalendarSourceSerializer
     pagination_class = None
 
@@ -148,7 +153,7 @@ class CalendarSourceViewSet(TenantScopedMixin, mixins.ListModelMixin, mixins.Cre
         decision = evaluate(request.user, source.client, 'connect_platforms', account=source.social_account)
         if not decision.allowed or decision.requires_approval:
             raise PermissionDenied('Account permission denied.')
-        if source.last_attempt_at and source.last_attempt_at > timezone.now() - timedelta(minutes=15):
+        if calendar_provider() != 'brightdata' and source.last_attempt_at and source.last_attempt_at > timezone.now() - timedelta(minutes=15):
             return Response({'error': 'cooldown'}, status=429)
         from social_stats.channel_calendar_tasks import sync_calendar_source
         try:

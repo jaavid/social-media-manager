@@ -289,3 +289,5 @@ __all__ = [
 ]
 
 from .channel_calendar import CalendarSource, ChannelCalendarPost, InstagramReaderSession, ChannelPostObservation
+
+from .public_monitoring import PublicProfile, PublicCollection, PublicObservation, PublicSyncControl, PublicPostRecord

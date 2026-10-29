@@ -43,6 +43,9 @@ def enroll_instagram(workspace, username, *, account=None, competitor=None):
                 raise ValueError('Competitor does not belong to this workspace')
             source.competitor = competitor
         source.save(update_fields=['social_account', 'competitor'])
+        from social_stats.public_monitoring import attach_source, project_source
+        profile = attach_source(source)
+        project_source(source, profile)
         if (created or changed) and source.is_active:
             transaction.on_commit(lambda: enqueue_source(source.pk))
         return source

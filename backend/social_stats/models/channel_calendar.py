@@ -11,6 +11,7 @@ class InstagramReaderSession(models.Model):
 
 class CalendarSource(models.Model):
     client = models.ForeignKey('Client', on_delete=models.CASCADE, related_name='calendar_sources')
+    public_profile = models.ForeignKey('PublicProfile', on_delete=models.SET_NULL, null=True, blank=True, related_name='sources')
     social_account = models.ForeignKey('SocialAccount', on_delete=models.SET_NULL, null=True, blank=True, related_name='monitoring_sources')
     platform = models.CharField(max_length=30, default='instagram', choices=[('instagram', 'Instagram')])
     username = models.CharField(max_length=30)
@@ -39,7 +40,9 @@ class ChannelCalendarPost(models.Model):
     media_url = models.TextField(blank=True)
     published_at = models.DateTimeField()
     metrics = models.JSONField(default=dict)
+    details = models.JSONField(default=dict)
     fetched_at = models.DateTimeField(auto_now=True)
+    observed_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         constraints = [models.UniqueConstraint(

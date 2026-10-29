@@ -12,7 +12,8 @@ from django.core.management import call_command, CommandError
 from django.utils import timezone
 
 from social_stats import brightdata_calendar as provider
-from social_stats.channel_calendar_tasks import sync_calendar_source
+# Legacy in-flight snapshot behavior remains supported after the shared collector rollout.
+from social_stats.channel_calendar_tasks import sync_legacy_calendar_source as sync_calendar_source
 from social_stats.instagram_calendar import InstagramReadError
 from social_stats.models import CalendarSource, ChannelCalendarPost, Client
 

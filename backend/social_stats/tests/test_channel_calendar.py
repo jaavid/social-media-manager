@@ -1,3 +1,4 @@
+import os
 from datetime import timedelta
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
@@ -51,6 +52,7 @@ class AdapterTests(SimpleTestCase):
         self.assertEqual(str(error.exception), 'challenge_required')
 
 
+@patch.dict(os.environ, {'INSTAGRAM_CALENDAR_PROVIDER': 'instagrapi'})
 class ChannelCalendarTests(TestCase):
     def setUp(self):
         self.workspace = Client.objects.create(name='test', company='test', email='test@example.test')

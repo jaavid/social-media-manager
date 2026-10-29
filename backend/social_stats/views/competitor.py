@@ -36,6 +36,8 @@ from social_stats.models import (
 )
 from social_stats.tenant_mixins import TenantScopedMixin
 
+from social_stats.public_monitoring import can_read_competitor_instagram
+
 logger = logging.getLogger(__name__)
 
 
@@ -46,7 +48,8 @@ def observed_competitor_posts(competitor, user, cutoff):
         source__client=competitor.client, published_at__date__gte=cutoff).select_related('source__social_account')
     return [{'id': p.external_id, 'caption': p.caption, 'permalink': p.post_url,
              'url': p.post_url, 'platform': p.source.platform, 'published_at': p.published_at.isoformat(),
-             'snapshot_date': p.fetched_at.date().isoformat(), 'media_url': p.media_url,
+             'snapshot_date': (p.observed_at or p.fetched_at).date().isoformat(), 'media_url': p.media_url,
+             'details': p.details,
              **p.metrics} for p in posts[:100] if evaluate(user, competitor.client,
              'view_posts', account=p.source.social_account).allowed]
 
@@ -68,6 +71,8 @@ class CompetitorViewSet(TenantScopedMixin, viewsets.ModelViewSet):
         qs = CompetitorSnapshot.objects.filter(
             competitor=competitor, date__gte=cutoff,
         ).order_by('date')
+        if not can_read_competitor_instagram(request.user, competitor):
+            qs = qs.exclude(platform='instagram')
         if request.query_params.get('platform'):
             qs = qs.filter(platform=request.query_params['platform'])
 
@@ -91,6 +96,8 @@ class CompetitorViewSet(TenantScopedMixin, viewsets.ModelViewSet):
         qs = CompetitorSnapshot.objects.filter(
             competitor=competitor, date__gte=cutoff,
         )
+        if not can_read_competitor_instagram(request.user, competitor):
+            qs = qs.exclude(platform='instagram')
         if platform:
             qs = qs.filter(platform=platform)
 
@@ -120,6 +127,13 @@ class CompetitorViewSet(TenantScopedMixin, viewsets.ModelViewSet):
         """Manually trigger a snapshot pull for this competitor."""
         from social_stats.competitor_tasks import snapshot_one_competitor
         competitor = self.get_object()
+        from social_stats.authorization import evaluate
+        if not evaluate(request.user, competitor.client, 'connect_platforms').allowed:
+            return Response({'detail': 'Collection permission denied.'}, status=403)
+        if competitor.public_handles.get('instagram'):
+            sources = competitor.calendar_sources.filter(platform='instagram', is_active=True).select_related('social_account')
+            if any(not evaluate(request.user, competitor.client, 'connect_platforms', account=source.social_account).allowed for source in sources):
+                return Response({'detail': 'Collection permission denied.'}, status=403)
         snapshot_one_competitor.delay(competitor.id)
         return Response({'queued': True})
 
@@ -133,9 +147,10 @@ class CompetitorViewSet(TenantScopedMixin, viewsets.ModelViewSet):
         competitor = self.get_object()
 
         cutoff = timezone.now().date() - timedelta(days=30)
-        snapshots = list(CompetitorSnapshot.objects.filter(
-            competitor=competitor, date__gte=cutoff,
-        ).order_by('date'))
+        snapshots_qs = CompetitorSnapshot.objects.filter(competitor=competitor, date__gte=cutoff)
+        if not can_read_competitor_instagram(request.user, competitor):
+            snapshots_qs = snapshots_qs.exclude(platform='instagram')
+        snapshots = list(snapshots_qs.order_by('date'))
 
         observed = observed_competitor_posts(competitor, request.user, cutoff)
         if not snapshots and not observed:
@@ -160,8 +175,9 @@ class CompetitorViewSet(TenantScopedMixin, viewsets.ModelViewSet):
             })
             ps['last_followers'] = s.followers
             ps['last_date'] = s.date
-            ps['avg_engagement'] += s.engagement_rate or 0
-            ps['samples'] += 1
+            if s.engagement_rate is not None:
+                ps['avg_engagement'] += s.engagement_rate
+                ps['samples'] += 1
             for p in (s.sample_top_posts or [])[:3]:
                 sample_posts.append({
                     'platform': s.platform,
@@ -171,7 +187,7 @@ class CompetitorViewSet(TenantScopedMixin, viewsets.ModelViewSet):
                 })
 
         for k, v in platform_summary.items():
-            v['avg_engagement'] = round(v['avg_engagement'] / max(1, v['samples']), 3)
+            v['avg_engagement'] = round(v['avg_engagement'] / v['samples'], 3) if v['samples'] else None
             v['follower_delta'] = v['last_followers'] - v['first_followers']
 
         from social_stats.entitlements import reserve_ai
@@ -268,6 +284,8 @@ class BenchmarkView(APIView):
         competitors = list(client.competitors.all())
         comp_values = []
         for c in competitors:
+            if platform == 'instagram' and not can_read_competitor_instagram(request.user, c):
+                continue
             v = _competitor_metric(c, platform, metric, cutoff)
             if v is not None:
                 comp_values.append({'name': c.name, 'value': v})
@@ -316,7 +334,7 @@ def _client_metric(client, platform, metric, cutoff):
         return qs.aggregate(m=Max('followers'))['m'] or 0
     if metric == 'engagement_rate':
         v = qs.aggregate(a=Avg('engagement_rate'))['a']
-        return round(float(v or 0), 3)
+        return round(float(v), 3) if v is not None else None
     if metric in ('impressions', 'video_views'):
         v = qs.aggregate(s=Sum(metric))['s']
         return v or 0
@@ -331,10 +349,10 @@ def _competitor_metric(competitor, platform, metric, cutoff):
         return None
     if metric in ('engagement_rate',):
         v = qs.aggregate(a=Avg(metric))['a']
-        return round(float(v or 0), 3)
+        return round(float(v), 3) if v is not None else None
     if metric == 'followers':
         return qs.aggregate(m=Max('followers'))['m'] or 0
     if metric == 'posts':
         v = qs.aggregate(a=Avg('posts_count'))['a']
-        return round(float(v or 0), 1)
+        return round(float(v), 1) if v is not None else None
     return None

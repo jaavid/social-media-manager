@@ -1,3 +1,6 @@
+import { useLanguage } from '../../i18n';
+import PublicProfileSummary from '../../components/PublicProfileSummary';
+import PublicPostDetails from '../../components/calendar/PublicPostDetails';
 import { usePlatformOptions } from '@/services/platforms';
 /* ============================================================================
  *  Social Stats — Social Media Management & Marketing Platform
@@ -35,7 +38,7 @@ export default function CompetitorsPage() {
       const res = await competitorAPI.list();
       const data = res.data?.results || res.data || [];
       setList(data);
-      if (!active && data.length) setActive(data[0]);
+      setActive(current => data.find(item => item.id === current?.id) || data[0] || null);
     } finally { setLoading(false); }
   }
   useEffect(() => { load(); /* eslint-disable-next-line */ }, []);
@@ -121,6 +124,7 @@ export default function CompetitorsPage() {
 
 /* ── Detail ─────────────────────────────────────────────────────────────── */
 function CompetitorDetail({ competitor, onChange }) {
+  const { isPersian } = useLanguage();
   const PLATFORMS = usePlatformOptions('analytics').map(p => p.key);
   const [timeline, setTimeline] = useState([]);
   const [posts, setPosts] = useState([]);
@@ -204,6 +208,7 @@ function CompetitorDetail({ competitor, onChange }) {
           </div>
         </div>
 
+        <PublicProfileSummary data={competitor.public_data} />
         {/* Latest snapshot stats */}
         {(competitor.latest_snapshots || []).length > 0 && (
           <div style={{
@@ -221,10 +226,10 @@ function CompetitorDetail({ competitor, onChange }) {
                   {s.platform}
                 </div>
                 <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)', marginTop: 4 }}>
-                  {Number(s.followers || 0).toLocaleString()}
+                  {s.followers == null ? '—' : Number(s.followers).toLocaleString()}
                 </div>
                 <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
-                  {s.posts_count} posts · {new Date(s.date).toLocaleDateString()}
+                  {s.posts_count == null ? '—' : s.posts_count} posts · {new Date(s.date).toLocaleDateString()}
                 </div>
               </div>
             ))}
@@ -247,7 +252,7 @@ function CompetitorDetail({ competitor, onChange }) {
         />
         {chartData.length === 0 ? (
           <EmptyState icon={TrendingUp} compact title="No data yet"
-                       description='Click "Sync" above or wait for the daily 3am job.' />
+                       description={isPersian ? 'دریافت خودکار هر ۴۸ ساعت انجام می‌شود؛ درخواست دستی از دادهٔ تازهٔ موجود استفاده می‌کند.' : 'Public data refreshes every 48 hours; manual requests reuse fresh data.'} />
         ) : (
           <div style={{ height: 280 }}>
             <ResponsiveContainer>
@@ -289,6 +294,8 @@ function CompetitorDetail({ competitor, onChange }) {
                 <div style={{ fontSize: 13, color: 'var(--text-primary)', whiteSpace: 'pre-wrap' }}>
                   {p.caption || p.title || p.text || '(no caption)'}
                 </div>
+                <PublicPostDetails details={p.details} />
+                {p.url && <a className="inline-flex min-h-11 items-center underline" href={p.url} target="_blank" rel="noreferrer">{p.platform} ↗</a>}
                 <div style={{ display: 'flex', gap: 12, fontSize: 11, color: 'var(--text-tertiary)', marginTop: 6 }}>
                   {p.likes != null && <span>♥ {p.likes}</span>}
                   {p.comments != null && <span>💬 {p.comments}</span>}

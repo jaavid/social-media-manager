@@ -240,3 +240,27 @@ def normalize_posts(rows, username):
             'media_url': thumbnail, 'published_at': published, 'metrics': metrics,
         })
     return posts
+
+
+def start_batch(usernames, kind, *, limit):
+    """Official DatasetAPIClient, one bounded asynchronous job per group."""
+    usernames = list(dict.fromkeys(normalize_username(name) for name in usernames))
+    if (not usernames or kind not in {'profile', 'posts'} or len(usernames) > 100
+            or not isinstance(limit, int) or isinstance(limit, bool) or not 1 <= limit <= 50):
+        raise InstagramReadError('brightdata_invalid_response')
+    APIClient, _, _, Engine, _ = _sdk_components()
+    payload = ([{'url': f'https://www.instagram.com/{name}/'} for name in usernames]
+               if kind == 'profile' else
+               [{'url': f'https://www.instagram.com/{name}/', 'num_of_posts': limit} for name in usernames])
+
+    async def trigger():
+        return await APIClient(Engine(_send)).trigger(
+            payload=payload, dataset_id='gd_l1vikfch901nx3by4' if kind == 'profile' else DATASET_ID,
+            limit_per_input=1 if kind == 'profile' else limit,
+            extra_params={} if kind == 'profile' else {'type': 'discover_new', 'discover_by': 'url'},
+        )
+
+    snapshot = asyncio.run(trigger())
+    if not valid_snapshot_id(snapshot):
+        raise InstagramReadError('brightdata_invalid_response')
+    return snapshot

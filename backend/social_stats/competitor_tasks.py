@@ -25,7 +25,7 @@ Stubs (logged + skipped — require additional setup):
 from __future__ import annotations
 
 import logging
-from datetime import date, timedelta
+from datetime import date
 from typing import Optional
 
 from social_stats.egress.meta import requests
@@ -65,6 +65,10 @@ def snapshot_one_competitor(self, competitor_id: int):
         return 0
 
     handles = competitor.public_handles or {}
+    if handles.get('instagram'):
+        from social_stats.watchlist import enroll_instagram, enqueue_source
+        source = enroll_instagram(competitor.client, handles['instagram'], competitor=competitor)
+        enqueue_source(source.pk)
     today = timezone.now().date()
     written = 0
 
@@ -82,9 +86,9 @@ def snapshot_one_competitor(self, competitor_id: int):
         _persist_snapshot(competitor, platform, today, data)
         written += 1
 
-    competitor.last_synced_at = timezone.now()
-    competitor.save(update_fields=['last_synced_at'])
     if written:
+        competitor.last_synced_at = timezone.now()
+        competitor.save(update_fields=['last_synced_at'])
         _update_follower_history(competitor, today)
     return written
 
@@ -96,7 +100,9 @@ def _fetch_for_platform(platform: str, handle: str) -> Optional[dict]:
         return _fetch_youtube(handle)
     if p == 'facebook':
         return _fetch_facebook(handle)
-    if p in ('instagram', 'linkedin', 'google_my_business'):
+    if p == 'instagram':
+        return None  # Shared public collector projects Instagram snapshots.
+    if p in ('linkedin', 'google_my_business'):
         logger.debug('Snapshot for %s not implemented (handle=%s)', p, handle)
         return None
     return None

@@ -13,11 +13,14 @@ class CeleryRegistrationTests(SimpleTestCase):
         'social_stats.notification_watchers',
         'social_stats.security.privacy_tasks',
         'social_stats.events.publisher',
+        'social_stats.public_monitoring',
     }
     REQUIRED_TASKS = {
         'social_stats.notification_watchers.run_smart_notifications',
         'social_stats.security.privacy_tasks.sweep_pending_deletions',
         'social_stats.events.publisher.dispatch_event',
+        'social_stats.public_monitoring.dispatch_public_collections',
+        'social_stats.public_monitoring.collect_public_batch',
     }
 
     def test_nonstandard_task_modules_are_imported_at_worker_startup(self):

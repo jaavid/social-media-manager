@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 @shared_task(soft_time_limit=240, time_limit=300)
-def sync_calendar_source(source_id, snapshot_id=None):
+def sync_legacy_calendar_source(source_id, snapshot_id=None):
     now = timezone.now()
     source = CalendarSource.objects.filter(pk=source_id, is_active=True).first()
     if not source or not source.client.is_active or source.client.is_processing_paused:
@@ -124,9 +124,30 @@ def sync_calendar_source(source_id, snapshot_id=None):
 
 
 @shared_task
+def sync_calendar_source(source_id, snapshot_id=None):
+    source = CalendarSource.objects.filter(pk=source_id, is_active=True).select_related('client').first()
+    if not source or not source.client.is_active or source.client.is_processing_paused:
+        return
+    # Finish jobs submitted before the shared collector was deployed.
+    if snapshot_id or source.provider_snapshot_id or brightdata_calendar.calendar_provider() != 'brightdata':
+        return sync_legacy_calendar_source(source_id, snapshot_id=snapshot_id)
+    from social_stats.public_monitoring import attach_source, project_source, dispatch_public_collections
+    profile = attach_source(source)
+    project_source(source, profile)
+    # Coalesce enrollments; only the dispatcher can reserve billable batches.
+    dispatch_public_collections.apply_async(countdown=20)
+
+
+@shared_task
 def sync_calendar_sources():
-    # Spread reads across the day instead of bursting one reader's requests.
+    if brightdata_calendar.calendar_provider() == 'brightdata':
+        from social_stats.public_monitoring import dispatch_public_collections
+        for source in CalendarSource.objects.exclude(provider_snapshot_id='').filter(is_active=True):
+            sync_legacy_calendar_source.delay(source.pk)
+        dispatch_public_collections.delay()
+        return
     for index, source_id in enumerate(CalendarSource.objects.filter(
         is_active=True, client__is_active=True, client__is_processing_paused=False,
-    ).values_list('id', flat=True)):
+    ).filter(Q(last_attempt_at__isnull=True) | Q(last_attempt_at__lte=timezone.now() - timedelta(days=1))
+             | ~Q(provider_snapshot_id='')).values_list('id', flat=True)):
         sync_calendar_source.apply_async(args=[source_id], countdown=index * 60)

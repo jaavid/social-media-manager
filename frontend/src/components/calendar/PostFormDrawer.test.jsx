@@ -46,5 +46,5 @@ test('scheduled time is announced as conditionally required, without requiring a
   render(<PostFormDrawer isOpen clientId={7} onClose={jest.fn()} onSave={jest.fn()}/>);
   expect(screen.getByRole('textbox', { name: 'Caption' })).not.toHaveAttribute('required');
   fireEvent.click(screen.getByRole('button', { name: 'scheduled' }));
-  expect(screen.getByLabelText('Scheduled Date & Time')).toHaveAttribute('aria-required', 'true');
+  expect(screen.getByLabelText(/Scheduled Date & Time/)).toHaveAttribute('aria-required', 'true');
 });

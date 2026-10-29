@@ -1,3 +1,4 @@
+import PublicProfileSummary from '../PublicProfileSummary';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { calendarAPI } from '../../services/domains/publishing';
 import { useLanguage } from '../../i18n';
@@ -92,6 +93,7 @@ function ScopedChannelSources({ clientId, onRefresh, selectedSource, onSelectSou
     brightdata_invalid_response: text('پاسخ Bright Data برای تقویم معتبر نیست', 'Bright Data returned invalid calendar data'),
     brightdata_collection_failed: text('Bright Data نتوانست محتوای این کانال را دریافت کند', 'Bright Data could not collect this channel'),
     brightdata_empty_result: text('Bright Data هیچ پستی برنگرداند؛ دریافت محتوا تأیید نشد', 'Bright Data returned no posts; content collection was not confirmed'),
+    brightdata_submission_unknown: text('وضعیت ارسال نامشخص است؛ برای جلوگیری از هزینهٔ تکراری دوباره ارسال نشد', 'Submission is uncertain; no duplicate collection was sent'),
     brightdata_timeout: text('دریافت Bright Data در زمان تعیین‌شده تمام نشد', 'Bright Data collection timed out'),
   };
   if (!clientId) return null;
@@ -140,7 +142,8 @@ function ScopedChannelSources({ clientId, onRefresh, selectedSource, onSelectSou
             {source.provider === 'brightdata' && <span> · {t('watchlist.brightdata')}</span>}
             {source.sync_status === 'syncing' && <span> · {text('در حال دریافت؛ نتیجه خودکار به‌روزرسانی می‌شود', 'Collecting; results refresh automatically')}</span>}
             {source.error_code && <span> · {text('دریافت متوقف شد', 'Sync stopped')}: {errors[source.error_code] || errors.fetch_failed}</span>}
-            {!source.reader_ready && <span> · {text('دریافت عمومی بدون ورود', 'Anonymous public access')}</span>}
+            {!source.reader_ready && source.provider !== 'brightdata' && <span> · {text('دریافت عمومی بدون ورود', 'Anonymous public access')}</span>}
+            <PublicProfileSummary data={source.public_data} />
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 6 }}>
               <button type="button" disabled={busy} style={controlStyle} onClick={() => act(async () => {
                 await calendarAPI.syncSource(source.id);

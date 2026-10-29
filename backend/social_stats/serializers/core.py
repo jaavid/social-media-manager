@@ -69,12 +69,22 @@ class PlatformCredentialSerializer(serializers.ModelSerializer):
 
 class SocialAccountSerializer(serializers.ModelSerializer):
     status = serializers.CharField(source='credential.status', read_only=True, default='not_connected')
+    public_data = serializers.SerializerMethodField()
+
+    def get_public_data(self, obj):
+        from social_stats.public_monitoring import profile_summary
+        from social_stats.authorization import evaluate
+        request = self.context.get('request')
+        if not request or not evaluate(request.user, obj.client, 'view_posts', account=obj).allowed:
+            return None
+        source = obj.monitoring_sources.filter(is_active=True).select_related('public_profile__profile_collection', 'public_profile__posts_collection').first()
+        return profile_summary(source.public_profile) if source else None
 
     class Meta:
         model = SocialAccount
         fields = [
             'id', 'client', 'platform', 'external_id', 'display_name', 'username',
-            'avatar_url', 'metadata', 'is_active', 'status', 'created_at', 'updated_at',
+            'avatar_url', 'metadata', 'is_active', 'status', 'created_at', 'updated_at', 'public_data',
         ]
         read_only_fields = ['created_at', 'updated_at']
 

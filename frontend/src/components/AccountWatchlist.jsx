@@ -1,3 +1,4 @@
+import PublicProfileSummary from './PublicProfileSummary';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { calendarAPI } from '@/services/domains/publishing';
@@ -49,12 +50,13 @@ export default function AccountWatchlist({ workspaceId, canAdd, canVerify }) {
     {!query.isPending && !query.isError && !sources.length && <p>{t('watchlist.empty')}</p>}
     <ul className="space-y-3">
       {sources.map(source => <li key={source.id} className="flex flex-wrap items-center justify-between gap-3 border-t pt-3">
-        <div>
+        <div className="min-w-0 flex-1 space-y-3">
           <p className="font-medium" dir="ltr">@{source.username}</p>
           <p className="text-sm text-muted-foreground">{t(source.is_active ? `watchlist.status.${source.sync_status}` : 'watchlist.paused')}</p>
           {source.is_active && source.error_code === 'brightdata_empty_result' &&
             <p role="status" className="text-sm text-muted-foreground">{t('watchlist.emptyResult')}</p>}
           {source.last_synced_at && <p className="text-xs text-muted-foreground">{t('watchlist.updated', undefined, { date: formatDate(source.last_synced_at) })}</p>}
+          <PublicProfileSummary data={source.public_data} />
           <p className="text-xs">{t(source.publishing_ready ? 'watchlist.connected' : 'watchlist.readOnly')}</p>
         </div>
         <div className="flex flex-wrap gap-2">
