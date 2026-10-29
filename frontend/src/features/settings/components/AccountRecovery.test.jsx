@@ -207,7 +207,7 @@ test.each(['setup', 'verify', 'regenerate', 'disable'])(
     }
     await waitFor(() => expect(mfaAPI[api]).toHaveBeenCalledTimes(1));
     await act(async () => reject(failure(503)));
-    await screen.findByText(mockMessages['mfa.uncertain']);
+    await within(dialog).findByText(mockMessages['mfa.uncertain']);
     if (type === 'verify')
       expect(screen.getByLabelText(mockMessages['mfa.code'])).toHaveValue('123456');
     act(() => {
@@ -217,13 +217,13 @@ test.each(['setup', 'verify', 'regenerate', 'disable'])(
     expect(mfaAPI[api]).toHaveBeenCalledTimes(1);
     mfaAPI.status.mockRejectedValueOnce(failure(503));
     click('account.checkStatus');
-    await waitFor(() => expect(screen.getByText(mockMessages['mfa.uncertain'])).toBeVisible());
+    await waitFor(() => expect(within(dialog).getByText(mockMessages['mfa.uncertain'])).toBeVisible());
     mfaAPI.status.mockResolvedValue({
       data:
         type === 'disable' ? disabled : type === 'setup' ? { ...disabled, pending: true } : enabled,
     });
     click('account.checkStatus');
-    await waitFor(() => expect(screen.queryByText(mockMessages['mfa.uncertain'])).toBeNull());
+    await waitFor(() => expect(within(dialog).queryByText(mockMessages['mfa.uncertain'])).toBeNull());
     if (type === 'verify' || type === 'regenerate')
       await screen.findByText(mockMessages['mfa.lostCodes']);
     if (type === 'setup') await screen.findByText(mockMessages['mfa.lostSetup']);
@@ -240,7 +240,7 @@ test('MFA rejects empty codes and false disable acknowledgment', async () => {
   change('mfa.password', 'fixture', dialog);
   change('mfa.code', '123456', dialog);
   click('account.confirm', dialog);
-  await screen.findByText(mockMessages['mfa.uncertain']);
+  await within(dialog).findByText(mockMessages['mfa.uncertain']);
   expect(screen.getByText(mockMessages['mfa.enabled'])).toBeVisible();
 });
 test('context change aborts old MFA status and discards late secret mutation', async () => {
@@ -356,7 +356,7 @@ test('immediate DELETE rejects malformed result, retains reason/confirmation, ne
   change('privacy.reason', 'fixture', dialog);
   change('privacy.typeDelete', 'DELETE', dialog);
   click('account.confirm', dialog);
-  await screen.findByText(mockMessages['privacy.immediateUnknown']);
+  await within(dialog).findByText(mockMessages['privacy.immediateUnknown']);
   expect(logout).not.toHaveBeenCalled();
   expect(navigate).not.toHaveBeenCalled();
   expect(dialog.getByLabelText(mockMessages['privacy.reason'])).toHaveValue('fixture');
