@@ -39,3 +39,12 @@ test('calendar editor associates labels and error messages and exposes selection
   expect(caption).toHaveAccessibleDescription('Caption is required. Add a caption or at least an internal title.');
   expect(onSave).not.toHaveBeenCalled();
 });
+
+test('scheduled time is announced as conditionally required, without requiring a caption for a title-only draft', () => {
+  mockConnection={status:{instagram:true},loaded:true,error:null};
+  mockCompatible=[{key:'instagram',label:'Instagram',labels:{short:'Instagram'},color:'#c13584'}];
+  render(<PostFormDrawer isOpen clientId={7} onClose={jest.fn()} onSave={jest.fn()}/>);
+  expect(screen.getByRole('textbox', { name: 'Caption' })).not.toHaveAttribute('required');
+  fireEvent.click(screen.getByRole('button', { name: 'scheduled' }));
+  expect(screen.getByLabelText('Scheduled Date & Time')).toHaveAttribute('aria-required', 'true');
+});
