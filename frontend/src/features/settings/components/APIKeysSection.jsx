@@ -13,6 +13,7 @@ import { parseOk } from '@/lib/accountRecovery';
 import { parseKeys, parseIssuedKey } from '@/lib/keyPasswordRecovery';
 import { AccountScope, useAccountRead, useCheckedAction, ReadState, WriteState } from './accountRecovery';
 import Card from '@/components/ui/Card';
+import SensitiveActionInfo from './SensitiveActionInfo';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Modal from '@/components/ui/Modal';
@@ -91,7 +92,7 @@ function Keys({ identity, enabled }) {
         <Input label={t('keys.name')} value={name} maxLength={200} required disabled={action.busy} onChange={e => setName(e.target.value)} />
         <Input label={t('keys.scopes')} value={scopes} dir="ltr" disabled={action.busy} onChange={e => setScopes(e.target.value)} />
         <Input label={t('keys.ips')} value={ips} dir="ltr" disabled={action.busy} onChange={e => setIps(e.target.value)} />
-        <p className="text-sm text-muted-foreground">{t('keys.policy')}</p>
+        <SensitiveActionInfo summaryKey="settings.keys.summary" detailKeys={['keys.policy', 'settings.keys.scope']} />
         <Button type="submit" disabled={action.locked || !resource.data || !!issued || resource.query.isFetching}>{t('keys.generate')}</Button>
       </form>
       {action.success && <p role="status">{t('account.saved')}</p>}
@@ -114,6 +115,7 @@ function Keys({ identity, enabled }) {
       initialFocusRef={cancel} returnFocusRef={action.busy || action.success ? heading : trigger} showClose={!action.busy} closeOnBackdrop={!action.busy}
       onClose={() => { if (!action.busy && !action.uncertain) setTarget(null); }}
       footer={<><Button ref={cancel} disabled={action.busy || action.uncertain} variant="ghost" onClick={() => setTarget(null)}>{t('recovery.cancel')}</Button><Button variant="danger" onClick={revoke} disabled={action.locked || resource.query.isFetching}>{t('keys.revoke')}</Button></>}>
+      <SensitiveActionInfo summaryKey="settings.keys.revokeSummary" detailKeys={['keys.revokeHint', 'settings.keys.uncertain']} />
       {write}
       {action.uncertain && checked && <><p>{t(observed ? 'keys.observedInactive' : 'keys.checked')}</p><Button onClick={() => { action.verified(); setTarget(null); setChecked(false); }}>{t('keys.acknowledge')}</Button></>}
     </Modal>
