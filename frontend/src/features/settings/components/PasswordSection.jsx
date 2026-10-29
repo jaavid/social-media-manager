@@ -14,6 +14,7 @@ import { AccountScope, useAccountRead, useCheckedAction, ReadState, WriteState }
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Card from '@/components/ui/Card';
+import SensitiveActionInfo from './SensitiveActionInfo';
 import { MFAManager, ActiveSessionsList } from './SecuritySections';
 export default function PasswordSection() {
   return <AccountScope>{(identity, enabled, key) => <Password key={`${key}:${enabled}`} identity={identity} enabled={enabled} />}</AccountScope>;
@@ -39,7 +40,7 @@ function Password({ identity, enabled }) {
     <h3 ref={heading} tabIndex={-1}>{t('password.title')}</h3>
     <ReadState resource={resource} refresh={() => resource.query.refetch()} busy={action.busy} returnFocusRef={heading} />
     {resource.data && !action.denied && (resource.data.is_social ? <p>{t('password.social')}</p> : <>
-      <p className="text-sm text-muted-foreground">{t('password.sessions')}</p>
+      <SensitiveActionInfo summaryKey="settings.password.summary" detailKeys={['password.sessions', 'settings.password.uncertain']} />
       <form onSubmit={submit} className="space-y-3" aria-busy={action.busy}>
         <Input label={t('password.current')} type="password" autoComplete="current-password" value={current} disabled={action.busy} required onChange={e => { setCurrent(e.target.value); if (action.failure?.status === 400) action.verified(); }} />
         <Input label={t('password.new')} type="password" autoComplete="new-password" value={password} disabled={action.busy} required onChange={e => { setPassword(e.target.value); if (action.failure?.status === 400) action.verified(); }} />

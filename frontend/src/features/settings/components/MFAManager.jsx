@@ -16,6 +16,7 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Modal from '@/components/ui/Modal';
 import DataState from '@/components/ui/DataState';
+import SensitiveActionInfo from './SensitiveActionInfo';
 import {
   AccountScope,
   useAccountRead,
@@ -160,8 +161,11 @@ function Mfa({ identity, enabled }) {
           returnFocusRef={heading}
         />
         {(!dialog || resource.denied || action.denied) && (
+          <>
+<SensitiveActionInfo summaryKey="settings.mfa.summary" detailKeys={['settings.mfa.recovery']} />
           <WriteState action={action} recover={refresh} uncertainKey="mfa.uncertain" />
-        )}
+        </>
+)}
         {lost && !denied && <DataState compact state="partial" title={t(lost)} />}
         {!denied && status && (
           <>
