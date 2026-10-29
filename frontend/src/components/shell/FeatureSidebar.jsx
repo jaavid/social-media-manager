@@ -19,6 +19,7 @@ import { NAV_SETS, visibleSections, navigationHref, navigationText } from './nav
 import { routeIsActive } from '../../lib/runtime/navigation';
 import useWorkspaceScope, { useScopedBadgeCount as useBadgeCount } from '../../hooks/useWorkspaceScope';
 import { useLanguage } from '../../i18n';
+import { useWorkspaces } from '../../hooks/useData';
 export default function FeatureSidebar({
   module,
   basePath,
@@ -95,6 +96,7 @@ export default function FeatureSidebar({
         </div>
       </header>
 
+      <WorkspaceIdentity />
       <div
         className={cn(
           'sidebar-scroll',
@@ -302,4 +304,17 @@ function EmptyModule({ message }) {
       <div>{message}</div>
     </div>
   );
+}
+/** Read-only current workspace label; the Shell owns the interactive selector. */
+function WorkspaceIdentity() {
+  const { workspaceId } = useWorkspaceScope();
+  const { workspaces = [], error } = useWorkspaces();
+  const { t } = useLanguage();
+  const selected = !error && workspaces.find(row => row.id === workspaceId);
+  const label = selected ? selected.display_name || selected.company || selected.name || t('nav.unknownWorkspace')
+    : t(workspaceId ? 'nav.unknownWorkspace' : 'nav.noWorkspace');
+  return <section data-workspace-context aria-label={t('nav.workspace')} className="grid min-w-0 gap-1 border-b border-border px-3 py-3">
+    <span className="text-xs text-muted-foreground">{t('nav.workspace')}</span>
+    <strong className="break-words text-sm"><bdi>{label}</bdi></strong>
+  </section>;
 }
