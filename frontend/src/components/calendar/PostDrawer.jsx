@@ -26,7 +26,7 @@ function compactNumber(value, formatNumber) {
   return formatNumber(number);
 }
 
-export default function PostDrawer({ post, isOpen, onClose, onEdit, onDelete, onReschedule }) {
+export default function PostDrawer({ post, isOpen, onClose, onEdit, onDelete, onReschedule, returnFocusRef }) {
   const { isPersian, tr, formatDate, formatNumber } = useLanguage();
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [rescheduleMode, setRescheduleMode] = useState(false);
@@ -58,7 +58,7 @@ export default function PostDrawer({ post, isOpen, onClose, onEdit, onDelete, on
   }
 
   return (
-    <Drawer open={isOpen} onClose={onClose} side="end" width={420} title={<span className="inline-flex min-w-0 flex-wrap items-center gap-2"><SocialPlatformIcon platform={post.platform} size={24} /><span>{platform.label}</span><span className="rounded-lg px-2 py-1 text-xs font-semibold" style={{ background: badge.bg, color: badge.color }}>{tr(badge.label)}</span></span>}>
+    <Drawer open={isOpen} onClose={onClose} returnFocusRef={returnFocusRef} side="end" width={420} title={<span className="inline-flex min-w-0 flex-wrap items-center gap-2"><SocialPlatformIcon platform={post.platform} size={24} /><span>{platform.label}</span><span className="rounded-lg px-2 py-1 text-xs font-semibold" style={{ background: badge.bg, color: badge.color }}>{tr(badge.label)}</span></span>}>
         <div className="min-w-0">
           {post.title && (
             <div style={{ fontWeight: 700, fontSize: 16, color: 'var(--text-primary)', marginBottom: 8 }}>
