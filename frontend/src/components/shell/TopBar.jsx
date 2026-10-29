@@ -92,11 +92,8 @@ export default function TopBar({ basePath, onOpenPalette }) {
   );
 }
 function WorkspaceSwitcher({ basePath }) {
-  return <div className="flex min-w-0 items-center gap-2"><div className="min-w-0 max-w-64"><WorkspaceContext basePath={basePath} compact /></div>{basePath === '/admin' && <Link to="/admin/workspaces" className="shrink-0 text-xs text-muted-foreground underline hover:text-foreground">{useWorkspaceListLabel()}</Link>}</div>;
-}
-function useWorkspaceListLabel() {
   const { t } = useLanguage();
-  return t('common.allWorkspaces');
+  return <div className="flex min-w-0 items-center gap-2"><div className="min-w-0 max-w-64"><WorkspaceContext basePath={basePath} compact /></div>{basePath === '/admin' && <Link to="/admin/workspaces" className="shrink-0 text-xs text-muted-foreground underline hover:text-foreground">{t('common.allWorkspaces')}</Link>}</div>;
 }
 function NotificationBellWrapper() {
   try {
