@@ -14,6 +14,7 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Modal from '@/components/ui/Modal';
 import DataState from '@/components/ui/DataState';
+import SensitiveActionInfo from './SensitiveActionInfo';
 import { AccountScope, useCheckedAction, WriteState } from './accountRecovery';
 
 /** Legacy client-only immediate DELETE is deliberately separate from 30-day privacy requests. */
@@ -88,7 +89,7 @@ function ImmediateDelete({ enabled, logout, navigate }) {
       <h3 ref={heading} tabIndex={-1} className="font-semibold text-destructive">
         {t('privacy.immediateTitle')}
       </h3>
-      <p>{t('privacy.immediateHint')}</p>
+      <SensitiveActionInfo summaryKey="settings.delete.summary" detailKeys={['privacy.immediateHint', 'privacy.immediateUnknown']} />
       <Button
         ref={trigger}
         variant="danger"
