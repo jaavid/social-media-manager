@@ -68,7 +68,7 @@ test('admin workspace selector and route navigation scope badge requests', { tag
   await selector.selectOption('70');
   await expect(page).toHaveURL(/\/admin\/workspace\/70$/);
   await expect.poll(() => counts.at(-1)).toBe(70);
-  await page.goto('/admin/workspaces');
+  await page.locator('header.ds-topbar').getByRole('link', { name: /All workspaces|همه فضاهای کاری/ }).click();
   await expect(page).toHaveURL(/\/admin\/workspaces$/);
   const previous = counts.length;
   await page.waitForTimeout(500);
