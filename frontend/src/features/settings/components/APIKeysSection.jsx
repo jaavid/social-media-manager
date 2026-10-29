@@ -111,7 +111,7 @@ function Keys({ identity, enabled }) {
       {action.uncertain && checked && target === 'create' && <div className="space-y-3"><p role="status">{t(observed ? 'keys.observedInactive' : 'keys.checked')}</p>
         <Button onClick={() => { action.verified(); setTarget(null); setChecked(false); }} >{t('keys.acknowledge')}</Button></div>}
     </>}
-    <Modal open={target !== null && target !== 'create' && !denied} role="alertdialog" title={t('keys.revoke')} description={t('keys.revokeHint')}
+    <Modal open={target !== null && target !== 'create' && !denied} role="alertdialog" title={t('keys.revoke')} description={t('settings.keys.revokeSummary')}
       initialFocusRef={cancel} returnFocusRef={action.busy || action.success ? heading : trigger} showClose={!action.busy} closeOnBackdrop={!action.busy}
       onClose={() => { if (!action.busy && !action.uncertain) setTarget(null); }}
       footer={<><Button ref={cancel} disabled={action.busy || action.uncertain} variant="ghost" onClick={() => setTarget(null)}>{t('recovery.cancel')}</Button><Button variant="danger" onClick={revoke} disabled={action.locked || resource.query.isFetching}>{t('keys.revoke')}</Button></>}>
