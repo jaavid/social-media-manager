@@ -210,3 +210,15 @@
 .calendar-loading-state{text-align:center;padding:40px;color:var(--text-tertiary);font-size:14px}
 .calendar-filter-panel{background:var(--surface-card);border-radius:12px;border:1px solid var(--border-default);padding:16px 20px;margin-block-end:20px}
 .calendar-filter-title{font-size:13px;font-weight:700;color:var(--text-primary);margin-block-end:12px}
+
+/* Calendar state variants: avoid JSX presentation objects. */
+.calendar-container--embedded{max-width:100%;margin:0}
+.calendar-current-period{font-weight:800;font-size:18px;color:var(--text-primary);min-width:160px;text-align:center}
+.calendar-current-period--embedded{min-width:140px}
+.calendar-toolbar-actions{margin-inline-start:auto;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;flex:1 1 260px;min-width:0}
+.calendar-toolbar-actions--embedded{margin-inline-start:0;justify-content:flex-start}
+.calendar-list-button--danger{color:var(--danger,#ef4444);border-color:#fecaca}
+.calendar-platform-button{padding:5px 10px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;transition:background .15s,color .15s,border-color .15s;background:var(--surface-card);color:var(--text-secondary);border:1px solid var(--border-default)}
+.calendar-platform-button--active{background:var(--brand-primary);color:var(--text-on-brand,#fff);border-color:var(--brand-primary)}
+.calendar-view-button{display:flex;align-items:center;gap:5px;padding:7px 14px;border:0;cursor:pointer;font-size:12px;font-weight:600;background:var(--surface-card);color:var(--text-secondary);transition:background .15s,color .15s;white-space:nowrap}
+.calendar-view-button--active{background:var(--brand-primary);color:var(--text-on-brand,#fff)}
