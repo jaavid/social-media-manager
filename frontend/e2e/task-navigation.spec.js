@@ -126,7 +126,7 @@ test('workspace selection, alias and modified click preserve the active destinat
   const sidebar = page.locator('.ds-feature-sidebar');
   const create = sidebar.getByRole('link', { name: 'Create post', exact: true });
   await expect(create).toHaveAttribute('aria-current', 'page');
-  await sidebar.getByRole('combobox', { name: 'Choose workspace' }).selectOption('8');
+  await page.locator('header.ds-topbar').getByRole('combobox', { name: 'Choose workspace' }).selectOption('8');
   await expect(page).toHaveURL(/workspace=8/);
   await expect(sidebar.locator('[data-workspace-context]')).toContainText('Synthetic brand B');
   await expect(create).toHaveAttribute('href', '/dashboard/composer?workspace=8');
