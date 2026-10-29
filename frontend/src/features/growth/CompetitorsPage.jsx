@@ -30,9 +30,12 @@ import { competitorAPI } from '@/services/domains/reporting';
 
 export default function CompetitorsPage() {
   const { workspaceId } = useWorkspaceScope();
+  return <ScopedCompetitorsPage key={workspaceId ?? 'none'} workspaceId={workspaceId} />;
+}
+
+function ScopedCompetitorsPage({ workspaceId }) {
   const { t } = useLanguage();
-  const currentWorkspace = useRef(workspaceId);
-  currentWorkspace.current = workspaceId;
+  const mounted = useRef(false);
   const [loadedWorkspace, setLoadedWorkspace] = useState(null);
   const [list, setList] = useState([]);
   const [loadError, setLoadError] = useState(false);
@@ -42,7 +45,7 @@ export default function CompetitorsPage() {
   const [showCreate, setShowCreate] = useState(false);
 
   async function load(scopeId = workspaceId) {
-    if (scopeId !== currentWorkspace.current) return;
+    if (!mounted.current || scopeId !== workspaceId) return;
     const requestId = ++requestSequence.current;
     setLoading(true);
     setLoadError(false);
@@ -55,7 +58,7 @@ export default function CompetitorsPage() {
     }
     try {
       const res = await competitorAPI.list({ workspace_id: scopeId });
-      if (requestId !== requestSequence.current || scopeId !== currentWorkspace.current) return;
+      if (requestId !== requestSequence.current || !mounted.current) return;
       const data = res.data?.results || res.data || [];
       setLoadedWorkspace(scopeId);
       setList(data);
@@ -66,15 +69,12 @@ export default function CompetitorsPage() {
       setList([]);
       setActive(null);
       setLoadError(true);
-    } finally { if (requestId === requestSequence.current && scopeId === currentWorkspace.current) setLoading(false); }
+    } finally { if (requestId === requestSequence.current && mounted.current) setLoading(false); }
   }
   useEffect(() => {
-    setList([]);
-    setActive(null);
-    setLoadedWorkspace(null);
-    setShowCreate(false);
+    mounted.current = true;
     load();
-    return () => { requestSequence.current += 1; };
+    return () => { mounted.current = false; requestSequence.current += 1; };
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [workspaceId]);
 
@@ -139,7 +139,7 @@ export default function CompetitorsPage() {
               <EmptyState icon={Users} title="Select a competitor" />
             </Card>
           ) : (
-            <CompetitorDetail key={`${workspaceId}:${active.id}`} workspaceId={workspaceId} competitor={active} onChange={() => load(workspaceId)} />
+            <CompetitorDetail key={`${workspaceId}:${active.id}`} workspaceId={workspaceId} competitor={active} onChange={() => { if (mounted.current) load(workspaceId); }} />
           )}
         </div>
       </div>
@@ -147,7 +147,7 @@ export default function CompetitorsPage() {
       {showCreate && ready && workspaceId && (
         <CreateCompetitorModal workspaceId={workspaceId}
           onClose={() => setShowCreate(false)}
-          onCreated={(c) => { if (workspaceId !== currentWorkspace.current) return; setShowCreate(false); load(workspaceId); setActive(c); }}
+          onCreated={(c) => { if (!mounted.current) return; setShowCreate(false); load(workspaceId); setActive(c); }}
         />
       )}
 
