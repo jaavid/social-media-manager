@@ -9,6 +9,7 @@ RUN --mount=type=secret,id=proxy_ca \
     npm install --global npm@10.8.2 --no-audit --no-fund && \
     npm ci --no-audit --no-fund && npm run check:dependencies
 COPY . .
+RUN npm run check:local-styles
 ARG NEXT_PUBLIC_API_URL=
 ARG REACT_APP_API_URL=/api
 ARG NEXT_PUBLIC_SITE_URL=
