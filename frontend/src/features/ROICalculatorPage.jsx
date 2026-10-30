@@ -552,7 +552,7 @@ export default function ROICalculatorPage({ clientId: propClientId }) {
             <div className="roi-result-grid" style={{ animation: 'slideUp 0.4s ease' }}>
 
               {/* Card 1: Main ROI */}
-              <div style={{ ...card, textAlign: 'center', padding: 32, marginBottom: 16, border: `2px solid ${roiColor(roi)}20` }}>
+              <div style={{ ...card, textAlign: 'center', padding: 32, marginBottom: 16, border: `2px solid color-mix(in srgb, ${roiColor(roi)} 12.5%, transparent)` }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>
                   Return on Investment
                 </div>
