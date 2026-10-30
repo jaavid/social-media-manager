@@ -26,7 +26,7 @@ export function renderAudience({
   return (
     <div
       className={cn(
-        '[background:linear-gradient(180deg,_#ffffff_0%,_#fbfdff_100%)]',
+        '[background:var(--surface-card)]',
         '[border:1px_solid_var(--border-default)]',
         '[border-radius:20px]',
         '[padding:20px_16px]',
