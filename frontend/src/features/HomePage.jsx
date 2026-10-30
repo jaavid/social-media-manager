@@ -770,7 +770,7 @@ function StatsBand() {
                 </div>
                 <div style={{
                   marginTop: 8, fontSize: 13, fontWeight: 600,
-                  color: 'rgba(255,255,255,0.78)',
+                  color: 'var(--text-on-brand)',
                   letterSpacing: '0.04em', textTransform: 'uppercase',
                 }}>{s.label}</div>
               </div>
