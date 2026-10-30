@@ -17,7 +17,7 @@ export function renderBrandAssets({ handleFileUpload, formData, removeFile, t })
   return (
     <div
       className={cn(
-        '[background:linear-gradient(180deg,_#ffffff_0%,_#fbfdff_100%)]',
+        '[background:var(--surface-card)]',
         '[border:1px_solid_var(--border-default)]',
         '[border-radius:20px]',
         '[padding:20px_16px]',
@@ -170,7 +170,7 @@ export function renderBrandAssets({ handleFileUpload, formData, removeFile, t })
             '[gap:14px]',
             '[padding:22px]',
             '[border-radius:22px]',
-            '[background:linear-gradient(180deg,_var(--surface-sunken)_0%,_#fbfdff_100%)]',
+            '[background:var(--surface-card)]',
             '[border:1px_solid_var(--border-default)]',
           )}
         >
@@ -286,7 +286,7 @@ export function renderCompetitors({
   return (
     <div
       className={cn(
-        '[background:linear-gradient(180deg,_#ffffff_0%,_#fbfdff_100%)]',
+        '[background:var(--surface-card)]',
         '[border:1px_solid_var(--border-default)]',
         '[border-radius:20px]',
         '[padding:20px_16px]',
