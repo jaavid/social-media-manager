@@ -28,7 +28,7 @@ const HASHTAG_PLATFORMS = platformPresentation;
 
 const TIER_ORDER = ['mega', 'large', 'medium', 'small', 'local', 'branded'];
 const TIER_CONFIG = {
-  mega:    { label: 'Mega',    subtitle: '1M+ posts',    color: 'var(--brand-primary)', bg: 'var(--surface-sunken)', border: 'var(--border-focus)' },
+  mega:    { label: 'Mega',    subtitle: '1M+ posts',    color: 'var(--brand-primary)', bg: 'var(--surface-sunken)', border: 'var(--brand-primary-soft)' },
   large:   { label: 'Large',   subtitle: '100K–1M posts', color: 'var(--brand-primary)', bg: 'var(--brand-primary-soft)', border: 'var(--brand-primary-soft)' },
   medium:  { label: 'Medium',  subtitle: '10K–100K posts',color: 'var(--brand-primary-hover)', bg: 'var(--brand-primary-soft)', border: 'var(--border-default)' },
   small:   { label: 'Small',   subtitle: '1K–10K posts',  color: 'var(--success)', bg: 'var(--success-bg)', border: 'var(--success-bg)' },
@@ -950,7 +950,7 @@ export default function CaptionWriterPage({ defaultTab = 'caption' }) {
               {globalCopied === 'sel' ? '✓ Copied!' : 'Copy'}
             </button>
             {hashResultId && (
-              <button onClick={() => { setSaveModal(true); setSaveError(''); setSaveName(''); }} style={{ ...styles.barBtn, background: 'var(--brand-primary)', color: 'var(--text-primary)', border: 'none' }}>
+              <button onClick={() => { setSaveModal(true); setSaveError(''); setSaveName(''); }} style={{ ...styles.barBtn, background: 'var(--brand-primary)', color: 'var(--text-on-brand)', border: 'none' }}>
                 <Save size={13} />Save Set
               </button>
             )}
@@ -1016,8 +1016,8 @@ const styles = {
   select: { width: '100%', padding: '10px 14px', border: '1.5px solid var(--border-default)', borderRadius: 10, fontSize: 14, color: 'var(--text-primary)', background: 'var(--surface-card)', outline: 'none', marginTop: 6 },
   input: { width: '100%', padding: '10px 14px', border: '1.5px solid var(--border-default)', borderRadius: 10, fontSize: 14, color: 'var(--text-primary)', background: 'var(--surface-card)', outline: 'none', boxSizing: 'border-box' },
   toneBtn: { display: 'inline-flex', alignItems: 'center', gap: 5, padding: '7px 14px', borderRadius: 10, border: '1.5px solid var(--border-default)', background: 'var(--surface-card)', color: 'var(--text-secondary)', fontSize: 13, fontWeight: 600, cursor: 'pointer' },
-  toneBtnActive: { background: 'var(--brand-primary)', color: 'var(--text-primary)', borderColor: 'var(--brand-primary)' },
-  generateBtn: { width: '100%', height: 48, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: 'var(--brand-primary)', color: 'var(--text-primary)', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 700 },
+  toneBtnActive: { background: 'var(--brand-primary)', color: 'var(--text-on-brand)', borderColor: 'var(--brand-primary)' },
+  generateBtn: { width: '100%', height: 48, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: 'var(--brand-primary)', color: 'var(--text-on-brand)', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 700 },
   errorBox: { padding: '10px 14px', background: 'var(--danger-bg)', border: '1px solid var(--danger-bg)', borderRadius: 10, color: 'var(--danger)', fontSize: 13, marginBottom: 16 },
   recentLabel: { fontSize: 11, fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 },
   recentChip: { padding: '4px 10px', borderRadius: 99, border: '1px solid var(--border-default)', background: 'var(--surface-page)', color: 'var(--text-secondary)', fontSize: 12, fontWeight: 600, cursor: 'pointer', maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
