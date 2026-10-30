@@ -10,6 +10,8 @@ import '../styles/legacy.css';
 import '../styles/accessibility.css';
 import '../styles/tailwind.css';
 import '../styles/i18n.css';
+import '../styles/appearance.css';
+import '../styles/feature-animations.css';
 
 export const metadata = {
   title: { default: 'راوینتا؛ از ایده تا اثر', template: '%s · Ravinta' },
@@ -55,6 +57,7 @@ export default async function RootLayout({ children }) {
     className={`${arabicFont.variable} ${latinFont.variable}${theme === 'dark' ? ' dark' : ''}`} suppressHydrationWarning>
     <head>
       <script dangerouslySetInnerHTML={{ __html: bootstrap }} />
+      <script src="/appearance-bootstrap.js" />
       <script defer src="https://stats.tamin24.ir/script.js" data-website-id="88ddb74e-fddf-479b-bb0e-9b0487f0a849" />
       <script defer src="https://stats.tamin24.ir/recorder.js" data-website-id="88ddb74e-fddf-479b-bb0e-9b0487f0a849" />
     </head>

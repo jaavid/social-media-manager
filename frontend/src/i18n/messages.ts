@@ -1282,6 +1282,59 @@ const navigationFa = {
   "nav.adsHelp": "راه‌یابی تبلیغات هنوز آماده نیست."
 } as const;
 
+const appearanceEn = {
+  "appearance.title": "Customize appearance",
+  "appearance.localOnly": "Changes apply instantly and are stored only in this browser; they do not sync across devices.",
+  "appearance.lightPalette": "Light theme colors",
+  "appearance.darkPalette": "Dark theme colors",
+  "appearance.primary": "Primary color",
+  "appearance.onPrimary": "Text on primary",
+  "appearance.page": "Page background",
+  "appearance.card": "Card background",
+  "appearance.text": "Main text",
+  "appearance.contrastWarning": "Low contrast: primary and button text should reach at least 4.5:1.",
+  "appearance.geometry": "Typography and geometry",
+  "appearance.textScale": "Text size",
+  "appearance.radiusScale": "Corner rounding",
+  "appearance.spacing": "Spacing unit",
+  "appearance.density": "Density",
+  "appearance.comfortable": "Comfortable",
+  "appearance.compact": "Compact",
+  "appearance.motion": "Animation",
+  "appearance.followSystem": "Follow system",
+  "appearance.reduced": "Reduce motion",
+  "appearance.preview": "Live preview",
+  "appearance.previewText": "Sample text on a card",
+  "appearance.previewAction": "Sample button",
+  "appearance.reset": "Restore defaults"
+} as const;
+const appearanceFa = {
+  "appearance.title": "شخصی‌سازی ظاهر",
+  "appearance.localOnly": "تغییرات فوراً اعمال و فقط در همین مرورگر ذخیره می‌شوند؛ هنوز بین دستگاه‌ها همگام‌سازی نمی‌شوند.",
+  "appearance.lightPalette": "رنگ‌های حالت روشن",
+  "appearance.darkPalette": "رنگ‌های حالت تاریک",
+  "appearance.primary": "رنگ اصلی",
+  "appearance.onPrimary": "متن روی رنگ اصلی",
+  "appearance.page": "پس‌زمینه صفحه",
+  "appearance.card": "پس‌زمینه کارت",
+  "appearance.text": "متن اصلی",
+  "appearance.contrastWarning": "کنتراست کم است؛ نسبت رنگ اصلی و متن دکمه بهتر است حداقل ۴٫۵ به ۱ باشد.",
+  "appearance.geometry": "تایپوگرافی و ابعاد",
+  "appearance.textScale": "اندازه متن",
+  "appearance.radiusScale": "گردی گوشه‌ها",
+  "appearance.spacing": "واحد فاصله",
+  "appearance.density": "تراکم",
+  "appearance.comfortable": "راحت",
+  "appearance.compact": "فشرده",
+  "appearance.motion": "انیمیشن",
+  "appearance.followSystem": "پیروی از سیستم",
+  "appearance.reduced": "کاهش حرکت",
+  "appearance.preview": "پیش‌نمایش زنده",
+  "appearance.previewText": "نمونه متن روی کارت",
+  "appearance.previewAction": "دکمه نمونه",
+  "appearance.reset": "بازگرداندن پیش‌فرض‌ها"
+} as const;
+
 export const enMessages = {
   ...navigationEn,
   "endDashboard.refreshFailed": "Status could not be updated",
@@ -1607,7 +1660,7 @@ export const enMessages = {
   "state.fallback.description": "Use the button to try again.",
   "state.fallback.retry": "Try again",
   "state.fallback.reference": "Reference",
- ...whatsappEn, ...composerEn, ...accountsEn, ...commonEn, ...marketingEn, ...catalogEn } as const;
+ ...whatsappEn, ...composerEn, ...accountsEn, ...commonEn, ...marketingEn, ...catalogEn, ...appearanceEn } as const;
 export type MessageKey = keyof typeof enMessages;
 export const faMessages = {
   ...navigationFa,
@@ -1934,6 +1987,6 @@ export const faMessages = {
   "state.fallback.description": "برای تلاش دوباره از دکمه استفاده کنید.",
   "state.fallback.retry": "تلاش دوباره",
   "state.fallback.reference": "شناسهٔ پیگیری",
- ...whatsappFa, ...composerFa, ...accountsFa, ...commonFa, ...marketingFa, ...catalogFa, ...{"common.allClients":"همه فضاهای کاری","common.searchClients":"جست‌وجوی فضاهای کاری…","session.unavailable":"ارتباط با حساب شما ممکن نیست. دوباره تلاش کنید.","session.retry":"تلاش دوباره","common.items":"{count, plural, one {# مورد} other {# مورد}}"} } as const satisfies Record<MessageKey, string>;
+ ...whatsappFa, ...composerFa, ...accountsFa, ...commonFa, ...marketingFa, ...catalogFa, ...appearanceFa, ...{"common.allClients":"همه فضاهای کاری","common.searchClients":"جست‌وجوی فضاهای کاری…","session.unavailable":"ارتباط با حساب شما ممکن نیست. دوباره تلاش کنید.","session.retry":"تلاش دوباره","common.items":"{count, plural, one {# مورد} other {# مورد}}"} } as const satisfies Record<MessageKey, string>;
 export type Language = 'fa' | 'en';
 export const messages = { en: enMessages, fa: faMessages };

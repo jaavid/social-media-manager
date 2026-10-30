@@ -7,7 +7,6 @@
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
 import { cn } from "@/lib/utils";
-import { persistentStorage } from "@/lib/runtime/storage";
 
 /**
  *
@@ -34,6 +33,7 @@ import KeyboardShortcut from "@/components/ui/KeyboardShortcut";
 import toast from "@/components/ui/toast";
 import { useLanguage } from "@/i18n";
 import NotificationPreferencesPage from "@/components/notifications/NotificationPreferences";
+import AppearanceEditor from "./AppearanceEditor";
 
 // ─────────────────────────────────────────────────────────────────────────
 // 1. Notifications — per-channel × per-event matrix
@@ -45,30 +45,11 @@ export function NotificationsSection() {
 // ─────────────────────────────────────────────────────────────────────────
 // 2. Appearance — theme + density
 // ─────────────────────────────────────────────────────────────────────────
-const DENSITY_KEY = 'socialstats_density';
 export function AppearanceSection() {
   const { t: brandT } = useLanguage();
   const { preference, setTheme } = useTheme();
-  const [density, setDensity] = useState(() => {
-    try {
-      return persistentStorage.getItem(DENSITY_KEY) || 'comfortable';
-    } catch {
-      return 'comfortable';
-    }
-  });
-  function changeDensity(value) {
-    setDensity(value);
-    try {
-      persistentStorage.setItem(DENSITY_KEY, value);
-      document.documentElement.dataset.density = value;
-      toast.success(`Density set to ${value}`);
-    } catch {}
-  }
   return (
-    <SectionContainer
-      title="Appearance"
-      description={brandT('brand.appearanceHelp')}
-    >
+    <SectionContainer title="Appearance" description={brandT('brand.appearanceHelp')}>
       <Card padding="md">
         <div
           className={cn(
@@ -117,67 +98,7 @@ export function AppearanceSection() {
         </div>
       </Card>
 
-      <Card padding="md" className={cn('[margin-top:16px]')}>
-        <div
-          className={cn(
-            '[margin-bottom:8px]',
-            '[font-size:14px]',
-            '[font-weight:600]',
-            '[color:var(--text-primary)]',
-          )}
-        >
-          Density
-        </div>
-        <p
-          className={cn(
-            '[margin:0_0_16px]',
-            '[font-size:13px]',
-            '[color:var(--text-secondary)]',
-          )}
-        >
-          Show more or less content per screen. "Compact" reduces row heights
-          and padding.
-        </p>
-        <div className={cn('[display:flex]', '[gap:8px]')}>
-          {[
-            {
-              value: 'comfortable',
-              label: 'Comfortable',
-            },
-            {
-              value: 'compact',
-              label: 'Compact',
-            },
-          ].map((d) => (
-            <button
-              key={d.value}
-              type="button"
-              onClick={() => changeDensity(d.value)}
-              className={cn(
-                '[padding:8px_14px]',
-                '[min-height:unset]',
-                '[min-width:unset]',
-                density === d.value
-                  ? '[background:var(--brand-primary-soft)]'
-                  : '[background:var(--surface-card)]',
-                density === d.value
-                  ? '[color:var(--brand-primary-hover)]'
-                  : '[color:var(--text-secondary)]',
-                density === d.value
-                  ? '[border:1px_solid_var(--brand-primary)]'
-                  : '[border:1px_solid_var(--border-default)]',
-                '[border-radius:var(--radius-pill)]',
-                '[font-size:13px]',
-                '[font-weight:600]',
-                '[cursor:pointer]',
-                '[font-family:inherit]',
-              )}
-            >
-              {d.label}
-            </button>
-          ))}
-        </div>
-      </Card>
+      <AppearanceEditor />
     </SectionContainer>
   );
 }

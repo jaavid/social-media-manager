@@ -8,6 +8,7 @@
  * ========================================================================== */
  'use client';
 import { persistentStorage } from '../lib/runtime/storage';
+import { applyAppearance, readAppearance } from '../lib/appearance';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import type { PropsWithChildren } from 'react';
 export type ThemePreference = 'light' | 'dark' | 'system';
@@ -42,6 +43,7 @@ export function ThemeProvider({ children, initialPreference }: PropsWithChildren
   const resolved = preference === 'system' ? system : preference;
   useEffect(() => {
     apply(resolved);
+    applyAppearance(readAppearance(), resolved);
     document.documentElement.dataset.preference = preference;
     document.cookie = `theme=${preference}; Path=/; Max-Age=31536000; SameSite=Lax${location.protocol === 'https:' ? '; Secure' : ''}`;
     persistentStorage.setItem('theme', preference);
@@ -58,4 +60,4 @@ export function useTheme(): Theme {
   const theme = preference === 'system' ? systemTheme() : preference;
   return { preference, theme, isDark: theme === 'dark', toggle: () => {}, setTheme: () => {} };
 }
-export function bootstrapTheme() { const preference = readPref(); apply(preference === 'system' ? systemTheme() : preference); }
+export function bootstrapTheme() { const preference = readPref(); const resolved = preference === 'system' ? systemTheme() : preference; apply(resolved); applyAppearance(readAppearance(), resolved); }

@@ -1,0 +1,100 @@
+/* Configurable appearance presets, applied only through validated semantic tokens. */
+:root {
+  --space-unit: 4px;
+  --appearance-control-height: 44px;
+  --appearance-row-padding: 12px;
+}
+:root[data-density='compact'] {
+  --appearance-control-height: 40px;
+  --appearance-row-padding: 8px;
+}
+:root[data-density='compact'] .ds-input-frame,
+:root[data-density='compact'] .ds-input-control,
+:root[data-density='compact'] .ds-native-select,
+:root[data-density='compact'] .ds-textarea,
+:root[data-density='compact'] .ds-tab,
+:root[data-density='compact'] .ds-dropdown-item,
+:root[data-density='compact'] .ds-select-option {
+  min-height: var(--appearance-control-height);
+}
+:root[data-density='compact'] .ds-dialog-heading,
+:root[data-density='compact'] .ds-dialog-footer,
+:root[data-density='compact'] .app-surface--panel {
+  padding: var(--appearance-row-padding);
+}
+:root[data-appearance-motion='reduced'] *,
+:root[data-appearance-motion='reduced'] *::before,
+:root[data-appearance-motion='reduced'] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+.appearance-editor {
+  display: grid;
+  gap: var(--space-4);
+  margin-block-start: var(--space-4);
+}
+.appearance-palette-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
+  gap: var(--space-4);
+}
+.appearance-palette {
+  min-width: 0;
+  padding: var(--space-4);
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+}
+.appearance-field {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-block-start: var(--space-3);
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+}
+.appearance-field input[type='color'] {
+  inline-size: 72px;
+  block-size: 40px;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+}
+.appearance-field input[type='range'] {
+  max-inline-size: 180px;
+  flex: 1;
+  accent-color: var(--brand-primary);
+}
+.appearance-preview {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--surface-page);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-default);
+}
+.appearance-preview-surface {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  background: var(--surface-card);
+  color: var(--text-primary);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+.appearance-preview-action {
+  justify-self: start;
+  background: var(--brand-primary);
+  color: var(--text-on-brand);
+  border: 0;
+  border-radius: var(--radius-md);
+  min-height: var(--appearance-control-height);
+  padding-inline: var(--space-4);
+}
+.appearance-note { color: var(--text-secondary); font-size: var(--text-sm); }
+.appearance-warning { color: var(--danger); font-size: var(--text-sm); }

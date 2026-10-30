@@ -35,17 +35,6 @@ import {
 } from '../utils/persianCalendar';
 import { deriveCalendarStats } from '../utils/calendarStats';
 
-const STYLE_ID = 'cal-keyframes';
-if (typeof document !== 'undefined' && !document.getElementById(STYLE_ID)) {
-  const style = document.createElement('style');
-  style.id = STYLE_ID;
-  style.textContent = `
-    @keyframes calFadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-    .cal-fade { animation: calFadeIn 0.2s ease-out; }
-  `;
-  document.head.appendChild(style);
-}
-
 function fmt(n, formatNumber) {
   if (!n) return '0';
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';

@@ -81,8 +81,9 @@
     "test:proxy": "node scripts/check-api-proxy.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check:dependencies": "node scripts/check-dependencies.mjs",
-    "test:next:smoke": "playwright test --grep @smoke"
+    "check:dependencies": "node scripts/check-dependencies.mjs && node scripts/check-local-style-assets.cjs",
+    "test:next:smoke": "playwright test --grep @smoke",
+    "check:local-styles": "node scripts/check-local-style-assets.cjs"
   },
   "browserslist": {
     "production": [

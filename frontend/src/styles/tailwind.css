@@ -72,7 +72,7 @@
   --text-sm--line-height: var(--line-height-body);
   --text-base--line-height: var(--line-height-body);
   --text-lg--line-height: var(--line-height-body);
-  --spacing: 4px;
+  --spacing: var(--space-unit, 4px);
   --breakpoint-sm: 40rem;
   --breakpoint-md: 48rem;
   --breakpoint-lg: 64rem;
