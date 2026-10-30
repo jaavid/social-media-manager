@@ -288,7 +288,7 @@ export function ReportsPreview() {
     <div style={{ ...cardStyle, position: 'relative', overflow: 'hidden' }}>
       <div style={{
         padding: 12,
-        background: '#fff',
+        background: 'var(--surface-card)',
         border: '1px solid var(--border-default)',
         borderRadius: 'var(--radius-sm)',
         color: 'var(--text-primary)',
