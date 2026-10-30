@@ -14,6 +14,33 @@ const COLORS = ['primary', 'onPrimary', 'page', 'card', 'text'];
 const HEX = /^#[0-9a-f]{6}$/i;
 const SIZES = { xs: 11, sm: 13, base: 14, md: 15, lg: 16, xl: 18, '2xl': 22, '3xl': 28, '4xl': 36, '5xl': 48, '6xl': 60, '7xl': 72 };
 const RADII = { xs: 4, sm: 6, md: 10, lg: 14, xl: 20, '2xl': 28 };
+const OVERRIDE_TOKENS = [
+  '--brand-primary', '--brand-primary-hover', '--brand-primary-active',
+  '--brand-primary-soft', '--brand-primary-glow', '--border-focus',
+  '--text-on-brand', '--surface-page', '--surface-card', '--text-primary',
+  '--space-unit',
+  ...Object.keys(SIZES).map(name => `--product-text-${name}`),
+  ...Object.keys(RADII).map(name => `--product-radius-${name}`),
+];
+
+/** Keep untouched themes on their canonical CSS tokens, including accessible hover states. */
+export function hasSavedAppearance() {
+  return persistentStorage.getItem(APPEARANCE_KEY) !== null;
+}
+
+function mixHex(source, target, amount) {
+  return '#' + [1, 3, 5].map(i => Math.round(
+    parseInt(source.slice(i, i + 2), 16) * (1 - amount) +
+    parseInt(target.slice(i, i + 2), 16) * amount
+  ).toString(16).padStart(2, '0')).join('');
+}
+
+function syncThemeColor() {
+  if (typeof document === 'undefined') return;
+  const canvas = getComputedStyle(document.documentElement).getPropertyValue('--surface-page').trim();
+  if (canvas) document.querySelectorAll('meta[name="theme-color"]')
+    .forEach(meta => meta.setAttribute('content', canvas));
+}
 
 const numberInRange = (value, min, max, fallback) =>
   Number.isFinite(value) && value >= min && value <= max ? Math.round(value) : fallback;
@@ -52,10 +79,12 @@ export function applyAppearance(input, theme = 'light') {
   if (typeof document === 'undefined') return value;
   const root = document.documentElement;
   const palette = value[theme === 'dark' ? 'dark' : 'light'];
+  const contrastTarget = contrastRatio(palette.onPrimary, '#ffffff') >= contrastRatio(palette.onPrimary, '#000000')
+    ? '#ffffff' : '#000000';
   const variables = {
     '--brand-primary': palette.primary,
-    '--brand-primary-hover': `color-mix(in srgb, ${palette.primary} 85%, ${theme === 'dark' ? 'white' : 'black'})`,
-    '--brand-primary-active': `color-mix(in srgb, ${palette.primary} 72%, ${theme === 'dark' ? 'white' : 'black'})`,
+    '--brand-primary-hover': mixHex(palette.primary, contrastTarget, 0.12),
+    '--brand-primary-active': mixHex(palette.primary, contrastTarget, 0.2),
     '--brand-primary-soft': `color-mix(in srgb, ${palette.primary} 12%, transparent)`,
     '--brand-primary-glow': `color-mix(in srgb, ${palette.primary} 18%, transparent)`,
     '--border-focus': palette.primary,
@@ -70,6 +99,7 @@ export function applyAppearance(input, theme = 'light') {
   for (const [name, css] of Object.entries(variables)) root.style.setProperty(name, css);
   root.dataset.density = value.density;
   root.dataset.appearanceMotion = value.motion;
+  syncThemeColor();
   return value;
 }
 
@@ -82,7 +112,14 @@ export function saveAppearance(input, theme = 'light') {
 
 export function resetAppearance() {
   persistentStorage.removeItem(APPEARANCE_KEY);
-  return applyAppearance(APPEARANCE_DEFAULTS, theme);
+  if (typeof document !== 'undefined') {
+    const root = document.documentElement;
+    for (const token of OVERRIDE_TOKENS) root.style.removeProperty(token);
+    root.dataset.density = 'comfortable';
+    root.dataset.appearanceMotion = 'system';
+    syncThemeColor();
+  }
+  return normalizeAppearance(APPEARANCE_DEFAULTS);
 }
 
 /** Contrast guidance is advisory; it must not silently modify a user's palette. */
