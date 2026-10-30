@@ -5,6 +5,19 @@ test('admin workspace selector and route navigation scope badge requests', { tag
   test.setTimeout(90_000);
   const counts = [];
   const liveSockets = new Set();
+  // Capture the inbound WebSocket events inside the browser to distinguish
+  // transport/fixture failures from workspace-scoping or toast failures.
+  await page.addInitScript(() => {
+    const NativeWebSocket = window.WebSocket;
+    window.WebSocket = class InstrumentedWebSocket extends NativeWebSocket {
+      constructor(...args) {
+        super(...args);
+        this.addEventListener('message', event => {
+          (window.__workspaceE2eMessages ||= []).push(event.data);
+        });
+      }
+    };
+  });
   const sendFixture = message => {
     for (const socket of liveSockets) {
       try { socket.send(JSON.stringify(message)); } catch { liveSockets.delete(socket); }
@@ -42,8 +55,9 @@ test('admin workspace selector and route navigation scope badge requests', { tag
   // The mocked WebSocket route can be created before the client effect has
   // registered its subscriber. Retry the *fixture notification*, not a write.
   await expect(async () => {
-    sendFixture({ type: 'composer.post_failed', client_id: '42', data: { title: 'Active workspace event' } });
-    await expect(page.getByText('Publish failed: Active workspace event', { exact: true })).toBeVisible({ timeout: 1000 });
+    sendFixture({ type: 'composer.post_failed', workspace_id: 42, data: { title: 'Active workspace event' } });
+    await expect.poll(() => page.evaluate(() => (window.__workspaceE2eMessages || []).some(raw => raw.includes('Active workspace event'))), { timeout: 2000 }).toBe(true);
+    await expect(page.getByText('Publish failed: Active workspace event', { exact: true })).toBeVisible({ timeout: 1500 });
   }).toPass({ timeout: 15000 });
   await selector.selectOption('99');
   await expect.poll(() => counts.at(-1)).toBe(99);
