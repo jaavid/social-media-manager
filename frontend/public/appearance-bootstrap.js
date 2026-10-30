@@ -6,7 +6,9 @@
     const source = JSON.parse(raw);
     if (!source || typeof source !== 'object' || Array.isArray(source)) return;
     const root = document.documentElement;
-    const mode = root.dataset.theme === 'dark' ? 'dark' : 'light';
+    const pref = root.dataset.preference;
+    const dark = pref === 'dark' || (pref === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
+    const mode = dark ? 'dark' : 'light';
     const palette = source[mode] || {};
     const names = { primary: '--brand-primary', onPrimary: '--text-on-brand',
       page: '--surface-page', card: '--surface-card', text: '--text-primary' };
