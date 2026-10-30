@@ -24,7 +24,7 @@
 export default function MeshGradient({ variant = 'hero', className, style }) {
   const palettes = {
     hero: {
-      bg: 'var(--surface-page)',
+      bg: 'var(--marketing-hero-surface)',
       blobs: [
         { color: 'color-mix(in srgb, var(--brand-primary) 50%, transparent)', x: '15%',  y: '20%',  size: 520 },
         { color: 'color-mix(in srgb, var(--module-ai) 36%, transparent)', x: '78%',  y: '25%',  size: 460 },
@@ -39,7 +39,7 @@ export default function MeshGradient({ variant = 'hero', className, style }) {
       ],
     },
     cta: {
-      bg: 'var(--surface-page)',
+      bg: 'var(--marketing-hero-surface)',
       blobs: [
         { color: 'color-mix(in srgb, var(--brand-primary) 55%, transparent)',  x: '20%',  y: '50%',  size: 560 },
         { color: 'color-mix(in srgb, var(--module-ai) 42%, transparent)', x: '80%',  y: '40%',  size: 520 },
