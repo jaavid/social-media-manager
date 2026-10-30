@@ -85,18 +85,18 @@
   --product-shadow-brand: 0 8px 24px rgba(18, 61, 58, 0.18);
 
   /* ── Spacing ──────────────────────────────────────────────────────────── */
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 20px;
-  --space-6: 24px;
-  --space-8: 32px;
-  --space-10: 40px;
-  --space-12: 48px;
-  --space-16: 64px;
-  --space-20: 80px;
-  --space-24: 96px;
+  --space-1: calc(var(--space-unit, 4px) * 1);
+  --space-2: calc(var(--space-unit, 4px) * 2);
+  --space-3: calc(var(--space-unit, 4px) * 3);
+  --space-4: calc(var(--space-unit, 4px) * 4);
+  --space-5: calc(var(--space-unit, 4px) * 5);
+  --space-6: calc(var(--space-unit, 4px) * 6);
+  --space-8: calc(var(--space-unit, 4px) * 8);
+  --space-10: calc(var(--space-unit, 4px) * 10);
+  --space-12: calc(var(--space-unit, 4px) * 12);
+  --space-16: calc(var(--space-unit, 4px) * 16);
+  --space-20: calc(var(--space-unit, 4px) * 20);
+  --space-24: calc(var(--space-unit, 4px) * 24);
 
   /* ── Typography ───────────────────────────────────────────────────────── */
   --product-font-family:

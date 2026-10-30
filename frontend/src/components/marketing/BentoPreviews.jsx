@@ -392,16 +392,3 @@ const kindStyle = (tone) => {
     letterSpacing: '0.06em',
   };
 };
-
-// Inject dot keyframes once globally (defined inline with `<style>` in the component tree)
-if (typeof document !== 'undefined' && !document.getElementById('mkt-bento-keyframes')) {
-  const style = document.createElement('style');
-  style.id = 'mkt-bento-keyframes';
-  style.textContent = `
-    @keyframes mkt-dot {
-      0%, 80%, 100% { opacity: 0.2; transform: translateY(0); }
-      40%           { opacity: 1;   transform: translateY(-2px); }
-    }
-  `;
-  document.head.appendChild(style);
-}

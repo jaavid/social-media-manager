@@ -54,9 +54,9 @@ _DEFAULT_CSP_DIRECTIVES = {
     # builds + many third-party widgets. We trade it for the tighter script-src
     # which is the higher-value attack surface.
     'script-src':  ["'self'"],
-    'style-src':   ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+    'style-src':   ["'self'", "'unsafe-inline'"],
     'img-src':     ["'self'", 'data:', 'https:', 'blob:'],
-    'font-src':    ["'self'", 'data:', 'https://fonts.gstatic.com', 'https://rsms.me'],
+    'font-src':    ["'self'", 'data:'],
     'connect-src': [
         "'self'",
         'https://api.anthropic.com',

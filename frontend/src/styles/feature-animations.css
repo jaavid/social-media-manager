@@ -1,0 +1,32 @@
+/* Bundled feature animations; no runtime-injected <style> elements. */
+@keyframes calFadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.cal-fade { animation: calFadeIn var(--motion-default, 200ms) ease-out; }
+@keyframes countUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes mkt-dot { 0%, 80%, 100% { opacity: 0.2; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-2px); } }
+input[type=range].roi-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: var(--radius-xs);
+  background: linear-gradient(to right, var(--brand-primary) var(--val, 50%), var(--border-default) var(--val, 50%));
+  outline: none;
+  cursor: pointer;
+  width: 100%;
+}
+input[type=range].roi-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--surface-card);
+  border: 2.5px solid var(--brand-primary);
+  cursor: pointer;
+  box-shadow: var(--shadow-xs);
+}
+input[type=range].roi-slider::-moz-range-thumb {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--surface-card);
+  border: 2.5px solid var(--brand-primary);
+  cursor: pointer;
+}

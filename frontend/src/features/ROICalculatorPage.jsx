@@ -23,49 +23,6 @@ import { useWorkspaces } from '../hooks/useData';
 import PageHeader from '../components/layout/PageHeader';
 import SocialPlatformIcon from '../components/ui/SocialPlatformIcon';
 
-// ── Inject styles once ────────────────────────────────────────────────────────
-if (typeof document !== 'undefined' && !document.getElementById('roi-styles')) {
-  const s = document.createElement('style');
-  s.id = 'roi-styles';
-  s.textContent = `
-    @keyframes countUp {
-      from { opacity: 0; transform: translateY(6px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes slideUp {
-      from { opacity: 0; transform: translateY(16px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    input[type=range].roi-slider {
-      -webkit-appearance: none;
-      appearance: none;
-      height: 6px;
-      border-radius: 4px;
-      background: linear-gradient(to right, #00d7ff var(--val, 50%), var(--border-default) var(--val, 50%));
-      outline: none;
-      cursor: pointer;
-      width: 100%;
-    }
-    input[type=range].roi-slider::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 18px; height: 18px;
-      border-radius: 50%;
-      background: #fff;
-      border: 2.5px solid #2563EB;
-      cursor: pointer;
-      box-shadow: 0 1px 4px rgba(37,99,235,0.3);
-    }
-    input[type=range].roi-slider::-moz-range-thumb {
-      width: 18px; height: 18px;
-      border-radius: 50%;
-      background: #fff;
-      border: 2.5px solid #2563EB;
-      cursor: pointer;
-    }
-  `;
-  document.head.appendChild(s);
-}
-
 // ── Animated counter hook ─────────────────────────────────────────────────────
 function useCountUp(target, duration = 900) {
   const [display, setDisplay] = useState(0);

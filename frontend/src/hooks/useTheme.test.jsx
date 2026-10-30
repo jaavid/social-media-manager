@@ -9,3 +9,10 @@ it('persists a theme chosen through the provider and restores it before paint', 
   bootstrapTheme();
   expect(document.documentElement).toHaveAttribute('data-theme', 'dark');
 });
+
+it('system preference keeps the browser dark palette during hydration', () => {
+  window.matchMedia = jest.fn(() => ({ matches: true, addEventListener: jest.fn(), removeEventListener: jest.fn() }));
+  document.documentElement.dataset.preference = 'system';
+  bootstrapTheme();
+  expect(document.documentElement).toHaveAttribute('data-theme', 'dark');
+});

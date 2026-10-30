@@ -76,13 +76,14 @@
     "test:visual": "playwright test --config playwright.visual.config.mjs",
     "start:standalone": "node scripts/start-next.mjs",
     "check:next": "node scripts/check-next-independence.cjs",
-    "lint": "node scripts/check-lint.mjs",
+    "lint": "node scripts/check-lint.mjs && node scripts/check-local-style-assets.cjs",
     "check:architecture": "node scripts/check-architecture.cjs",
     "test:proxy": "node scripts/check-api-proxy.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check:dependencies": "node scripts/check-dependencies.mjs",
-    "test:next:smoke": "playwright test --grep @smoke"
+    "test:next:smoke": "playwright test --grep @smoke",
+    "check:local-styles": "node scripts/check-local-style-assets.cjs"
   },
   "browserslist": {
     "production": [
