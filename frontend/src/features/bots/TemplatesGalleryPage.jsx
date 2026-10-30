@@ -304,7 +304,7 @@ function PreviewModal({ template, onClose }) {
                   display: 'inline-flex', alignItems: 'center', gap: 4,
                   padding: '4px 10px',
                   background: 'var(--surface-sunken)',
-                  border: `1px solid ${n.color}33`,
+                  border: `1px solid color-mix(in srgb, ${n.color} 20%, transparent)`,
                   borderRadius: 'var(--radius-pill)',
                   fontSize: 11, color: 'var(--text-secondary)',
                 }}>
