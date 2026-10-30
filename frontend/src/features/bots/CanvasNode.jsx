@@ -29,7 +29,7 @@ export default function CanvasNode({ data, selected }) {
         background: 'var(--surface-card)',
         border: `2px solid ${selected ? meta.color : 'var(--border-subtle)'}`,
         borderRadius: 'var(--radius-md)',
-        boxShadow: selected ? `0 0 0 4px ${meta.color}33` : 'var(--shadow-sm)',
+        boxShadow: selected ? `0 0 0 4px color-mix(in srgb, ${meta.color} 20%, transparent)` : 'var(--shadow-sm)',
         transition: 'border-color 120ms, box-shadow 120ms',
         fontFamily: 'inherit',
         overflow: 'hidden',
