@@ -80,7 +80,11 @@ function analyze(content) {
     // Only the literal immediately following the justification is exempt.
     const suffix = line.slice(marker.index + marker[0].length);
     const literal = suffix.match(/^\s*(?:#(?:[\da-f]{3,4}|[\da-f]{6}|[\da-f]{8})\b|rgba?\s*\([^)]*\))/i);
-    return literal ? line.replace(marker[0] + literal[0], '') : line;
+    if (literal) return line.replace(marker[0] + literal[0], '');
+    // JSX color-input defaults place their justification after the literal.
+    const prefix = line.slice(0, marker.index);
+    const preceding = prefix.match(/(?:#(?:[\\da-f]{3,4}|[\\da-f]{6}|[\\da-f]{8})\\b|rgba?\\s*\\([^)]*\\))(?=[^#]*$)/i);
+    return preceding ? line.slice(0, preceding.index) + line.slice(preceding.index + preceding[0].length) : line;
   }).join('\n');
   return {
     hex: (ordinary.match(hexPattern) || []).length,
@@ -106,6 +110,8 @@ if (process.argv.includes('--self-test')) {
   assert.equal(analyze("// design-token-exempt: platform-brand #1877f2").hex, 0);
   assert.equal(analyze("// design-token-exempt: platform-brand #1877f2 #aabbcc").hex, 1);
   assert.equal(analyze("style = { { opacity: 0.4 } }").inline, 1);
+  assert.equal(analyze("value={'#123d3a' /* design-token-exempt: data-color — native input */}").hex, 0);
+  assert.equal(analyze("value={'#abcdef' + '#123d3a' /* design-token-exempt: data-color */}").hex, 1);
   assert.equal(analyze("['[background:#ffffff]', '[color:var(--brand-primary)]']").arbitrary, 2);
   console.log('Design-token scanner self-test passed.');
   process.exit(0);
