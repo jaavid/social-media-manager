@@ -61,10 +61,12 @@
   --info-bg: rgba(36, 92, 153, 0.1);
 
   /* ── Module accents ───────────────────────────────────────────────────── */
-  --module-analytics: #21694b;
-  --module-messaging: #245c99;
+  --module-analytics: var(--success);
+  --module-messaging: var(--brand-primary);
   --module-ads: #8a5700;
   --module-ai: #76558c;
+  --marketing-hero-surface: #0a0e14;
+  --marketing-on-dark: #ffffff;
 
   /* ── Radii ────────────────────────────────────────────────────────────── */
   --product-radius-xs: 4px;
@@ -161,6 +163,8 @@
   --danger: #ffa59c;
   --info: #a5cbfa;
   --border-focus: #d6f268;
+  --module-ai: #cdb5ec;
+  --module-ads: #f4cf77;
   --surface-page: #102b29;
   --surface-card: #173a35;
   --surface-elevated: #1c443e;
@@ -367,6 +371,8 @@ textarea:focus-visible,
     --danger: #ffa59c;
     --info: #a5cbfa;
     --border-focus: #d6f268;
+    --module-ai: #cdb5ec;
+    --module-ads: #f4cf77;
     --surface-page: #102b29;
     --surface-card: #173a35;
     --surface-elevated: #1c443e;

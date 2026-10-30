@@ -72,7 +72,7 @@ export function ComposerPreview() {
       </div>
       <div style={{ marginTop: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span style={{ fontSize: 10, color: 'var(--text-tertiary)' }}>تغییر اندازه خودکار برای اینستاگرام · 220 کاراکتر</span>
-        <Send size={11} style={{ color: '#00CCF5' }} />
+        <Send size={11} style={{ color: 'var(--brand-primary)' }} />
       </div>
     </div>
   );
@@ -118,7 +118,7 @@ export function InboxPreview() {
           </div>
           <span style={{
             width: 8, height: 8, borderRadius: '50%',
-            background: '#00CCF5', flexShrink: 0,
+            background: 'var(--brand-primary)', flexShrink: 0,
           }} />
         </motion.div>
       ))}
@@ -136,8 +136,8 @@ export function BotBuilderPreview() {
          style={{ display: 'block', width: '100%', height: 'auto', aspectRatio: '2 / 1', overflow: 'visible' }}>
       <defs>
         <linearGradient id={edgeId} x1="0" x2="1">
-          <stop offset="0%"   stopColor="#00CCF5" />
-          <stop offset="100%" stopColor="#8b5cf6" />
+          <stop offset="0%"   stopColor="var(--brand-primary)" />
+          <stop offset="100%" stopColor="var(--module-ai)" />
         </linearGradient>
       </defs>
       {/* Edges */}
@@ -149,10 +149,10 @@ export function BotBuilderPreview() {
                    initial={false} whileInView={{ pathLength: 1 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.6 }} />
 
       {/* Nodes */}
-      <Node x={20}  y={30} label={"شروع"}   tone="#00CCF5" />
-      <Node x={140} y={30} label={"پرسش"}     tone="#a78bfa" delay={0.4} />
-      <Node x={200} y={65} label={"دریافت"} tone="#34d399" delay={0.8} />
-      <Node x={80}  y={100} label={"پاسخ"}  tone="#fbbf24" delay={0.8} />
+      <Node x={20}  y={30} label={"شروع"}   tone="var(--brand-primary)" />
+      <Node x={140} y={30} label={"پرسش"}     tone="var(--module-ai)" delay={0.4} />
+      <Node x={200} y={65} label={"دریافت"} tone="var(--success)" delay={0.8} />
+      <Node x={80}  y={100} label={"پاسخ"}  tone="var(--warning)" delay={0.8} />
     </svg>
   );
 }
@@ -187,10 +187,10 @@ export function AIInsightPreview() {
         <span style={{
           width: 22, height: 22, borderRadius: '50%',
           background: 'rgba(245, 158, 11, 0.15)',
-          color: '#f59e0b',
+          color: 'var(--warning)',
           display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
         }}><Sparkles size={11} /></span>
-        <span style={{ fontSize: 10, fontWeight: 700, color: '#f59e0b',
+        <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--warning)',
                        textTransform: 'uppercase', letterSpacing: '0.06em' }}>
           بینش هوش مصنوعی · همین الان
         </span>
@@ -234,7 +234,7 @@ function ChainArrow() {
     <div aria-hidden style={{ height: 14, marginInlineStart: 16, display: 'flex', alignItems: 'center' }}>
       <span style={{
         display: 'block', width: 1.5, height: '100%',
-        background: 'linear-gradient(to bottom, #00CCF5, #8b5cf6)',
+        background: 'linear-gradient(to bottom, var(--brand-primary), var(--module-ai))',
       }} />
     </div>
   );
@@ -258,12 +258,12 @@ export function AnalyticsPreview() {
       <svg viewBox="0 0 240 80" style={{ width: '100%', height: 80 }}>
         <defs>
           <linearGradient id="ana-line" x1="0" x2="1">
-            <stop offset="0%"  stopColor="#00CCF5" />
-            <stop offset="100%" stopColor="#8b5cf6" />
+            <stop offset="0%"  stopColor="var(--brand-primary)" />
+            <stop offset="100%" stopColor="var(--module-ai)" />
           </linearGradient>
           <linearGradient id="ana-fill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%"  stopColor="#00CCF5" stopOpacity="0.35" />
-            <stop offset="100%" stopColor="#00CCF5" stopOpacity="0" />
+            <stop offset="0%"  stopColor="var(--brand-primary)" stopOpacity="0.35" />
+            <stop offset="100%" stopColor="var(--brand-primary)" stopOpacity="0" />
           </linearGradient>
         </defs>
         <motion.path d={path + ' L 240 80 L 0 80 Z'} fill="url(#ana-fill)"
@@ -289,25 +289,25 @@ export function ReportsPreview() {
       <div style={{
         padding: 12,
         background: '#fff',
-        border: '1px solid #e2e8f0',
+        border: '1px solid var(--border-default)',
         borderRadius: 'var(--radius-sm)',
-        color: '#0f172a',
+        color: 'var(--text-primary)',
       }}>
         <div style={{
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          paddingBottom: 8, borderBottom: '1px solid #e2e8f0',
+          paddingBottom: 8, borderBottom: '1px solid var(--border-default)',
         }}>
           <span style={{ fontSize: 11, fontWeight: 700 }}>آکمه املاک · آوریل</span>
-          <FileText size={11} style={{ color: '#64748b' }} />
+          <FileText size={11} style={{ color: 'var(--text-secondary)' }} />
         </div>
         <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
           <ReportStat label={"دسترسی مخاطبان"}  value="248K" />
           <ReportStat label={"پست‌ها"}  value="42"   />
           <ReportStat label={"سرنخ‌ها"}  value="312"  />
         </div>
-        <div style={{ marginTop: 8, height: 24, background: 'linear-gradient(90deg, #00CCF5 65%, #e2e8f0 65%)',
+        <div style={{ marginTop: 8, height: 24, background: 'linear-gradient(90deg, var(--brand-primary) 65%, var(--border-default) 65%)',
                       borderRadius: 4 }} />
-        <div style={{ marginTop: 6, fontSize: 9, color: '#64748b' }}>
+        <div style={{ marginTop: 6, fontSize: 9, color: 'var(--text-secondary)' }}>
           خلاصه هوش مصنوعی: میزان دسترسی شما 23 درصد افزایش یافته است که توسط ریلز هدایت می‌شود…
         </div>
       </div>
@@ -317,9 +317,9 @@ export function ReportsPreview() {
 
 function ReportStat({ label, value }) {
   return (
-    <div style={{ flex: 1, padding: '6px 8px', background: '#f8fafc', borderRadius: 4 }}>
-      <div style={{ fontSize: 9, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</div>
-      <div style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', fontVariantNumeric: 'tabular-nums' }}>{value}</div>
+    <div style={{ flex: 1, padding: '6px 8px', background: 'var(--surface-sunken)', borderRadius: 4 }}>
+      <div style={{ fontSize: 9, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</div>
+      <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', fontVariantNumeric: 'tabular-nums' }}>{value}</div>
     </div>
   );
 }
@@ -380,9 +380,9 @@ const ruleTextStyle = {
 
 const kindStyle = (tone) => {
   const colors = {
-    cyan:   { color: '#00CCF5', bg: 'rgba(0,204,245,0.1)' },
-    purple: { color: '#a78bfa', bg: 'rgba(139,92,246,0.1)' },
-    green:  { color: '#34d399', bg: 'rgba(16,185,129,0.1)' },
+    cyan:   { color: 'var(--brand-primary)', bg: 'rgba(0,204,245,0.1)' },
+    purple: { color: 'var(--module-ai)', bg: 'rgba(139,92,246,0.1)' },
+    green:  { color: 'var(--success)', bg: 'rgba(16,185,129,0.1)' },
   }[tone];
   return {
     padding: '2px 8px',

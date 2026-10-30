@@ -549,7 +549,7 @@ function Palette({ onAdd, compact = false }) {
                   >
                     <span style={{
                       width: 22, height: 22, borderRadius: 'var(--radius-sm)',
-                      background: `${m.color}22`, color: m.color,
+                      background: `color-mix(in srgb, ${m.color} 13%, transparent)`, color: m.color,
                       display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
                     }}>
                       <Icon size={12} strokeWidth={2.2} />

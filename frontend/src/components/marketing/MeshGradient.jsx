@@ -24,26 +24,26 @@
 export default function MeshGradient({ variant = 'hero', className, style }) {
   const palettes = {
     hero: {
-      bg: '#0a0e14',
+      bg: 'var(--surface-page)',
       blobs: [
-        { color: 'rgba(0, 204, 245, 0.50)', x: '15%',  y: '20%',  size: 520 },
-        { color: 'rgba(139, 92, 246, 0.36)', x: '78%',  y: '25%',  size: 460 },
-        { color: 'rgba(0, 168, 216, 0.32)',  x: '45%',  y: '85%',  size: 600 },
+        { color: 'color-mix(in srgb, var(--brand-primary) 50%, transparent)', x: '15%',  y: '20%',  size: 520 },
+        { color: 'color-mix(in srgb, var(--module-ai) 36%, transparent)', x: '78%',  y: '25%',  size: 460 },
+        { color: 'color-mix(in srgb, var(--brand-primary-hover) 32%, transparent)',  x: '45%',  y: '85%',  size: 600 },
       ],
     },
     soft: {
       bg: 'transparent',
       blobs: [
-        { color: 'rgba(0, 204, 245, 0.15)', x: '20%',  y: '15%',  size: 500 },
-        { color: 'rgba(139, 92, 246, 0.12)', x: '80%',  y: '70%',  size: 480 },
+        { color: 'color-mix(in srgb, var(--brand-primary) 15%, transparent)', x: '20%',  y: '15%',  size: 500 },
+        { color: 'color-mix(in srgb, var(--module-ai) 12%, transparent)', x: '80%',  y: '70%',  size: 480 },
       ],
     },
     cta: {
-      bg: '#0a0e14',
+      bg: 'var(--surface-page)',
       blobs: [
-        { color: 'rgba(0, 204, 245, 0.55)',  x: '20%',  y: '50%',  size: 560 },
-        { color: 'rgba(139, 92, 246, 0.42)', x: '80%',  y: '40%',  size: 520 },
-        { color: 'rgba(236, 72, 153, 0.18)', x: '50%',  y: '90%',  size: 480 },
+        { color: 'color-mix(in srgb, var(--brand-primary) 55%, transparent)',  x: '20%',  y: '50%',  size: 560 },
+        { color: 'color-mix(in srgb, var(--module-ai) 42%, transparent)', x: '80%',  y: '40%',  size: 520 },
+        { color: 'color-mix(in srgb, var(--module-ads) 18%, transparent)', x: '50%',  y: '90%',  size: 480 },
       ],
     },
   };
@@ -64,6 +64,7 @@ export default function MeshGradient({ variant = 'hero', className, style }) {
       {p.blobs.map((b, i) => (
         <div
           key={i}
+          className="mkt-mesh-blob"
           style={{
             position: 'absolute',
             top: `calc(${b.y} - ${b.size / 2}px)`,
@@ -83,30 +84,13 @@ export default function MeshGradient({ variant = 'hero', className, style }) {
         style={{
           position: 'absolute',
           inset: 0,
-          backgroundImage: 'radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px)',
+          backgroundImage: 'radial-gradient(color-mix(in srgb, var(--border-default) 35%, transparent) 1px, transparent 1px)',
           backgroundSize: '24px 24px',
           opacity: variant === 'soft' ? 0 : 0.6,
           maskImage: 'radial-gradient(ellipse at center, black 30%, transparent 80%)',
           WebkitMaskImage: 'radial-gradient(ellipse at center, black 30%, transparent 80%)',
         }}
       />
-      <style>{`
-        @keyframes mkt-mesh-drift-0 {
-          0%, 100% { transform: translate(0, 0) scale(1); }
-          50%      { transform: translate(40px, -30px) scale(1.08); }
-        }
-        @keyframes mkt-mesh-drift-1 {
-          0%, 100% { transform: translate(0, 0) scale(1); }
-          50%      { transform: translate(-50px, 20px) scale(0.95); }
-        }
-        @keyframes mkt-mesh-drift-2 {
-          0%, 100% { transform: translate(0, 0) scale(1); }
-          50%      { transform: translate(20px, 40px) scale(1.05); }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          [class*="mkt-mesh"], div[style*="mkt-mesh-drift"] { animation: none !important; }
-        }
-      `}</style>
     </div>
   );
 }

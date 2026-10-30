@@ -256,12 +256,12 @@ function IdeasAccount({ identity, propClientId }) {
         return Object.entries(counts).map(([name, value]) => ({
           name: name.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()),
           value,
-          fill: platformPresentation[name]?.color || '#00d7ff',
+          fill: platformPresentation[name]?.color || 'var(--brand-primary)',
         }));
       })()
     : [];
 
-  const MIX_COLORS = ['#00d7ff', '#22c55e', '#f59e0b', '#ec4899'];
+  const MIX_COLORS = ['var(--brand-primary)', 'var(--success)', 'var(--warning)', 'var(--module-ai)'];
 
   // ── Render ───────────────────────────────────────────────────────────────────
 
@@ -650,7 +650,7 @@ function ResultsView({
             <div style={{
               ...styles.progressFill,
               width: totalIdeas ? `${(approvedCount / totalIdeas) * 100}%` : '0%',
-              background: 'linear-gradient(90deg, #22c55e, #16a34a)',
+              background: 'linear-gradient(90deg, var(--success), var(--success))',
             }} />
           </div>
           <div style={{ ...styles.statRow, marginTop: 12 }}>
@@ -661,7 +661,7 @@ function ResultsView({
             <div style={{
               ...styles.progressFill,
               width: totalIdeas ? `${(addedCount / totalIdeas) * 100}%` : '0%',
-              background: 'linear-gradient(90deg, #00d7ff, #00d7ff)',
+              background: 'linear-gradient(90deg, var(--brand-primary), var(--brand-primary))',
             }} />
           </div>
           {approvedCount > addedCount && (
@@ -738,12 +738,12 @@ function IdeaCard({ idea, platformOptions, editingIdea, saving, onToggleApprove,
   const isEditingTopic    = editingIdea?.id === idea.id && editingIdea?.field === 'topic';
   const isEditingCaption  = editingIdea?.id === idea.id && editingIdea?.field === 'caption_hint';
 
-  const platformColor = platformPresentation[idea.platform]?.color || '#00d7ff';
+  const platformColor = platformPresentation[idea.platform]?.color || 'var(--brand-primary)';
   const platformLabel = platformOptions.find(p => p.value === idea.platform)?.label || idea.platform;
 
   let cardBorder = '1px solid var(--border-default)';
-  if (idea.is_added_to_calendar) cardBorder = '2px solid #00d7ff';
-  else if (idea.is_approved)     cardBorder = '2px solid #22c55e';
+  if (idea.is_added_to_calendar) cardBorder = '2px solid var(--brand-primary)';
+  else if (idea.is_approved)     cardBorder = '2px solid var(--success)';
 
   return (
     <div style={{ ...styles.ideaCard, border: cardBorder }}>
@@ -915,7 +915,7 @@ const styles = {
   },
   newBtn: {
     padding: '10px 20px',
-    background: '#00d7ff',
+    background: 'var(--brand-primary)',
     color: 'var(--text-primary)',
     border: 'none',
     borderRadius: 10,
@@ -1055,9 +1055,9 @@ const styles = {
     transition: 'all .15s',
   },
   platformBtnSel: {
-    border: '1.5px solid #00d7ff',
-    background: '#e6fbff',
-    color: '#4338ca',
+    border: '1.5px solid var(--brand-primary)',
+    background: 'var(--brand-primary-soft)',
+    color: 'var(--module-ai)',
   },
   platformIcon: { fontSize: 16 },
   ppwRow: {
@@ -1076,23 +1076,23 @@ const styles = {
     cursor: 'pointer',
   },
   ppwBtnSel: {
-    border: '1.5px solid #00d7ff',
-    background: '#e6fbff',
-    color: '#4338ca',
+    border: '1.5px solid var(--brand-primary)',
+    background: 'var(--brand-primary-soft)',
+    color: 'var(--module-ai)',
   },
   errorBox: {
-    background: '#fef2f2',
-    color: '#dc2626',
+    background: 'var(--danger-bg)',
+    color: 'var(--danger)',
     padding: '12px 16px',
     borderRadius: 10,
     fontSize: 13,
-    border: '1px solid #fecaca',
+    border: '1px solid var(--danger-bg)',
     marginBottom: 20,
   },
   generateBtn: {
     width: '100%',
     padding: '16px',
-    background: '#00d7ff',
+    background: 'var(--brand-primary)',
     color: 'var(--text-primary)',
     border: 'none',
     borderRadius: 12,
@@ -1150,7 +1150,7 @@ const styles = {
   },
   historyCount: {
     fontSize: 11,
-    color: '#00d7ff',
+    color: 'var(--brand-primary)',
     fontWeight: 700,
   },
   historyBiz: {
@@ -1180,7 +1180,7 @@ const styles = {
     width: 52,
     height: 52,
     border: '4px solid var(--border-default)',
-    borderTopColor: '#00d7ff',
+    borderTopColor: 'var(--brand-primary)',
     borderRadius: '50%',
     margin: '0 auto 24px',
     animation: 'spin 0.8s linear infinite',
@@ -1213,12 +1213,12 @@ const styles = {
     borderRadius: 8,
   },
   loadingStepDone: {
-    color: '#16a34a',
-    background: '#f0fdf4',
+    color: 'var(--success)',
+    background: 'var(--success-bg)',
   },
   loadingStepActive: {
-    color: '#4338ca',
-    background: '#e6fbff',
+    color: 'var(--module-ai)',
+    background: 'var(--brand-primary-soft)',
     fontWeight: 600,
   },
   loadingStepIcon: {
@@ -1291,22 +1291,22 @@ const styles = {
     whiteSpace: 'nowrap',
   },
   calMsg: {
-    background: '#e6fbff',
-    color: '#00d7ff',
+    background: 'var(--brand-primary-soft)',
+    color: 'var(--brand-primary)',
     padding: '12px 16px',
     borderRadius: 10,
     fontSize: 13,
     fontWeight: 600,
-    border: '1px solid #e6fbff',
+    border: '1px solid var(--brand-primary-soft)',
     marginBottom: 16,
   },
   scheduleHint: {
     marginBottom: 16,
     padding: '14px 16px',
     borderRadius: 14,
-    background: 'linear-gradient(135deg, #ecfeff, var(--surface-sunken))',
-    border: '1px solid #bae6fd',
-    color: '#155e75',
+    background: 'linear-gradient(135deg, var(--brand-primary-soft), var(--surface-sunken))',
+    border: '1px solid var(--border-strong)',
+    color: 'var(--text-secondary)',
     fontSize: 13,
     fontWeight: 700,
     boxShadow: '0 8px 24px rgba(14, 116, 144, .08)',
@@ -1363,7 +1363,7 @@ const styles = {
   platformPill: {
     padding: '3px 9px',
     borderRadius: 999,
-    color: '#fff',
+    color: 'var(--text-on-brand)',
     fontSize: 11,
     fontWeight: 700,
   },
@@ -1380,14 +1380,14 @@ const styles = {
     gap: 6,
     padding: '10px 12px',
     borderRadius: 12,
-    background: 'linear-gradient(135deg, var(--surface-sunken), #eef2ff)',
-    border: '1px solid #dbeafe',
+    background: 'linear-gradient(135deg, var(--surface-sunken), var(--surface-sunken))',
+    border: '1px solid var(--border-default)',
   },
   dateInput: {
     width: '100%',
     padding: '10px 12px',
     borderRadius: 10,
-    border: '1.5px solid #bfdbfe',
+    border: '1.5px solid var(--border-default)',
     background: 'var(--surface-card)',
     color: 'var(--text-primary)',
     fontSize: 13,
@@ -1411,7 +1411,7 @@ const styles = {
   captionToggle: {
     background: 'none',
     border: 'none',
-    color: '#00d7ff',
+    color: 'var(--brand-primary)',
     fontSize: 12,
     fontWeight: 600,
     cursor: 'pointer',
@@ -1435,8 +1435,8 @@ const styles = {
   hashtagPill: {
     padding: '2px 8px',
     borderRadius: 999,
-    background: '#e6fbff',
-    color: '#00d7ff',
+    background: 'var(--brand-primary-soft)',
+    color: 'var(--brand-primary)',
     fontSize: 11,
     fontWeight: 600,
   },
@@ -1458,14 +1458,14 @@ const styles = {
     cursor: 'pointer',
   },
   cardBtnApproved: {
-    border: '1.5px solid #22c55e',
-    background: '#f0fdf4',
-    color: '#16a34a',
+    border: '1.5px solid var(--success)',
+    background: 'var(--success-bg)',
+    color: 'var(--success)',
   },
   cardBtnCal: {
-    border: '1.5px solid #e6fbff',
-    background: '#e6fbff',
-    color: '#00d7ff',
+    border: '1.5px solid var(--brand-primary-soft)',
+    background: 'var(--brand-primary-soft)',
+    color: 'var(--brand-primary)',
   },
   cardBtnIcon: {
     padding: '6px 8px',
@@ -1479,8 +1479,8 @@ const styles = {
   addedBadge: {
     fontSize: 12,
     fontWeight: 700,
-    color: '#00d7ff',
-    background: '#e6fbff',
+    color: 'var(--brand-primary)',
+    background: 'var(--brand-primary-soft)',
     padding: '5px 10px',
     borderRadius: 8,
   },
@@ -1488,7 +1488,7 @@ const styles = {
   inlineInput: {
     padding: '6px 10px',
     borderRadius: 8,
-    border: '1.5px solid #00d7ff',
+    border: '1.5px solid var(--brand-primary)',
     fontSize: 13,
     outline: 'none',
     width: '100%',
@@ -1537,7 +1537,7 @@ const styles = {
     padding: '9px 0',
     borderRadius: 10,
     border: 'none',
-    background: '#00d7ff',
+    background: 'var(--brand-primary)',
     color: 'var(--text-primary)',
     fontSize: 12,
     fontWeight: 700,

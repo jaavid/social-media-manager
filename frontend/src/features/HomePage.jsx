@@ -107,7 +107,7 @@ async function Hero() {
         maxWidth: 1180, margin: '0 auto',
         padding: '0 24px',
         textAlign: 'center',
-        color: '#fff',
+        color: 'var(--marketing-on-dark)',
       }}>
 
 
@@ -119,12 +119,12 @@ async function Hero() {
             margin: '24px 0 0',
             fontSize: 'clamp(40px, 7vw, 72px)',
             fontWeight: 600, lineHeight: 1.05, letterSpacing: '-0.03em',
-            color: '#fff', maxWidth: 900, marginInline: 'auto',
+            color: 'var(--marketing-on-dark)', maxWidth: 900, marginInline: 'auto',
           }}
         >
           {t('home.hero.prefix')}{' '}
           <span style={{
-            background: 'linear-gradient(135deg, #00CCF5 0%, #8b5cf6 100%)',
+            background: 'linear-gradient(135deg, var(--brand-primary) 0%, var(--module-ai) 100%)',
             WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
             backgroundClip: 'text',
           }}>
@@ -159,14 +159,14 @@ async function Hero() {
           <TrackedButton to="/signup" size="lg"
                   source="home_hero"
                   style={{
-                    background: 'linear-gradient(135deg, #00CCF5, #00A8D8)',
-                    color: '#0a0e14', border: 'none', fontWeight: 600,
+                    background: 'linear-gradient(135deg, var(--brand-primary), var(--brand-primary-hover))',
+                    color: 'var(--marketing-hero-surface)', border: 'none', fontWeight: 600,
                   }}>
             شروع رایگان <ArrowRight size={15} />
           </TrackedButton>
           <Button as={Link} to="/customers" size="lg" variant="ghost"
                   style={{
-                    color: '#fff',
+                    color: 'var(--marketing-on-dark)',
                     background: 'rgba(255,255,255,0.06)',
                     border: '1px solid rgba(255,255,255,0.18)',
                   }}>
@@ -224,7 +224,7 @@ function NotificationCard() {
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-        <span style={floatIconStyle('rgba(0,204,245,0.15)', '#00CCF5')}>
+        <span style={floatIconStyle('color-mix(in srgb, var(--brand-primary) 15%, transparent)', 'var(--brand-primary)')}>
           <Inbox size={11} />
         </span>
         <span style={floatLabel}>پیام جدید · اینستاگرام</span>
@@ -241,7 +241,7 @@ function CampaignMetricCard() {
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-        <span style={floatIconStyle('rgba(139,92,246,0.15)', '#a78bfa')}>
+        <span style={floatIconStyle('color-mix(in srgb, var(--module-ai) 15%, transparent)', 'var(--module-ai)')}>
           <BarChart3 size={11} />
         </span>
         <span style={floatLabel}>دسترسی هفتگی</span>
@@ -260,14 +260,14 @@ function LeadCapturedCard() {
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-        <span style={floatIconStyle('rgba(16,185,129,0.15)', '#34d399')}>
+        <span style={floatIconStyle('color-mix(in srgb, var(--success) 15%, transparent)', 'var(--success)')}>
           <Check size={12} strokeWidth={3} />
         </span>
         <span style={floatLabel}>سرنخ جدید ثبت شد</span>
       </div>
       <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)' }}>آرمان محمدی</div>
       <div style={{ marginTop: 2, fontSize: 11, color: 'var(--text-secondary)' }}>
-        منبع: <strong style={{ color: '#34d399' }}>CTWA · کمپین یلدا</strong>
+        منبع: <strong style={{ color: 'var(--success)' }}>CTWA · کمپین یلدا</strong>
       </div>
     </div>
   );
@@ -277,7 +277,7 @@ function AIPopupCard() {
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-        <span style={floatIconStyle('rgba(236,72,153,0.15)', '#f472b6')}>
+        <span style={floatIconStyle('color-mix(in srgb, var(--module-ai) 15%, transparent)', 'var(--module-ai)')}>
           <Sparkles size={11} />
         </span>
         <span style={floatLabel}>پیشنهاد هوش مصنوعی</span>
@@ -344,15 +344,15 @@ function TrustStrip() {
 // ─────────────────────────────────────────────────────────────────────────────
 function ThreePillars() {
   const pillars = [
-    { icon: BarChart3, tone: '#00CCF5', toneSoft: 'rgba(0,204,245,0.10)', label: "تحلیل و آمار",
+    { icon: BarChart3, tone: 'var(--brand-primary)', toneSoft: 'color-mix(in srgb, var(--brand-primary) 10%, transparent)', label: "تحلیل و آمار",
       title: "همه چیز را دنبال کنید",
       blurb: "دسترسی، تعامل و درآمد در 5 پلتفرم در یک داشبورد.",
       preview: <AnalyticsPreview /> },
-    { icon: MessageCircle, tone: '#a78bfa', toneSoft: 'rgba(139,92,246,0.10)', label: "درگیر کردن",
+    { icon: MessageCircle, tone: 'var(--module-ai)', toneSoft: 'color-mix(in srgb, var(--module-ai) 10%, transparent)', label: "درگیر کردن",
       title: "در یک جا پاسخ دهید",
       blurb: "هر پیام خصوصی، نظر، و بررسی در سراسر سیستم عامل - مرتب شده، با اولویت هوش مصنوعی، قابل پاسخ.",
       preview: <InboxPreview /> },
-    { icon: Bot, tone: '#34d399', toneSoft: 'rgba(16,185,129,0.10)', label: "تبدیل",
+    { icon: Bot, tone: 'var(--success)', toneSoft: 'color-mix(in srgb, var(--success) 10%, transparent)', label: "تبدیل",
       title: "سرنخ های بیشتری را جذب کنید",
       blurb: "تبلیغات CTWA را با ربات های هوش مصنوعی اجرا کنید که مشتریان را 24/7 واجد شرایط می‌کند و آنها را به سمت CRM خود هدایت می‌کند.",
       preview: <BotBuilderPreview /> },
@@ -518,7 +518,7 @@ function HowItWorks() {
         }} className="mkt-steps-grid">
           <div aria-hidden style={{
             position: 'absolute', top: 26, left: '12.5%', right: '12.5%',
-            height: 2, background: 'linear-gradient(90deg, #00CCF5, #8b5cf6)',
+            height: 2, background: 'linear-gradient(90deg, var(--brand-primary), var(--module-ai))',
             opacity: 0.3, zIndex: 0,
           }} className="mkt-steps-connector" />
           {steps.map((s, i) => (
@@ -528,7 +528,7 @@ function HowItWorks() {
                   width: 52, height: 52, margin: '0 auto 16px',
                   display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                   background: 'var(--surface-page)',
-                  border: '2px solid #00CCF5', borderRadius: '50%',
+                  border: '2px solid var(--brand-primary)', borderRadius: '50%',
                   fontSize: 18, fontWeight: 700, color: 'var(--text-primary)',
                   boxShadow: '0 0 0 6px var(--surface-card), 0 12px 32px rgba(0, 204, 245, 0.18)',
                 }}>{s.n}</div>
@@ -574,7 +574,7 @@ function AIEverywhere() {
               display: 'inline-block',
               padding: '4px 10px', marginBottom: 16,
               fontSize: 11, fontWeight: 700,
-              color: '#00CCF5', background: 'rgba(0,204,245,0.10)',
+              color: 'var(--brand-primary)', background: 'color-mix(in srgb, var(--brand-primary) 10%, transparent)',
               borderRadius: 'var(--radius-pill)', letterSpacing: '0.06em',
             }}>با هوش مصنوعی دولتی اجتماعی</span>
             <h2 style={{
@@ -596,7 +596,7 @@ function AIEverywhere() {
                   padding: '8px 0',
                   fontSize: 14, color: 'var(--text-secondary)',
                 }}>
-                  <Sparkles size={14} style={{ color: '#00CCF5', flexShrink: 0 }} />
+                  <Sparkles size={14} style={{ color: 'var(--brand-primary)', flexShrink: 0 }} />
                   {f}
                 </li>
               ))}
@@ -750,8 +750,8 @@ function StatsBand() {
     <section style={{ position: 'relative', overflow: 'hidden' }}>
       <div style={{
         padding: 'clamp(48px, 8vh, 88px) 24px',
-        background: 'linear-gradient(135deg, #00CCF5 0%, #00A8D8 50%, #8b5cf6 100%)',
-        color: '#fff',
+        background: 'linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-hover) 50%, var(--module-ai) 100%)',
+        color: 'var(--marketing-on-dark)',
       }}>
         <div style={{ maxWidth: 1080, margin: '0 auto' }}>
           <div style={{
@@ -763,7 +763,7 @@ function StatsBand() {
                 <div style={{
                   fontSize: 'clamp(28px, 5vw, 48px)',
                   fontWeight: 700, letterSpacing: '-0.02em',
-                  lineHeight: 1.05, color: '#fff',
+                  lineHeight: 1.05, color: 'var(--marketing-on-dark)',
                 }}>
                   <MetricCounter value={s.value} suffix={s.suffix}
                                  decimals={s.decimals || 0} duration={1.6} />

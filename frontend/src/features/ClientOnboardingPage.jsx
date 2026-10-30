@@ -32,8 +32,8 @@ import {
 } from 'lucide-react';
 
 const API_BASE = apiBaseUrl();
-const CYAN = '#00d7ff';
-const CYAN_SOFT = 'rgba(31, 182, 207, 0.16)';
+const CYAN = 'var(--brand-primary)';
+const CYAN_SOFT = 'var(--brand-primary-soft)';
 
 const BUSINESS_CATEGORIES = [
   'Electronics', 'Retail', 'Services', 'Food & Beverage', 'Healthcare',
@@ -898,7 +898,7 @@ function Onboarding({ identity, enabled }) {
               )}
 
               <div style={styles.syncNote}>
-                <CheckCircle2 size={16} style={{ color: '#16a34a', marginRight: 8 }} />
+                <CheckCircle2 size={16} style={{ color: 'var(--success)', marginRight: 8 }} />
                 Once connected, click "Sync Now" in your dashboard to pull your first data.
               </div>
             </div>
@@ -993,7 +993,7 @@ function Onboarding({ identity, enabled }) {
             <div style={{
               ...styles.stepCircle,
               background: index <= currentStep ? CYAN : 'var(--border-default)',
-              color: index <= currentStep ? '#021418' : '#6b7280'
+              color: index <= currentStep ? 'var(--text-on-brand)' : 'var(--text-secondary)'
             }}>
               {index < currentStep ? <CheckCircle2 size={16} /> : <step.icon size={16} />}
             </div>
@@ -1089,8 +1089,8 @@ const styles = {
     marginBottom: 16,
     padding: '16px',
     borderRadius: 20,
-    background: 'linear-gradient(135deg, #ecfeff 0%, #ffffff 48%, #eef2ff 100%)',
-    border: '1px solid #c7f3ff',
+    background: 'linear-gradient(135deg, var(--brand-primary-soft) 0%, var(--surface-card) 48%, var(--surface-sunken) 100%)',
+    border: '1px solid var(--border-default)',
     boxShadow: '0 2px 12px rgba(15,23,42,.05)',
   },
   heroCopy: { minWidth: 0 },
@@ -1099,7 +1099,7 @@ const styles = {
     padding: '6px 10px',
     borderRadius: 999,
     background: 'var(--surface-card)',
-    color: '#0f766e',
+    color: 'var(--brand-primary)',
     fontSize: 12,
     fontWeight: 800,
     boxShadow: '0 1px 2px rgba(15,23,42,.05)',
@@ -1122,8 +1122,8 @@ const styles = {
   heroMeter: {
     padding: 14,
     borderRadius: 16,
-    background: 'rgba(255,255,255,.82)',
-    border: '1px solid #dbeafe',
+    background: 'var(--surface-card)',
+    border: '1px solid var(--border-default)',
     alignSelf: 'stretch',
     display: 'grid',
     gap: 10,
@@ -1136,7 +1136,7 @@ const styles = {
   heroMeterLabel: { fontSize: 12, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '.08em' },
   heroMeterValue: { fontSize: 22, fontWeight: 800, color: 'var(--text-primary)' },
   heroProgressTrack: { height: 12, borderRadius: 999, background: 'var(--border-default)', overflow: 'hidden' },
-  heroProgressFill: { height: '100%', borderRadius: 999, background: 'linear-gradient(90deg, #00d7ff 0%, #38bdf8 45%, #34d399 100%)' },
+  heroProgressFill: { height: '100%', borderRadius: 999, background: 'linear-gradient(90deg, var(--brand-primary) 0%, var(--brand-primary-hover) 45%, var(--success) 100%)' },
   heroMeterFoot: { fontSize: 13, color: 'var(--text-secondary)', fontWeight: 600 },
   contentHeader: {
     display: 'flex',
@@ -1155,15 +1155,15 @@ const styles = {
     width: 40,
     height: 40,
     borderRadius: 12,
-    background: 'linear-gradient(135deg, #00d7ff 0%, #0ea5e9 100%)',
-    color: '#042f3a',
+    background: 'linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-hover) 100%)',
+    color: 'var(--text-on-brand)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     boxShadow: '0 2px 8px rgba(14,165,233,.18)',
     flexShrink: 0,
   },
-  contentEyebrow: { fontSize: 11, fontWeight: 800, color: '#0891b2', textTransform: 'uppercase', letterSpacing: '.1em' },
+  contentEyebrow: { fontSize: 11, fontWeight: 800, color: 'var(--brand-primary-hover)', textTransform: 'uppercase', letterSpacing: '.1em' },
   contentTitle: { marginTop: 2, fontSize: 18, fontWeight: 800, color: 'var(--text-primary)' },
   contentStepBadge: {
     padding: '8px 12px',
@@ -1221,7 +1221,7 @@ const styles = {
     zIndex: 0,
   },
   contentCard: {
-    background: 'linear-gradient(180deg, #ffffff 0%, #fbfdff 100%)',
+    background: 'linear-gradient(180deg, var(--surface-card) 0%, var(--surface-card) 100%)',
     borderRadius: 20,
     padding: '20px 16px',
     boxShadow: '0 2px 12px rgba(15,23,42,.06)',
@@ -1235,8 +1235,8 @@ const styles = {
     display: 'inline-block',
     padding: '5px 10px',
     borderRadius: 999,
-    background: '#f0f9ff',
-    color: '#0284c7',
+    background: 'var(--brand-primary-soft)',
+    color: 'var(--brand-primary-hover)',
     fontSize: 11,
     fontWeight: 800,
     textTransform: 'uppercase',
@@ -1269,8 +1269,8 @@ const styles = {
     alignItems: 'flex-start',
     padding: '12px 14px',
     borderRadius: 16,
-    background: 'linear-gradient(135deg, var(--surface-sunken) 0%, #eefafe 100%)',
-    border: '1px solid #dbeafe',
+    background: 'linear-gradient(135deg, var(--surface-sunken) 0%, var(--brand-primary-soft) 100%)',
+    border: '1px solid var(--border-default)',
     color: 'var(--text-primary)',
   },
   featureTitle: { fontSize: 14, fontWeight: 800, marginBottom: 2 },
@@ -1293,7 +1293,7 @@ const styles = {
     gap: 16,
     padding: 16,
     borderRadius: 16,
-    background: 'linear-gradient(180deg, #fbfdff 0%, var(--surface-sunken) 100%)',
+    background: 'linear-gradient(180deg, var(--surface-card) 0%, var(--surface-sunken) 100%)',
     border: '1px solid var(--border-default)',
   },
   panelTitle: { fontSize: 16, fontWeight: 800, color: 'var(--text-primary)' },
@@ -1306,7 +1306,7 @@ const styles = {
     marginBottom: 8,
   },
   requiredAsterisk: {
-    color: '#ef4444',
+    color: 'var(--danger)',
     marginLeft: 2,
     fontWeight: 800,
   },
@@ -1370,8 +1370,8 @@ const styles = {
     fontWeight: 600,
   },
   checkboxPillActive: {
-    border: '1px solid #7dd3fc',
-    background: '#ecfeff',
+    border: '1px solid var(--border-focus)',
+    background: 'var(--brand-primary-soft)',
     color: 'var(--text-primary)',
   },
   checkbox: {
@@ -1395,8 +1395,8 @@ const styles = {
     fontWeight: 700,
   },
   choiceCardActive: {
-    border: '1px solid #67e8f9',
-    background: 'linear-gradient(135deg, #ecfeff 0%, #f0fdf4 100%)',
+    border: '1px solid var(--border-focus)',
+    background: 'linear-gradient(135deg, var(--brand-primary-soft) 0%, var(--success-bg) 100%)',
     color: 'var(--text-primary)',
     boxShadow: '0 10px 24px rgba(34,211,238,.12)',
   },
@@ -1409,9 +1409,9 @@ const styles = {
     gap: 8,
     padding: '14px 16px',
     borderRadius: 16,
-    border: '2px dashed #bae6fd',
-    background: 'linear-gradient(180deg, #f8fdff 0%, #effbff 100%)',
-    color: '#0369a1',
+    border: '2px dashed var(--border-strong)',
+    background: 'linear-gradient(180deg, var(--surface-page) 0%, var(--brand-primary-soft) 100%)',
+    color: 'var(--info)',
     cursor: 'pointer',
     fontSize: 14,
     fontWeight: 700,
@@ -1430,7 +1430,7 @@ const styles = {
     gap: 12,
     padding: 16,
     borderRadius: 16,
-    background: 'linear-gradient(180deg, var(--surface-sunken) 0%, #fbfdff 100%)',
+    background: 'linear-gradient(180deg, var(--surface-sunken) 0%, var(--surface-card) 100%)',
     border: '1px solid var(--border-default)',
   },
   assetCardTitle: { fontSize: 18, fontWeight: 800, color: 'var(--text-primary)' },
@@ -1460,8 +1460,8 @@ const styles = {
     width: 20,
     height: 20,
     borderRadius: '50%',
-    background: '#ef4444',
-    color: '#fff',
+    background: 'var(--danger)',
+    color: 'var(--text-on-brand)',
     border: 'none',
     cursor: 'pointer',
     display: 'flex',
@@ -1478,9 +1478,9 @@ const styles = {
     display: 'inline-flex',
     padding: '8px 10px',
     borderRadius: 12,
-    background: '#fff1f2',
-    border: '1px solid #fecdd3',
-    color: '#be123c',
+    background: 'var(--danger-bg)',
+    border: '1px solid var(--danger-bg)',
+    color: 'var(--danger)',
     fontSize: 12,
     fontWeight: 700,
     lineHeight: 'var(--line-height-body)',
@@ -1490,9 +1490,9 @@ const styles = {
     marginBottom: 18,
     padding: '12px 14px',
     borderRadius: 14,
-    background: '#fff7ed',
-    border: '1px solid #fed7aa',
-    color: '#c2410c',
+    background: 'var(--warning-bg)',
+    border: '1px solid var(--warning-bg)',
+    color: 'var(--warning)',
     fontSize: 13,
     fontWeight: 700,
   },
@@ -1503,8 +1503,8 @@ const styles = {
     marginBottom: 16,
     padding: 16,
     borderRadius: 20,
-    background: 'linear-gradient(135deg, #eff6ff 0%, #ffffff 55%, #ecfeff 100%)',
-    border: '1px solid #dbeafe',
+    background: 'linear-gradient(135deg, var(--brand-primary-soft) 0%, var(--surface-card) 55%, var(--brand-primary-soft) 100%)',
+    border: '1px solid var(--border-default)',
   },
   connectHeroCopy: { minWidth: 0 },
   connectHeroCard: {
@@ -1550,9 +1550,9 @@ const styles = {
     display: 'inline-flex',
     alignItems: 'center',
     padding: '12px 16px',
-    background: '#dcfce7',
+    background: 'var(--success-bg)',
     borderRadius: 12,
-    color: '#166534',
+    color: 'var(--success)',
     fontSize: 14,
     marginTop: 20,
   },
@@ -1595,8 +1595,8 @@ const styles = {
     padding: '12px 20px',
     borderRadius: 14,
     border: 'none',
-    background: 'linear-gradient(135deg, #00d7ff 0%, #38bdf8 100%)',
-    color: '#042f3a',
+    background: 'linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-hover) 100%)',
+    color: 'var(--text-on-brand)',
     cursor: 'pointer',
     fontSize: 14,
     fontWeight: 800,
@@ -1610,8 +1610,8 @@ const styles = {
     padding: '12px 20px',
     borderRadius: 14,
     border: 'none',
-    background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
-    color: '#fff',
+    background: 'linear-gradient(135deg, var(--success) 0%, var(--success) 100%)',
+    color: 'var(--text-on-brand)',
     cursor: 'pointer',
     fontSize: 14,
     fontWeight: 800,

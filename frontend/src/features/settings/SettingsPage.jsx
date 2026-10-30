@@ -39,7 +39,7 @@ import SegmentedTabs from '../../components/ui/SegmentedTabs';
 import { Loader2, Save, Sparkles } from "lucide-react";
 const API_BASE = apiBaseUrl();
 const CYAN = 'var(--brand-primary)';
-const CYAN_SOFT = 'rgba(31, 182, 207, 0.16)';
+const CYAN_SOFT = 'var(--brand-primary-soft)';
 const BUSINESS_CATEGORIES = [
   'Electronics',
   'Retail',
@@ -790,9 +790,9 @@ function SettingsBody({ clientId: propClientId, identity, enabled }) {
           '[margin-bottom:24px]',
           '[padding:22px_24px]',
           '[border-radius:26px]',
-          '[background:linear-gradient(135deg,_#ecfeff_0%,_#ffffff_50%,_#eef2ff_100%)]',
-          '[border:1px_solid_#c7f3ff]',
-          '[box-shadow:0_18px_44px_rgba(15,23,42,.05)]',
+          '[background:var(--surface-sunken)]',
+          '[border:1px_solid_var(--border-default)]',
+          '[box-shadow:var(--shadow-md)]',
         )}
       >
         <div>
@@ -802,7 +802,7 @@ function SettingsBody({ clientId: propClientId, identity, enabled }) {
               '[padding:6px_10px]',
               '[border-radius:999px]',
               '[background:var(--surface-card)]',
-              '[color:#0f766e]',
+              '[color:var(--brand-primary)]',
               '[font-size:12px]',
               '[font-weight:800]',
             )}
@@ -837,8 +837,8 @@ function SettingsBody({ clientId: propClientId, identity, enabled }) {
           className={cn(
             '[padding:18px]',
             '[border-radius:22px]',
-            '[background:rgba(255,255,255,.82)]',
-            '[border:1px_solid_#dbeafe]',
+            '[background:var(--surface-card)]',
+            '[border:1px_solid_var(--border-default)]',
             '[display:grid]',
             '[gap:8px]',
             '[align-content:start]',
@@ -940,7 +940,7 @@ function SettingsBody({ clientId: propClientId, identity, enabled }) {
                   '[color:var(--brand-primary)]',
                 )}
               />
-              <div className={cn('[margin-top:16px]', '[color:#6b7280]')}>
+              <div className={cn('[margin-top:16px]', '[color:var(--text-secondary)]')}>
                 Loading profile...
               </div>
             </div>
@@ -1002,10 +1002,10 @@ function SettingsBody({ clientId: propClientId, identity, enabled }) {
                     '[cursor:pointer]',
                     '[transition:all_0.2s]',
                     '[gap:8px]',
-                    '[box-shadow:0_12px_24px_rgba(0,215,255,.18)]',
+                    '[box-shadow:var(--shadow-brand)]',
                     '[-webkit-tap-highlight-color:transparent]',
-                    '[background:linear-gradient(135deg,_#00d7ff_0%,_#38bdf8_100%)]',
-                    '[color:#021418]',
+                    '[background:var(--brand-primary)]',
+                    '[color:var(--text-on-brand)]',
                     '[font-weight:700]',
                     '[padding:12px_24px]',
                   )}

@@ -45,7 +45,7 @@ export default function CanvasNode({ data, selected }) {
             width: 26,
             height: 26,
             borderRadius: 'var(--radius-sm)',
-            background: `${meta.color}22`,
+            background: `color-mix(in srgb, ${meta.color} 13%, transparent)`,
             color: meta.color,
             display: 'inline-flex',
             alignItems: 'center',

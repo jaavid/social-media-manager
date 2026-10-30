@@ -12,6 +12,7 @@ import '../styles/tailwind.css';
 import '../styles/i18n.css';
 import '../styles/appearance.css';
 import '../styles/feature-animations.css';
+import '../styles/legacy-migration.css';
 
 export const metadata = {
   title: { default: 'راوینتا؛ از ایده تا اثر', template: '%s · Ravinta' },

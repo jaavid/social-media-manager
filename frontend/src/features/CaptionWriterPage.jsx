@@ -28,12 +28,12 @@ const HASHTAG_PLATFORMS = platformPresentation;
 
 const TIER_ORDER = ['mega', 'large', 'medium', 'small', 'local', 'branded'];
 const TIER_CONFIG = {
-  mega:    { label: 'Mega',    subtitle: '1M+ posts',    color: '#00d7ff', bg: '#f3e8ff', border: '#99eeff' },
-  large:   { label: 'Large',   subtitle: '100K–1M posts', color: '#00d7ff', bg: '#e6fbff', border: '#e6fbff' },
-  medium:  { label: 'Medium',  subtitle: '10K–100K posts',color: '#0891b2', bg: '#ecfeff', border: '#a5f3fc' },
-  small:   { label: 'Small',   subtitle: '1K–10K posts',  color: '#16a34a', bg: '#f0fdf4', border: '#bbf7d0' },
-  local:   { label: 'Local',   subtitle: 'Location tags', color: '#d97706', bg: '#fffbeb', border: '#fde68a' },
-  branded: { label: 'Branded', subtitle: 'Your own brand',color: '#00d7ff', bg: '#fdf2f8', border: '#fbcfe8' },
+  mega:    { label: 'Mega',    subtitle: '1M+ posts',    color: 'var(--brand-primary)', bg: 'var(--surface-sunken)', border: 'var(--border-focus)' },
+  large:   { label: 'Large',   subtitle: '100K–1M posts', color: 'var(--brand-primary)', bg: 'var(--brand-primary-soft)', border: 'var(--brand-primary-soft)' },
+  medium:  { label: 'Medium',  subtitle: '10K–100K posts',color: 'var(--brand-primary-hover)', bg: 'var(--brand-primary-soft)', border: 'var(--border-default)' },
+  small:   { label: 'Small',   subtitle: '1K–10K posts',  color: 'var(--success)', bg: 'var(--success-bg)', border: 'var(--success-bg)' },
+  local:   { label: 'Local',   subtitle: 'Location tags', color: 'var(--warning)', bg: 'var(--warning-bg)', border: 'var(--warning-bg)' },
+  branded: { label: 'Branded', subtitle: 'Your own brand',color: 'var(--brand-primary)', bg: 'var(--surface-sunken)', border: 'var(--border-default)' },
 };
 
 const HASHTAG_POST_TYPES = [
@@ -68,9 +68,9 @@ const POST_TYPES = [
 // ── Helpers ────────────────────────────────────────────────────────────────────
 function charLimitColor(len, limit) {
   const pct = len / limit;
-  if (pct > 1)    return '#dc2626';
-  if (pct > 0.85) return '#f59e0b';
-  return '#16a34a';
+  if (pct > 1)    return 'var(--danger)';
+  if (pct > 0.85) return 'var(--warning)';
+  return 'var(--success)';
 }
 
 function useCopyText() {
@@ -106,7 +106,7 @@ function CaptionCard({ platform, caption, hashtags, bestTime, onAddToCalendar })
 
   return (
     <div style={cardStyles.card}>
-      <div style={{ ...cardStyles.header, background: cfg.color + '15', borderBottom: `2px solid ${cfg.color}30` }}>
+      <div style={{ ...cardStyles.header, background: `color-mix(in srgb, ${cfg.color} 9%, transparent)`, borderBottom: `2px solid ${cfg.color}` }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <SocialPlatformIcon platform={platform} size={20} />
           <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--text-primary)' }}>{cfg.label}</span>
@@ -142,7 +142,7 @@ function CaptionCard({ platform, caption, hashtags, bestTime, onAddToCalendar })
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
             {hashtags.map(tag => (
-              <span key={tag} style={{ padding: '3px 10px', borderRadius: 99, background: '#e6fbff', color: '#00d7ff', fontSize: 12, fontWeight: 600 }}>{tag}</span>
+              <span key={tag} style={{ padding: '3px 10px', borderRadius: 99, background: 'var(--brand-primary-soft)', color: 'var(--brand-primary)', fontSize: 12, fontWeight: 600 }}>{tag}</span>
             ))}
           </div>
           <button onClick={() => copy(tagsText, `tags-${platform}`)} style={{ ...cardStyles.ghostBtn, fontSize: 11 }}>
@@ -153,9 +153,9 @@ function CaptionCard({ platform, caption, hashtags, bestTime, onAddToCalendar })
 
       {bestTime && (
         <div style={{ padding: '0 18px 14px' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 99, padding: '5px 12px' }}>
-            <Clock size={12} color="#16a34a" />
-            <span style={{ fontSize: 12, color: '#15803d', fontWeight: 600 }}>Best time: {bestTime}</span>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--success-bg)', border: '1px solid var(--success-bg)', borderRadius: 99, padding: '5px 12px' }}>
+            <Clock size={12} color="var(--success)" />
+            <span style={{ fontSize: 12, color: 'var(--success)', fontWeight: 600 }}>Best time: {bestTime}</span>
           </div>
         </div>
       )}
@@ -165,7 +165,7 @@ function CaptionCard({ platform, caption, hashtags, bestTime, onAddToCalendar })
           <Copy size={13} />
           {copied === platform ? 'Copied!' : 'Copy'}
         </button>
-        <button onClick={() => setEditing(e => !e)} style={{ ...cardStyles.actionBtn, ...(editing ? { background: '#e6fbff', color: '#00d7ff', borderColor: '#e6fbff' } : {}) }}>
+        <button onClick={() => setEditing(e => !e)} style={{ ...cardStyles.actionBtn, ...(editing ? { background: 'var(--brand-primary-soft)', color: 'var(--brand-primary)', borderColor: 'var(--brand-primary-soft)' } : {}) }}>
           <Edit2 size={13} />
           {editing ? 'Done' : 'Edit'}
         </button>
@@ -210,7 +210,7 @@ function TierCard({ tier, data, selectedTags, onToggleTag }) {
                   padding: '5px 12px', borderRadius: 99, fontSize: 13, fontWeight: 600, cursor: 'pointer',
                   border: `1.5px solid ${isSelected ? cfg.color : cfg.border}`,
                   background: isSelected ? cfg.color : cfg.bg,
-                  color: isSelected ? '#fff' : cfg.color,
+                  color: isSelected ? 'var(--text-on-brand)' : cfg.color,
                   transition: 'all .15s',
                 }}
               >
@@ -234,10 +234,10 @@ function TierCard({ tier, data, selectedTags, onToggleTag }) {
 function RecommendedSetCard({ rec, onCopy, copied }) {
   if (!rec) return null;
   return (
-    <div style={{ border: '1px solid #e6fbff', borderRadius: 14, overflow: 'hidden', marginBottom: 12, background: '#e6fbff' }}>
-      <div style={{ padding: '12px 16px', borderBottom: '1px solid #e6fbff', display: 'flex', alignItems: 'center', gap: 8 }}>
-        <Sparkles size={14} color="#00d7ff" />
-        <span style={{ fontSize: 13, fontWeight: 800, color: '#00d7ff' }}>Recommended Set</span>
+    <div style={{ border: '1px solid var(--brand-primary-soft)', borderRadius: 14, overflow: 'hidden', marginBottom: 12, background: 'var(--brand-primary-soft)' }}>
+      <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--brand-primary-soft)', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <Sparkles size={14} color="var(--brand-primary)" />
+        <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--brand-primary)' }}>Recommended Set</span>
       </div>
       <div style={{ padding: '14px 16px' }}>
         {rec.caption && (
@@ -251,7 +251,7 @@ function RecommendedSetCard({ rec, onCopy, copied }) {
           </div>
         )}
         {rec.first_comment && (
-          <div style={{ marginBottom: 12, paddingTop: 12, borderTop: '1px solid #e6fbff' }}>
+          <div style={{ marginBottom: 12, paddingTop: 12, borderTop: '1px solid var(--brand-primary-soft)' }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 }}>First comment hashtags</div>
             <p style={{ fontSize: 13, color: 'var(--text-primary)', lineHeight: 'var(--line-height-body)', margin: '0 0 8px', wordBreak: 'break-word' }}>{rec.first_comment}</p>
             <button onClick={() => onCopy(rec.first_comment, 'rec-comment')} style={cardStyles.ghostBtn}>
@@ -261,8 +261,8 @@ function RecommendedSetCard({ rec, onCopy, copied }) {
           </div>
         )}
         {rec.mix_explanation && (
-          <div style={{ paddingTop: 10, borderTop: '1px solid #e6fbff' }}>
-            <span style={{ fontSize: 12, color: '#00d7ff', lineHeight: 'var(--line-height-body)' }}>{rec.mix_explanation}</span>
+          <div style={{ paddingTop: 10, borderTop: '1px solid var(--brand-primary-soft)' }}>
+            <span style={{ fontSize: 12, color: 'var(--brand-primary)', lineHeight: 'var(--line-height-body)' }}>{rec.mix_explanation}</span>
           </div>
         )}
       </div>
@@ -570,7 +570,7 @@ export default function CaptionWriterPage({ defaultTab = 'caption' }) {
                 <div style={styles.fieldGroup}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
                     <label style={styles.label}>What is your post about?</label>
-                    <span style={{ fontSize: 11, color: topic.length > 450 ? '#f59e0b' : 'var(--text-tertiary)' }}>{topic.length}/500</span>
+                    <span style={{ fontSize: 11, color: topic.length > 450 ? 'var(--warning)' : 'var(--text-tertiary)' }}>{topic.length}/500</span>
                   </div>
                   <textarea
                     value={topic}
@@ -608,7 +608,7 @@ export default function CaptionWriterPage({ defaultTab = 'caption' }) {
                       const checked = selectedPlatforms.includes(key);
                       return (
                         <button key={key} type="button" onClick={() => togglePlatform(key)}
-                          style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 10, border: `1.5px solid ${checked ? cfg.color + '60' : 'var(--border-default)'}`, background: checked ? cfg.color + '08' : '#fff', cursor: 'pointer', textAlign: 'left' }}>
+                          style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 10, border: `1.5px solid ${checked ? `color-mix(in srgb, ${cfg.color} 38%, transparent)` : 'var(--border-default)'}`, background: checked ? `color-mix(in srgb, ${cfg.color} 5%, transparent)` : 'var(--surface-card)', cursor: 'pointer', textAlign: 'left' }}>
                           {checked ? <CheckSquare size={16} color={cfg.color} /> : <Square size={16} color="var(--text-quaternary)" />}
                           <SocialPlatformIcon platform={key} size={16} />
                           <span style={{ fontSize: 13, fontWeight: 600, color: checked ? cfg.color : 'var(--text-secondary)' }}>{cfg.label}</span>
@@ -679,7 +679,7 @@ export default function CaptionWriterPage({ defaultTab = 'caption' }) {
                       const checked = hPlatform === key;
                       return (
                         <button key={key} type="button" onClick={() => setHPlatform(key)}
-                          style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 10, border: `1.5px solid ${checked ? cfg.color + '60' : 'var(--border-default)'}`, background: checked ? cfg.color + '08' : '#fff', cursor: 'pointer', textAlign: 'left' }}>
+                          style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 10, border: `1.5px solid ${checked ? `color-mix(in srgb, ${cfg.color} 38%, transparent)` : 'var(--border-default)'}`, background: checked ? `color-mix(in srgb, ${cfg.color} 5%, transparent)` : 'var(--surface-card)', cursor: 'pointer', textAlign: 'left' }}>
                           <div style={{ width: 16, height: 16, borderRadius: '50%', border: `2px solid ${checked ? cfg.color : 'var(--text-quaternary)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                             {checked && <div style={{ width: 8, height: 8, borderRadius: '50%', background: cfg.color }} />}
                           </div>
@@ -710,7 +710,7 @@ export default function CaptionWriterPage({ defaultTab = 'caption' }) {
                 )}
 
                 <button onClick={handleGenerateHashtags} disabled={hashLoading}
-                  style={{ ...styles.generateBtn, background: 'linear-gradient(135deg, #00d7ff, #00d7ff)', opacity: hashLoading ? 0.85 : 1, cursor: hashLoading ? 'not-allowed' : 'pointer' }}>
+                  style={{ ...styles.generateBtn, background: 'linear-gradient(135deg, var(--brand-primary), var(--brand-primary))', opacity: hashLoading ? 0.85 : 1, cursor: hashLoading ? 'not-allowed' : 'pointer' }}>
                   {hashLoading ? (
                     <><Loader2 size={18} style={{ animation: 'spin .8s linear infinite' }} />Researching… (5-10 seconds)</>
                   ) : (
@@ -746,7 +746,7 @@ export default function CaptionWriterPage({ defaultTab = 'caption' }) {
             <>
               {!capLoading && !captions && (
                 <div style={styles.emptyState}>
-                  <div style={styles.emptyIcon}><Sparkles size={40} color="#99eeff" /></div>
+                  <div style={styles.emptyIcon}><Sparkles size={40} color="var(--border-focus)" /></div>
                   <h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 8px' }}>Your captions will appear here</h3>
                   <p style={{ fontSize: 14, color: 'var(--text-tertiary)', margin: 0 }}>Fill in the form and click Generate</p>
                 </div>
@@ -778,7 +778,7 @@ export default function CaptionWriterPage({ defaultTab = 'caption' }) {
                         const cfg = PLATFORMS[p] || {};
                         return (
                           <button key={p} onClick={() => setActivePlatform(p)}
-                            style={{ ...styles.platTab, ...(activePlatform === p ? { ...styles.platTabActive, borderColor: cfg.color, color: cfg.color, background: cfg.color + '10' } : {}) }}>
+                            style={{ ...styles.platTab, ...(activePlatform === p ? { ...styles.platTabActive, borderColor: cfg.color, color: cfg.color, background: `color-mix(in srgb, ${cfg.color} 6%, transparent)` } : {}) }}>
                             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                               <SocialPlatformIcon platform={p} size={14} />
                               {cfg.label}
@@ -828,7 +828,7 @@ export default function CaptionWriterPage({ defaultTab = 'caption' }) {
             <>
               {!hashLoading && !hashResult && (
                 <div style={styles.emptyState}>
-                  <div style={{ ...styles.emptyIcon, background: '#f3e8ff' }}><Hash size={40} color="#00d7ff" /></div>
+                  <div style={{ ...styles.emptyIcon, background: 'var(--surface-sunken)' }}><Hash size={40} color="var(--brand-primary)" /></div>
                   <h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 8px' }}>Hashtag research will appear here</h3>
                   <p style={{ fontSize: 14, color: 'var(--text-tertiary)', margin: 0 }}>Click each tag to select it, then copy or save your set</p>
                 </div>
@@ -853,9 +853,9 @@ export default function CaptionWriterPage({ defaultTab = 'caption' }) {
                 <>
                   {/* Strategy banner */}
                   {hashResult.strategy && (
-                    <div style={{ background: 'linear-gradient(135deg,#00d7ff15,#00d7ff15)', border: '1px solid #99eeff', borderRadius: 14, padding: '14px 16px', marginBottom: 16, display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-                      <Sparkles size={16} color="#00d7ff" style={{ flexShrink: 0, marginTop: 1 }} />
-                      <p style={{ fontSize: 14, color: '#4c1d95', fontWeight: 500, margin: 0, lineHeight: 'var(--line-height-body)' }}>{hashResult.strategy}</p>
+                    <div style={{ background: 'var(--brand-primary-soft)', border: '1px solid var(--border-focus)', borderRadius: 14, padding: '14px 16px', marginBottom: 16, display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                      <Sparkles size={16} color="var(--brand-primary)" style={{ flexShrink: 0, marginTop: 1 }} />
+                      <p style={{ fontSize: 14, color: 'var(--module-ai)', fontWeight: 500, margin: 0, lineHeight: 'var(--line-height-body)' }}>{hashResult.strategy}</p>
                     </div>
                   )}
 
@@ -885,11 +885,11 @@ export default function CaptionWriterPage({ defaultTab = 'caption' }) {
 
                   {/* Avoid list */}
                   {hashResult.avoid && hashResult.avoid.length > 0 && (
-                    <div style={{ border: '1px solid #fecaca', borderRadius: 14, padding: '14px 16px', marginBottom: 16, background: '#fef2f2' }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, color: '#dc2626', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Tags to Avoid</div>
+                    <div style={{ border: '1px solid var(--danger-bg)', borderRadius: 14, padding: '14px 16px', marginBottom: 16, background: 'var(--danger-bg)' }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--danger)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Tags to Avoid</div>
                       <ul style={{ margin: 0, padding: '0 0 0 16px', display: 'flex', flexDirection: 'column', gap: 4 }}>
                         {hashResult.avoid.map((item, i) => (
-                          <li key={i} style={{ fontSize: 13, color: '#7f1d1d', lineHeight: 'var(--line-height-body)' }}>{item}</li>
+                          <li key={i} style={{ fontSize: 13, color: 'var(--danger)', lineHeight: 'var(--line-height-body)' }}>{item}</li>
                         ))}
                       </ul>
                     </div>
@@ -937,9 +937,9 @@ export default function CaptionWriterPage({ defaultTab = 'caption' }) {
             </span>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, flex: 1 }}>
               {selectedTags.map(tag => (
-                <span key={tag} style={{ padding: '3px 10px', borderRadius: 99, background: '#e6fbff', color: '#00d7ff', fontSize: 12, fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                <span key={tag} style={{ padding: '3px 10px', borderRadius: 99, background: 'var(--brand-primary-soft)', color: 'var(--brand-primary)', fontSize: 12, fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                   {tag}
-                  <button onClick={() => toggleTag(tag)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: '#99eeff', lineHeight: 1, fontSize: 14 }}>×</button>
+                  <button onClick={() => toggleTag(tag)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: 'var(--border-focus)', lineHeight: 1, fontSize: 14 }}>×</button>
                 </span>
               ))}
             </div>
@@ -950,7 +950,7 @@ export default function CaptionWriterPage({ defaultTab = 'caption' }) {
               {globalCopied === 'sel' ? '✓ Copied!' : 'Copy'}
             </button>
             {hashResultId && (
-              <button onClick={() => { setSaveModal(true); setSaveError(''); setSaveName(''); }} style={{ ...styles.barBtn, background: '#00d7ff', color: 'var(--text-primary)', border: 'none' }}>
+              <button onClick={() => { setSaveModal(true); setSaveError(''); setSaveName(''); }} style={{ ...styles.barBtn, background: 'var(--brand-primary)', color: 'var(--text-primary)', border: 'none' }}>
                 <Save size={13} />Save Set
               </button>
             )}
@@ -972,7 +972,7 @@ export default function CaptionWriterPage({ defaultTab = 'caption' }) {
             <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '0 0 16px' }}>Saving {selectedTags.length} tags</p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 16, maxHeight: 100, overflowY: 'auto' }}>
               {selectedTags.map(tag => (
-                <span key={tag} style={{ padding: '3px 10px', borderRadius: 99, background: '#e6fbff', color: '#00d7ff', fontSize: 12, fontWeight: 600 }}>{tag}</span>
+                <span key={tag} style={{ padding: '3px 10px', borderRadius: 99, background: 'var(--brand-primary-soft)', color: 'var(--brand-primary)', fontSize: 12, fontWeight: 600 }}>{tag}</span>
               ))}
             </div>
             <label style={styles.label}>Set name</label>
@@ -989,7 +989,7 @@ export default function CaptionWriterPage({ defaultTab = 'caption' }) {
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
               <button onClick={() => setSaveModal(false)} style={styles.bottomBtn}>Cancel</button>
               <button onClick={handleSaveSet} disabled={saving}
-                style={{ ...styles.generateBtn, width: 'auto', padding: '0 20px', height: 40, fontSize: 13, background: 'linear-gradient(135deg,#00d7ff,#00d7ff)', opacity: saving ? 0.7 : 1, cursor: saving ? 'not-allowed' : 'pointer' }}>
+                style={{ ...styles.generateBtn, width: 'auto', padding: '0 20px', height: 40, fontSize: 13, background: 'linear-gradient(135deg,var(--brand-primary),var(--brand-primary))', opacity: saving ? 0.7 : 1, cursor: saving ? 'not-allowed' : 'pointer' }}>
                 {saving ? <Loader2 size={14} style={{ animation: 'spin .8s linear infinite' }} /> : <><Save size={14} />Save Set</>}
               </button>
             </div>
@@ -1016,15 +1016,15 @@ const styles = {
   select: { width: '100%', padding: '10px 14px', border: '1.5px solid var(--border-default)', borderRadius: 10, fontSize: 14, color: 'var(--text-primary)', background: 'var(--surface-card)', outline: 'none', marginTop: 6 },
   input: { width: '100%', padding: '10px 14px', border: '1.5px solid var(--border-default)', borderRadius: 10, fontSize: 14, color: 'var(--text-primary)', background: 'var(--surface-card)', outline: 'none', boxSizing: 'border-box' },
   toneBtn: { display: 'inline-flex', alignItems: 'center', gap: 5, padding: '7px 14px', borderRadius: 10, border: '1.5px solid var(--border-default)', background: 'var(--surface-card)', color: 'var(--text-secondary)', fontSize: 13, fontWeight: 600, cursor: 'pointer' },
-  toneBtnActive: { background: '#00d7ff', color: 'var(--text-primary)', borderColor: '#00d7ff' },
-  generateBtn: { width: '100%', height: 48, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#00d7ff', color: 'var(--text-primary)', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 700 },
-  errorBox: { padding: '10px 14px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 10, color: '#dc2626', fontSize: 13, marginBottom: 16 },
+  toneBtnActive: { background: 'var(--brand-primary)', color: 'var(--text-primary)', borderColor: 'var(--brand-primary)' },
+  generateBtn: { width: '100%', height: 48, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: 'var(--brand-primary)', color: 'var(--text-primary)', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 700 },
+  errorBox: { padding: '10px 14px', background: 'var(--danger-bg)', border: '1px solid var(--danger-bg)', borderRadius: 10, color: 'var(--danger)', fontSize: 13, marginBottom: 16 },
   recentLabel: { fontSize: 11, fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 },
   recentChip: { padding: '4px 10px', borderRadius: 99, border: '1px solid var(--border-default)', background: 'var(--surface-page)', color: 'var(--text-secondary)', fontSize: 12, fontWeight: 600, cursor: 'pointer', maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
   emptyState: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 360, textAlign: 'center', background: 'var(--surface-card)', border: '1px solid var(--border-default)', borderRadius: 18 },
-  emptyIcon: { width: 80, height: 80, borderRadius: '50%', background: '#f3e8ff', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
+  emptyIcon: { width: 80, height: 80, borderRadius: '50%', background: 'var(--surface-sunken)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
   platTab: { display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 14px', border: 'none', borderRadius: 10, background: 'var(--surface-card)', color: 'var(--text-secondary)', fontSize: 13, fontWeight: 600, cursor: 'pointer' },
-  platTabActive: { background: '#e6fbff', color: '#00d7ff' },
+  platTabActive: { background: 'var(--brand-primary-soft)', color: 'var(--brand-primary)' },
   bottomBtn: { display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 18px', border: '1.5px solid var(--border-default)', borderRadius: 10, background: 'var(--surface-card)', color: 'var(--text-secondary)', fontSize: 13, fontWeight: 700, cursor: 'pointer' },
   stickyBar: { position: 'fixed', bottom: 0, left: 240, right: 0, background: 'var(--surface-card)', borderTop: '1.5px solid var(--border-default)', padding: '12px 36px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, zIndex: 50, boxShadow: '0 -4px 20px rgba(0,0,0,0.08)' },
   barBtn: { display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', border: '1.5px solid var(--border-default)', borderRadius: 10, background: 'var(--surface-card)', color: 'var(--text-secondary)', fontSize: 13, fontWeight: 700, cursor: 'pointer' },

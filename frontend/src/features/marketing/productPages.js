@@ -288,7 +288,7 @@ export const productPages = {
     quote: {
       quote: "واتس‌اپ اکنون کانال ما با بالاترین تبدیل است. کار انطباق به تنهایی ما را 3 ماه در خانه زمان می برد.",
       author: "کیان نادری", role: "مدیر ارشد عملیات، بلووِیو",
-      gradient: 'linear-gradient(135deg, #25D366, #00CCF5)',
+      gradient: 'linear-gradient(135deg, var(--module-analytics), var(--brand-primary))',
     },
   },
 
@@ -352,7 +352,7 @@ export const productPages = {
     quote: {
       quote: "اولین جریان نمونهٔ جذب سرنخ را در ۱۲ دقیقه طراحی کردیم. در این سناریو، ۴۷ سرنخ واجد شرایط ثبت شد.",
       author: "نگار احمدی", role: "مدیر بازاریابی، آکمه املاک",
-      gradient: 'linear-gradient(135deg, #f472b6, #a78bfa)',
+      gradient: 'linear-gradient(135deg, var(--module-ai), var(--module-ai))',
     },
   },
 
@@ -416,7 +416,7 @@ export const productPages = {
     quote: {
       quote: "دستیار هوش مصنوعی احساس می‌کند که یک هم تیمی اضافی دارد که هرگز نمی خوابد.",
       author: "امیر رضایی", role: "موسس، هالسیون",
-      gradient: 'linear-gradient(135deg, #00CCF5, #8b5cf6)',
+      gradient: 'linear-gradient(135deg, var(--brand-primary), var(--module-ai))',
     },
   },
 
@@ -468,7 +468,7 @@ export const productPages = {
     quote: {
       quote: "از آن خواستم «به من بگوید کدام پست‌ها را باید در این هفته تقویت کنم» و آن را تحلیل و آمار کرد، 3 مورد برتر را انتخاب کرد و در صف افزایش یافت.",
       author: "سامان کریمی", role: "بنیانگذار، اِمبر",
-      gradient: 'linear-gradient(135deg, #8b5cf6, #00CCF5)',
+      gradient: 'linear-gradient(135deg, var(--module-ai), var(--brand-primary))',
     },
   },
 
@@ -532,7 +532,7 @@ export const productPages = {
     quote: {
       quote: "گزارش‌هایی که قبلاً 4 ساعت جوان طول می‌کشید، اکنون خودشان می‌نویسند.",
       author: "علی مرادی", role: "مدیر، آژانس Apex",
-      gradient: 'linear-gradient(135deg, #a78bfa, #f472b6)',
+      gradient: 'linear-gradient(135deg, var(--module-ai), var(--module-ai))',
     },
   },
 
@@ -596,7 +596,7 @@ export const productPages = {
     quote: {
       quote: "هر بررسی 5 ستاره اکنون در عرض 2 دقیقه یک پاسخ تشکر دریافت می‌کند. مشتریان آن را دوست دارند.",
       author: "مریم رحیمی", role: "مدیر بازاریابی، لومن",
-      gradient: 'linear-gradient(135deg, #fbbf24, #00CCF5)',
+      gradient: 'linear-gradient(135deg, var(--module-ads), var(--brand-primary))',
     },
   },
 
