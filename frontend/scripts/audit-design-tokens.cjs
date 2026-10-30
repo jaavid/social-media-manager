@@ -83,7 +83,7 @@ function analyze(content) {
     if (literal) return line.replace(marker[0] + literal[0], '');
     // JSX color-input defaults place their justification after the literal.
     const prefix = line.slice(0, marker.index);
-    const preceding = prefix.match(/(?:#(?:[\\da-f]{3,4}|[\\da-f]{6}|[\\da-f]{8})\\b|rgba?\\s*\\([^)]*\\))(?=[^#]*$)/i);
+    const preceding = prefix.match(/(?:#(?:[\da-f]{3,4}|[\da-f]{6}|[\da-f]{8})\b|rgba?\s*\([^)]*\))(?=[^#]*$)/i);
     return preceding ? line.slice(0, preceding.index) + line.slice(preceding.index + preceding[0].length) : line;
   }).join('\n');
   return {
