@@ -1,4 +1,4 @@
-import { APPEARANCE_DEFAULTS, APPEARANCE_KEY, applyAppearance, contrastRatio, normalizeAppearance, readAppearance, resetAppearance, saveAppearance } from './appearance';
+import { APPEARANCE_DEFAULTS, APPEARANCE_KEY, hasSavedAppearance, applyAppearance, contrastRatio, normalizeAppearance, readAppearance, resetAppearance, saveAppearance } from './appearance';
 
 afterEach(() => {
   localStorage.clear();
@@ -31,4 +31,15 @@ test('saves sanitized settings, switches palettes and resets', () => {
 test('contrast diagnostics use WCAG luminance', () => {
   expect(contrastRatio('#000000', '#ffffff')).toBeCloseTo(21, 2);
   expect(contrastRatio('#ffffff', '#ffffff')).toBeCloseTo(1, 2);
+});
+
+test('untouched appearance does not install custom overrides and reset restores canonical CSS', () => {
+  expect(hasSavedAppearance()).toBe(false);
+  expect(document.documentElement.style.getPropertyValue('--brand-primary')).toBe('');
+  const value = saveAppearance({ light: { primary: '#123456' } });
+  expect(hasSavedAppearance()).toBe(true);
+  expect(value.light.primary).toBe('#123456');
+  resetAppearance();
+  expect(hasSavedAppearance()).toBe(false);
+  expect(document.documentElement.style.getPropertyValue('--brand-primary')).toBe('');
 });

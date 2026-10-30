@@ -48,7 +48,11 @@ export default function AppearanceEditor() {
                   aria-label={`${mode}: ${fieldLabels[field]}`} />
               </label>
             ))}
-            {contrastRatio(appearance[mode].primary, appearance[mode].onPrimary) < 4.5 && (
+            {([
+              [appearance[mode].primary, appearance[mode].onPrimary],
+              [appearance[mode].text, appearance[mode].card],
+              [appearance[mode].text, appearance[mode].page],
+            ].some(([foreground, background]) => contrastRatio(foreground, background) < 4.5)) && (
               <p role="status" className="appearance-warning">{t('appearance.contrastWarning')}</p>
             )}
           </fieldset>

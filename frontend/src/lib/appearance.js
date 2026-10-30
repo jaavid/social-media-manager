@@ -80,7 +80,7 @@ export function saveAppearance(input, theme = 'light') {
   return value;
 }
 
-export function resetAppearance(theme = 'light') {
+export function resetAppearance() {
   persistentStorage.removeItem(APPEARANCE_KEY);
   return applyAppearance(APPEARANCE_DEFAULTS, theme);
 }

@@ -12,10 +12,10 @@ function visit(dir) {
     const contents = fs.readFileSync(file, 'utf8');
     const checks = [
       [/next\/font\/google\b/g, 'external Next font provider'],
-      [/@import\s+(?:url\()?\s*['"]?https?:\/\//g, 'remote CSS import'],
-      [/url\(\s*['"]?https?:\/\//g, 'remote CSS asset'],
-      [/<link\b[^>]*\brel\s*=\s*['"]stylesheet['"][^>]*\bhref\s*=\s*['"]https?:\/\//gi, 'remote stylesheet link'],
-      [/<link\b[^>]*\bhref\s*=\s*['"]https?:\/\/[^>]*\brel\s*=\s*['"]stylesheet['"]/gi, 'remote stylesheet link'],
+      [/@import\s+(?:url\()?\s*['"]?(?:https?:)?\/\//g, 'remote CSS import'],
+      [/url\(\s*['"]?(?:https?:)?\/\//g, 'remote CSS asset'],
+      [/<link\b[^>]*\brel\s*=\s*['"]stylesheet['"][^>]*\bhref\s*=\s*['"](?:https?:)?\/\//gi, 'remote stylesheet link'],
+      [/<link\b[^>]*\bhref\s*=\s*['"](?:https?:)?\/\/[^>]*\brel\s*=\s*['"]stylesheet['"]/gi, 'remote stylesheet link'],
     ];
     for (const [pattern, reason] of checks)
       if (pattern.test(contents)) offenders.push(`${path.relative(root, file)}: ${reason}`);
