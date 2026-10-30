@@ -527,8 +527,8 @@ function WhatsAppPreview({ body, buttons }) {
       <div
         style={{
           padding: 10,
-          background: '#dcf8c6',
-          color: '#1f2c34',
+          background: 'var(--success-bg)',
+          color: 'var(--text-primary)',
           borderRadius: '8px 8px 8px 2px',
           maxWidth: 240,
           fontSize: 13,
@@ -556,8 +556,8 @@ function WhatsAppPreview({ body, buttons }) {
                   textAlign: 'center',
                   fontSize: 12,
                   fontWeight: 500,
-                  background: '#fff',
-                  color: '#075e54',
+                  background: 'var(--surface-card)',
+                  color: 'var(--success)',
                   border: '1px solid rgba(0,0,0,0.06)',
                   borderRadius: 4,
                 }}

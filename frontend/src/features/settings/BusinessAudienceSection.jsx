@@ -26,7 +26,7 @@ export function renderAudience({
   return (
     <div
       className={cn(
-        '[background:linear-gradient(180deg,_#ffffff_0%,_#fbfdff_100%)]',
+        '[background:var(--surface-card)]',
         '[border:1px_solid_var(--border-default)]',
         '[border-radius:20px]',
         '[padding:20px_16px]',
@@ -47,8 +47,8 @@ export function renderAudience({
             '[width:42px]',
             '[height:42px]',
             '[border-radius:14px]',
-            '[background:linear-gradient(135deg,_#00d7ff_0%,_#0ea5e9_100%)]',
-            '[color:#042f3a]',
+            '[background:linear-gradient(135deg,_var(--brand-primary)_0%,_#0ea5e9_100%)]',
+            '[color:var(--text-on-brand)]',
             '[display:flex]',
             '[align-items:center]',
             '[justify-content:center]',
@@ -63,7 +63,7 @@ export function renderAudience({
             className={cn(
               '[font-size:20px]',
               '[font-weight:800]',
-              '[color:#111827]',
+              '[color:var(--text-primary)]',
               '[margin-bottom:6px]',
               '[margin-top:0]',
             )}
@@ -159,7 +159,7 @@ export function renderAudience({
                   '[font-weight:600]',
                   '[-webkit-tap-highlight-color:transparent]',
                   formData.target_locations.includes(loc)
-                    ? cn('[border:1px_solid_#7dd3fc]', '[background:#ecfeff]')
+                    ? cn('[border:1px_solid_var(--border-focus)]', '[background:var(--brand-primary-soft)]')
                     : cn(),
                 )}
               >

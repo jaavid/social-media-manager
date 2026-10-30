@@ -17,7 +17,7 @@ export function renderBrandAssets({ handleFileUpload, formData, removeFile, t })
   return (
     <div
       className={cn(
-        '[background:linear-gradient(180deg,_#ffffff_0%,_#fbfdff_100%)]',
+        '[background:var(--surface-card)]',
         '[border:1px_solid_var(--border-default)]',
         '[border-radius:20px]',
         '[padding:20px_16px]',
@@ -38,8 +38,8 @@ export function renderBrandAssets({ handleFileUpload, formData, removeFile, t })
             '[width:42px]',
             '[height:42px]',
             '[border-radius:14px]',
-            '[background:linear-gradient(135deg,_#00d7ff_0%,_#0ea5e9_100%)]',
-            '[color:#042f3a]',
+            '[background:linear-gradient(135deg,_var(--brand-primary)_0%,_#0ea5e9_100%)]',
+            '[color:var(--text-on-brand)]',
             '[display:flex]',
             '[align-items:center]',
             '[justify-content:center]',
@@ -54,7 +54,7 @@ export function renderBrandAssets({ handleFileUpload, formData, removeFile, t })
             className={cn(
               '[font-size:20px]',
               '[font-weight:800]',
-              '[color:#111827]',
+              '[color:var(--text-primary)]',
               '[margin-bottom:6px]',
               '[margin-top:0]',
             )}
@@ -115,9 +115,9 @@ export function renderBrandAssets({ handleFileUpload, formData, removeFile, t })
                 '[gap:8px]',
                 '[padding:14px_16px]',
                 '[border-radius:16px]',
-                '[border:2px_dashed_#bae6fd]',
-                '[background:linear-gradient(180deg,_#f8fdff_0%,_#effbff_100%)]',
-                '[color:#0369a1]',
+                '[border:2px_dashed_var(--border-default)]',
+                '[background:var(--surface-sunken)]',
+                '[color:var(--text-primary)]',
                 '[cursor:pointer]',
                 '[font-size:14px]',
                 '[font-weight:700]',
@@ -148,7 +148,7 @@ export function renderBrandAssets({ handleFileUpload, formData, removeFile, t })
                     '[width:22px]',
                     '[height:22px]',
                     '[border-radius:50%]',
-                    '[background:#ef4444]',
+                    '[background:var(--danger)]',
                     '[color:var(--surface-card)]',
                     '[border:none]',
                     '[cursor:pointer]',
@@ -170,7 +170,7 @@ export function renderBrandAssets({ handleFileUpload, formData, removeFile, t })
             '[gap:14px]',
             '[padding:22px]',
             '[border-radius:22px]',
-            '[background:linear-gradient(180deg,_var(--surface-sunken)_0%,_#fbfdff_100%)]',
+            '[background:var(--surface-card)]',
             '[border:1px_solid_var(--border-default)]',
           )}
         >
@@ -211,9 +211,9 @@ export function renderBrandAssets({ handleFileUpload, formData, removeFile, t })
                 '[gap:8px]',
                 '[padding:14px_16px]',
                 '[border-radius:16px]',
-                '[border:2px_dashed_#bae6fd]',
-                '[background:linear-gradient(180deg,_#f8fdff_0%,_#effbff_100%)]',
-                '[color:#0369a1]',
+                '[border:2px_dashed_var(--border-default)]',
+                '[background:var(--surface-sunken)]',
+                '[color:var(--text-primary)]',
                 '[cursor:pointer]',
                 '[font-size:14px]',
                 '[font-weight:700]',
@@ -251,7 +251,7 @@ export function renderBrandAssets({ handleFileUpload, formData, removeFile, t })
                       '[width:22px]',
                       '[height:22px]',
                       '[border-radius:50%]',
-                      '[background:#ef4444]',
+                      '[background:var(--danger)]',
                       '[color:var(--surface-card)]',
                       '[border:none]',
                       '[cursor:pointer]',
@@ -286,7 +286,7 @@ export function renderCompetitors({
   return (
     <div
       className={cn(
-        '[background:linear-gradient(180deg,_#ffffff_0%,_#fbfdff_100%)]',
+        '[background:var(--surface-card)]',
         '[border:1px_solid_var(--border-default)]',
         '[border-radius:20px]',
         '[padding:20px_16px]',

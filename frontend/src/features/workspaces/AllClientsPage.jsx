@@ -33,18 +33,18 @@ import {
 import PageHeader from '../../components/layout/PageHeader';
 const STATUS_COLOR = {
   pending: {
-    text: '#d97706',
-    bg: '#fef3c7',
+    text: 'var(--warning)',
+    bg: 'var(--warning-bg)',
     label: 'Pending',
   },
   accepted: {
-    text: '#16a34a',
-    bg: '#dcfce7',
+    text: 'var(--success)',
+    bg: 'var(--success-bg)',
     label: 'Accepted',
   },
   rejected: {
-    text: '#dc2626',
-    bg: '#fee2e2',
+    text: 'var(--danger)',
+    bg: 'var(--danger-bg)',
     label: 'Rejected',
   },
   expired: {
@@ -192,13 +192,13 @@ export default function AllClientsPage({ onSelectClient }) {
             '[align-items:center]',
             '[gap:12px]',
             '[background:var(--surface-card)]',
-            '[border:1px_solid_#e8edf2]',
+            '[border:1px_solid_var(--border-default)]',
             '[border-radius:12px]',
             '[padding:14px_20px]',
             '[flex:1_1_160px]',
           )}
         >
-          <UserCheck size={18} className={cn('[color:#16a34a]')} />
+          <UserCheck size={18} className={cn('[color:var(--success)]')} />
           <div>
             <div
               className={cn(
@@ -230,13 +230,13 @@ export default function AllClientsPage({ onSelectClient }) {
             '[align-items:center]',
             '[gap:12px]',
             '[background:var(--surface-card)]',
-            '[border:1px_solid_#e8edf2]',
+            '[border:1px_solid_var(--border-default)]',
             '[border-radius:12px]',
             '[padding:14px_20px]',
             '[flex:1_1_160px]',
           )}
         >
-          <Clock size={18} className={cn('[color:#d97706]')} />
+          <Clock size={18} className={cn('[color:var(--warning)]')} />
           <div>
             <div
               className={cn(
@@ -268,13 +268,13 @@ export default function AllClientsPage({ onSelectClient }) {
             '[align-items:center]',
             '[gap:12px]',
             '[background:var(--surface-card)]',
-            '[border:1px_solid_#e8edf2]',
+            '[border:1px_solid_var(--border-default)]',
             '[border-radius:12px]',
             '[padding:14px_20px]',
             '[flex:1_1_160px]',
           )}
         >
-          <Mail size={18} className={cn('[color:#7c3aed]')} />
+          <Mail size={18} className={cn('[color:var(--module-ai)]')} />
           <div>
             <div
               className={cn(
@@ -305,8 +305,8 @@ export default function AllClientsPage({ onSelectClient }) {
       {/* ── Invite panel ────────────────────────────────────────────────────── */}
       <div
         className={cn(
-          '[background:linear-gradient(135deg,#faf5ff,#f5f0ff)]',
-          '[border:1.5px_solid_rgba(124,58,237,0.2)]',
+          '[background:linear-gradient(135deg,var(--surface-sunken),var(--surface-sunken))]',
+          '[border:1.5px_solid_var(--border-default)]',
           '[border-radius:16px]',
           '[padding:24px]',
           '[margin-bottom:24px]',
@@ -325,14 +325,14 @@ export default function AllClientsPage({ onSelectClient }) {
               '[width:36px]',
               '[height:36px]',
               '[border-radius:10px]',
-              '[background:rgba(124,58,237,0.12)]',
+              '[background:var(--surface-sunken)]',
               '[display:flex]',
               '[align-items:center]',
               '[justify-content:center]',
               '[flex-shrink:0]',
             )}
           >
-            <Send size={16} className={cn('[color:#7c3aed]')} />
+            <Send size={16} className={cn('[color:var(--module-ai)]')} />
           </div>
           <div>
             <h3
@@ -340,7 +340,7 @@ export default function AllClientsPage({ onSelectClient }) {
                 '[margin:0_0_4px]',
                 '[font-size:15px]',
                 '[font-weight:700]',
-                '[color:#4c1d95]',
+                '[color:var(--module-ai)]',
               )}
             >
               Invite a Workspace Owner
@@ -349,7 +349,7 @@ export default function AllClientsPage({ onSelectClient }) {
               className={cn(
                 '[margin:0]',
                 '[font-size:13px]',
-                '[color:#7c3aed]',
+                '[color:var(--module-ai)]',
                 '[line-height:var(--line-height-body)]',
               )}
             >
@@ -365,8 +365,8 @@ export default function AllClientsPage({ onSelectClient }) {
               '[display:flex]',
               '[align-items:center]',
               '[gap:10px]',
-              '[background:#dcfce7]',
-              '[color:#15803d]',
+              '[background:var(--success-bg)]',
+              '[color:var(--success)]',
               '[border-radius:10px]',
               '[padding:12px_16px]',
               '[font-size:13px]',
@@ -381,8 +381,8 @@ export default function AllClientsPage({ onSelectClient }) {
               className={cn(
                 '[margin-inline-start:auto]',
                 '[background:none]',
-                '[border:1.5px_solid_#16a34a]',
-                '[color:#16a34a]',
+                '[border:1.5px_solid_var(--success)]',
+                '[color:var(--success)]',
                 '[border-radius:8px]',
                 '[padding:5px_14px]',
                 '[cursor:pointer]',
@@ -444,7 +444,7 @@ export default function AllClientsPage({ onSelectClient }) {
                   '[padding:10px_22px]',
                   '[border-radius:10px]',
                   '[border:none]',
-                  '[background:linear-gradient(135deg,#7c3aed,#6d28d9)]',
+                  '[background:linear-gradient(135deg,var(--module-ai),var(--module-ai))]',
                   '[color:var(--surface-card)]',
                   '[cursor:pointer]',
                   '[font-weight:700]',
@@ -473,7 +473,7 @@ export default function AllClientsPage({ onSelectClient }) {
                   '[display:flex]',
                   '[align-items:center]',
                   '[gap:8px]',
-                  '[background:#fee2e2]',
+                  '[background:var(--danger-bg)]',
                   'text-destructive',
                   '[border-radius:10px]',
                   '[padding:10px_14px]',
@@ -493,7 +493,7 @@ export default function AllClientsPage({ onSelectClient }) {
         className={cn(
           '[background:var(--surface-card)]',
           '[border-radius:16px]',
-          '[border:1px_solid_#e8edf2]',
+          '[border:1px_solid_var(--border-default)]',
           '[margin-bottom:24px]',
           '[overflow:hidden]',
         )}
@@ -706,9 +706,9 @@ export default function AllClientsPage({ onSelectClient }) {
                               '[display:flex]',
                               '[align-items:center]',
                               '[gap:4px]',
-                              '[background:#fff5f5]',
+                              '[background:var(--danger-bg)]',
                               'text-destructive',
-                              '[border:1px_solid_#fca5a5]',
+                              '[border:1px_solid_var(--danger-bg)]',
                               '[border-radius:7px]',
                               '[padding:4px_10px]',
                               '[font-size:11px]',
@@ -753,7 +753,7 @@ export default function AllClientsPage({ onSelectClient }) {
         className={cn(
           '[background:var(--surface-card)]',
           '[border-radius:16px]',
-          '[border:1px_solid_#e8edf2]',
+          '[border:1px_solid_var(--border-default)]',
           '[margin-bottom:24px]',
           '[overflow:hidden]',
         )}
@@ -790,7 +790,7 @@ export default function AllClientsPage({ onSelectClient }) {
                   '[font-size:12px]',
                   syncMsg.includes('failed')
                     ? 'text-destructive'
-                    : '[color:#16a34a]',
+                    : '[color:var(--success)]',
                   '[font-weight:600]',
                 )}
               >
@@ -808,7 +808,7 @@ export default function AllClientsPage({ onSelectClient }) {
                 '[padding:6px_14px]',
                 '[border-radius:8px]',
                 '[border:none]',
-                '[background:linear-gradient(135deg,#7c3aed,#6d28d9)]',
+                '[background:linear-gradient(135deg,var(--module-ai),var(--module-ai))]',
                 '[color:var(--surface-card)]',
                 '[cursor:pointer]',
                 '[font-weight:700]',
@@ -947,7 +947,7 @@ export default function AllClientsPage({ onSelectClient }) {
                             '[height:30px]',
                             '[border-radius:8px]',
                             '[flex-shrink:0]',
-                            '[background:linear-gradient(135deg,#00d7ff22,#7c3aed22)]',
+                            '[background:var(--brand-primary-soft)]',
                             '[color:var(--text-primary)]',
                             '[font-weight:800]',
                             '[font-size:13px]',
@@ -994,7 +994,7 @@ export default function AllClientsPage({ onSelectClient }) {
                           target="_blank"
                           rel="noreferrer"
                           className={cn(
-                            '[color:#7c3aed]',
+                            '[color:var(--module-ai)]',
                             '[text-decoration:none]',
                             '[font-size:12px]',
                           )}
@@ -1023,9 +1023,9 @@ export default function AllClientsPage({ onSelectClient }) {
                           className={cn(
                             '[padding:6px_14px]',
                             '[border-radius:8px]',
-                            '[border:1.5px_solid_#00d7ff]',
+                            '[border:1.5px_solid_var(--brand-primary)]',
                             '[background:transparent]',
-                            '[color:#0099bb]',
+                            '[color:var(--brand-primary-hover)]',
                             '[cursor:pointer]',
                             '[font-weight:600]',
                             '[font-size:12px]',
@@ -1076,7 +1076,7 @@ export default function AllClientsPage({ onSelectClient }) {
                             '[border-radius:8px]',
                             '[border:1.5px_solid_var(--border-default)]',
                             '[background:transparent]',
-                            '[color:#7c3aed]',
+                            '[color:var(--module-ai)]',
                             '[cursor:pointer]',
                             '[display:flex]',
                             '[align-items:center]',
@@ -1107,7 +1107,7 @@ export default function AllClientsPage({ onSelectClient }) {
       {clients.length === 0 && invitations.length === 0 && (
         <div
           className={cn(
-            '[background:linear-gradient(135deg,#f0f9ff,var(--surface-page))]',
+            '[background:linear-gradient(135deg,var(--brand-primary-soft),var(--surface-page))]',
             '[border:1px_solid_var(--border-default)]',
             '[border-radius:16px]',
             '[padding:28px_32px]',
@@ -1130,25 +1130,25 @@ export default function AllClientsPage({ onSelectClient }) {
             {[
               {
                 icon: <Send size={16} />,
-                color: '#7c3aed',
+                color: 'var(--module-ai)',
                 label: '1. Send Invitation',
                 desc: "Enter the workspace owner's email above and send an invitation.",
               },
               {
                 icon: <Mail size={16} />,
-                color: '#0369a1',
+                color: 'var(--info)',
                 label: '2. Workspace Owner Signs Up',
                 desc: 'The workspace owner receives an email, signs up on Ravinta, and verifies their account.',
               },
               {
                 icon: <Building2 size={16} />,
-                color: '#d97706',
+                color: 'var(--warning)',
                 label: '3. You Get Notified',
                 desc: "You'll receive an email when the workspace joins. Then send a dashboard access request.",
               },
               {
                 icon: <CheckCircle size={16} />,
-                color: '#16a34a',
+                color: 'var(--success)',
                 label: '4. Workspace Owner Accepts',
                 desc: 'Once they accept the access request, they appear in your workspaces list.',
               },

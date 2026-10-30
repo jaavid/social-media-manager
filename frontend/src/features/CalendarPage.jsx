@@ -43,10 +43,10 @@ function fmt(n, formatNumber) {
 }
 
 const STATUS_BADGE = {
-  published: { bg: '#D1FAE5', color: '#059669' },
-  scheduled: { bg: '#e6fbff', color: '#007a9a' },
-  draft: { bg: '#F1F5F9', color: 'var(--text-secondary)' },
-  failed: { bg: '#FEE2E2', color: '#EF4444' },
+  published: { bg: 'var(--success-bg)', color: 'var(--success)' },
+  scheduled: { bg: 'var(--brand-primary-soft)', color: 'var(--brand-primary)' },
+  draft: { bg: 'var(--surface-sunken)', color: 'var(--text-secondary)' },
+  failed: { bg: 'var(--danger-bg)', color: 'var(--danger)' },
 };
 
 function ListView({
@@ -99,7 +99,7 @@ function ListView({
 
             return (
               <div key={post.id} className="calendar-feed-post" style={{ '--calendar-platform-color': platform.color }}>
-                <div className="calendar-feed-avatar" style={{ '--calendar-platform-tint': platform.color + '20' }}>
+                <div className="calendar-feed-avatar" style={{ '--calendar-platform-tint': `color-mix(in srgb, ${platform.color} 13%, transparent)` }}>
                   <SocialPlatformIcon platform={post.platform} size={18} />
                 </div>
 
@@ -382,7 +382,7 @@ export default function CalendarPage({ clientId: propClientId }) {
           </div>
 
           <div className="calendar-platform-filter">
-            {[{ key: 'all', label: t('common.all', 'All'), color: '#00d7ff' }, ...calendarPlatforms.map(p => ({ key: p.key, label: p.labels[language] || p.labels.en, color: p.color }))].map(item => (
+            {[{ key: 'all', label: t('common.all', 'All'), color: 'var(--brand-primary)' }, ...calendarPlatforms.map(p => ({ key: p.key, label: p.labels[language] || p.labels.en, color: p.color }))].map(item => (
               <button key={item.key} onClick={() => setPlatform(item.key)} className={platform === item.key ? 'calendar-platform-button calendar-platform-button--active' : 'calendar-platform-button'}>
                 <span className="calendar-inline-control">
                   {item.key === 'all' ? null : <SocialPlatformIcon platform={item.key} size={14} />}
