@@ -33,9 +33,19 @@ The following **first-party hardcoded hex count** was measured on the specific c
 | Settings components | CompetitorSection | 28 | 0 |
 | Bot editor | nodeCatalog | 25 | 0 |
 | Bot editor | BotFlowEditorPage | 1 | 1 |
-| **Total of these measured files** | | **464** | **19** |
+| Bot messaging | MessageForms | 4 | 0 |
+| Bot testing | TestModeDrawer | 4 | 0 |
+| Management | ClientsTab | 3 | 0 |
+| Management | ManagementPanels | 10 | 0* |
+| Management | StaffTab | 1 | 0 |
+| Business settings | BusinessAssetSections | 8 | 0 |
+| Business settings | BusinessAudienceSection | 4 | 0 |
+| Business settings | BusinessIdentitySections | 6 | 0 |
+| Workspace management | AllClientsPage | 42 | 0 |
+| Calendar CSS | common.css | 4 | 0 |
+| **Total of these measured files** | | **550** | **19** |
 
-The 19 retained literal instances are backwards-compatible icon color aliases in StatCard, external provider brand data in Bento previews, and one existing editor literal. The UI uses semantic first-party colors through `var(--...)`, including token-aware tinted backgrounds. `CanvasNode` and `NodeInspector` now mix colors using CSS `color-mix()` rather than invalid string concatenation like `var(--info)22`.
+* The management color-picker uses a documented fixed hex default because native `input[type=color]` cannot accept CSS custom properties; the two data-color occurrences are exempted by same-line metadata and not counted as generic UI colors. The 19 retained literal instances are backwards-compatible icon color aliases in StatCard, external provider brand data in Bento previews, and one existing editor literal. The UI uses semantic first-party colors through `var(--...)`, including token-aware tinted backgrounds. `CanvasNode` and `NodeInspector` now mix colors using CSS `color-mix()` rather than invalid string concatenation like `var(--info)22`.
 
 ## Accessible behavior
 

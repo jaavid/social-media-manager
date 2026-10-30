@@ -61,7 +61,7 @@ export function ErrorMsg({ msg }) {
   );
 }
 
-export function Chip({ label, color = '#00d7ff', bg = '#e6fbff' }) {
+export function Chip({ label, color = 'var(--brand-primary)', bg = 'var(--brand-primary-soft)' }) {
   return (
     <span className="inline-flex items-center rounded-full bg-secondary px-2.5 py-1 text-xs font-semibold text-secondary-foreground">
       {label}
@@ -113,7 +113,7 @@ export function PermRow({ code, label, description, value, isOverride, onChange 
             {description}
           </div>
         )}
-        {isOverride && <Chip label="Custom override" color="#00d7ff" bg="#f3e8ff" />}
+        {isOverride && <Chip label="Custom override" color="var(--brand-primary)" bg="var(--surface-sunken)" />}
       </div>
       <button
         type="button"
@@ -121,7 +121,7 @@ export function PermRow({ code, label, description, value, isOverride, onChange 
         className={cn('[background:none]', '[border:none]', '[cursor:pointer]', '[padding:4px]')}
       >
         {value ? (
-          <ToggleRight size={28} color="#00d7ff" />
+          <ToggleRight size={28} color="var(--brand-primary)" />
         ) : (
           <ToggleLeft size={28} color="var(--text-tertiary)" />
         )}
@@ -428,7 +428,7 @@ export function PortalConfigPanel({ clientId }) {
               className={cn('[background:none]', '[border:none]', '[cursor:pointer]')}
             >
               {cfg[t.key] ? (
-                <ToggleRight size={28} color="#00d7ff" />
+                <ToggleRight size={28} color="var(--brand-primary)" />
               ) : (
                 <ToggleLeft size={28} color="var(--text-tertiary)" />
               )}
@@ -467,7 +467,7 @@ export function PortalConfigPanel({ clientId }) {
         <div className={cn('[display:flex]', '[align-items:center]', '[gap:10px]')}>
           <Input
             type="color"
-            value={cfg.custom_accent_color || '#00d7ff'}
+            value={cfg.custom_accent_color || '#123d3a' /* design-token-exempt: data-color — native color input requires a hex default */}
             onChange={(e) =>
               setCfg((prev) => ({
                 ...prev,
@@ -477,7 +477,7 @@ export function PortalConfigPanel({ clientId }) {
           />
 
           <span className={cn('[font-size:13px]', '[color:var(--text-secondary)]')}>
-            {cfg.custom_accent_color || '#00d7ff'}
+            {cfg.custom_accent_color || '#123d3a' /* design-token-exempt: data-color — native color input requires a hex default */}
           </span>
         </div>
       </div>
@@ -624,7 +624,7 @@ export function StaffClientsPanel({ staffId }) {
                 '[align-items:center]',
                 '[gap:4px]',
                 '[padding:4px_10px]',
-                '[border:1px_solid_#fca5a5]',
+                '[border:1px_solid_var(--danger-bg)]',
                 '[border-radius:8px]',
                 '[background:var(--surface-card)]',
                 'text-destructive',
@@ -682,7 +682,7 @@ export function StaffClientsPanel({ staffId }) {
                   '[align-items:center]',
                   '[gap:4px]',
                   '[padding:4px_10px]',
-                  '[border:1px_solid_#99eeff]',
+                  '[border:1px_solid_var(--border-focus)]',
                   '[border-radius:8px]',
                   '[background:var(--surface-card)]',
                   '[color:var(--brand-primary)]',

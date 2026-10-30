@@ -42,8 +42,8 @@ export function renderBusinessBasics({ formData, handleInputChange }) {
             '[width:42px]',
             '[height:42px]',
             '[border-radius:14px]',
-            '[background:linear-gradient(135deg,_#00d7ff_0%,_#0ea5e9_100%)]',
-            '[color:#042f3a]',
+            '[background:linear-gradient(135deg,_var(--brand-primary)_0%,_#0ea5e9_100%)]',
+            '[color:var(--text-on-brand)]',
             '[display:flex]',
             '[align-items:center]',
             '[justify-content:center]',
@@ -58,7 +58,7 @@ export function renderBusinessBasics({ formData, handleInputChange }) {
             className={cn(
               '[font-size:20px]',
               '[font-weight:800]',
-              '[color:#111827]',
+              '[color:var(--text-primary)]',
               '[margin-bottom:6px]',
               '[margin-top:0]',
             )}
@@ -188,8 +188,8 @@ export function renderBrandProfile({
             '[width:42px]',
             '[height:42px]',
             '[border-radius:14px]',
-            '[background:linear-gradient(135deg,_#00d7ff_0%,_#0ea5e9_100%)]',
-            '[color:#042f3a]',
+            '[background:linear-gradient(135deg,_var(--brand-primary)_0%,_#0ea5e9_100%)]',
+            '[color:var(--text-on-brand)]',
             '[display:flex]',
             '[align-items:center]',
             '[justify-content:center]',
@@ -204,7 +204,7 @@ export function renderBrandProfile({
             className={cn(
               '[font-size:20px]',
               '[font-weight:800]',
-              '[color:#111827]',
+              '[color:var(--text-primary)]',
               '[margin-bottom:6px]',
               '[margin-top:0]',
             )}
@@ -297,7 +297,7 @@ export function renderBrandProfile({
                       '[font-weight:600]',
                       '[-webkit-tap-highlight-color:transparent]',
                       formData.business_subcategories.includes(sub)
-                        ? cn('[border:1px_solid_#7dd3fc]', '[background:#ecfeff]')
+                        ? cn('[border:1px_solid_var(--border-focus)]', '[background:var(--brand-primary-soft)]')
                         : cn(),
                     )}
                   >

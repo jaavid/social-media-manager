@@ -286,7 +286,7 @@ export function StaffTab() {
                 '[cursor:pointer]',
                 '[border-bottom:1px_solid_var(--surface-sunken)]',
                 '[transition:background_0.15s]',
-                selected?.id === s.id ? cn('[background:#e6fbff]') : cn(),
+                selected?.id === s.id ? cn('[background:var(--brand-primary-soft)]') : cn(),
               )}
             >
               <div
@@ -294,7 +294,7 @@ export function StaffTab() {
                   '[width:34px]',
                   '[height:34px]',
                   '[border-radius:10px]',
-                  '[background:linear-gradient(180deg,_#e6fbff_0%,_#e6fbff_100%)]',
+                  '[background:linear-gradient(180deg,_var(--brand-primary-soft)_0%,_var(--brand-primary-soft)_100%)]',
                   '[color:var(--brand-primary)]',
                   '[display:flex]',
                   '[align-items:center]',

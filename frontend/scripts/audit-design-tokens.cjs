@@ -13,6 +13,18 @@ const sourceRoot = path.join(root, 'src');
 const oldInventory = JSON.parse(fs.readFileSync(path.join(root, '../docs/brand/ravinta/RAW_COLOR_INVENTORY.json'), 'utf8'));
 const ceilings = Object.fromEntries(oldInventory.rows.map(row =>
   [row.path.replace(/^frontend\/src\//, ''), row.occurrences]));
+/* The historical brand inventory predates the merged theme bootstrap and a few
+ * feature splits. Approved, version-pinned native colors remain as ceilings:
+ * inline SSR theme fallbacks, canonical JS defaults, and official provider art.
+ * These must not grow without explicit review.
+ */
+Object.assign(ceilings, {
+  'app/layout.jsx': 8,
+  'lib/appearance.js': 14,
+  'components/ui/SocialPlatformIcon.jsx': 27,
+  'services/platformPresentation.js': 1,
+});
+
 // The migrated files have tighter limits than the historical inventory.
 const migratedBudgets = {
   'features/settings/SettingsPage.jsx': { hex: 0, rgb: 0, inline: 0 },
@@ -33,6 +45,17 @@ const migratedBudgets = {
   'components/ui/CompetitorSection.jsx': { hex: 0, rgb: 1, inline: 0 },
   'features/marketing/solutionPages.js': { hex: 0, rgb: 0, inline: 0 },
   'features/marketing/productPages.js': { hex: 0, rgb: 0, inline: 0 },
+  'features/bots/MessageForms.jsx': { hex: 0, rgb: 2, inline: 16 },
+  'features/bots/TestModeDrawer.jsx': { hex: 0, rgb: 0, inline: 19 },
+  'features/management/ClientsTab.jsx': { hex: 0, rgb: 0, inline: 0 },
+  'features/management/ManagementPanels.jsx': { hex: 0, rgb: 0, inline: 0 },
+  'features/management/StaffTab.jsx': { hex: 0, rgb: 0, inline: 0 },
+  'features/settings/BusinessAssetSections.jsx': { hex: 0, rgb: 0, inline: 0 },
+  'features/settings/BusinessAudienceSection.jsx': { hex: 0, rgb: 0, inline: 0 },
+  'features/settings/BusinessIdentitySections.jsx': { hex: 0, rgb: 0, inline: 0 },
+  'features/workspaces/AllClientsPage.jsx': { hex: 0, rgb: 0, inline: 0 },
+  'styles/common.css': { hex: 0, rgb: 1, inline: 0 },
+
 };
 const allowedException = /design-token-exempt:\s*(platform-brand|fixed-asset|data-color)\b/;
 const hexPattern = /#(?:[\da-f]{3,4}|[\da-f]{6}|[\da-f]{8})\b/gi;
