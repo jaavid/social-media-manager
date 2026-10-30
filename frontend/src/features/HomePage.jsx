@@ -107,7 +107,7 @@ async function Hero() {
         maxWidth: 1180, margin: '0 auto',
         padding: '0 24px',
         textAlign: 'center',
-        color: 'var(--marketing-on-dark)',
+        color: 'var(--text-on-brand)',
       }}>
 
 
@@ -160,7 +160,7 @@ async function Hero() {
                   source="home_hero"
                   style={{
                     background: 'linear-gradient(135deg, var(--brand-primary), var(--brand-primary-hover))',
-                    color: 'var(--marketing-hero-surface)', border: 'none', fontWeight: 600,
+                    color: 'var(--text-on-brand)', border: 'none', fontWeight: 600,
                   }}>
             شروع رایگان <ArrowRight size={15} />
           </TrackedButton>
@@ -751,7 +751,7 @@ function StatsBand() {
       <div style={{
         padding: 'clamp(48px, 8vh, 88px) 24px',
         background: 'linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-hover) 50%, var(--module-ai) 100%)',
-        color: 'var(--marketing-on-dark)',
+        color: 'var(--text-on-brand)',
       }}>
         <div style={{ maxWidth: 1080, margin: '0 auto' }}>
           <div style={{
@@ -763,7 +763,7 @@ function StatsBand() {
                 <div style={{
                   fontSize: 'clamp(28px, 5vw, 48px)',
                   fontWeight: 700, letterSpacing: '-0.02em',
-                  lineHeight: 1.05, color: 'var(--marketing-on-dark)',
+                  lineHeight: 1.05, color: 'var(--text-on-brand)',
                 }}>
                   <MetricCounter value={s.value} suffix={s.suffix}
                                  decimals={s.decimals || 0} duration={1.6} />
