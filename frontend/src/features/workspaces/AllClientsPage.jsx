@@ -306,7 +306,7 @@ export default function AllClientsPage({ onSelectClient }) {
       <div
         className={cn(
           '[background:linear-gradient(135deg,var(--surface-sunken),var(--surface-sunken))]',
-          '[border:1.5px_solid_color-mix(in srgb, var(--module-ai) 20%, transparent)]',
+          '[border:1.5px_solid_var(--border-default)]',
           '[border-radius:16px]',
           '[padding:24px]',
           '[margin-bottom:24px]',
@@ -325,7 +325,7 @@ export default function AllClientsPage({ onSelectClient }) {
               '[width:36px]',
               '[height:36px]',
               '[border-radius:10px]',
-              '[background:color-mix(in srgb, var(--module-ai) 12%, transparent)]',
+              '[background:var(--surface-sunken)]',
               '[display:flex]',
               '[align-items:center]',
               '[justify-content:center]',
@@ -947,7 +947,7 @@ export default function AllClientsPage({ onSelectClient }) {
                             '[height:30px]',
                             '[border-radius:8px]',
                             '[flex-shrink:0]',
-                            '[background:linear-gradient(135deg,var(--brand-primary-soft),color-mix(in srgb, var(--module-ai) 13%, transparent))]',
+                            '[background:var(--brand-primary-soft)]',
                             '[color:var(--text-primary)]',
                             '[font-weight:800]',
                             '[font-size:13px]',
