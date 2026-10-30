@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import localFont from 'next/font/local';
+import Script from 'next/script';
 import { requestLanguage } from '../i18n/server';
 import { Suspense } from 'react';
 import SiteProviders from '../core/providers/SiteProviders';
@@ -57,7 +58,7 @@ export default async function RootLayout({ children }) {
     className={`${arabicFont.variable} ${latinFont.variable}${theme === 'dark' ? ' dark' : ''}`} suppressHydrationWarning>
     <head>
       <script dangerouslySetInnerHTML={{ __html: bootstrap }} />
-      <script src="/appearance-bootstrap.js" />
+      <Script src="/appearance-bootstrap.js" strategy="beforeInteractive" />
       <script defer src="https://stats.tamin24.ir/script.js" data-website-id="88ddb74e-fddf-479b-bb0e-9b0487f0a849" />
       <script defer src="https://stats.tamin24.ir/recorder.js" data-website-id="88ddb74e-fddf-479b-bb0e-9b0487f0a849" />
     </head>

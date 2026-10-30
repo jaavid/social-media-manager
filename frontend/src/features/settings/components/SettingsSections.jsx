@@ -16,7 +16,6 @@ import { cn } from "@/lib/utils";
  * relevant API call.
  */
 
-import { useState } from 'react';
 import { AppLink as Link } from "@/core/navigation";
 import {
   Sun,
@@ -25,12 +24,8 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import { useTheme } from "@/hooks/useTheme";
-import Button from "@/components/ui/Button";
-import Switch from "@/components/ui/Switch";
 import Card from "@/components/ui/Card";
-import Badge from "@/components/ui/Badge";
 import KeyboardShortcut from "@/components/ui/KeyboardShortcut";
-import toast from "@/components/ui/toast";
 import { useLanguage } from "@/i18n";
 import NotificationPreferencesPage from "@/components/notifications/NotificationPreferences";
 import AppearanceEditor from "./AppearanceEditor";
@@ -68,7 +63,7 @@ export function AppearanceSection() {
             '[color:var(--text-secondary)]',
           )}
         >
-          Choose a light or dark theme. "System" matches your OS preference.
+          Choose a light or dark theme. &quot;System&quot; matches your OS preference.
         </p>
         <div
           className={cn(

@@ -16,7 +16,10 @@ export default function AppearanceEditor() {
   const { t } = useLanguage();
   const { theme } = useTheme();
   const [appearance, setAppearance] = useState(APPEARANCE_DEFAULTS);
-  useEffect(() => { setAppearance(readAppearance()); }, []);
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => setAppearance(readAppearance()));
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
   function update(next) {
     setAppearance(saveAppearance(next, theme));
   }
