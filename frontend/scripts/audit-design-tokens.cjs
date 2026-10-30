@@ -74,11 +74,18 @@ function family(file) {
 }
 function analyze(content) {
   const lines = content.split(/\r?\n/);
-  const ordinary = lines.filter(line => !allowedException.test(line)).join('\n');
+  const ordinary = lines.map(line => {
+    const marker = line.match(allowedException);
+    if (!marker) return line;
+    // Only the literal immediately following the justification is exempt.
+    const suffix = line.slice(marker.index + marker[0].length);
+    const literal = suffix.match(/^\s*(?:#(?:[\da-f]{3,4}|[\da-f]{6}|[\da-f]{8})\b|rgba?\s*\([^)]*\))/i);
+    return literal ? line.replace(marker[0] + literal[0], '') : line;
+  }).join('\n');
   return {
     hex: (ordinary.match(hexPattern) || []).length,
     rgb: (ordinary.match(rgbPattern) || []).length,
-    inline: (content.match(/style=\{\{/g) || []).length,
+    inline: (content.match(/style\s*=\s*\{\s*\{/g) || []).length,
     arbitrary: (content.match(arbitraryPattern) || []).length,
     styleTags: (content.match(/<style(?:\s|>)/g) || []).length,
     exceptions: lines.filter(line => allowedException.test(line)).length,
@@ -97,6 +104,8 @@ if (process.argv.includes('--self-test')) {
   const assert = require('node:assert/strict');
   assert.equal(analyze("color: '#00d7ff'; background: rgba(1,2,3,.5); style={{ opacity: 0.4 }}").hex, 1);
   assert.equal(analyze("// design-token-exempt: platform-brand #1877f2").hex, 0);
+  assert.equal(analyze("// design-token-exempt: platform-brand #1877f2 #aabbcc").hex, 1);
+  assert.equal(analyze("style = { { opacity: 0.4 } }").inline, 1);
   assert.equal(analyze("['[background:#ffffff]', '[color:var(--brand-primary)]']").arbitrary, 2);
   console.log('Design-token scanner self-test passed.');
   process.exit(0);
