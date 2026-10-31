@@ -15,7 +15,7 @@ import DataState from '@/components/ui/DataState';
 export default function MyConnectionsPage() {
   const { t } = useLanguage();
   const { workspaceId } = useWorkspaceScope();
-  return <Page title={t('connections.pageTitle')} description={t('accounts.subtitle')} maxWidth="lg">
+  return <Page title={t('connections.pageTitle')} description={t('accounts.subtitle')} maxWidth="xl">
     {workspaceId !== null ? <ConnectedAccounts clientId={workspaceId} />
       : <DataState state="empty" title={t('connections.workspace')} />}
   </Page>;

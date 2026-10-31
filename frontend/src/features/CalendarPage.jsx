@@ -313,7 +313,7 @@ export default function CalendarPage({ clientId: propClientId }) {
 
   if (showClientSelector && !clientId) {
     return (
-      <div style={pageStyle}>
+      <div style={pageStyle} className="px-4 py-5 sm:px-6 sm:py-7 lg:px-8">
         <div className="calendar-container">
           <PageHeader
             title={pageTitle}
@@ -344,7 +344,7 @@ export default function CalendarPage({ clientId: propClientId }) {
   }
 
   return (
-    <div style={pageStyle}>
+    <div style={pageStyle} className="px-4 py-5 sm:px-6 sm:py-7 lg:px-8">
       <div className={isEmbedded ? 'calendar-container calendar-container--embedded' : 'calendar-container'}>
         <PageHeader
           title={pageTitle}
@@ -499,7 +499,7 @@ export default function CalendarPage({ clientId: propClientId }) {
 }
 
 const pageStyle = {
-  padding: '28px 32px 40px', background: 'var(--surface-page)', minHeight: '100vh',
+  background: 'var(--surface-page)', minHeight: '100vh',
   width: '100%', maxWidth: '100%', overflowX: 'hidden', boxSizing: 'border-box',
 };
 
