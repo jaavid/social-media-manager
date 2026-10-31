@@ -95,7 +95,7 @@ function ScopedChannelSources({ clientId, onRefresh, selectedSource, onSelectSou
             </span>
             <span className="mt-0.5 block truncate text-xs text-muted-foreground">
               {sources.length
-                ? text('مشاهده و مدیریت کانال‌های عمومی', 'View and manage public channels')
+                ? sources.slice(0, 2).map(source => `@${source.username}`).join(' · ')
                 : text('هنوز کانالی اضافه نشده است', 'No channels added yet')}
             </span>
           </span>

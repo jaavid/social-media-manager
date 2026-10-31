@@ -25,8 +25,8 @@ test('switching workspace clears source and form state and ignores the old respo
   expandSources();
   fireEvent.change(screen.getByLabelText('Username or profile URL'), { target: { value: '@oldbrand' } });
   view.rerender(<ChannelSources {...props} clientId={2} />);
-  expect(screen.getByLabelText('Username or profile URL')).toHaveValue('');
   expandSources();
+  expect(screen.getByLabelText('Username or profile URL')).toHaveValue('');
   expect(await screen.findByRole('option', { name: '@newbrand' })).toBeInTheDocument();
   await act(async () => finishOld({ data: [{ id: 11, username: 'oldbrand' }] }));
   expect(screen.queryByRole('option', { name: '@oldbrand' })).not.toBeInTheDocument();
