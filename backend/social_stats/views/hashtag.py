@@ -13,26 +13,24 @@ POST /api/ai/hashtags/                        — generate hashtag research
 GET  /api/ai/hashtags/?client_id=             — get history for a client
 POST /api/ai/hashtags/{id}/save-set/          — save a custom hashtag set
 """
-import hashlib
 import json
 import logging
 
-from django.conf import settings
-from django.core.cache import cache
 from django.utils import timezone
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-import anthropic
 
 from social_stats.models import Client, HashtagSet
 from social_stats.ai_context import build_client_ai_context
+from social_stats.ai.client import AIClient, AIError
+from social_stats.ai.rate_limiter import RateLimited
+from social_stats.ai.gemini import GeminiGatewayError
 
 logger = logging.getLogger(__name__)
 
 DAILY_RATE_LIMIT = 20       # searches per client per day
-CACHE_TTL = 86400           # 24 hours — same niche+location+platform
 
 SYSTEM_PROMPT = (
     "You are a social media hashtag strategist. "
@@ -57,14 +55,6 @@ def _client_access_denied(request, client_id):
     except Exception:
         pass
     return Response({'error': 'Access denied'}, status=403)
-
-
-def _cache_key(niche: str, location: str, platform: str) -> str:
-    raw = json.dumps(
-        {'niche': niche.lower().strip(), 'location': location.lower().strip(), 'platform': platform},
-        sort_keys=True,
-    )
-    return 'hashtag:' + hashlib.sha256(raw.encode()).hexdigest()
 
 
 def _check_rate_limit(client: Client) -> bool:
@@ -229,57 +219,34 @@ def _generate_hashtags(request):
             status=429,
         )
 
-    # 24-hour cache — same niche + location + platform
-    ckey   = _cache_key(niche, location, platform)
-    cached = cache.get(ckey)
-    if cached:
-        # Return a minimal HashtagSet-like response from cache
-        return Response({'hashtags': cached, 'cached': True, 'id': None})
-
-    # Claude API
-    api_key = getattr(settings, 'ANTHROPIC_API_KEY', '')
-    if not api_key:
-        return Response({'error': 'AI service is not configured. Contact your administrator.'}, status=503)
-
-    from social_stats.entitlements import reserve_ai
-    if client is not None:
-        reserve_ai(client)
-
+    # Shared AIClient uses the selected Django provider/model. Gemini requests
+    # therefore use only the official Google SDK and mandatory Cloudflare route.
     try:
-        claude      = anthropic.Anthropic(api_key=api_key)
-        user_prompt = _build_user_prompt(niche, location, platform, post_topic, post_type, client_context)
-
-        message = claude.messages.create(
-            model='claude-haiku-4-5-20251001',
-            max_tokens=4096,
-            timeout=45,
-            system=SYSTEM_PROMPT,
-            messages=[{'role': 'user', 'content': user_prompt}],
+        prompt = _build_user_prompt(
+            niche, location, platform, post_topic, post_type, client_context,
         )
-        raw = message.content[0].text.strip()
-
-        # Strip markdown code fences if present
+        raw = AIClient(client=client, user=request.user, feature='hashtags').complete(
+            prompt, system=SYSTEM_PROMPT, max_tokens=4096, fast=True,
+            use_cache=False,
+        ).strip()
         if raw.startswith('```'):
             raw = raw.split('\n', 1)[1] if '\n' in raw else raw[3:]
             if raw.endswith('```'):
                 raw = raw[:-3].strip()
-
         hashtags = json.loads(raw)
-
-    except anthropic.APITimeoutError:
-        return Response(
-            {'error': 'The AI took too long to respond (45s limit). Please try again.'},
-            status=504,
-        )
-    except anthropic.APIError as e:
-        logger.error('Anthropic API error: %s', e)
-        return Response({'error': 'AI service error. Please try again in a moment.'}, status=502)
-    except json.JSONDecodeError:
-        logger.error('Claude returned non-JSON for hashtags: %s', raw[:300])
-        return Response({'error': 'AI returned an unexpected format. Please try again.'}, status=502)
-    except Exception as e:
-        logger.error('Hashtag generation error: %s', e)
-        return Response({'error': 'An unexpected error occurred. Please try again.'}, status=500)
+        if not isinstance(hashtags, dict) or not isinstance(hashtags.get('groups'), dict):
+            raise ValueError('Invalid hashtag payload structure')
+    except RateLimited:
+        return Response({'error': 'ai_limit_reached'}, status=429)
+    except (GeminiGatewayError, AIError):
+        logger.warning('Hashtag AI provider unavailable', exc_info=True)
+        return Response({'error': 'ai_unavailable'}, status=503)
+    except (json.JSONDecodeError, ValueError, IndexError):
+        logger.warning('Hashtag model returned invalid structured output')
+        return Response({'error': 'ai_invalid_output'}, status=502)
+    except Exception:
+        logger.exception('Hashtag generation failed')
+        return Response({'error': 'ai_generation_failed'}, status=502)
 
     # Persist
     hs = HashtagSet.objects.create(
@@ -290,9 +257,6 @@ def _generate_hashtags(request):
         hashtags=hashtags,
         generated_by=request.user,
     )
-
-    # Cache result for 24 hours
-    cache.set(ckey, hashtags, CACHE_TTL)
 
     return Response({'hashtags': hashtags, 'cached': False, 'id': hs.id})
 

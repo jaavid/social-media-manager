@@ -8,24 +8,23 @@
 # ============================================================================
 """
 AI Caption Writer views.
-POST /api/ai/caption/ — generate captions via Claude
+POST /api/ai/caption/ — generate captions via configured AI provider
 GET  /api/ai/caption/ — get history for a client
 """
-import hashlib
 import json
 import logging
 
-from django.conf import settings
-from django.core.cache import cache
 from django.utils import timezone
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-import anthropic
 
 from social_stats.models import Client, CaptionRequest
 from social_stats.ai_context import build_client_ai_context
+from social_stats.ai.client import AIClient, AIError
+from social_stats.ai.rate_limiter import RateLimited
+from social_stats.ai.gemini import GeminiGatewayError
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +40,6 @@ SYSTEM_PROMPT = (
 )
 
 DAILY_RATE_LIMIT = 10   # requests per client per day
-CACHE_TTL = 3600        # 1 hour cache for identical inputs
 
 
 def _client_access_denied(request, client_id):
@@ -52,12 +50,6 @@ def _client_access_denied(request, client_id):
     except Exception:
         pass
     return Response({'error': 'Access denied'}, status=403)
-
-
-def _cache_key(data: dict) -> str:
-    """Stable cache key based on request inputs."""
-    raw = json.dumps({k: data.get(k) for k in sorted(['topic', 'tone', 'post_type', 'platforms', 'keywords', 'call_to_action'])}, sort_keys=True)
-    return 'caption:' + hashlib.sha256(raw.encode()).hexdigest()
 
 
 def _check_rate_limit(client: Client) -> bool:
@@ -185,53 +177,37 @@ def _generate_caption(request):
     if not _check_rate_limit(client):
         return Response({'error': f'Daily limit of {DAILY_RATE_LIMIT} caption requests reached. Try again tomorrow.'}, status=429)
 
-    # Cache check (same inputs → same output within 1 hour)
-    ckey = _cache_key(data)
-    cached = cache.get(ckey)
-    if cached:
-        return Response({'captions': cached, 'cached': True})
-
-    # Call Claude
-    api_key = getattr(settings, 'ANTHROPIC_API_KEY', '')
-    if not api_key:
-        return Response({'error': 'AI service is not configured. Contact your administrator.'}, status=503)
-
-    from social_stats.entitlements import reserve_ai
-    if client is not None:
-        reserve_ai(client)
-
+    # Use the centralized provider selection: Gemini via Cloudflare or Claude.
+    # No second SDK, provider key check, or direct Google request is allowed.
+    # Do not share the legacy cross-workspace response cache.
     try:
-        claude = anthropic.Anthropic(api_key=api_key)
-        user_prompt = _build_user_prompt(topic, tone, post_type, platforms, keywords, cta, client_context)
-
-        message = claude.messages.create(
-            model='claude-haiku-4-5-20251001',
-            max_tokens=2048,
-            timeout=30,
-            system=SYSTEM_PROMPT,
-            messages=[{'role': 'user', 'content': user_prompt}],
+        prompt = _build_user_prompt(
+            topic, tone, post_type, platforms, keywords, cta, client_context,
         )
-        raw = message.content[0].text.strip()
-
-        # Strip markdown code fences if Claude wrapped it
+        raw = AIClient(client=client, user=request.user, feature='caption').complete(
+            prompt, system=SYSTEM_PROMPT, max_tokens=2048, fast=True,
+            use_cache=False,
+        ).strip()
         if raw.startswith('```'):
             raw = raw.split('\n', 1)[1] if '\n' in raw else raw[3:]
             if raw.endswith('```'):
                 raw = raw[:-3].strip()
-
         captions = json.loads(raw)
-
-    except anthropic.APITimeoutError:
-        return Response({'error': 'The AI took too long to respond (30s limit). Please try again.'}, status=504)
-    except anthropic.APIError as e:
-        logger.error('Anthropic API error: %s', e)
-        return Response({'error': 'AI service error. Please try again in a moment.'}, status=502)
-    except json.JSONDecodeError:
-        logger.error('Claude returned non-JSON: %s', raw[:200])
-        return Response({'error': 'AI returned an unexpected format. Please try again.'}, status=502)
-    except Exception as e:
-        logger.error('Caption generation error: %s', e)
-        return Response({'error': 'An unexpected error occurred. Please try again.'}, status=500)
+        if not isinstance(captions, dict) or any(
+            not isinstance(captions.get(platform), str) for platform in platforms
+        ):
+            raise ValueError('Invalid caption payload structure')
+    except RateLimited:
+        return Response({'error': 'ai_limit_reached'}, status=429)
+    except (GeminiGatewayError, AIError):
+        logger.warning('Caption AI provider unavailable', exc_info=True)
+        return Response({'error': 'ai_unavailable'}, status=503)
+    except (json.JSONDecodeError, ValueError, IndexError):
+        logger.warning('Caption model returned invalid structured output')
+        return Response({'error': 'ai_invalid_output'}, status=502)
+    except Exception:
+        logger.exception('Caption generation failed')
+        return Response({'error': 'ai_generation_failed'}, status=502)
 
     # Save to database
     CaptionRequest.objects.create(
@@ -245,8 +221,5 @@ def _generate_caption(request):
         generated_captions=captions,
         created_by=request.user,
     )
-
-    # Cache the result
-    cache.set(ckey, captions, CACHE_TTL)
 
     return Response({'captions': captions, 'cached': False})
