@@ -48,7 +48,6 @@ from ..models import AIConversation, AIMessage
 from ..ai_helpers import brand_voice_prompt
 from social_stats.views.ai import _resolved_client
 from . import RateLimited, prompts
-from .client import _anthropic_or_none
 from . import cost_tracker, rate_limiter
 from .tools import TOOL_SCHEMA, execute_tool
 
@@ -255,17 +254,14 @@ def chat(request):
             context_type='client_specific' if client else 'general',
         )
 
-    # SDK availability
-    AnthropicCls, _sdk = _anthropic_or_none()
-    if AnthropicCls is None:
-        return Response({'error': 'AI SDK not installed'}, status=503)
-
-    from django.conf import settings as dj_settings
-    api_key = getattr(dj_settings, 'ANTHROPIC_API_KEY', '')
-    if not api_key:
-        return Response({'error': 'ANTHROPIC_API_KEY is not configured'}, status=503)
-    sdk = AnthropicCls(api_key=api_key)
-    model_id = getattr(dj_settings, 'AI_DEFAULT_MODEL', 'claude-sonnet-4-6')
+    # Both providers expose the existing Anthropic-style message contract.
+    # Gemini's adapter only sends via the allowlisted Cloudflare gateway.
+    from .gemini import configured_client, selected_model, GeminiGatewayError
+    try:
+        model_id = selected_model()
+        sdk = configured_client()
+    except GeminiGatewayError as exc:
+        return Response({'error': str(exc)}, status=503)
 
     # Pre-flight rate-limit check
     try:

@@ -165,10 +165,10 @@ def outbound_request(
     those internal headers to the direct provider endpoint.
     """
     _validate_direct_url(service, url)
-    mandatory_meta = service == 'meta' or service.startswith(('instagram_', 'meta_')) or service == 'facebook_web'
-    if mandatory_meta and not gateway_key():
-        raise requests.RequestException('Meta gateway key is not configured.')
-    selected = 'gateway' if mandatory_meta else (mode or configured_mode(service)).strip().lower()
+    mandatory_gateway = service in {'meta', 'gemini'} or service.startswith(('instagram_', 'meta_')) or service == 'facebook_web'
+    if mandatory_gateway and not gateway_key():
+        raise requests.RequestException('Mandatory outbound gateway key is not configured.')
+    selected = 'gateway' if mandatory_gateway else (mode or configured_mode(service)).strip().lower()
     if selected not in {'direct', 'gateway', 'auto'}:
         selected = 'auto'
 

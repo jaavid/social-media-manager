@@ -432,6 +432,7 @@ FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
 
 # ── Anthropic Claude API ──────────────────────────────
 ANTHROPIC_API_KEY = os.environ.get('ANTHROPIC_API_KEY', '')
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
 
 # AI infrastructure () — central limits + model selection.
 AI_MONTHLY_BUDGET_USD     = float(os.environ.get('AI_MONTHLY_BUDGET_USD', '500'))
