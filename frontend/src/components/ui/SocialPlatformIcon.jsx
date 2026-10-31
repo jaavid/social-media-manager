@@ -7,6 +7,7 @@
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
 import BrandIcon from './BrandIcon';
+import { Globe2 } from 'lucide-react';
 
 const PLATFORM_ALIASES = {
   google: 'google',
@@ -66,6 +67,53 @@ export default function SocialPlatformIcon({ platform, size = 18, title, label, 
           <rect x="6.1" y="6.1" width="11.8" height="11.8" rx="3.6" fill="none" stroke="#fff" strokeWidth="1.9" />
         </SvgWrap>
       );
+    case 'telegram':
+      return (
+        <SvgWrap size={size} title={title || 'Telegram'} style={style}>
+          <circle cx="12" cy="12" r="11" fill="#229ED9" />
+          <path fill="#fff" d="M5.3 11.4 18.5 6.5c.7-.2 1.3.2 1 1.3l-2.3 10.5c-.2.8-.7 1-1.4.6l-3.5-2.6-1.7 1.7c-.2.2-.4.3-.7.3l.3-4 7.3-6.6-9 5.7-3.5-1.1c-.8-.2-.8-.7.3-.9z" />
+        </SvgWrap>
+      );
+    case 'bale':
+      return (
+        <SvgWrap size={size} title={title || 'Bale'} style={style}>
+          <rect x="1" y="1" width="22" height="22" rx="7" fill="#14A778" />
+          <path d="M6 11c0-3.1 2.6-5.5 6-5.5s6 2.4 6 5.5c0 3.2-2.7 5.6-6 5.6-.8 0-1.6-.1-2.3-.4L6 18l.8-3.7C6.3 13.3 6 12.2 6 11z" fill="#fff" />
+          <path d="M9 10h6M9 12.8h4" stroke="#14A778" strokeWidth="1.4" strokeLinecap="round" />
+        </SvgWrap>
+      );
+    case 'eitaa':
+      return (
+        <SvgWrap size={size} title={title || 'Eitaa'} style={style}>
+          <rect x="1" y="1" width="22" height="22" rx="7" fill="#F59A23" />
+          <path d="M6 12a6 6 0 1 1 5.4 6H7l.9-2.5A5.9 5.9 0 0 1 6 12z" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinejoin="round" />
+          <path d="M9.5 11h5M9.5 14h3.5" stroke="#fff" strokeLinecap="round" strokeWidth="1.6" />
+        </SvgWrap>
+      );
+    case 'aparat':
+      return (
+        <SvgWrap size={size} title={title || 'Aparat'} style={style}>
+          <rect x="1" y="1" width="22" height="22" rx="7" fill="#E23A62" />
+          <circle cx="12" cy="12" r="7" fill="none" stroke="#fff" strokeWidth="1.8" />
+          <path d="m10 8 6 4-6 4z" fill="#fff" />
+        </SvgWrap>
+      );
+    case 'tiktok':
+      return (
+        <SvgWrap size={size} title={title || 'TikTok'} style={style}>
+          <rect x="1" y="1" width="22" height="22" rx="6" fill="#111827" />
+          <path fill="#25F4EE" d="M13.3 4.8h2.4c.1 2 1 3.1 3 3.4v2.4a7.5 7.5 0 0 1-3-1v5.6a4.3 4.3 0 1 1-4.3-4.3v2.5a1.8 1.8 0 1 0 1.9 1.8V4.8z" />
+          <path fill="#fff" d="M14 4.8h2.2c.1 2 1 3.1 3 3.4v2.4a7.5 7.5 0 0 1-3-1v5.6a4.3 4.3 0 1 1-4.3-4.3v2.5a1.8 1.8 0 1 0 1.9 1.8V4.8z" opacity=".85" />
+        </SvgWrap>
+      );
+    case 'neshan':
+      return (
+        <SvgWrap size={size} title={title || 'Neshan'} style={style}>
+          <rect x="1" y="1" width="22" height="22" rx="7" fill="#566CCB" />
+          <path d="M12 4.7a6 6 0 0 0-6 6c0 3.6 6 9 6 9s6-5.4 6-9a6 6 0 0 0-6-6z" fill="none" stroke="#fff" strokeWidth="2" />
+          <circle cx="12" cy="10.8" r="2" fill="#fff" />
+        </SvgWrap>
+      );
     case 'youtube':
       return (
         <SvgWrap size={size} title={title || 'YouTube'} style={style}>
@@ -102,22 +150,12 @@ export default function SocialPlatformIcon({ platform, size = 18, title, label, 
         </SvgWrap>
       );
     default: {
-      const fallbackLabel = label || title || String(platform || '?');
-      return (
-        <span
-          role="img"
-          aria-label={fallbackLabel}
-          title={title || fallbackLabel}
-          style={{
-            width: size, height: size, borderRadius: '28%', background: color, color: '#fff',
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-            fontSize: Math.max(9, Number(size) * 0.46), fontWeight: 800, lineHeight: 1,
-            fontFamily: 'var(--font-sans)', ...style,
-          }}
-        >
-          {fallbackLabel.trim().slice(0, 1).toUpperCase() || '?'}
-        </span>
-      );
+      const fallbackLabel = label || title || String(platform || 'Platform');
+      return <span role="img" aria-label={fallbackLabel} title={fallbackLabel}
+        className="inline-flex shrink-0 items-center justify-center rounded-md bg-[var(--surface-sunken)] text-[var(--text-secondary)]"
+        style={{ width: size, height: size, ...style }}>
+        <Globe2 size={Math.max(12, Number(size) * 0.75)} aria-hidden />
+      </span>;
     }
   }
 }
