@@ -432,10 +432,12 @@ const histStyles = {
 // ── Main page ──────────────────────────────────────────────────────────────────
 export default function CaptionWriterPage({ defaultTab = 'caption' }) {
   const scope = useWorkspaceScope();
-  return <ScopedCaptionWriter key={scope.key} defaultTab={defaultTab} clientId={scope.workspaceId} />;
+  const calendarPath = scope.pathname.startsWith('/admin/') ? '/admin/analytics/calendar' : '/dashboard/calendar';
+  return <ScopedCaptionWriter key={scope.key} defaultTab={defaultTab}
+    clientId={scope.workspaceId} calendarPath={calendarPath} />;
 }
 
-function ScopedCaptionWriter({ defaultTab, clientId }) {
+function ScopedCaptionWriter({ defaultTab, clientId, calendarPath }) {
   const { t: brandT, language } = useLanguage();
   const tr = text => captionText(text, language);
   const platformChoices = usePlatformOptions('publish');
@@ -562,8 +564,9 @@ function ScopedCaptionWriter({ defaultTab, clientId }) {
   };
 
   const handleAddToCalendar = ({ platform, text }) => {
-    const encoded = encodeURIComponent(text);
-    window.open(`/dashboard/calendar?draft=${encoded}&platform=${platform}`, '_blank');
+    const params = new URLSearchParams({ draft: text, platform });
+    if (clientId) params.set('workspace', String(clientId));
+    window.open(`${calendarPath}?${params}`, '_blank', 'noopener,noreferrer');
   };
 
   const activePlatforms = selectedPlatforms.filter(p => captions && captions[p]);
