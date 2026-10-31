@@ -17,6 +17,8 @@ psycopg2-binary==2.9.13
 Pillow==13.0.0
 weasyprint==60.2
 anthropic>=0.112.0
+# Official Google Gen AI SDK; Cloudflare Worker base_url is enforced in ai/gemini.py.
+google-genai==2.34.0
 cryptography==50.0.1
 tenacity==9.1.4
 phonenumbers==9.0.40

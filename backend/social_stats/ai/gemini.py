@@ -1,106 +1,99 @@
-"""Gemini via the existing allowlisted Cloudflare API Access Gateway only.
+"""Official google-genai SDK integration through the existing Cloudflare Worker.
 
-Uses Gemini's OpenAI-compatible REST API for completions and native Models
-API for catalog discovery. The small response adapter preserves the Anthropic
-message shape expected by the existing AIClient and agentic chat orchestration.
-No Google SDK can silently fall back to a direct socket.
+The Google SDK always targets API_GATEWAY_URL/gemini. There is no direct
+network fallback, no arbitrary upstream URL, and no browser-visible API key.
+This adapter exposes the existing Anthropic-style messages interface to avoid
+rewriting the established AI features and agentic orchestrator.
 """
 from __future__ import annotations
 
+import base64
 import json
+import uuid
 from contextlib import contextmanager
 from types import SimpleNamespace
 
 from django.conf import settings
 
-from social_stats.egress.router import gateway_key, gateway_url, outbound_request
-
-
-ORIGIN = "https://generativelanguage.googleapis.com"
-CHAT_PATH = "/v1beta/openai/chat/completions"
-MODELS_PATH = "/v1beta/models"
+from social_stats.egress.router import gateway_key, gateway_url
 
 
 class GeminiGatewayError(RuntimeError):
-    """Gemini or its mandatory gateway is unavailable."""
+    """Gemini configuration, transport or provider error (safe for display)."""
 
 
-def _call(method, path, *, payload=None, params=None, stream=False):
-    key = getattr(settings, "GEMINI_API_KEY", "")
+def _sdk_client():
+    """Create a fresh official SDK client with a forced Cloudflare base_url."""
+    key = getattr(settings, "GEMINI_API_KEY", "").strip()
     if not key:
         raise GeminiGatewayError("GEMINI_API_KEY is not configured")
-    if not gateway_url() or not gateway_key():
-        raise GeminiGatewayError("API_GATEWAY_URL and API_GATEWAY_KEY are required for Gemini")
-    # Never put the Google key in the URL, trace, metadata, or a browser response.
-    # Native Gemini REST uses x-goog-api-key; OpenAI compatibility uses Bearer.
-    auth = ({"x-goog-api-key": key} if path == MODELS_PATH
-            else {"Authorization": f"Bearer {key}"})
-    headers = {**auth, "Accept": "application/json"}
-    if payload is not None:
-        headers["Content-Type"] = "application/json"
     try:
-        response = outbound_request(
-            "gemini", method, f"{ORIGIN}{path}", mode="gateway",
-            headers=headers, json=payload, params=params, stream=stream,
-            timeout=(10, 90), allow_redirects=False,
-        )
-        if 300 <= response.status_code < 400:
-            response.close()
-            raise GeminiGatewayError("Gemini gateway redirect refused")
-        if response.status_code >= 400:
-            status = response.status_code
-            response.close()
-            raise GeminiGatewayError(f"Gemini gateway/provider returned HTTP {status}")
-        return response
-    except GeminiGatewayError:
-        raise
-    except Exception as exc:
-        raise GeminiGatewayError("Gemini gateway transport failure") from exc
+        base = gateway_url()
+        secret = gateway_key()
+    except ValueError as exc:
+        raise GeminiGatewayError("API_GATEWAY_URL is invalid") from exc
+    if not base or not secret:
+        raise GeminiGatewayError("API_GATEWAY_URL and API_GATEWAY_KEY are required for Gemini")
+    try:
+        from google import genai
+        from google.genai import types
+    except ImportError as exc:
+        raise GeminiGatewayError("Official google-genai SDK is not installed") from exc
+
+    # Google Developer API paths are appended by the official SDK:
+    # /gemini/v1beta/models and /gemini/v1beta/models/<id>:generateContent.
+    # The existing Worker strips X-API-Gateway-Key before forwarding upstream.
+    return genai.Client(
+        api_key=key,
+        http_options=types.HttpOptions(
+            base_url=f"{base}/gemini",
+            api_version="v1beta",
+            timeout=90_000,
+            headers={"X-API-Gateway-Key": secret},
+            client_args={"trust_env": False, "follow_redirects": False},
+            async_client_args={"trust_env": False, "follow_redirects": False},
+        ),
+    )
+
+
+def _safe_sdk_error(exc):
+    # Never expose a provider exception's raw message: URLs or request headers
+    # may contain secrets. HTTP code alone is sufficient for operator feedback.
+    code = getattr(exc, "code", None)
+    if isinstance(code, int) and 100 <= code <= 599:
+        return GeminiGatewayError(f"Gemini SDK/provider request failed (HTTP {code})")
+    return GeminiGatewayError("Gemini SDK request failed; check gateway connectivity")
 
 
 def list_generation_models():
-    """Return full Gemini catalog (native API), only generateContent-capable models."""
+    """Discover generateContent-capable Gemini models with SDK pagination."""
     models = {}
-    page_token = None
-    seen_tokens = set()
-    for _ in range(20):  # bounded even if upstream paginates incorrectly
-        params = {"pageSize": 1000}
-        if page_token:
-            params["pageToken"] = page_token
-        response = _call("GET", MODELS_PATH, params=params)
-        try:
-            data = response.json()
-        except ValueError as exc:
-            raise GeminiGatewayError("Gemini models response is not JSON") from exc
-        finally:
-            response.close()
-        if not isinstance(data, dict) or not isinstance(data.get("models"), list):
-            raise GeminiGatewayError("Gemini models response is invalid")
-        for entry in data["models"]:
-            if not isinstance(entry, dict):
-                continue
-            methods = entry.get("supportedGenerationMethods", [])
-            model_name = entry.get("name", "")
-            if ("generateContent" not in methods or not isinstance(model_name, str)
-                    or not model_name.startswith("models/")):
-                continue
-            model_id = model_name.removeprefix("models/")
-            if not model_id or len(model_id) > 120:
-                continue
-            models[model_id] = {
-                "model_id": model_id,
-                "display_name": str(entry.get("displayName", model_id))[:160],
-                "description": str(entry.get("description", ""))[:2000],
-                "input_token_limit": entry.get("inputTokenLimit") or None,
-                "output_token_limit": entry.get("outputTokenLimit") or None,
-            }
-        page_token = data.get("nextPageToken")
-        if not page_token:
-            return list(models.values())
-        if not isinstance(page_token, str) or page_token in seen_tokens:
-            raise GeminiGatewayError("Gemini models pagination is invalid")
-        seen_tokens.add(page_token)
-    raise GeminiGatewayError("Gemini models pagination limit exceeded")
+    try:
+        with _sdk_client() as sdk:
+            # PagedItem iterator fetches further pages through the same SDK
+            # client and its Cloudflare base URL.
+            for i, model in enumerate(sdk.models.list(config={"page_size": 1000})):
+                if i >= 20_000:
+                    raise GeminiGatewayError("Gemini model catalog limit exceeded")
+                methods = getattr(model, "supported_actions", None) or []
+                raw_name = getattr(model, "name", "") or ""
+                if "generateContent" not in methods or not raw_name.startswith("models/"):
+                    continue
+                name = raw_name.removeprefix("models/")
+                if not name or len(name) > 120:
+                    continue
+                models[name] = {
+                    "model_id": name,
+                    "display_name": str(getattr(model, "display_name", "") or name)[:160],
+                    "description": str(getattr(model, "description", "") or "")[:2000],
+                    "input_token_limit": getattr(model, "input_token_limit", None) or None,
+                    "output_token_limit": getattr(model, "output_token_limit", None) or None,
+                }
+        return list(models.values())
+    except GeminiGatewayError:
+        raise
+    except Exception as exc:
+        raise _safe_sdk_error(exc) from exc
 
 
 def get_ai_configuration():
@@ -116,9 +109,8 @@ def selected_model(override=None, *, fast=False, deep=False):
         model = (config.fast_model if fast else
                  config.deep_model if deep else config.default_model)
         if model is None or not model.available:
-            raise GeminiGatewayError("Select a currently available Gemini model in Django admin")
+            raise GeminiGatewayError("Select an available Gemini model in Django admin")
         if override and override.startswith("gemini-") and override != model.model_id:
-            # Explicit model can be used only when it is in the synced catalog.
             from social_stats.models.ai import GeminiModel
             if not GeminiModel.objects.filter(model_id=override, available=True).exists():
                 raise GeminiGatewayError("Requested Gemini model is not in the available catalog")
@@ -138,6 +130,7 @@ def selected_model(override=None, *, fast=False, deep=False):
 def configured_client():
     config = get_ai_configuration()
     if config and config.provider == "gemini":
+        # Lazy creation: no network access until a message is sent.
         return GeminiGatewayClient()
     try:
         from anthropic import Anthropic
@@ -149,171 +142,177 @@ def configured_client():
     return Anthropic(api_key=key)
 
 
-def _content_to_openai(role, content):
-    """Translate Anthropic tool/image blocks into OpenAI chat message(s)."""
-    if isinstance(content, str):
-        return [{"role": role, "content": content}]
-    if not isinstance(content, list):
-        return [{"role": role, "content": str(content or "")}]
-    if role == "assistant":
-        parts, calls = [], []
-        for block in content:
-            if block.get("type") == "text":
-                parts.append(block.get("text", ""))
-            elif block.get("type") == "tool_use":
-                calls.append({"id": block["id"], "type": "function", "function": {
-                    "name": block["name"], "arguments": json.dumps(block.get("input", {})),
-                }})
-        message = {"role": "assistant", "content": "\n".join(parts) or None}
-        if calls:
-            message["tool_calls"] = calls
-        return [message]
-    parts, tools = [], []
-    for block in content:
-        kind = block.get("type")
-        if kind == "text":
-            parts.append({"type": "text", "text": block.get("text", "")})
-        elif kind == "image":
-            source = block.get("source", {})
-            if source.get("type") == "base64":
-                parts.append({"type": "image_url", "image_url": {
-                    "url": f"data:{source.get('media_type', 'image/jpeg')};base64,{source.get('data', '')}"
-                }})
-        elif kind == "tool_result":
-            value = block.get("content", "")
-            if not isinstance(value, str):
-                value = json.dumps(value)
-            tools.append({"role": "tool", "tool_call_id": block["tool_use_id"],
-                          "content": value})
-    # Tool responses must immediately follow the assistant tool_calls turn.
-    return tools + ([{"role": "user", "content": parts}] if parts else [])
+def _native_messages(messages):
+    """Convert Anthropic-style content and tool history to native SDK types.
+
+    The Anthropic IDs are local correlation IDs; Gemini uses function names
+    rather than those IDs when returning tool results.
+    """
+    from google.genai import types
+
+    translated, tool_names = [], {}
+    for message in messages:
+        role = message["role"]
+        content = message["content"]
+        parts = []
+        if isinstance(content, str):
+            parts.append(types.Part.from_text(text=content))
+        elif isinstance(content, list):
+            for item in content:
+                kind = item.get("type")
+                if kind == "text":
+                    parts.append(types.Part.from_text(text=item.get("text", "")))
+                elif kind == "image":
+                    source = item.get("source") or {}
+                    if source.get("type") != "base64":
+                        raise GeminiGatewayError("Unsupported Gemini image input")
+                    try:
+                        raw = base64.b64decode(source.get("data", ""), validate=True)
+                    except (ValueError, base64.binascii.Error) as exc:
+                        raise GeminiGatewayError("Invalid Gemini image encoding") from exc
+                    parts.append(types.Part.from_bytes(
+                        data=raw, mime_type=source.get("media_type", "image/jpeg")
+                    ))
+                elif kind == "tool_use":
+                    name = item.get("name", "")
+                    tool_names[item.get("id", "")] = name
+                    parts.append(types.Part.from_function_call(
+                        name=name, args=item.get("input") or {}
+                    ))
+                elif kind == "tool_result":
+                    name = tool_names.get(item.get("tool_use_id", ""))
+                    if not name:
+                        raise GeminiGatewayError("Unmatched Gemini tool response")
+                    value = item.get("content", "")
+                    parts.append(types.Part.from_function_response(
+                        name=name, response={"result": value}
+                    ))
+                else:
+                    raise GeminiGatewayError("Unsupported Gemini message block")
+        else:
+            raise GeminiGatewayError("Unsupported Gemini message format")
+        if parts:
+            translated.append(types.Content(
+                role="model" if role == "assistant" else "user",
+                parts=parts,
+            ))
+    return translated
 
 
-def _payload(kwargs, *, stream=False):
-    messages = []
-    if kwargs.get("system"):
-        messages.append({"role": "system", "content": kwargs["system"]})
-    for message in kwargs["messages"]:
-        messages.extend(_content_to_openai(message["role"], message["content"]))
-    payload = {
-        "model": kwargs["model"],
-        "messages": messages,
-        "max_tokens": kwargs.get("max_tokens", 1024),
-        "temperature": kwargs.get("temperature", 0.7),
-    }
-    if kwargs.get("tools"):
-        payload["tools"] = [{"type": "function", "function": {
-            "name": tool["name"],
-            "description": tool.get("description", ""),
-            "parameters": tool["input_schema"],
-        }} for tool in kwargs["tools"]]
-    if stream:
-        payload["stream"] = True
-        payload["stream_options"] = {"include_usage": True}
-    return payload
+def _generation_arguments(kwargs):
+    from google.genai import types
 
-
-def _normalise_response(data):
-    choices = data.get("choices") or []
-    if not choices:
-        raise GeminiGatewayError("Gemini completion has no choices")
-    message = choices[0].get("message") or {}
-    blocks = []
-    content = message.get("content")
-    if isinstance(content, str) and content:
-        blocks.append(SimpleNamespace(type="text", text=content))
-    elif isinstance(content, list):
-        for chunk in content:
-            if isinstance(chunk, dict) and chunk.get("type") == "text":
-                blocks.append(SimpleNamespace(type="text", text=chunk.get("text", "")))
-    for call in message.get("tool_calls") or []:
-        fn = call.get("function") or {}
-        try:
-            args = json.loads(fn.get("arguments") or "{}")
-        except ValueError:
-            args = {}
-        blocks.append(SimpleNamespace(
-            type="tool_use", id=call.get("id", ""), name=fn.get("name", ""),
-            input=args if isinstance(args, dict) else {},
+    declarations = []
+    for tool in kwargs.get("tools") or []:
+        declarations.append(types.FunctionDeclaration(
+            name=tool["name"],
+            description=tool.get("description") or "",
+            parameters_json_schema=tool["input_schema"],
         ))
-    usage = data.get("usage") or {}
+    config = types.GenerateContentConfig(
+        system_instruction=kwargs.get("system") or None,
+        max_output_tokens=kwargs.get("max_tokens", 1024),
+        temperature=kwargs.get("temperature", 0.7),
+        tools=([types.Tool(function_declarations=declarations)]
+               if declarations else None),
+        automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
+    )
+    return {
+        "model": kwargs["model"],
+        "contents": _native_messages(kwargs["messages"]),
+        "config": config,
+    }
+
+
+def _normalise_response(response):
+    blocks = []
+    candidates = getattr(response, "candidates", None) or []
+    if candidates:
+        for part in getattr(getattr(candidates[0], "content", None), "parts", None) or []:
+            if getattr(part, "text", None):
+                blocks.append(SimpleNamespace(type="text", text=part.text))
+            if getattr(part, "function_call", None):
+                call = part.function_call
+                blocks.append(SimpleNamespace(
+                    type="tool_use",
+                    # Local IDs are stable within the persisted assistant turn.
+                    id=getattr(call, "id", None) or f"gemini-{uuid.uuid4().hex}",
+                    name=call.name,
+                    input=dict(call.args or {}),
+                ))
+    usage = getattr(response, "usage_metadata", None)
     return SimpleNamespace(
-        id=data.get("id", ""), content=blocks,
+        id=getattr(response, "response_id", "") or "",
+        content=blocks,
         stop_reason="tool_use" if any(b.type == "tool_use" for b in blocks) else "end_turn",
         usage=SimpleNamespace(
-            input_tokens=usage.get("prompt_tokens") or 0,
-            output_tokens=usage.get("completion_tokens") or 0,
+            input_tokens=int(getattr(usage, "prompt_token_count", 0) or 0),
+            output_tokens=int(getattr(usage, "candidates_token_count", 0) or 0),
         ),
     )
 
 
+class _GeminiMessages:
+    def create(self, **kwargs):
+        args = _generation_arguments(kwargs)
+        try:
+            with _sdk_client() as sdk:
+                answer = sdk.models.generate_content(**args)
+            return _normalise_response(answer)
+        except GeminiGatewayError:
+            raise
+        except Exception as exc:
+            raise _safe_sdk_error(exc) from exc
+
+    @contextmanager
+    def stream(self, **kwargs):
+        # Iterator and SDK must remain open for the duration of SSE consumption.
+        with _sdk_client() as sdk:
+            try:
+                iterator = sdk.models.generate_content_stream(
+                    **_generation_arguments(kwargs)
+                )
+                stream = _GeminiStream(iterator)
+                yield stream
+            except GeminiGatewayError:
+                raise
+            except Exception as exc:
+                raise _safe_sdk_error(exc) from exc
+
+
 class _GeminiStream:
-    def __init__(self, response):
-        self.response = response
-        self.parts = []
-        self.usage = {}
-        self.request_id = ""
+    def __init__(self, iterator):
+        self._iterator = iterator
+        self._text = []
+        self._usage = SimpleNamespace(input_tokens=0, output_tokens=0)
+        self._request_id = ""
 
     @property
     def text_stream(self):
         try:
-            for line in self.response.iter_lines(decode_unicode=True):
-                if not line:
-                    continue
-                if isinstance(line, bytes):
-                    line = line.decode("utf-8")
-                if not line.startswith("data:"):
-                    continue
-                raw = line[5:].strip()
-                if raw == "[DONE]":
-                    break
-                try:
-                    packet = json.loads(raw)
-                except ValueError as exc:
-                    raise GeminiGatewayError("Gemini streaming response is invalid") from exc
-                self.request_id = packet.get("id", self.request_id)
-                self.usage = packet.get("usage") or self.usage
-                for choice in packet.get("choices") or []:
-                    delta = choice.get("delta") or {}
-                    content = delta.get("content")
-                    if isinstance(content, str) and content:
-                        self.parts.append(content)
-                        yield content
+            for packet in self._iterator:
+                response = _normalise_response(packet)
+                self._request_id = response.id or self._request_id
+                if response.usage.input_tokens or response.usage.output_tokens:
+                    self._usage = response.usage
+                for block in response.content:
+                    if block.type == "text" and block.text:
+                        self._text.append(block.text)
+                        yield block.text
         finally:
-            self.response.close()
+            close = getattr(self._iterator, "close", None)
+            if close:
+                close()
 
     def get_final_message(self):
         return SimpleNamespace(
-            id=self.request_id,
-            usage=SimpleNamespace(
-                input_tokens=self.usage.get("prompt_tokens", 0),
-                output_tokens=self.usage.get("completion_tokens", 0),
-            ),
-            content=[SimpleNamespace(type="text", text="".join(self.parts))],
+            id=self._request_id,
+            usage=self._usage,
+            content=[SimpleNamespace(type="text", text="".join(self._text))],
         )
 
 
-class _GeminiMessages:
-    def create(self, **kwargs):
-        response = _call("POST", CHAT_PATH, payload=_payload(kwargs))
-        try:
-            return _normalise_response(response.json())
-        except (ValueError, TypeError, KeyError) as exc:
-            raise GeminiGatewayError("Gemini completion response is invalid") from exc
-        finally:
-            response.close()
-
-    @contextmanager
-    def stream(self, **kwargs):
-        response = _call("POST", CHAT_PATH, payload=_payload(kwargs, stream=True), stream=True)
-        stream = _GeminiStream(response)
-        try:
-            yield stream
-        finally:
-            response.close()
-
-
 class GeminiGatewayClient:
-    """Minimal messages interface compatible with the application's AI flows."""
+    """Compatibility wrapper; all actual Google calls go through google-genai."""
     def __init__(self):
         self.messages = _GeminiMessages()

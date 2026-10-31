@@ -91,3 +91,7 @@ depend on the key's project, region and account limits.
 - Confirm \`/_gateway/routes\` contains \`gemini\` and the expected exact upstream.
 - Confirm the runtime can only reach Gemini via the Worker (host firewall / egress
   deny rules can provide defense-in-depth).
+
+The official SDK also runs `client.models.generate_content()` and
+`client.models.generate_content_stream()` through this custom base URL;
+no REST fallback or separate manual HTTP client is used for Gemini.
