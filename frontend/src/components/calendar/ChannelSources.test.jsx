@@ -2,6 +2,8 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import ChannelSources from './ChannelSources';
 import { calendarAPI } from '../../services/domains/publishing';
+import toast from '../ui/toast';
+jest.mock('../ui/toast', () => ({ __esModule: true, default: { error: jest.fn(), success: jest.fn() } }));
 
 jest.mock('../../services/domains/publishing', () => ({ calendarAPI: {
   getSources: jest.fn(), addSource: jest.fn(), syncSource: jest.fn(), removeSource: jest.fn(),
@@ -26,13 +28,14 @@ test('switching workspace clears source and form state and ignores the old respo
   expect(props.onRefresh).not.toHaveBeenCalled();
 });
 
-test('explains a completed Bright Data collection with no posts as unconfirmed content', async () => {
+test('hides provider and sync error diagnostics in user-facing calendar', async () => {
   calendarAPI.getSources.mockResolvedValue({ data: [{
     id: 2, username: 'example', provider: 'brightdata', reader_ready: false,
     sync_status: 'error', error_code: 'brightdata_empty_result',
   }] });
   render(<ChannelSources clientId={1} onRefresh={jest.fn()} selectedSource="" onSelectSource={jest.fn()} />);
-  expect(await screen.findByText(/Bright Data returned no posts; content collection was not confirmed/)).toBeInTheDocument();
+  expect(await screen.findByText('@example')).toBeInTheDocument();
+  expect(screen.queryByText(/Bright Data|Sync stopped|collection was not confirmed/)).not.toBeInTheDocument();
 });
 
 test('allows a public profile and explains the required reader session', async () => {
@@ -50,7 +53,7 @@ test('allows anonymous sync without a reader session', async () => {
   calendarAPI.getSources.mockResolvedValue({ data: [{ id: 2, username: 'example', reader_ready: false }] });
   render(<ChannelSources clientId={1} onRefresh={jest.fn()} selectedSource="" onSelectSource={jest.fn()} />);
   await waitFor(() => expect(screen.getByRole('button', { name: 'Sync posts' })).toBeEnabled());
-  expect(screen.getByText(/Anonymous public access/)).toBeInTheDocument();
+  expect(screen.queryByText(/Anonymous public access/)).not.toBeInTheDocument();
 });
 
 test('adds a named competitor in the selected brand', async () => {
@@ -64,4 +67,11 @@ test('adds a named competitor in the selected brand', async () => {
   await waitFor(() => expect(calendarAPI.addSource).toHaveBeenCalledWith({
     client: 7, platform: 'instagram', username: '@rival', competitor_name: 'Rival',
   }));
+});
+
+test('load failure is a toast, not an inline error', async () => {
+  calendarAPI.getSources.mockRejectedValue(new Error('offline'));
+  render(<ChannelSources clientId={1} onRefresh={jest.fn()} selectedSource="" onSelectSource={jest.fn()} />);
+  await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Could not load channels.'));
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument();
 });

@@ -307,7 +307,6 @@ export default function CalendarPage({ clientId: propClientId }) {
   ];
 
   const pageTitle = t('calendar.title', 'Content Calendar');
-  const pageSubtitle = t('calendar.subtitle', 'Plan, review, and measure your scheduled content.');
   const monthTitle = isPersian
     ? formatDate(visibleRange.start, { month: 'long', year: 'numeric' })
     : format(currentDate, 'MMMM yyyy');
@@ -318,8 +317,7 @@ export default function CalendarPage({ clientId: propClientId }) {
         <div className="calendar-container">
           <PageHeader
             title={pageTitle}
-            subtitle={pageSubtitle}
-            actions={(
+                        actions={(
               <select
                 value=""
                 onChange={event => {
@@ -350,8 +348,7 @@ export default function CalendarPage({ clientId: propClientId }) {
       <div className={isEmbedded ? 'calendar-container calendar-container--embedded' : 'calendar-container'}>
         <PageHeader
           title={pageTitle}
-          subtitle={pageSubtitle}
-          actions={showClientSelector ? (
+                    actions={showClientSelector ? (
             <select
               value={clientId || ''}
               onChange={event => {
