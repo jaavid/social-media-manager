@@ -189,3 +189,39 @@ class GeminiAdminTests(TestCase):
         )
         model.refresh_from_db()
         self.assertTrue(model.available)
+
+    @patch("social_stats.admin.integrations.gemini.list_generation_models")
+    def test_refresh_button_is_post_only_and_populates_empty_catalog(self, listing):
+        listing.return_value = [{
+            "model_id": "gemini-test", "display_name": "Test", "description": "",
+            "input_token_limit": 128, "output_token_limit": 128,
+        }]
+        page = reverse("admin:social_stats_geminimodel_changelist")
+        command = reverse("admin:social_stats_geminimodel_sync")
+        response = self.client.get(page)
+        self.assertContains(response, "دریافت مدل‌ها از گوگل")
+        self.assertEqual(self.client.get(command).status_code, 405)
+        self.assertFalse(GeminiModel.objects.exists())
+        self.assertEqual(self.client.post(command).status_code, 302)
+        self.assertTrue(GeminiModel.objects.filter(model_id="gemini-test").exists())
+        listing.assert_called_once()
+
+    def test_model_add_denied_even_for_django_superuser(self):
+        self.assertEqual(
+            self.client.get(reverse("admin:social_stats_geminimodel_add")).status_code,
+            403,
+        )
+
+    @patch("social_stats.admin.integrations.gemini.list_generation_models")
+    def test_non_privileged_staff_cannot_refresh_catalog(self, listing):
+        from django.contrib.auth.models import Permission
+        from django.contrib.contenttypes.models import ContentType
+        staff = User.objects.create_user("catalog-viewer", password="test", is_staff=True)
+        content_type = ContentType.objects.get_for_model(GeminiModel)
+        staff.user_permissions.add(Permission.objects.get(
+            content_type=content_type, codename="view_geminimodel",
+        ))
+        self.client.force_login(staff)
+        command = reverse("admin:social_stats_geminimodel_sync")
+        self.assertEqual(self.client.post(command).status_code, 403)
+        listing.assert_not_called()

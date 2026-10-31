@@ -182,7 +182,7 @@ class AITrainedAsset(models.Model):
                                    help_text="Vector — empty until RAG is enabled")
     metadata   = models.JSONField(default=dict, blank=True)
     indexed_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    updated_at = models.DateTimeField("آخرین ویرایش", auto_now=True)
 
     class Meta:
         ordering = ["-updated_at"]
@@ -198,13 +198,13 @@ class AITrainedAsset(models.Model):
 
 class GeminiModel(models.Model):
     """Google's discovered generateContent-capable model catalog (no credentials stored)."""
-    model_id = models.CharField(max_length=120, unique=True)
-    display_name = models.CharField(max_length=160, blank=True)
-    description = models.TextField(blank=True)
-    input_token_limit = models.PositiveIntegerField(null=True, blank=True)
-    output_token_limit = models.PositiveIntegerField(null=True, blank=True)
-    available = models.BooleanField(default=True)
-    synced_at = models.DateTimeField(null=True, blank=True)
+    model_id = models.CharField("شناسهٔ مدل", max_length=120, unique=True)
+    display_name = models.CharField("نام مدل", max_length=160, blank=True)
+    description = models.TextField("توضیحات", blank=True)
+    input_token_limit = models.PositiveIntegerField("سقف توکن ورودی", null=True, blank=True)
+    output_token_limit = models.PositiveIntegerField("سقف توکن خروجی", null=True, blank=True)
+    available = models.BooleanField("فعال", default=True)
+    synced_at = models.DateTimeField("آخرین دریافت", null=True, blank=True)
 
     class Meta:
         ordering = ["model_id"]
@@ -217,19 +217,19 @@ class GeminiModel(models.Model):
 
 class GeminiConfiguration(models.Model):
     """Single global provider switch; API tokens remain server-side in env."""
-    id = models.PositiveSmallIntegerField(primary_key=True, default=1, editable=False)
+    id = models.PositiveSmallIntegerField("شناسه", primary_key=True, default=1, editable=False)
     provider = models.CharField(
-        max_length=20, default="anthropic",
+        "ارائه‌دهنده", max_length=20, default="anthropic",
         choices=(("anthropic", "Anthropic Claude"), ("gemini", "Google Gemini")),
     )
     default_model = models.ForeignKey(
-        GeminiModel, null=True, blank=True, on_delete=models.PROTECT, related_name="+",
+        GeminiModel, verbose_name="مدل پیش‌فرض", null=True, blank=True, on_delete=models.PROTECT, related_name="+",
     )
     fast_model = models.ForeignKey(
-        GeminiModel, null=True, blank=True, on_delete=models.PROTECT, related_name="+",
+        GeminiModel, verbose_name="مدل سریع", null=True, blank=True, on_delete=models.PROTECT, related_name="+",
     )
     deep_model = models.ForeignKey(
-        GeminiModel, null=True, blank=True, on_delete=models.PROTECT, related_name="+",
+        GeminiModel, verbose_name="مدل عمیق", null=True, blank=True, on_delete=models.PROTECT, related_name="+",
     )
     updated_at = models.DateTimeField(auto_now=True)
 
