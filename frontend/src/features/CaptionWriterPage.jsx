@@ -540,7 +540,9 @@ function ScopedCaptionWriter({ defaultTab, clientId }) {
       setActivePlatform(selectedPlatforms[0]);
       loadCapHistory(clientId);
     } catch (err) {
-      setCapError(tr(err.response?.data?.error || 'ai_generation_failed'));
+      const code = err.response?.data?.error;
+      setCapError(['ai_unavailable', 'ai_generation_failed', 'ai_invalid_output', 'ai_limit_reached'].includes(code)
+        ? tr(code) : tr('ai_generation_failed'));
     } finally {
       setCapLoading(false);
     }
@@ -595,7 +597,9 @@ function ScopedCaptionWriter({ defaultTab, clientId }) {
       setHashResultId(res.data.id);
       loadHashHistory(clientId);
     } catch (err) {
-      setHashError(tr(err.response?.data?.error || 'ai_generation_failed'));
+      const code = err.response?.data?.error;
+      setHashError(['ai_unavailable', 'ai_generation_failed', 'ai_invalid_output', 'ai_limit_reached'].includes(code)
+        ? tr(code) : tr('ai_generation_failed'));
     } finally {
       setHashLoading(false);
     }
@@ -716,12 +720,12 @@ function ScopedCaptionWriter({ defaultTab, clientId }) {
                 </div>
 
                 <div style={styles.fieldGroup}>
-                  <label style={styles.label}>Keywords to include <span style={{ fontWeight: 400, color: 'var(--text-tertiary)' }}>{tr('(optional)')}</span></label>
+                  <label style={styles.label}>{tr('Keywords to include')} <span style={{ fontWeight: 400, color: 'var(--text-tertiary)' }}>{tr('(optional)')}</span></label>
                   <input type="text" value={keywords} onChange={e => setKeywords(e.target.value)} placeholder={tr('summer, sale, shoes, discount')} style={styles.input} />
                 </div>
 
                 <div style={styles.fieldGroup}>
-                  <label style={styles.label}>Call to action <span style={{ fontWeight: 400, color: 'var(--text-tertiary)' }}>{tr('(optional)')}</span></label>
+                  <label style={styles.label}>{tr('Call to action')} <span style={{ fontWeight: 400, color: 'var(--text-tertiary)' }}>{tr('(optional)')}</span></label>
                   <input type="text" value={cta} onChange={e => setCta(e.target.value)} placeholder={tr('Shop now, Book a table, Call us...')} style={styles.input} />
                 </div>
 
@@ -763,7 +767,7 @@ function ScopedCaptionWriter({ defaultTab, clientId }) {
                 </div>
 
                 <div style={styles.fieldGroup}>
-                  <label style={styles.label}>Location <span style={{ fontWeight: 400, color: 'var(--text-tertiary)' }}>{tr('(optional)')}</span></label>
+                  <label style={styles.label}>{tr('Location')} <span style={{ fontWeight: 400, color: 'var(--text-tertiary)' }}>{tr('(optional)')}</span></label>
                   <input type="text" value={hLocation} onChange={e => setHLocation(e.target.value)}
                     placeholder={tr('New York, London, Mumbai…')}
                     style={{ ...styles.input, marginTop: 6 }} />
