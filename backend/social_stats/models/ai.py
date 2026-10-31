@@ -194,3 +194,65 @@ class AITrainedAsset(models.Model):
     def __str__(self):
         return f"{self.client.company} | {self.asset_type} | {self.source_id or self.id}"
 
+
+
+class GeminiModel(models.Model):
+    """Google's discovered generateContent-capable model catalog (no credentials stored)."""
+    model_id = models.CharField(max_length=120, unique=True)
+    display_name = models.CharField(max_length=160, blank=True)
+    description = models.TextField(blank=True)
+    input_token_limit = models.PositiveIntegerField(null=True, blank=True)
+    output_token_limit = models.PositiveIntegerField(null=True, blank=True)
+    available = models.BooleanField(default=True)
+    synced_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["model_id"]
+        verbose_name = "مدل Google Gemini"
+        verbose_name_plural = "مدل‌های Google Gemini"
+
+    def __str__(self):
+        return f"{self.display_name or self.model_id} ({self.model_id})"
+
+
+class GeminiConfiguration(models.Model):
+    """Single global provider switch; API tokens remain server-side in env."""
+    id = models.PositiveSmallIntegerField(primary_key=True, default=1, editable=False)
+    provider = models.CharField(
+        max_length=20, default="anthropic",
+        choices=(("anthropic", "Anthropic Claude"), ("gemini", "Google Gemini")),
+    )
+    default_model = models.ForeignKey(
+        GeminiModel, null=True, blank=True, on_delete=models.PROTECT, related_name="+",
+    )
+    fast_model = models.ForeignKey(
+        GeminiModel, null=True, blank=True, on_delete=models.PROTECT, related_name="+",
+    )
+    deep_model = models.ForeignKey(
+        GeminiModel, null=True, blank=True, on_delete=models.PROTECT, related_name="+",
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "تنظیمات سرویس هوش مصنوعی"
+        verbose_name_plural = "تنظیمات سرویس هوش مصنوعی"
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        super().clean()
+        if self.provider == "gemini":
+            if not all([self.default_model_id, self.fast_model_id, self.deep_model_id]):
+                raise ValidationError("برای Gemini هر سه مدل اصلی، سریع و عمیق را انتخاب کنید.")
+            if GeminiModel.objects.filter(
+                pk__in=[self.default_model_id, self.fast_model_id, self.deep_model_id],
+                available=False,
+            ).exists():
+                raise ValidationError("مدل‌های غیرفعال را نمی‌توان انتخاب کرد.")
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+    def __str__(self):
+        return "تنظیمات مدل‌های AI"

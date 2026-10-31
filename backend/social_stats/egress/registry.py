@@ -75,6 +75,12 @@ SERVICES: dict[str, EgressService] = {
         'https://b-graph.facebook.com', 'meta-b-graph', 'https://b-graph.facebook.com/'),
     'meta_upload': EgressService('meta_upload', 'Meta Upload',
         'https://rupload.facebook.com', 'meta-upload', 'https://rupload.facebook.com/'),
+    'gemini': EgressService(
+        key='gemini', label='Google Gemini API',
+        direct_origin='https://generativelanguage.googleapis.com',
+        gateway_route='gemini',
+        probe_url='https://generativelanguage.googleapis.com/v1beta/models',
+    ),
     'google': EgressService(
         key='google', label='Google APIs',
         direct_origin='https://www.googleapis.com',
@@ -113,7 +119,7 @@ def get_service(key: str) -> EgressService:
 
 def configured_mode(service: str) -> str:
     """Resolve per-service mode, falling back to the global default."""
-    if service == 'meta' or service.startswith(('instagram_', 'meta_')) or service == 'facebook_web':
+    if service in ('meta', 'gemini') or service.startswith(('instagram_', 'meta_')) or service == 'facebook_web':
         return 'gateway'
     env_key = f"OUTBOUND_{service.upper().replace('-', '_')}_MODE"
     selected = (

@@ -64,6 +64,7 @@ from social_stats.models.notification_preferences import (
 )
 from social_stats.models.ai import (
     AIUsageLog, AIConversation, AIMessage, AIScheduledRun, AITrainedAsset,
+    GeminiModel, GeminiConfiguration,
 )
 from social_stats.models.telegram import (
     TelegramIntegration, TelegramUpdate, TelegramSuggestion, TelegramCallback, TelegramAssistantLink, TelegramAssistantRun,

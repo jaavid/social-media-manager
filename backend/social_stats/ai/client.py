@@ -111,21 +111,12 @@ class AIClient:
                               scope='organization') from exc
 
     def _model(self, override: Optional[str], deep: bool = False, fast: bool = False) -> str:
-        if override:
-            return override
-        if fast:
-            return getattr(settings, 'AI_FAST_MODEL', 'claude-haiku-4-5-20251001')
-        if deep:
-            return getattr(settings, 'AI_DEEP_MODEL', 'claude-opus-4-7')
-        return getattr(settings, 'AI_DEFAULT_MODEL', 'claude-sonnet-4-6')
+        from .gemini import selected_model
+        return selected_model(override, deep=deep, fast=fast)
 
     def _sdk_client(self):
-        if self._anthropic_class is None:
-            raise AIError('Anthropic SDK not installed (pip install anthropic)')
-        api_key = getattr(settings, 'ANTHROPIC_API_KEY', '')
-        if not api_key:
-            raise AIError('ANTHROPIC_API_KEY is not configured')
-        return self._anthropic_class(api_key=api_key)
+        from .gemini import configured_client
+        return configured_client()
 
     def _hash_prompt(self, prompt: str, system: str, model: str) -> str:
         raw = f'{model}|{system}|{prompt}'.encode()
@@ -367,7 +358,7 @@ class AIClient:
         Always uses Sonnet (multimodal) regardless of `fast` flag. Vision
         responses are not cached by default (they're rarely repeated).
         """
-        chosen_model = model or getattr(settings, 'AI_DEFAULT_MODEL', 'claude-sonnet-4-6')
+        chosen_model = self._model(model)
         self._check_processing_allowed()
         client_id = getattr(self.client, 'id', None)
         rate_limiter.check(client_id, feature=self.feature)
