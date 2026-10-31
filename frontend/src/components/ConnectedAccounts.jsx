@@ -184,10 +184,10 @@ function ConnectionCollection({ workspaceId }) {
                     <dt>{t('connections.account')}</dt>
                     <dd className="m-0 break-all text-end"><bdi>{account.identity.id}</bdi></dd>
                     <dt>{t('connections.destination')}</dt>
-                    <dd className="m-0 break-all text-end"><bdi>{account.destination.kind} · {account.destination.id}</bdi></dd>
+                    <dd className="m-0 break-all text-end"><bdi>{account.destination.id}</bdi></dd>
                     <dt>{t('connections.localHealth')}</dt>
-                    <dd className="m-0 text-end">{t(`connections.health.${account.health.state}`)}</dd>
-                    <dt>{t('connections.sync.' + account.sync.state)}</dt>
+                    <dd className="m-0 text-end">{account.health.code || (isPersian ? 'جزئیات محلی' : 'Local details')}</dd>
+                    <dt>{isPersian ? 'آخرین همگام‌سازی' : 'Last synchronization'}</dt>
                     <dd className="m-0 text-end">{account.sync.last_failure_at
                       ? t('connections.lastFailure', undefined, { date: formatDate(account.sync.last_failure_at) })
                       : account.sync.last_success_at
