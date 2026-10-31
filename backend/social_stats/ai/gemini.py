@@ -32,7 +32,10 @@ def _call(method, path, *, payload=None, params=None, stream=False):
     if not gateway_url() or not gateway_key():
         raise GeminiGatewayError("API_GATEWAY_URL and API_GATEWAY_KEY are required for Gemini")
     # Never put the Google key in the URL, trace, metadata, or a browser response.
-    headers = {"Authorization": f"Bearer {key}", "Accept": "application/json"}
+    # Native Gemini REST uses x-goog-api-key; OpenAI compatibility uses Bearer.
+    auth = ({"x-goog-api-key": key} if path == MODELS_PATH
+            else {"Authorization": f"Bearer {key}"})
+    headers = {**auth, "Accept": "application/json"}
     if payload is not None:
         headers["Content-Type"] = "application/json"
     try:
@@ -182,7 +185,8 @@ def _content_to_openai(role, content):
                 value = json.dumps(value)
             tools.append({"role": "tool", "tool_call_id": block["tool_use_id"],
                           "content": value})
-    return ([{"role": "user", "content": parts}] if parts else []) + tools
+    # Tool responses must immediately follow the assistant tool_calls turn.
+    return tools + ([{"role": "user", "content": parts}] if parts else [])
 
 
 def _payload(kwargs, *, stream=False):

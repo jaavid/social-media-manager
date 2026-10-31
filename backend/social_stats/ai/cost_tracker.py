@@ -51,6 +51,12 @@ DEFAULT_PRICING = {
 def _price(model: str, kind: str) -> Decimal:
     """kind = 'input' | 'output'. Returns USD per token."""
     pricing = getattr(settings, 'AI_MODEL_PRICING', DEFAULT_PRICING)
+    # Gemini pricing depends on model and context size; these are intentionally
+    # conservative configurable estimates, never represented as actual invoices.
+    if model.startswith('gemini-') and model not in pricing:
+        env_key = ('GEMINI_EST_OUTPUT_USD_PER_MILLION' if kind == 'output'
+                   else 'GEMINI_EST_INPUT_USD_PER_MILLION')
+        return Decimal(str(getattr(settings, env_key))) / Decimal(1000000)
     if kind == 'output':
         return Decimal(str(pricing.get(f'{model}_output', '0')))
     return Decimal(str(pricing.get(model, '0')))

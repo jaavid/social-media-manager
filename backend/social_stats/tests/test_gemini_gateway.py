@@ -79,6 +79,7 @@ class GeminiGatewayTests(TestCase):
         catalog = list_generation_models()
         self.assertEqual({row["model_id"] for row in catalog}, {"gemini-test-flash", "gemini-other"})
         self.assertEqual(request.call_count, 2)
+        self.assertEqual(request.call_args_list[0].kwargs["headers"]["x-goog-api-key"], "test-only-gemini-key")
         for call in request.call_args_list:
             self.assertEqual(call.args[0], "gemini")
             self.assertEqual(call.kwargs["mode"], "gateway")

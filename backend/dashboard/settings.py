@@ -433,6 +433,9 @@ FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
 # ── Anthropic Claude API ──────────────────────────────
 ANTHROPIC_API_KEY = os.environ.get('ANTHROPIC_API_KEY', '')
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
+# Conservative *estimates*, not provider billing. Override per model via AI_MODEL_PRICING.
+GEMINI_EST_INPUT_USD_PER_MILLION = float(os.environ.get('GEMINI_EST_INPUT_USD_PER_MILLION', '10'))
+GEMINI_EST_OUTPUT_USD_PER_MILLION = float(os.environ.get('GEMINI_EST_OUTPUT_USD_PER_MILLION', '50'))
 
 # AI infrastructure () — central limits + model selection.
 AI_MONTHLY_BUDGET_USD     = float(os.environ.get('AI_MONTHLY_BUDGET_USD', '500'))
