@@ -313,7 +313,11 @@ def collect_public_batch(job_id):
                     PublicObservation.objects.filter(pk=observation.pk).update(applied=True)
             except InstagramReadError as error:
                 PublicProfile.objects.filter(pk=target.pk).update(**{f'{job.kind}_error': error.code})
+                failed_sources = list(active_sources().filter(public_profile=target).values_list('pk', flat=True))
                 active_sources().filter(public_profile=target).update(sync_status='error', error_code=error.code)
+                from social_stats.calendar_notifications import notify_calendar_source_failure
+                for source_id in failed_sources:
+                    notify_calendar_source_failure(source_id, error.code)
                 # Keep successful targets usable even if another target failed.
                 continue
         PublicCollection.objects.filter(pk=job_id).update(status='ok', error_code='')
@@ -323,6 +327,14 @@ def collect_public_batch(job_id):
         transient = bool(job.snapshot_id and code in {'brightdata_unavailable', 'rate_limited', 'fetch_failed'})
         PublicCollection.objects.filter(pk=job_id).update(status='running' if transient else 'error', error_code=code)
         completed = PublicObservation.objects.filter(collection=job, applied=True).values('profile_id')
-        active_sources().filter(public_profile__in=targets).exclude(public_profile_id__in=completed).update(sync_status='error', error_code=code)
+        failed_sources = list(active_sources().filter(public_profile__in=targets)
+                              .exclude(public_profile_id__in=completed).values_list('pk', flat=True))
+        active_sources().filter(pk__in=failed_sources).update(sync_status='error', error_code=code)
+        # Transient snapshot download retries are not final failures and must not
+        # spam users while the same paid job continues.
+        if not transient:
+            from social_stats.calendar_notifications import notify_calendar_source_failure
+            for source_id in failed_sources:
+                notify_calendar_source_failure(source_id, code)
     finally:
         PublicCollection.objects.filter(pk=job_id, locked_until=lease).update(locked_until=None)
