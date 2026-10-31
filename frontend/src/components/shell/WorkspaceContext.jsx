@@ -29,9 +29,15 @@ export default function WorkspaceContext({ basePath = '/u', compact = false }) {
             if (search.has('workspace')) search.set('workspace', String(id));
             navigate({ pathname: location.pathname.replace(match[0], `/admin/workspace/${id}`),
               search: search.size ? `?${search}` : '', hash: location.hash });
+          } else if (basePath === '/admin' && location.pathname.startsWith('/admin/analytics')) {
+            // The staff analytics shell reads workspace from the URL. A
+            // path-local ephemeral selection can disappear after Next updates
+            // the route and leave the header unselected while stale scoped
+            // counts remain. Make analytics workspace selection shareable.
+            const search = new URLSearchParams(location.search);
+            search.set('workspace', String(id));
+            navigate({ pathname: location.pathname, search: `?${search}`, hash: location.hash });
           } else {
-            // Reuse URL replacement / identity-owned path selection exactly as
-            // other workspace consumers do; don't create a competing contract.
             selectWorkspace(id);
           }
         }}>

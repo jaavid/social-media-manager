@@ -62,6 +62,8 @@ test('admin workspace selector and route navigation scope badge requests', { tag
   await expect(selector).toBeVisible();
   expect(counts).toEqual([]);
   await selector.selectOption('42');
+  await expect(page).toHaveURL(/workspace=42/);
+  await expect(selector).toHaveValue('42');
   await expect.poll(() => counts.at(-1)).toBe(42);
   await expect.poll(() => page.evaluate(() => window.__workspaceFixture.count()), { timeout: 15000 }).toBeGreaterThan(0);
   // The legacy <select> is a transient navigation control; the scoped
