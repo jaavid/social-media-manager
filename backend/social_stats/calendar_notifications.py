@@ -19,6 +19,15 @@ logger = logging.getLogger(__name__)
 
 
 def notify_calendar_source_failure(source_id: int, error_code: str) -> int:
+    """Best-effort side effect; never abort the collection task."""
+    try:
+        return _notify_calendar_source_failure(source_id, error_code)
+    except Exception:
+        logger.exception('calendar_failure_notification_failed', extra={'source_id': source_id})
+        return 0
+
+
+def _notify_calendar_source_failure(source_id: int, error_code: str) -> int:
     source = CalendarSource.objects.select_related('client').filter(
         pk=source_id, is_active=True,
     ).first()
