@@ -8,7 +8,7 @@
  * ========================================================================== */
 import { useState, useCallback, useMemo, useRef } from 'react';
 import { addMonths, subMonths, format, parseISO, endOfMonth } from 'date-fns';
-import { ChevronLeft, ChevronRight, Plus, Calendar, List, BarChart2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Calendar, List, BarChart2, Layers3 } from 'lucide-react';
 import { useAppSearchParams as useSearchParams } from '../core/navigation';
 import { useSession as useAuth } from '../core/session';
 import { useWorkspaces } from '../hooks/useData';
@@ -378,15 +378,20 @@ export default function CalendarPage({ clientId: propClientId }) {
             <button onClick={goToday} style={todayBtnStyle}>{t('common.today', 'Today')}</button>
           </div>
 
-          <div className="calendar-platform-filter">
-            {[{ key: 'all', label: t('common.all', 'All'), color: 'var(--brand-primary)' }, ...calendarPlatforms.map(p => ({ key: p.key, label: p.labels[language] || p.labels.en, color: p.color }))].map(item => (
-              <button key={item.key} onClick={() => setPlatform(item.key)} className={platform === item.key ? 'calendar-platform-button calendar-platform-button--active' : 'calendar-platform-button'}>
-                <span className="calendar-inline-control">
-                  {item.key === 'all' ? null : <SocialPlatformIcon platform={item.key} size={14} />}
+          <div className="w-full min-w-0 flex-[1_1_100%] overflow-x-auto pb-1 [scrollbar-width:thin]"
+            role="group" aria-label={isPersian ? 'فیلتر شبکهٔ اجتماعی' : 'Filter by social network'}>
+            <div className="flex w-max min-w-full items-center gap-2">
+              {[{ key: 'all', label: t('common.all', 'All') }, ...calendarPlatforms.map(p => ({ key: p.key, label: p.labels[language] || p.labels.en }))].map(item => (
+                <button key={item.key} type="button" aria-pressed={platform === item.key}
+                  onClick={() => setPlatform(item.key)}
+                  className={`inline-flex min-h-9 shrink-0 items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${platform === item.key
+                    ? 'border-[var(--brand-primary)] bg-[var(--brand-primary-soft)] text-foreground'
+                    : 'border-[var(--border-subtle)] bg-card text-[var(--text-secondary)] hover:bg-accent hover:text-foreground'}`}>
+                  {item.key === 'all' ? <Layers3 size={15} aria-hidden /> : <SocialPlatformIcon platform={item.key} size={16} />}
                   {item.label || t('common.all', 'All')}
-                </span>
-              </button>
-            ))}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className={isEmbedded ? 'calendar-toolbar-actions calendar-toolbar-actions--embedded' : 'calendar-toolbar-actions'}>
