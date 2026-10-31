@@ -14,7 +14,7 @@ import { captionAPI, hashtagAPI } from '@/services/domains/intelligence';
 import {
   Copy, Edit2, CalendarDays, RefreshCw, Sparkles,
   Clock, Hash, CheckSquare, Square, ChevronDown, ChevronUp, Loader2,
-  Save, X, ChevronRight,
+  Save, X,
 } from 'lucide-react';
 import SocialPlatformIcon from '../components/ui/SocialPlatformIcon';
 import PageHeader from '../components/layout/PageHeader';
@@ -412,7 +412,6 @@ function CaptionHistoryItem({ item, onRestore }) {
 function HashHistoryItem({ item, onRestore }) {
   const { language } = useLanguage();
   const date = new Date(item.generated_at).toLocaleDateString(language === 'fa' ? 'fa-IR' : 'en-US', { month: 'short', day: 'numeric' });
-  const pfCfg = HASHTAG_PLATFORMS[item.platform] || {};
   return (
     <button onClick={() => onRestore(item)} style={histStyles.item}>
       <div style={histStyles.topic}>{item.niche.length > 30 ? item.niche.slice(0, 30) + '…' : item.niche}</div>
@@ -508,10 +507,14 @@ function ScopedCaptionWriter({ defaultTab, clientId }) {
   }, []);
 
   useEffect(() => {
-    if (clientId) {
-      loadCapHistory(clientId);
-      loadHashHistory(clientId);
-    }
+    // Defer asynchronous history reads outside the synchronous effect phase.
+    // This view is keyed by the selected workspace, so stale data cannot leak.
+    if (!clientId) return undefined;
+    const timer = setTimeout(() => {
+      void loadCapHistory(clientId);
+      void loadHashHistory(clientId);
+    }, 0);
+    return () => clearTimeout(timer);
   }, [clientId, loadCapHistory, loadHashHistory]);
 
   // ── Caption logic ──────────────────────────────────────────────────────────
@@ -626,7 +629,7 @@ function ScopedCaptionWriter({ defaultTab, clientId }) {
       await hashtagAPI.saveSet(hashResultId, { set_name: saveName.trim(), tags: selectedTags });
       setSaveModal(false);
       setSaveName('');
-    } catch (err) {
+    } catch {
       setSaveError(tr('Failed to save set.'));
     } finally {
       setSaving(false);
