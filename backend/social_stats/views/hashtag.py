@@ -177,7 +177,7 @@ def _generate_hashtags(request):
     client_id  = data.get('client_id')
     niche      = (data.get('niche') or '').strip()
     location   = (data.get('location') or '').strip()
-    platform   = (data.get('platform') or '').strip()
+    platform   = data.get('platform') or ''
     post_topic = (data.get('post_topic') or '').strip()
     post_type  = (data.get('post_type') or 'general').strip()
 
@@ -193,7 +193,7 @@ def _generate_hashtags(request):
     # Validation
     if not client_id:
         return Response({'error': 'client_id is required'}, status=400)
-    if not platform or platform not in PLATFORM_RULES:
+    if not isinstance(platform, str) or platform not in PLATFORM_RULES:
         return Response({'error': 'platform_invalid'}, status=400)
     denied = _client_access_denied(request, client_id)
     if denied:

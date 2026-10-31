@@ -137,3 +137,16 @@ class LegacyContentProviderTests(TestCase):
         self.assertEqual(response.status_code, 429)
         self.assertEqual(response.data['error'], 'caption_daily_limit')
         ai_class.assert_not_called()
+
+    @patch('social_stats.views.hashtag.AIClient')
+    def test_full_hashtag_quota_never_calls_provider(self, ai_class):
+        from social_stats.views.hashtag import DAILY_RATE_LIMIT
+        HashtagSet.objects.bulk_create([
+            HashtagSet(client=self.client_workspace, niche='used',
+                       platform='instagram', hashtags={'groups': {}})
+            for _ in range(DAILY_RATE_LIMIT)
+        ])
+        response = self.api.post('/api/ai/hashtags/', self.hashtag_payload, format='json')
+        self.assertEqual(response.status_code, 429)
+        self.assertEqual(response.data['error'], 'hashtag_daily_limit')
+        ai_class.assert_not_called()

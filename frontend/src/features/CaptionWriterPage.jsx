@@ -10,6 +10,7 @@ import { useLanguage } from '@/i18n';
  * ========================================================================== */
 import { useState, useEffect, useCallback } from 'react';
 import useWorkspaceScope from '../hooks/useWorkspaceScope';
+import { captionCalendarHref } from '../utils/captionCalendar';
 import { captionAPI, hashtagAPI } from '@/services/domains/intelligence';
 import {
   Copy, Edit2, CalendarDays, RefreshCw, Sparkles,
@@ -296,7 +297,7 @@ function CaptionCard({ platform, caption, hashtags, bestTime, onAddToCalendar })
         </button>
         <button onClick={() => onAddToCalendar({ platform, text, hashtags })} style={cardStyles.actionBtn}>
           <CalendarDays size={13} />
-          Add to Calendar
+          {tr('Add to Calendar')}
         </button>
       </div>
     </div>
@@ -581,9 +582,8 @@ function ScopedCaptionWriter({ defaultTab, clientId, calendarPath }) {
   };
 
   const handleAddToCalendar = ({ platform, text }) => {
-    const params = new URLSearchParams({ draft: text, platform });
-    if (clientId) params.set(calendarPath.startsWith('/admin/') ? 'client' : 'workspace', String(clientId));
-    window.open(`${calendarPath}?${params}`, '_blank', 'noopener,noreferrer');
+    const href = captionCalendarHref(calendarPath, clientId, platform, text);
+    window.open(href, '_blank', 'noopener,noreferrer');
   };
 
   const activePlatforms = selectedPlatforms.filter(p => captions && captions[p]);
