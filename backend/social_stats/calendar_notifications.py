@@ -47,8 +47,7 @@ def _notify_calendar_source_failure(source_id: int, error_code: str) -> int:
         Q(profile__role='superadmin')
         | Q(id__in=agency_members)
         | Q(id__in=assigned_staff)
-        |
-        Q(id=source.client.owner_user_id)
+        | Q(id=source.client.owner_user_id)
         | Q(profile__client_id=source.client_id)
         | Q(profile__assigned_clients__id=source.client_id)
         | Q(id__in=WorkspaceMemberPolicy.objects.filter(
