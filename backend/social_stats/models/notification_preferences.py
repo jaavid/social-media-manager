@@ -20,6 +20,7 @@ SMART_NOTIFICATION_EVENT_CHOICES = [
     ('mention',           'Mention or tag'),
     ('token_expiring',    'Token expiring soon'),
     ('publish_failed',    'Publish failed'),
+    ('calendar_sync_failed', 'Tracked channel collection failed'),
     ('post_published',    'Post published'),
     ('approval_pending',  'Post needs approval'),
     ('inbox_message',     'New inbound message'),

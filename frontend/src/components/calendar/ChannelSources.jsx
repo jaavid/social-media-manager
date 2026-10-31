@@ -113,7 +113,7 @@ function ScopedChannelSources({ clientId, onRefresh, selectedSource, onSelectSou
             {source.is_competitor && <strong>{source.display_name} · {text('رقیب', 'Competitor')} · </strong>}
             <strong dir="ltr">@{source.username}</strong>{' · '}
             {source.last_synced_at ? formatDate(source.last_synced_at) : text('هنوز دریافت نشده', 'Not synced yet')}
-            <PublicProfileSummary data={source.public_data} />
+            <PublicProfileSummary data={source.public_data} compact />
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 6 }}>
               <button type="button" disabled={busy} style={controlStyle} onClick={() => act(async () => {
                 await calendarAPI.syncSource(source.id);
