@@ -45,6 +45,7 @@ class GeminiGatewayTests(TestCase):
         self.assertEqual(make_client.call_count, 1)
         kwargs = make_client.call_args.kwargs
         self.assertEqual(kwargs["api_key"], "test-google-key")
+        self.assertIs(kwargs["vertexai"], False)
         opts = kwargs["http_options"]
         self.assertEqual(opts.base_url, "https://gateway.example.test/gemini")
         self.assertEqual(opts.api_version, "v1beta")

@@ -44,6 +44,7 @@ def _sdk_client():
     # /gemini/v1beta/models and /gemini/v1beta/models/<id>:generateContent.
     # The existing Worker strips X-API-Gateway-Key before forwarding upstream.
     return genai.Client(
+        vertexai=False,  # ignore GOOGLE_GENAI_USE_VERTEXAI and force Developer API
         api_key=key,
         http_options=types.HttpOptions(
             base_url=f"{base}/gemini",
