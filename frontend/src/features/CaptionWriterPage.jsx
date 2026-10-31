@@ -314,7 +314,7 @@ function TierCard({ tier, data, selectedTags, onToggleTag }) {
               <button
                 key={t.tag}
                 onClick={() => onToggleTag(t.tag)}
-                title={`${tr('Estimated posts')}: ${t.estimated_posts || '?'}`
+                title={`${tr('Estimated posts')}: ${t.estimated_posts || '?'}`}
                 style={{
                   padding: '5px 12px', borderRadius: 99, fontSize: 13, fontWeight: 600, cursor: 'pointer',
                   border: `1.5px solid ${isSelected ? cfg.color : cfg.border}`,
@@ -391,7 +391,6 @@ const cardStyles = {
 // ── History items ──────────────────────────────────────────────────────────────
 function CaptionHistoryItem({ item, onRestore }) {
   const { language } = useLanguage();
-  const tr = text => captionText(text, language);
   const date = new Date(item.created_at).toLocaleDateString(language === 'fa' ? 'fa-IR' : 'en-US', { month: 'short', day: 'numeric' });
   return (
     <button onClick={() => onRestore(item)} style={histStyles.item}>
@@ -412,7 +411,6 @@ function CaptionHistoryItem({ item, onRestore }) {
 
 function HashHistoryItem({ item, onRestore }) {
   const { language } = useLanguage();
-  const tr = text => captionText(text, language);
   const date = new Date(item.generated_at).toLocaleDateString(language === 'fa' ? 'fa-IR' : 'en-US', { month: 'short', day: 'numeric' });
   const pfCfg = HASHTAG_PLATFORMS[item.platform] || {};
   return (
