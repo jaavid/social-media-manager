@@ -112,6 +112,8 @@ def sync_legacy_calendar_source(source_id, snapshot_id=None):
         # Do not log SDK exceptions: they can contain cookies, tokens and raw responses.
         code = exc.code if isinstance(exc, InstagramReadError) else 'fetch_failed'
         CalendarSource.objects.filter(pk=source_id).update(sync_status='error', error_code=code)
+        from social_stats.calendar_notifications import notify_calendar_source_failure
+        notify_calendar_source_failure(source_id, code)
         # Keep the snapshot on transient failures so a later attempt downloads the
         # same collection instead of submitting another potentially billable job.
         if code in {'brightdata_timeout', 'brightdata_collection_failed', 'brightdata_invalid_response'}:

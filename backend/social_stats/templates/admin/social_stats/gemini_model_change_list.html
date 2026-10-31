@@ -1,0 +1,13 @@
+{% extends "admin/change_list.html" %}
+{% load i18n %}
+{% block object-tools-items %}
+  {% if gemini_sync_allowed %}
+    <form method="post" action="{% url 'admin:social_stats_geminimodel_sync' %}">
+        {% csrf_token %}
+        <button type="submit" class="button" aria-label="دریافت مدل‌ها از گوگل">
+          دریافت مدل‌ها از گوگل
+        </button>
+    </form>
+  {% endif %}
+  {{ block.super }}
+{% endblock %}

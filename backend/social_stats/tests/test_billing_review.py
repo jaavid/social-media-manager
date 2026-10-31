@@ -27,7 +27,7 @@ class BillingReviewTests(TestCase):
 
     def call_chat(self, sdk, **payload):
         """Exercise the HTTP endpoint with provider and budget preflight mocked."""
-        with patch('social_stats.ai.chat_views._anthropic_or_none', return_value=(Mock(return_value=sdk), None)), \
+        with patch('social_stats.ai.gemini.configured_client', return_value=sdk), \
              patch('social_stats.ai.chat_views.rate_limiter.check'):
             return self.api.post('/api/ai/v2/chat/', {'message': 'Updated title', **payload}, format='json')
 
