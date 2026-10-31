@@ -36,7 +36,7 @@ function ScopedChannelSources({ clientId, onRefresh, selectedSource, onSelectSou
     generation.current += 1;
     const token = generation.current;
     if (clientId) load().catch(() => {
-      if (generation.current === token) toast.error(text('کانال‌ها بارگذاری نشدند.', 'Could not load channels.'));
+      if (generation.current === token) toast.error(isPersian ? 'کانال‌ها بارگذاری نشدند.' : 'Could not load channels.');
     });
     return () => { generation.current += 1; };
   }, [clientId, load, isPersian]);
@@ -51,21 +51,31 @@ function ScopedChannelSources({ clientId, onRefresh, selectedSource, onSelectSou
     return () => { cancelled = true; clearInterval(timer); clearTimeout(stop); };
   }, [pending, load, onRefresh]);
 
-  async function act(action) {
+  async function act(action, successMessage = null, onSuccess = null) {
     const token = generation.current;
     setBusy(true);
     try {
       await action();
-      if (generation.current !== token) return;
-      await load();
-      if (generation.current !== token) return;
-      onRefresh();
     } catch (error) {
-      if (generation.current !== token) return;
-      const code = error.response?.data?.error;
-      toast.error(code === 'cooldown'
-        ? text('۱۵ دقیقه بعد دوباره تلاش کنید.', 'Try again in 15 minutes.')
-        : text('عملیات انجام نشد.', 'Operation failed.'));
+      if (generation.current === token) {
+        const code = error.response?.data?.error;
+        toast.error(code === 'cooldown'
+          ? text('۱۵ دقیقه بعد دوباره تلاش کنید.', 'Try again in 15 minutes.')
+          : text('عملیات انجام نشد.', 'Operation failed.'));
+      }
+      if (generation.current === token) setBusy(false);
+      return;
+    }
+    if (generation.current !== token) return;
+    onSuccess?.();
+    if (successMessage) toast.success(successMessage);
+    try {
+      await load();
+      if (generation.current === token) onRefresh();
+    } catch {
+      if (generation.current === token) {
+        toast.error(text('عملیات انجام شد، اما فهرست به‌روز نشد.', 'Action completed, but the list could not refresh.'));
+      }
     } finally {
       if (generation.current === token) setBusy(false);
     }
@@ -88,13 +98,13 @@ function ScopedChannelSources({ clientId, onRefresh, selectedSource, onSelectSou
           await calendarAPI.addSource({ client: clientId, platform: 'instagram', username,
             ...(isCompetitor ? { competitor_name: competitorName.trim() } : {}),
           });
+        }, text('کانال اضافه شد.', 'Channel added.'), () => {
           setUsername('');
           setCompetitorName('');
-          toast.success(text('کانال اضافه شد.', 'Channel added.'));
         });
       }} className="mt-3 flex min-w-0 flex-wrap items-center gap-2">
         <label htmlFor="calendar-instagram-username" className="sr-only">{text('نام کاربری یا لینک پروفایل', 'Username or profile URL')}</label>
-        <input id="calendar-instagram-username" value={username} onChange={event => setUsername(event.target.value)} required dir="ltr" placeholder={text('نام کاربری یا لینک اینستاگرام', 'Instagram username or URL')} className="w-full min-w-0 flex-1 sm:basis-48" style={controlStyle} />
+        <input id="calendar-instagram-username" value={username} onChange={event => setUsername(event.target.value)} required dir="ltr" placeholder={text('نام کاربری یا لینک اینستاگرام', 'Instagram username or URL')} className="min-w-0 basis-full grow sm:basis-48" style={controlStyle} />
         <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minHeight: 44 }}>
           <input type="checkbox" checked={isCompetitor} onChange={event => setIsCompetitor(event.target.checked)} />
           {text('رقیب است', 'Competitor')}
@@ -102,10 +112,10 @@ function ScopedChannelSources({ clientId, onRefresh, selectedSource, onSelectSou
         {isCompetitor && <>
           <label htmlFor="calendar-competitor-name" className="sr-only">{text('نام رقیب', 'Competitor name')}</label>
           <input id="calendar-competitor-name" value={competitorName} maxLength={200} required placeholder={text('نام رقیب', 'Competitor name')}
-            onChange={event => setCompetitorName(event.target.value)} className="w-full min-w-0 flex-1 sm:basis-36" style={controlStyle} />
+            onChange={event => setCompetitorName(event.target.value)} className="min-w-0 basis-full grow sm:basis-36" style={controlStyle} />
         </>}
         <button type="submit" disabled={busy || !username.trim() || (isCompetitor && !competitorName.trim())} style={controlStyle}>{isCompetitor ? text('افزودن رقیب', 'Add competitor') : text('افزودن کانال', 'Add channel')}</button>
-        <button type="button" disabled={busy} onClick={() => act(load)} style={controlStyle}>{text('تازه‌سازی', 'Refresh')}</button>
+        <button type="button" disabled={busy} onClick={() => act(async () => {})} style={controlStyle}>{text('تازه‌سازی', 'Refresh')}</button>
       </form>
       <ul className="list-none space-y-2 p-0">
         {sources.map(source => (
@@ -117,13 +127,11 @@ function ScopedChannelSources({ clientId, onRefresh, selectedSource, onSelectSou
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 6 }}>
               <button type="button" disabled={busy} style={controlStyle} onClick={() => act(async () => {
                 await calendarAPI.syncSource(source.id);
-                setPending(true);
-                toast.success(text('دریافت در صف قرار گرفت.', 'Sync queued.'));
-              })}>{text('دریافت پست‌ها', 'Sync posts')}</button>
+              }, text('دریافت در صف قرار گرفت.', 'Sync queued.'), () => setPending(true))}>{text('دریافت پست‌ها', 'Sync posts')}</button>
               <button type="button" disabled={busy} style={controlStyle} onClick={() => act(async () => {
                 await calendarAPI.removeSource(source.id);
+              }, text('کانال حذف شد.', 'Channel removed.'), () => {
                 if (String(source.id) === selectedSource) onSelectSource('');
-                toast.success(text('کانال حذف شد.', 'Channel removed.'));
               })}>{text('حذف از رصد', 'Stop tracking')}</button>
             </div>
           </li>

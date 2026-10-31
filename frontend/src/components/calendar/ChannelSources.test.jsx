@@ -60,7 +60,7 @@ test('adds a named competitor in the selected brand', async () => {
   calendarAPI.getSources.mockResolvedValue({ data: [] });
   calendarAPI.addSource.mockResolvedValue({ data: {} });
   render(<ChannelSources clientId={7} onRefresh={jest.fn()} selectedSource="" onSelectSource={jest.fn()} />);
-  fireEvent.click(screen.getByRole('checkbox', { name: 'Track as competitor' }));
+  fireEvent.click(screen.getByRole('checkbox', { name: 'Competitor' }));
   fireEvent.change(screen.getByLabelText('Competitor name'), { target: { value: 'Rival' } });
   fireEvent.change(screen.getByLabelText('Username or profile URL'), { target: { value: '@rival' } });
   fireEvent.click(screen.getByRole('button', { name: 'Add competitor' }));
@@ -74,4 +74,15 @@ test('load failure is a toast, not an inline error', async () => {
   render(<ChannelSources clientId={1} onRefresh={jest.fn()} selectedSource="" onSelectSource={jest.fn()} />);
   await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Could not load channels.'));
   expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+});
+
+test('action success with reload failure shows an accurate notification', async () => {
+  calendarAPI.getSources.mockResolvedValueOnce({ data: [] }).mockRejectedValueOnce(new Error('reload failed'));
+  calendarAPI.addSource.mockResolvedValue({ data: {} });
+  render(<ChannelSources clientId={1} onRefresh={jest.fn()} selectedSource="" onSelectSource={jest.fn()} />);
+  fireEvent.change(screen.getByLabelText('Username or profile URL'), { target: { value: '@example' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Add channel' }));
+  await waitFor(() => expect(toast.success).toHaveBeenCalledWith('Channel added.'));
+  await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Action completed, but the list could not refresh.'));
+  expect(toast.error).not.toHaveBeenCalledWith('Operation failed.');
 });
