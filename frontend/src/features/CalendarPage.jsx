@@ -25,6 +25,7 @@ import CalendarStats from '../components/calendar/CalendarStats';
 import UpcomingPosts from '../components/calendar/UpcomingPosts';
 import PageHeader from '../components/layout/PageHeader';
 import SocialPlatformIcon from '../components/ui/SocialPlatformIcon';
+import Button from '../components/ui/Button';
 import { useLanguage } from '../i18n';
 import {
   addPersianMonths,
@@ -396,9 +397,9 @@ export default function CalendarPage({ clientId: propClientId }) {
 
           <div className={isEmbedded ? 'calendar-toolbar-actions calendar-toolbar-actions--embedded' : 'calendar-toolbar-actions'}>
             {isAdmin && (
-              <button onClick={event => openFormForDate(new Date(), event.currentTarget)} style={scheduleBtnStyle}>
-                <Plus size={16} /> {t('calendar.schedulePost', 'Schedule Post')}
-              </button>
+              <Button icon={Plus} size="md" onClick={event => openFormForDate(new Date(), event.currentTarget)}>
+                {t('calendar.schedulePost', 'Schedule Post')}
+              </Button>
             )}
             <div className="calendar-view-switcher">
               {views.map(item => (
@@ -504,21 +505,15 @@ const pageStyle = {
 };
 
 const navBtnStyle = {
-  width: 32, height: 32, borderRadius: '50%', background: 'var(--surface-card)',
+  width: 40, height: 40, minHeight: 40, borderRadius: '50%', background: 'var(--surface-card)',
   border: '1px solid var(--border-default)', cursor: 'pointer', display: 'flex',
   alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', transition: 'background 0.15s',
 };
 
 const todayBtnStyle = {
-  padding: '6px 12px', borderRadius: 8, background: 'var(--surface-page)',
+  minHeight: 40, padding: '6px 12px', borderRadius: 8, background: 'var(--surface-page)',
   border: '1px solid var(--border-default)', cursor: 'pointer', fontSize: 12,
   fontWeight: 600, color: 'var(--text-secondary)',
-};
-
-const scheduleBtnStyle = {
-  display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8,
-  background: '#00d7ff', color: 'var(--text-primary)', border: 'none', cursor: 'pointer',
-  fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap',
 };
 
 const adminClientSelectStyle = {
