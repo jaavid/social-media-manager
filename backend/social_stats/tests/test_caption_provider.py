@@ -93,3 +93,47 @@ class LegacyContentProviderTests(TestCase):
         )
         self.assertEqual(response.status_code, 403)
         ai_class.assert_not_called()
+
+    @patch('social_stats.views.caption.AIClient')
+    def test_rejects_invalid_platforms_before_provider_charge(self, ai_class):
+        for value in ['instagram', ['instagram', 'unsupported'], [{'invalid': 1}], []]:
+            response = self.api.post(
+                '/api/ai/caption/', {**self.caption_payload, 'platforms': value},
+                format='json',
+            )
+            self.assertEqual(response.status_code, 400, response.data)
+            self.assertEqual(response.data['error'], 'platforms_invalid')
+        ai_class.assert_not_called()
+        self.assertFalse(CaptionRequest.objects.exists())
+
+    @patch('social_stats.views.caption.AIClient')
+    def test_daily_limit_is_reserved_before_provider_call(self, ai_class):
+        from social_stats.views.caption import DAILY_RATE_LIMIT
+        from social_stats.models import CaptionRequest
+        def reject_after_reservation(*args, **kwargs):
+            self.assertEqual(CaptionRequest.objects.count(), 1)
+            raise RuntimeError('provider failed')
+        ai_class.return_value.complete.side_effect = reject_after_reservation
+        response = self.api.post('/api/ai/caption/', self.caption_payload, format='json')
+        self.assertEqual(response.status_code, 502)
+        self.assertFalse(CaptionRequest.objects.exists())
+
+    @patch('social_stats.views.hashtag.AIClient')
+    def test_hashtag_error_releases_pending_slot(self, ai_class):
+        ai_class.return_value.complete.side_effect = RuntimeError('provider failed')
+        response = self.api.post('/api/ai/hashtags/', self.hashtag_payload, format='json')
+        self.assertEqual(response.status_code, 502)
+        self.assertFalse(HashtagSet.objects.exists())
+
+    @patch('social_stats.views.caption.AIClient')
+    def test_full_caption_quota_never_calls_provider(self, ai_class):
+        from social_stats.views.caption import DAILY_RATE_LIMIT
+        CaptionRequest.objects.bulk_create([
+            CaptionRequest(client=self.client_workspace, topic='used',
+                           platforms=['instagram'], generated_captions={'instagram': 'x'})
+            for _ in range(DAILY_RATE_LIMIT)
+        ])
+        response = self.api.post('/api/ai/caption/', self.caption_payload, format='json')
+        self.assertEqual(response.status_code, 429)
+        self.assertEqual(response.data['error'], 'caption_daily_limit')
+        ai_class.assert_not_called()

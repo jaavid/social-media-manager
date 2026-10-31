@@ -15,6 +15,7 @@ import json
 import logging
 
 from django.utils import timezone
+from django.db import transaction
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -122,7 +123,7 @@ def _get_history(request):
     if denied:
         return denied
 
-    qs = CaptionRequest.objects.filter(client_id=client_id).order_by('-created_at')[:20]
+    qs = CaptionRequest.objects.filter(client_id=client_id).exclude(generated_captions={}).order_by('-created_at')[:20]
     data = []
     for r in qs:
         data.append({
@@ -161,8 +162,10 @@ def _generate_caption(request):
         return Response({'error': 'client_id is required'}, status=400)
     if not topic:
         return Response({'error': 'topic is required'}, status=400)
-    if not platforms:
-        return Response({'error': 'at least one platform is required'}, status=400)
+    if not isinstance(platforms, list) or not platforms or not all(
+        isinstance(p, str) and p in PLATFORM_RULES for p in platforms
+    ):
+        return Response({'error': 'platforms_invalid'}, status=400)
     denied = _client_access_denied(request, client_id)
     if denied:
         return denied
@@ -174,9 +177,18 @@ def _generate_caption(request):
 
     client_context = build_client_ai_context(client)
 
-    # Rate limit check
-    if not _check_rate_limit(client):
-        return Response({'error': f'Daily limit of {DAILY_RATE_LIMIT} caption requests reached. Try again tomorrow.'}, status=429)
+    # Reserve a pending row under the workspace row lock. Transactions end
+    # BEFORE the external provider request; concurrent requests cannot bypass
+    # the legacy 10/day limit, and slow AI calls do not hold DB locks.
+    with transaction.atomic():
+        Client.objects.select_for_update().get(pk=client.pk)
+        if not _check_rate_limit(client):
+            return Response({'error': 'caption_daily_limit'}, status=429)
+        pending = CaptionRequest.objects.create(
+            client=client, topic=topic, tone=tone, post_type=post_type,
+            platforms=platforms, keywords=keywords, call_to_action=cta,
+            generated_captions={}, created_by=request.user,
+        )
 
     # Use the centralized provider selection: Gemini via Cloudflare or Claude.
     # No second SDK, provider key check, or direct Google request is allowed.
@@ -199,28 +211,23 @@ def _generate_caption(request):
         ):
             raise ValueError('Invalid caption payload structure')
     except RateLimited:
+        pending.delete()
         return Response({'error': 'ai_limit_reached'}, status=429)
     except (GeminiGatewayError, AIError):
+        pending.delete()
         logger.warning('Caption AI provider unavailable', exc_info=True)
         return Response({'error': 'ai_unavailable'}, status=503)
     except (json.JSONDecodeError, ValueError, IndexError):
+        pending.delete()
         logger.warning('Caption model returned invalid structured output')
         return Response({'error': 'ai_invalid_output'}, status=502)
     except Exception:
+        pending.delete()
         logger.exception('Caption generation failed')
         return Response({'error': 'ai_generation_failed'}, status=502)
 
-    # Save to database
-    CaptionRequest.objects.create(
-        client=client,
-        topic=topic,
-        tone=tone,
-        post_type=post_type,
-        platforms=platforms,
-        keywords=keywords,
-        call_to_action=cta,
-        generated_captions=captions,
-        created_by=request.user,
-    )
+    # Publish the reserved row as a successful result.
+    pending.generated_captions = captions
+    pending.save(update_fields=['generated_captions'])
 
     return Response({'captions': captions, 'cached': False})

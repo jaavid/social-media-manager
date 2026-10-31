@@ -17,6 +17,7 @@ import json
 import logging
 
 from django.utils import timezone
+from django.db import transaction
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -165,7 +166,7 @@ def _get_history(request):
     if denied:
         return denied
 
-    qs = HashtagSet.objects.filter(client_id=client_id).order_by('-generated_at')[:30]
+    qs = HashtagSet.objects.filter(client_id=client_id).exclude(hashtags={}).order_by('-generated_at')[:30]
     return Response([_serialize_hashtag_set(hs) for hs in qs])
 
 
@@ -192,8 +193,8 @@ def _generate_hashtags(request):
     # Validation
     if not client_id:
         return Response({'error': 'client_id is required'}, status=400)
-    if not platform:
-        return Response({'error': 'platform is required'}, status=400)
+    if not platform or platform not in PLATFORM_RULES:
+        return Response({'error': 'platform_invalid'}, status=400)
     denied = _client_access_denied(request, client_id)
     if denied:
         return denied
@@ -213,11 +214,15 @@ def _generate_hashtags(request):
     if not post_topic:
         return Response({'error': 'post_topic is required'}, status=400)
 
-    # Rate limit
-    if not _check_rate_limit(client):
-        return Response(
-            {'error': f'Daily limit of {DAILY_RATE_LIMIT} hashtag searches reached. Try again tomorrow.'},
-            status=429,
+    # Transactional slot reservation prevents concurrent requests from
+    # passing the same daily limit. Do not hold the row lock during SDK I/O.
+    with transaction.atomic():
+        Client.objects.select_for_update().get(pk=client.pk)
+        if not _check_rate_limit(client):
+            return Response({'error': 'hashtag_daily_limit'}, status=429)
+        pending = HashtagSet.objects.create(
+            client=client, niche=niche, location=location,
+            platform=platform, hashtags={}, generated_by=request.user,
         )
 
     # Shared AIClient uses the selected Django provider/model. Gemini requests
@@ -238,26 +243,24 @@ def _generate_hashtags(request):
         if not isinstance(hashtags, dict) or not isinstance(hashtags.get('groups'), dict):
             raise ValueError('Invalid hashtag payload structure')
     except RateLimited:
+        pending.delete()
         return Response({'error': 'ai_limit_reached'}, status=429)
     except (GeminiGatewayError, AIError):
+        pending.delete()
         logger.warning('Hashtag AI provider unavailable', exc_info=True)
         return Response({'error': 'ai_unavailable'}, status=503)
     except (json.JSONDecodeError, ValueError, IndexError):
+        pending.delete()
         logger.warning('Hashtag model returned invalid structured output')
         return Response({'error': 'ai_invalid_output'}, status=502)
     except Exception:
+        pending.delete()
         logger.exception('Hashtag generation failed')
         return Response({'error': 'ai_generation_failed'}, status=502)
 
-    # Persist
-    hs = HashtagSet.objects.create(
-        client=client,
-        niche=niche,
-        location=location,
-        platform=platform,
-        hashtags=hashtags,
-        generated_by=request.user,
-    )
+    pending.hashtags = hashtags
+    pending.save(update_fields=['hashtags'])
+    hs = pending
 
     return Response({'hashtags': hashtags, 'cached': False, 'id': hs.id})
 

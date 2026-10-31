@@ -190,6 +190,10 @@ class GeminiAdminTests(TestCase):
         model.refresh_from_db()
         self.assertTrue(model.available)
 
+    @override_settings(STORAGES={
+        'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
+        'staticfiles': {'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage'},
+    })
     @patch("social_stats.admin.integrations.gemini.list_generation_models")
     def test_refresh_button_is_post_only_and_populates_empty_catalog(self, listing):
         listing.return_value = [{

@@ -149,6 +149,11 @@ const CAPTION_FA = {
   "ai_generation_failed": "در تولید محتوا مشکلی رخ داد. دوباره تلاش کنید.",
   "ai_invalid_output": "پاسخ قابل استفاده نبود. دوباره تلاش کنید.",
   "ai_limit_reached": "سقف استفاده از هوش مصنوعی پر شده است.",
+  "caption_daily_limit": "سقف روزانهٔ ساخت کپشن تکمیل شده است. فردا دوباره تلاش کنید.",
+  "hashtag_daily_limit": "سقف روزانهٔ پژوهش هشتگ تکمیل شده است. فردا دوباره تلاش کنید.",
+  "platforms_invalid": "شبکه‌های اجتماعی انتخاب‌شده معتبر نیستند.",
+  "platform_invalid": "شبکهٔ اجتماعی انتخاب‌شده معتبر نیست.",
+  "Best time:": "بهترین زمان:",
   "AI service is not configured. Contact your administrator.": "سرویس هوش مصنوعی آماده نیست؛ تنظیمات مدیر را بررسی کنید.",
   "Summer sale, 30% off all shoes...": "مثلاً تبریک یک مناسبت یا معرفی خدمات جدید",
   "summer, sale, shoes, discount": "مثلاً مدرسه، ثبت‌نام، آموزش",
@@ -158,7 +163,20 @@ const CAPTION_FA = {
   "Announcing our new protein shake product…": "مثلاً معرفی دورهٔ آموزشی جدید",
   "e.g. Fitness promo tags": "مثلاً هشتگ‌های معرفی دوره"
 };
-const captionText = (text, language) => language === 'fa' ? (CAPTION_FA[text] || text) : text;
+const CAPTION_ERROR_EN = {
+  ai_unavailable: 'AI service is unavailable. Ask an administrator to check its settings.',
+  ai_generation_failed: 'Content generation failed. Please try again.',
+  ai_invalid_output: 'The AI response was invalid. Please try again.',
+  ai_limit_reached: 'AI usage limit reached. Please try again later.',
+  caption_daily_limit: 'Daily caption limit reached. Try again tomorrow.',
+  hashtag_daily_limit: 'Daily hashtag limit reached. Try again tomorrow.',
+  platforms_invalid: 'Select valid supported platforms.',
+  platform_invalid: 'Select a supported platform.',
+};
+
+const captionText = (text, language) => language === 'fa'
+  ? (CAPTION_FA[text] || CAPTION_ERROR_EN[text] || text)
+  : (CAPTION_ERROR_EN[text] || text);
 
 const POST_TYPES = [
   { value: 'promotion',    label: 'Promotion' },
@@ -544,8 +562,7 @@ function ScopedCaptionWriter({ defaultTab, clientId, calendarPath }) {
       loadCapHistory(clientId);
     } catch (err) {
       const code = err.response?.data?.error;
-      setCapError(['ai_unavailable', 'ai_generation_failed', 'ai_invalid_output', 'ai_limit_reached'].includes(code)
-        ? tr(code) : tr('ai_generation_failed'));
+      setCapError(Object.hasOwn(CAPTION_ERROR_EN, code) ? tr(code) : tr('ai_generation_failed'));
     } finally {
       setCapLoading(false);
     }
@@ -565,7 +582,7 @@ function ScopedCaptionWriter({ defaultTab, clientId, calendarPath }) {
 
   const handleAddToCalendar = ({ platform, text }) => {
     const params = new URLSearchParams({ draft: text, platform });
-    if (clientId) params.set('workspace', String(clientId));
+    if (clientId) params.set(calendarPath.startsWith('/admin/') ? 'client' : 'workspace', String(clientId));
     window.open(`${calendarPath}?${params}`, '_blank', 'noopener,noreferrer');
   };
 
@@ -602,8 +619,7 @@ function ScopedCaptionWriter({ defaultTab, clientId, calendarPath }) {
       loadHashHistory(clientId);
     } catch (err) {
       const code = err.response?.data?.error;
-      setHashError(['ai_unavailable', 'ai_generation_failed', 'ai_invalid_output', 'ai_limit_reached'].includes(code)
-        ? tr(code) : tr('ai_generation_failed'));
+      setHashError(Object.hasOwn(CAPTION_ERROR_EN, code) ? tr(code) : tr('ai_generation_failed'));
     } finally {
       setHashLoading(false);
     }
@@ -906,7 +922,7 @@ function ScopedCaptionWriter({ defaultTab, clientId, calendarPath }) {
                       {globalCopied === 'all' ? tr('Copied!') : tr('Copy All Captions')}
                     </button>
                     <button onClick={handleGenerateCaption} disabled={capLoading} style={{ ...styles.bottomBtn, background: 'var(--surface-page)' }}>
-                      <RefreshCw size={14} />Regenerate
+                      <RefreshCw size={14} />{tr('Regenerate')}
                     </button>
                   </div>
 
@@ -1003,7 +1019,7 @@ function ScopedCaptionWriter({ defaultTab, clientId, calendarPath }) {
                   {/* Regenerate + history */}
                   <div style={{ display: 'flex', gap: 10, marginTop: 8, flexWrap: 'wrap' }}>
                     <button onClick={handleGenerateHashtags} disabled={hashLoading} style={{ ...styles.bottomBtn, background: 'var(--surface-page)' }}>
-                      <RefreshCw size={14} />Regenerate
+                      <RefreshCw size={14} />{tr('Regenerate')}
                     </button>
                   </div>
 
@@ -1056,11 +1072,11 @@ function ScopedCaptionWriter({ defaultTab, clientId, calendarPath }) {
             </button>
             {hashResultId && (
               <button onClick={() => { setSaveModal(true); setSaveError(''); setSaveName(''); }} style={{ ...styles.barBtn, background: 'var(--brand-primary)', color: 'var(--text-on-brand)', border: 'none' }}>
-                <Save size={13} />Save Set
+                <Save size={13} />{tr('Save Set')}
               </button>
             )}
             <button onClick={() => setSelectedTags([])} style={{ ...styles.barBtn, color: 'var(--text-tertiary)' }}>
-              <X size={13} />Clear
+              <X size={13} />{tr('Clear')}
             </button>
           </div>
         </div>
