@@ -34,7 +34,7 @@ test('hides provider and sync error diagnostics in user-facing calendar', async 
     sync_status: 'error', error_code: 'brightdata_empty_result',
   }] });
   render(<ChannelSources clientId={1} onRefresh={jest.fn()} selectedSource="" onSelectSource={jest.fn()} />);
-  expect(await screen.findByText('@example')).toBeInTheDocument();
+  await waitFor(() => expect(document.body.textContent).toContain('@example'));
   expect(screen.queryByText(/Bright Data|Sync stopped|collection was not confirmed/)).not.toBeInTheDocument();
 });
 

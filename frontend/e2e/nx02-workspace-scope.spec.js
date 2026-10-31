@@ -4,25 +4,43 @@ test('admin workspace selector and route navigation scope badge requests', { tag
   // Socket readiness + 2 notification retries can exceed the 30s default.
   test.setTimeout(90_000);
   const counts = [];
-  const liveSockets = new Set();
-  // Capture the inbound WebSocket events inside the browser to distinguish
-  // transport/fixture failures from workspace-scoping or toast failures.
+  // Use an in-browser WebSocket transport double: this test verifies the
+  // authenticated workspace-event subscription and toast filtering, not the
+  // network upgrade (covered by the dedicated WebSocket proxy contract).
+  // It avoids fixture messages being lost to Next's localhost:8000 fallback.
   await page.addInitScript(() => {
-    const NativeWebSocket = window.WebSocket;
-    window.WebSocket = class InstrumentedWebSocket extends NativeWebSocket {
-      constructor(...args) {
-        super(...args);
-        this.addEventListener('message', event => {
-          (window.__workspaceE2eMessages ||= []).push(event.data);
-        });
+    const sockets = new Set();
+    class FixtureSocket {
+      static OPEN = 1;
+      constructor(url) {
+        this.url = url;
+        this.readyState = 0;
+        sockets.add(this);
+        setTimeout(() => {
+          if (this.readyState !== 0) return;
+          this.readyState = FixtureSocket.OPEN;
+          this.onopen?.({ type: 'open' });
+        }, 0);
       }
+      send() {}
+      close() {
+        this.readyState = 3;
+        sockets.delete(this);
+        this.onclose?.({ code: 1000 });
+      }
+    }
+    window.WebSocket = FixtureSocket;
+    window.__workspaceFixture = {
+      count: () => Array.from(sockets).filter(socket => socket.readyState === 1).length,
+      send: event => {
+        const raw = JSON.stringify(event);
+        for (const socket of sockets) {
+          if (socket.readyState === 1) socket.onmessage?.({ data: raw });
+        }
+      },
     };
   });
-  const sendFixture = message => {
-    for (const socket of liveSockets) {
-      try { socket.send(JSON.stringify(message)); } catch { liveSockets.delete(socket); }
-    }
-  };
+  const sendFixture = message => page.evaluate(event => window.__workspaceFixture.send(event), message);
   await page.route('**/api/**', async route => {
     const url = new URL(route.request().url());
     const path = url.pathname;
@@ -37,10 +55,6 @@ test('admin workspace selector and route navigation scope badge requests', { tag
     }
     return route.fulfill({ json: [] });
   });
-  await page.routeWebSocket('**/ws/**', socket => {
-    liveSockets.add(socket);
-    socket.onClose(() => liveSockets.delete(socket));
-  });
   await page.goto('/admin/analytics');
   const selector = page.locator('header.ds-topbar [data-workspace-context] select');
   await expect(page.locator('header.ds-topbar [data-workspace-context]')).toHaveCount(1);
@@ -48,15 +62,16 @@ test('admin workspace selector and route navigation scope badge requests', { tag
   await expect(selector).toBeVisible();
   expect(counts).toEqual([]);
   await selector.selectOption('42');
+  await expect(page).toHaveURL(/\/admin\/analytics\/analytics\?workspace=42/);
+  await expect(selector).toHaveValue('42');
   await expect.poll(() => counts.at(-1)).toBe(42);
-  await expect.poll(() => liveSockets.size, { timeout: 15000 }).toBeGreaterThan(0);
+  await expect.poll(() => page.evaluate(() => window.__workspaceFixture.count()), { timeout: 15000 }).toBeGreaterThan(0);
   // The legacy <select> is a transient navigation control; the scoped
   // counts request, not the option value after navigation, is authoritative.
   // The mocked WebSocket route can be created before the client effect has
   // registered its subscriber. Retry the *fixture notification*, not a write.
   await expect(async () => {
-    sendFixture({ type: 'composer.post_failed', workspace_id: 42, data: { title: 'Active workspace event' } });
-    await expect.poll(() => page.evaluate(() => (window.__workspaceE2eMessages || []).some(raw => raw.includes('Active workspace event'))), { timeout: 2000 }).toBe(true);
+    await sendFixture({ type: 'composer.post_failed', workspace_id: 42, data: { title: 'Active workspace event' } });
     await expect(page.getByText('Publish failed: Active workspace event', { exact: true })).toBeVisible({ timeout: 1500 });
   }).toPass({ timeout: 15000 });
   await selector.selectOption('99');
@@ -66,11 +81,9 @@ test('admin workspace selector and route navigation scope badge requests', { tag
   // the foreign-event absence isn't merely a disconnected transport.
   let sentinelSequence = 0;
   await expect(async () => {
-    const socket = Array.from(liveSockets).at(-1);
-    expect(socket).toBeDefined();
     const title = `Current workspace event ${++sentinelSequence}`;
-    socket.send(JSON.stringify({ type: 'composer.post_failed', client_id: 42, data: { title: 'Foreign workspace event' } }));
-    socket.send(JSON.stringify({ type: 'composer.post_failed', workspace_id: 99, data: { title } }));
+    await sendFixture({ type: 'composer.post_failed', client_id: 42, data: { title: 'Foreign workspace event' } });
+    await sendFixture({ type: 'composer.post_failed', workspace_id: 99, data: { title } });
     await expect(page.getByText(`Publish failed: ${title}`, { exact: true })).toBeVisible({ timeout: 1000 });
   }).toPass({ timeout: 15000 });
   await expect(page.getByText('Publish failed: Foreign workspace event', { exact: true })).toHaveCount(0);

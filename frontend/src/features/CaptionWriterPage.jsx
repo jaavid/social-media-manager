@@ -9,13 +9,13 @@ import { useLanguage } from '@/i18n';
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
 import { useState, useEffect, useCallback } from 'react';
-import { useSession as useAuth } from '../core/session';
-import { useWorkspaces } from '../hooks/useData';
+import useWorkspaceScope from '../hooks/useWorkspaceScope';
+import { captionCalendarHref } from '../utils/captionCalendar';
 import { captionAPI, hashtagAPI } from '@/services/domains/intelligence';
 import {
   Copy, Edit2, CalendarDays, RefreshCw, Sparkles,
   Clock, Hash, CheckSquare, Square, ChevronDown, ChevronUp, Loader2,
-  Save, X, ChevronRight,
+  Save, X,
 } from 'lucide-react';
 import SocialPlatformIcon from '../components/ui/SocialPlatformIcon';
 import PageHeader from '../components/layout/PageHeader';
@@ -54,6 +54,130 @@ const TONES = [
   { value: 'urgent',        label: 'Urgent',        emoji: '🔥' },
   { value: 'friendly',      label: 'Friendly',      emoji: '👋' },
 ];
+
+
+const CAPTION_FA = {
+  "AI Caption Writer": "کپشن‌نویس هوشمند",
+  "AI Hashtag Research": "پژوهش هشتگ",
+  "Caption Writer": "کپشن‌نویس",
+  "Hashtag Research": "پژوهش هشتگ",
+  "Professional": "حرفه‌ای",
+  "Casual": "خودمانی",
+  "Funny": "طنز",
+  "Inspirational": "انگیزشی",
+  "Urgent": "فوری",
+  "Friendly": "صمیمی",
+  "Promotion": "تبلیغاتی",
+  "General": "عمومی",
+  "Announcement": "اطلاع‌رسانی",
+  "Educational": "آموزشی",
+  "Behind the Scenes": "پشت‌صحنه",
+  "Product Showcase": "معرفی محصول",
+  "Event": "رویداد",
+  "Tip & Advice": "نکته و راهنما",
+  "Mega": "بسیار پربازدید",
+  "Large": "پربازدید",
+  "Medium": "متوسط",
+  "Small": "کم‌رقابت",
+  "Local": "محلی",
+  "Branded": "اختصاصی",
+  "1M+ posts": "بیش از یک میلیون پست",
+  "100K–1M posts": "صد هزار تا یک میلیون پست",
+  "10K–100K posts": "ده تا صد هزار پست",
+  "1K–10K posts": "یک تا ده هزار پست",
+  "Location tags": "هشتگ‌های محلی",
+  "Your own brand": "ویژهٔ برند",
+  "What is your post about?": "موضوع پست چیست؟",
+  "Tone": "لحن",
+  "Post Type": "نوع پست",
+  "Post type": "نوع پست",
+  "Platforms": "شبکه‌های اجتماعی",
+  "Platform": "شبکهٔ اجتماعی",
+  "Keywords to include": "کلمات کلیدی",
+  "Call to action": "دعوت به اقدام",
+  "(optional)": "(اختیاری)",
+  "Hashtags": "هشتگ‌ها",
+  "Copy hashtags": "کپی هشتگ‌ها",
+  "Copied!": "کپی شد!",
+  "Copy": "کپی",
+  "Edit": "ویرایش",
+  "Done": "انجام شد",
+  "Add to Calendar": "افزودن به تقویم",
+  "Recommended Set": "مجموعهٔ پیشنهادی",
+  "Caption hashtags": "هشتگ‌های کپشن",
+  "First comment hashtags": "هشتگ‌های اولین دیدگاه",
+  "Your captions will appear here": "کپشن‌های پیشنهادی اینجا نمایش داده می‌شوند",
+  "Fill in the form and click Generate": "موضوع و تنظیمات را وارد و کپشن تولید کنید",
+  "Hashtag research will appear here": "نتیجهٔ پژوهش هشتگ اینجا نمایش داده می‌شود",
+  "Click each tag to select it, then copy or save your set": "هشتگ‌ها را انتخاب و سپس کپی یا ذخیره کنید",
+  "Generating… (5-10 seconds)": "در حال ساخت کپشن…",
+  "✨ Generate Captions": "ساخت کپشن",
+  "Researching… (5-10 seconds)": "در حال پژوهش…",
+  "# Research Hashtags": "پژوهش هشتگ‌ها",
+  "Recent": "اخیر",
+  "Recent searches": "جست‌وجوهای اخیر",
+  "History": "تاریخچه",
+  "Loading…": "در حال دریافت…",
+  "No history yet.": "هنوز سابقه‌ای ثبت نشده است.",
+  "No tags in this tier": "هشتگی در این دسته نیست",
+  "Your niche / industry": "حوزهٔ فعالیت",
+  "Location": "موقعیت جغرافیایی",
+  "Post topic": "موضوع پست",
+  "All": "همه",
+  "Copy All Captions": "کپی همهٔ کپشن‌ها",
+  "Regenerate": "تولید دوباره",
+  "Tags to Avoid": "هشتگ‌های نامناسب",
+  "Tips": "نکته‌ها",
+  "selected": "انتخاب شده",
+  "chars": "نویسه",
+  "tags": "هشتگ",
+  "Save Set": "ذخیرهٔ مجموعه",
+  "Save Hashtag Set": "ذخیرهٔ مجموعهٔ هشتگ‌ها",
+  "Set name": "نام مجموعه",
+  "Cancel": "انصراف",
+  "Clear": "پاک‌کردن",
+  "Saving": "در حال ذخیره",
+  "Estimated posts": "برآورد تعداد پست‌ها",
+  "Please select a workspace.": "فضای کاری را از سربرگ انتخاب کنید.",
+  "Please enter a topic.": "موضوع پست را وارد کنید.",
+  "Select at least one platform.": "حداقل یک شبکهٔ اجتماعی انتخاب کنید.",
+  "Please enter your niche.": "حوزهٔ فعالیت را وارد کنید.",
+  "Please enter a post topic.": "موضوع پست را وارد کنید.",
+  "Please enter a name for this set.": "نام مجموعه را وارد کنید.",
+  "No hashtag set to save.": "مجموعه‌ای برای ذخیره انتخاب نشده است.",
+  "Failed to save set.": "ذخیرهٔ مجموعه انجام نشد.",
+  "ai_unavailable": "سرویس هوش مصنوعی آماده نیست؛ تنظیمات مدیر را بررسی کنید.",
+  "ai_generation_failed": "در تولید محتوا مشکلی رخ داد. دوباره تلاش کنید.",
+  "ai_invalid_output": "پاسخ قابل استفاده نبود. دوباره تلاش کنید.",
+  "ai_limit_reached": "سقف استفاده از هوش مصنوعی پر شده است.",
+  "caption_daily_limit": "سقف روزانهٔ ساخت کپشن تکمیل شده است. فردا دوباره تلاش کنید.",
+  "hashtag_daily_limit": "سقف روزانهٔ پژوهش هشتگ تکمیل شده است. فردا دوباره تلاش کنید.",
+  "platforms_invalid": "شبکه‌های اجتماعی انتخاب‌شده معتبر نیستند.",
+  "platform_invalid": "شبکهٔ اجتماعی انتخاب‌شده معتبر نیست.",
+  "Best time:": "بهترین زمان:",
+  "AI service is not configured. Contact your administrator.": "سرویس هوش مصنوعی آماده نیست؛ تنظیمات مدیر را بررسی کنید.",
+  "Summer sale, 30% off all shoes...": "مثلاً تبریک یک مناسبت یا معرفی خدمات جدید",
+  "summer, sale, shoes, discount": "مثلاً مدرسه، ثبت‌نام، آموزش",
+  "Shop now, Book a table, Call us...": "مثلاً برای دریافت اطلاعات بیشتر تماس بگیرید",
+  "Fitness, Restaurant, Fashion, Real Estate…": "مثلاً آموزش، فروشگاه، خدمات",
+  "New York, London, Mumbai…": "مثلاً تهران، شیراز، تبریز",
+  "Announcing our new protein shake product…": "مثلاً معرفی دورهٔ آموزشی جدید",
+  "e.g. Fitness promo tags": "مثلاً هشتگ‌های معرفی دوره"
+};
+const CAPTION_ERROR_EN = {
+  ai_unavailable: 'AI service is unavailable. Ask an administrator to check its settings.',
+  ai_generation_failed: 'Content generation failed. Please try again.',
+  ai_invalid_output: 'The AI response was invalid. Please try again.',
+  ai_limit_reached: 'AI usage limit reached. Please try again later.',
+  caption_daily_limit: 'Daily caption limit reached. Try again tomorrow.',
+  hashtag_daily_limit: 'Daily hashtag limit reached. Try again tomorrow.',
+  platforms_invalid: 'Select valid supported platforms.',
+  platform_invalid: 'Select a supported platform.',
+};
+
+const captionText = (text, language) => language === 'fa'
+  ? (CAPTION_FA[text] || CAPTION_ERROR_EN[text] || text)
+  : (CAPTION_ERROR_EN[text] || text);
 
 const POST_TYPES = [
   { value: 'promotion',    label: 'Promotion' },
@@ -96,6 +220,8 @@ function Skeleton({ height = 16, width = '100%', mb = 8 }) {
 
 // ── Caption card ───────────────────────────────────────────────────────────────
 function CaptionCard({ platform, caption, hashtags, bestTime, onAddToCalendar }) {
+  const { language } = useLanguage();
+  const tr = text => captionText(text, language);
   const cfg = PLATFORMS[platform] || { label: platform, color: 'var(--text-secondary)', limit: 2200 };
   const { copied, copy } = useCopyText();
   const [editing, setEditing] = useState(false);
@@ -109,7 +235,7 @@ function CaptionCard({ platform, caption, hashtags, bestTime, onAddToCalendar })
       <div style={{ ...cardStyles.header, background: `color-mix(in srgb, ${cfg.color} 9%, transparent)`, borderBottom: `2px solid ${cfg.color}` }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <SocialPlatformIcon platform={platform} size={20} />
-          <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--text-primary)' }}>{cfg.label}</span>
+          <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--text-primary)' }}>{tr(cfg.label)}</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <span style={{ fontSize: 12, fontWeight: 700, color: limitColor }}>
@@ -138,7 +264,7 @@ function CaptionCard({ platform, caption, hashtags, bestTime, onAddToCalendar })
         <div style={{ padding: '0 18px 14px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
             <Hash size={13} color="var(--text-tertiary)" />
-            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Hashtags</span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{tr('Hashtags')}</span>
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
             {hashtags.map(tag => (
@@ -146,7 +272,7 @@ function CaptionCard({ platform, caption, hashtags, bestTime, onAddToCalendar })
             ))}
           </div>
           <button onClick={() => copy(tagsText, `tags-${platform}`)} style={{ ...cardStyles.ghostBtn, fontSize: 11 }}>
-            {copied === `tags-${platform}` ? '✓ Copied!' : 'Copy hashtags'}
+            {copied === `tags-${platform}` ? tr('Copied!') : tr('Copy hashtags')}
           </button>
         </div>
       )}
@@ -155,7 +281,7 @@ function CaptionCard({ platform, caption, hashtags, bestTime, onAddToCalendar })
         <div style={{ padding: '0 18px 14px' }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--success-bg)', border: '1px solid var(--success-bg)', borderRadius: 99, padding: '5px 12px' }}>
             <Clock size={12} color="var(--success)" />
-            <span style={{ fontSize: 12, color: 'var(--success)', fontWeight: 600 }}>Best time: {bestTime}</span>
+            <span style={{ fontSize: 12, color: 'var(--success)', fontWeight: 600 }}>{tr('Best time:')} {bestTime}</span>
           </div>
         </div>
       )}
@@ -163,15 +289,15 @@ function CaptionCard({ platform, caption, hashtags, bestTime, onAddToCalendar })
       <div style={{ padding: '12px 18px', borderTop: '1px solid var(--surface-sunken)', display: 'flex', gap: 8 }}>
         <button onClick={() => copy(text, platform)} style={cardStyles.actionBtn}>
           <Copy size={13} />
-          {copied === platform ? 'Copied!' : 'Copy'}
+          {copied === platform ? tr('Copied!') : tr('Copy')}
         </button>
         <button onClick={() => setEditing(e => !e)} style={{ ...cardStyles.actionBtn, ...(editing ? { background: 'var(--brand-primary-soft)', color: 'var(--brand-primary)', borderColor: 'var(--brand-primary-soft)' } : {}) }}>
           <Edit2 size={13} />
-          {editing ? 'Done' : 'Edit'}
+          {editing ? tr('Done') : tr('Edit')}
         </button>
         <button onClick={() => onAddToCalendar({ platform, text, hashtags })} style={cardStyles.actionBtn}>
           <CalendarDays size={13} />
-          Add to Calendar
+          {tr('Add to Calendar')}
         </button>
       </div>
     </div>
@@ -180,6 +306,8 @@ function CaptionCard({ platform, caption, hashtags, bestTime, onAddToCalendar })
 
 // ── Hashtag tier card ──────────────────────────────────────────────────────────
 function TierCard({ tier, data, selectedTags, onToggleTag }) {
+  const { language } = useLanguage();
+  const tr = text => captionText(text, language);
   const [open, setOpen] = useState(true);
   const cfg = TIER_CONFIG[tier] || { label: tier, color: 'var(--text-secondary)', bg: 'var(--surface-sunken)', border: 'var(--border-default)' };
   const tags = data?.tags || [];
@@ -191,7 +319,7 @@ function TierCard({ tier, data, selectedTags, onToggleTag }) {
         style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', border: 'none', background: cfg.bg, cursor: 'pointer' }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 12, fontWeight: 800, color: cfg.color, background: cfg.border, padding: '2px 10px', borderRadius: 99, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{cfg.label}</span>
+          <span style={{ fontSize: 12, fontWeight: 800, color: cfg.color, background: cfg.border, padding: '2px 10px', borderRadius: 99, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{tr(cfg.label)}</span>
           <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{data?.description || cfg.subtitle}</span>
           <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>({tags.length})</span>
         </div>
@@ -205,7 +333,7 @@ function TierCard({ tier, data, selectedTags, onToggleTag }) {
               <button
                 key={t.tag}
                 onClick={() => onToggleTag(t.tag)}
-                title={`Est. ${t.estimated_posts || '?'} posts`}
+                title={`${tr('Estimated posts')}: ${t.estimated_posts || '?'}`}
                 style={{
                   padding: '5px 12px', borderRadius: 99, fontSize: 13, fontWeight: 600, cursor: 'pointer',
                   border: `1.5px solid ${isSelected ? cfg.color : cfg.border}`,
@@ -222,7 +350,7 @@ function TierCard({ tier, data, selectedTags, onToggleTag }) {
             );
           })}
           {tags.length === 0 && (
-            <span style={{ fontSize: 13, color: 'var(--text-tertiary)', fontStyle: 'italic' }}>No tags in this tier</span>
+            <span style={{ fontSize: 13, color: 'var(--text-tertiary)', fontStyle: 'italic' }}>{tr('No tags in this tier')}</span>
           )}
         </div>
       )}
@@ -232,31 +360,33 @@ function TierCard({ tier, data, selectedTags, onToggleTag }) {
 
 // ── Recommended set card ────────────────────────────────────────────────────────
 function RecommendedSetCard({ rec, onCopy, copied }) {
+  const { language } = useLanguage();
+  const tr = text => captionText(text, language);
   if (!rec) return null;
   return (
     <div style={{ border: '1px solid var(--brand-primary-soft)', borderRadius: 14, overflow: 'hidden', marginBottom: 12, background: 'var(--brand-primary-soft)' }}>
       <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--brand-primary-soft)', display: 'flex', alignItems: 'center', gap: 8 }}>
         <Sparkles size={14} color="var(--brand-primary)" />
-        <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--brand-primary)' }}>Recommended Set</span>
+        <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--brand-primary)' }}>{tr('Recommended Set')}</span>
       </div>
       <div style={{ padding: '14px 16px' }}>
         {rec.caption && (
           <div style={{ marginBottom: 12 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 }}>Caption hashtags</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 }}>{tr('Caption hashtags')}</div>
             <p style={{ fontSize: 13, color: 'var(--text-primary)', lineHeight: 'var(--line-height-body)', margin: '0 0 8px', wordBreak: 'break-word' }}>{rec.caption}</p>
             <button onClick={() => onCopy(rec.caption, 'rec-caption')} style={cardStyles.ghostBtn}>
               <Copy size={12} />
-              {copied === 'rec-caption' ? '✓ Copied!' : 'Copy'}
+              {copied === 'rec-caption' ? tr('Copied!') : tr('Copy')}
             </button>
           </div>
         )}
         {rec.first_comment && (
           <div style={{ marginBottom: 12, paddingTop: 12, borderTop: '1px solid var(--brand-primary-soft)' }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 }}>First comment hashtags</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 }}>{tr('First comment hashtags')}</div>
             <p style={{ fontSize: 13, color: 'var(--text-primary)', lineHeight: 'var(--line-height-body)', margin: '0 0 8px', wordBreak: 'break-word' }}>{rec.first_comment}</p>
             <button onClick={() => onCopy(rec.first_comment, 'rec-comment')} style={cardStyles.ghostBtn}>
               <Copy size={12} />
-              {copied === 'rec-comment' ? '✓ Copied!' : 'Copy'}
+              {copied === 'rec-comment' ? tr('Copied!') : tr('Copy')}
             </button>
           </div>
         )}
@@ -279,7 +409,8 @@ const cardStyles = {
 
 // ── History items ──────────────────────────────────────────────────────────────
 function CaptionHistoryItem({ item, onRestore }) {
-  const date = new Date(item.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const { language } = useLanguage();
+  const date = new Date(item.created_at).toLocaleDateString(language === 'fa' ? 'fa-IR' : 'en-US', { month: 'short', day: 'numeric' });
   return (
     <button onClick={() => onRestore(item)} style={histStyles.item}>
       <div style={histStyles.topic}>{item.topic.length > 40 ? item.topic.slice(0, 40) + '…' : item.topic}</div>
@@ -298,8 +429,8 @@ function CaptionHistoryItem({ item, onRestore }) {
 }
 
 function HashHistoryItem({ item, onRestore }) {
-  const date = new Date(item.generated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  const pfCfg = HASHTAG_PLATFORMS[item.platform] || {};
+  const { language } = useLanguage();
+  const date = new Date(item.generated_at).toLocaleDateString(language === 'fa' ? 'fa-IR' : 'en-US', { month: 'short', day: 'numeric' });
   return (
     <button onClick={() => onRestore(item)} style={histStyles.item}>
       <div style={histStyles.topic}>{item.niche.length > 30 ? item.niche.slice(0, 30) + '…' : item.niche}</div>
@@ -319,19 +450,21 @@ const histStyles = {
 
 // ── Main page ──────────────────────────────────────────────────────────────────
 export default function CaptionWriterPage({ defaultTab = 'caption' }) {
+  const scope = useWorkspaceScope();
+  const calendarPath = scope.pathname.startsWith('/admin/') ? '/admin/analytics/calendar' : '/dashboard/calendar';
+  return <ScopedCaptionWriter key={scope.key} defaultTab={defaultTab}
+    clientId={scope.workspaceId} calendarPath={calendarPath} />;
+}
+
+function ScopedCaptionWriter({ defaultTab, clientId, calendarPath }) {
   const { t: brandT, language } = useLanguage();
+  const tr = text => captionText(text, language);
   const platformChoices = usePlatformOptions('publish');
   const PLATFORMS = Object.fromEntries(platformChoices.map(p => [p.key, { ...p, label: language === 'fa' ? p.label_fa : p.label }]));
   const HASHTAG_PLATFORMS = PLATFORMS;
-  const { user } = useAuth();
-  const isAdmin = user?.role === 'superadmin' || user?.role === 'staff';
-  const { workspaces: clients } = useWorkspaces();
-
-  const defaultClientId = isAdmin ? null : (user?.client_id || null);
   const [mode, setMode] = useState(defaultTab); // 'caption' | 'hashtag'
 
   // ── Shared state ──
-  const [clientId, setClientId] = useState(defaultClientId);
 
   // ── Caption state ──
   const [topic, setTopic]               = useState('');
@@ -395,10 +528,14 @@ export default function CaptionWriterPage({ defaultTab = 'caption' }) {
   }, []);
 
   useEffect(() => {
-    if (clientId) {
-      loadCapHistory(clientId);
-      loadHashHistory(clientId);
-    }
+    // Defer asynchronous history reads outside the synchronous effect phase.
+    // This view is keyed by the selected workspace, so stale data cannot leak.
+    if (!clientId) return undefined;
+    const timer = setTimeout(() => {
+      void loadCapHistory(clientId);
+      void loadHashHistory(clientId);
+    }, 0);
+    return () => clearTimeout(timer);
   }, [clientId, loadCapHistory, loadHashHistory]);
 
   // ── Caption logic ──────────────────────────────────────────────────────────
@@ -407,9 +544,9 @@ export default function CaptionWriterPage({ defaultTab = 'caption' }) {
   };
 
   const handleGenerateCaption = async () => {
-    if (!topic.trim()) { setCapError('Please enter a topic.'); return; }
-    if (selectedPlatforms.length === 0) { setCapError('Select at least one platform.'); return; }
-    if (isAdmin && !clientId) { setCapError('Please select a user/workspace first.'); return; }
+    if (!topic.trim()) { setCapError(tr('Please enter a topic.')); return; }
+    if (selectedPlatforms.length === 0) { setCapError(tr('Select at least one platform.')); return; }
+    if (!clientId) { setCapError(tr('Please select a workspace.')); return; }
 
     setCapLoading(true);
     setCapError('');
@@ -425,8 +562,8 @@ export default function CaptionWriterPage({ defaultTab = 'caption' }) {
       setActivePlatform(selectedPlatforms[0]);
       loadCapHistory(clientId);
     } catch (err) {
-      const msg = err.response?.data?.error || 'Failed to generate captions. Please try again.';
-      setCapError(msg);
+      const code = err.response?.data?.error;
+      setCapError(Object.hasOwn(CAPTION_ERROR_EN, code) ? tr(code) : tr('ai_generation_failed'));
     } finally {
       setCapLoading(false);
     }
@@ -441,27 +578,26 @@ export default function CaptionWriterPage({ defaultTab = 'caption' }) {
     setCta(item.call_to_action || '');
     setCaptions(item.generated_captions);
     setActivePlatform((item.platforms || [])[0] || null);
-    if (item.client) setClientId(item.client);
     setCapHistOpen(false);
   };
 
   const handleAddToCalendar = ({ platform, text }) => {
-    const encoded = encodeURIComponent(text);
-    window.open(`/dashboard/calendar?draft=${encoded}&platform=${platform}`, '_blank');
+    const href = captionCalendarHref(calendarPath, clientId, platform, text);
+    window.open(href, '_blank', 'noopener,noreferrer');
   };
 
   const activePlatforms = selectedPlatforms.filter(p => captions && captions[p]);
   const allCaptionsText = activePlatforms.map(p => {
     const cfg = PLATFORMS[p] || {};
     const tags = captions?.hashtags?.[p]?.join(' ') || '';
-    return `--- ${cfg.label || p} ---\n${captions[p]}${tags ? '\n\n' + tags : ''}`;
+    return `--- ${tr(cfg.label || p)} ---\n${captions[p]}${tags ? '\n\n' + tags : ''}`;
   }).join('\n\n');
 
   // ── Hashtag logic ──────────────────────────────────────────────────────────
   const handleGenerateHashtags = async () => {
-    if (!hNiche.trim()) { setHashError('Please enter your niche.'); return; }
-    if (!hTopic.trim()) { setHashError('Please enter a post topic.'); return; }
-    if (isAdmin && !clientId) { setHashError('Please select a user/workspace first.'); return; }
+    if (!hNiche.trim()) { setHashError(tr('Please enter your niche.')); return; }
+    if (!hTopic.trim()) { setHashError(tr('Please enter a post topic.')); return; }
+    if (!clientId) { setHashError(tr('Please select a workspace.')); return; }
 
     setHashLoading(true);
     setHashError('');
@@ -482,8 +618,8 @@ export default function CaptionWriterPage({ defaultTab = 'caption' }) {
       setHashResultId(res.data.id);
       loadHashHistory(clientId);
     } catch (err) {
-      const msg = err.response?.data?.error || 'Failed to generate hashtags. Please try again.';
-      setHashError(msg);
+      const code = err.response?.data?.error;
+      setHashError(Object.hasOwn(CAPTION_ERROR_EN, code) ? tr(code) : tr('ai_generation_failed'));
     } finally {
       setHashLoading(false);
     }
@@ -504,16 +640,16 @@ export default function CaptionWriterPage({ defaultTab = 'caption' }) {
   };
 
   const handleSaveSet = async () => {
-    if (!saveName.trim()) { setSaveError('Please enter a name for this set.'); return; }
-    if (!hashResultId) { setSaveError('No hashtag set to save.'); return; }
+    if (!saveName.trim()) { setSaveError(tr('Please enter a name for this set.')); return; }
+    if (!hashResultId) { setSaveError(tr('No hashtag set to save.')); return; }
     setSaving(true);
     setSaveError('');
     try {
       await hashtagAPI.saveSet(hashResultId, { set_name: saveName.trim(), tags: selectedTags });
       setSaveModal(false);
       setSaveName('');
-    } catch (err) {
-      setSaveError(err.response?.data?.error || 'Failed to save set.');
+    } catch {
+      setSaveError(tr('Failed to save set.'));
     } finally {
       setSaving(false);
     }
@@ -528,33 +664,18 @@ export default function CaptionWriterPage({ defaultTab = 'caption' }) {
       `}</style>
 
       <PageHeader
-        title={mode === 'caption' ? 'AI Caption Writer' : 'AI Hashtag Research'}
-        subtitle={
-          mode === 'caption'
-            ? 'Generate perfect captions for every platform'
-            : 'Discover the best hashtags for maximum reach'
-        }
+        title={tr(mode === 'caption' ? 'AI Caption Writer' : 'AI Hashtag Research')}
         actions={(
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
             <SegmentedTabs
               items={[
-                { id: 'caption', label: 'Caption Writer', icon: <Sparkles size={14} /> },
-                { id: 'hashtag', label: 'Hashtag Research', icon: <Hash size={14} /> },
+                { id: 'caption', label: tr('Caption Writer'), icon: <Sparkles size={14} /> },
+                { id: 'hashtag', label: tr('Hashtag Research'), icon: <Hash size={14} /> },
               ]}
               active={mode}
               onChange={setMode}
               compact
             />
-            {isAdmin && (
-              <select
-                value={clientId || ''}
-                onChange={e => setClientId(e.target.value ? parseInt(e.target.value) : null)}
-                style={styles.clientSelect}
-              >
-                <option value="">— Select a user —</option>
-                {clients.map(c => <option key={c.id} value={c.id}>{c.company}</option>)}
-              </select>
-            )}
           </div>
         )}
       />
@@ -569,40 +690,40 @@ export default function CaptionWriterPage({ defaultTab = 'caption' }) {
                 {/* Caption form */}
                 <div style={styles.fieldGroup}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
-                    <label style={styles.label}>What is your post about?</label>
+                    <label style={styles.label}>{tr('What is your post about?')}</label>
                     <span style={{ fontSize: 11, color: topic.length > 450 ? 'var(--warning)' : 'var(--text-tertiary)' }}>{topic.length}/500</span>
                   </div>
                   <textarea
                     value={topic}
                     onChange={e => setTopic(e.target.value.slice(0, 500))}
-                    placeholder="Summer sale, 30% off all shoes..."
+                    placeholder={tr('Summer sale, 30% off all shoes...')}
                     rows={3}
                     style={styles.textarea}
                   />
                 </div>
 
                 <div style={styles.fieldGroup}>
-                  <label style={styles.label}>Tone</label>
+                  <label style={styles.label}>{tr('Tone')}</label>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 6 }}>
                     {TONES.map(t => (
                       <button key={t.value} type="button" onClick={() => setTone(t.value)}
                         style={{ ...styles.toneBtn, ...(tone === t.value ? styles.toneBtnActive : {}) }}>
                         <span>{t.emoji}</span>
-                        <span>{t.label}</span>
+                        <span>{tr(t.label)}</span>
                       </button>
                     ))}
                   </div>
                 </div>
 
                 <div style={styles.fieldGroup}>
-                  <label style={styles.label}>Post Type</label>
+                  <label style={styles.label}>{tr('Post Type')}</label>
                   <select value={postType} onChange={e => setPostType(e.target.value)} style={styles.select}>
-                    {POST_TYPES.map(pt => <option key={pt.value} value={pt.value}>{pt.label}</option>)}
+                    {POST_TYPES.map(pt => <option key={pt.value} value={pt.value}>{tr(pt.label)}</option>)}
                   </select>
                 </div>
 
                 <div style={styles.fieldGroup}>
-                  <label style={styles.label}>Platforms</label>
+                  <label style={styles.label}>{tr('Platforms')}</label>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 6 }}>
                     {Object.entries(PLATFORMS).map(([key, cfg]) => {
                       const checked = selectedPlatforms.includes(key);
@@ -611,7 +732,7 @@ export default function CaptionWriterPage({ defaultTab = 'caption' }) {
                           style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 10, border: `1.5px solid ${checked ? `color-mix(in srgb, ${cfg.color} 38%, transparent)` : 'var(--border-default)'}`, background: checked ? `color-mix(in srgb, ${cfg.color} 5%, transparent)` : 'var(--surface-card)', cursor: 'pointer', textAlign: 'left' }}>
                           {checked ? <CheckSquare size={16} color={cfg.color} /> : <Square size={16} color="var(--text-quaternary)" />}
                           <SocialPlatformIcon platform={key} size={16} />
-                          <span style={{ fontSize: 13, fontWeight: 600, color: checked ? cfg.color : 'var(--text-secondary)' }}>{cfg.label}</span>
+                          <span style={{ fontSize: 13, fontWeight: 600, color: checked ? cfg.color : 'var(--text-secondary)' }}>{tr(cfg.label)}</span>
                         </button>
                       );
                     })}
@@ -619,13 +740,13 @@ export default function CaptionWriterPage({ defaultTab = 'caption' }) {
                 </div>
 
                 <div style={styles.fieldGroup}>
-                  <label style={styles.label}>Keywords to include <span style={{ fontWeight: 400, color: 'var(--text-tertiary)' }}>(optional)</span></label>
-                  <input type="text" value={keywords} onChange={e => setKeywords(e.target.value)} placeholder="summer, sale, shoes, discount" style={styles.input} />
+                  <label style={styles.label}>{tr('Keywords to include')} <span style={{ fontWeight: 400, color: 'var(--text-tertiary)' }}>{tr('(optional)')}</span></label>
+                  <input type="text" value={keywords} onChange={e => setKeywords(e.target.value)} placeholder={tr('summer, sale, shoes, discount')} style={styles.input} />
                 </div>
 
                 <div style={styles.fieldGroup}>
-                  <label style={styles.label}>Call to action <span style={{ fontWeight: 400, color: 'var(--text-tertiary)' }}>(optional)</span></label>
-                  <input type="text" value={cta} onChange={e => setCta(e.target.value)} placeholder="Shop now, Book a table, Call us..." style={styles.input} />
+                  <label style={styles.label}>{tr('Call to action')} <span style={{ fontWeight: 400, color: 'var(--text-tertiary)' }}>{tr('(optional)')}</span></label>
+                  <input type="text" value={cta} onChange={e => setCta(e.target.value)} placeholder={tr('Shop now, Book a table, Call us...')} style={styles.input} />
                 </div>
 
                 {capError && (
@@ -635,15 +756,15 @@ export default function CaptionWriterPage({ defaultTab = 'caption' }) {
                 <button onClick={handleGenerateCaption} disabled={capLoading}
                   style={{ ...styles.generateBtn, opacity: capLoading ? 0.85 : 1, cursor: capLoading ? 'not-allowed' : 'pointer' }}>
                   {capLoading ? (
-                    <><Loader2 size={18} style={{ animation: 'spin .8s linear infinite' }} />Generating… (5-10 seconds)</>
+                    <><Loader2 size={18} style={{ animation: 'spin .8s linear infinite' }} />{tr('Generating… (5-10 seconds)')}</>
                   ) : (
-                    <><Sparkles size={18} />✨ Generate Captions</>
+                    <><Sparkles size={18} />{tr('✨ Generate Captions')}</>
                   )}
                 </button>
 
                 {capHistory.length > 0 && (
                   <div style={{ marginTop: 16 }}>
-                    <div style={styles.recentLabel}>Recent</div>
+                    <div style={styles.recentLabel}>{tr('Recent')}</div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                       {capHistory.slice(0, 5).map(h => (
                         <button key={h.id} onClick={() => handleRestoreCaption(h)}
@@ -659,21 +780,21 @@ export default function CaptionWriterPage({ defaultTab = 'caption' }) {
               <>
                 {/* Hashtag form */}
                 <div style={styles.fieldGroup}>
-                  <label style={styles.label}>Your niche / industry</label>
+                  <label style={styles.label}>{tr('Your niche / industry')}</label>
                   <input type="text" value={hNiche} onChange={e => setHNiche(e.target.value)}
-                    placeholder="Fitness, Restaurant, Fashion, Real Estate…"
+                    placeholder={tr('Fitness, Restaurant, Fashion, Real Estate…')}
                     style={{ ...styles.input, marginTop: 6 }} />
                 </div>
 
                 <div style={styles.fieldGroup}>
-                  <label style={styles.label}>Location <span style={{ fontWeight: 400, color: 'var(--text-tertiary)' }}>(optional)</span></label>
+                  <label style={styles.label}>{tr('Location')} <span style={{ fontWeight: 400, color: 'var(--text-tertiary)' }}>{tr('(optional)')}</span></label>
                   <input type="text" value={hLocation} onChange={e => setHLocation(e.target.value)}
-                    placeholder="New York, London, Mumbai…"
+                    placeholder={tr('New York, London, Mumbai…')}
                     style={{ ...styles.input, marginTop: 6 }} />
                 </div>
 
                 <div style={styles.fieldGroup}>
-                  <label style={styles.label}>Platform</label>
+                  <label style={styles.label}>{tr('Platform')}</label>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 6 }}>
                     {Object.entries(HASHTAG_PLATFORMS).map(([key, cfg]) => {
                       const checked = hPlatform === key;
@@ -684,7 +805,7 @@ export default function CaptionWriterPage({ defaultTab = 'caption' }) {
                             {checked && <div style={{ width: 8, height: 8, borderRadius: '50%', background: cfg.color }} />}
                           </div>
                           <SocialPlatformIcon platform={key} size={16} />
-                          <span style={{ fontSize: 13, fontWeight: 600, color: checked ? cfg.color : 'var(--text-secondary)' }}>{cfg.label}</span>
+                          <span style={{ fontSize: 13, fontWeight: 600, color: checked ? cfg.color : 'var(--text-secondary)' }}>{tr(cfg.label)}</span>
                         </button>
                       );
                     })}
@@ -692,16 +813,16 @@ export default function CaptionWriterPage({ defaultTab = 'caption' }) {
                 </div>
 
                 <div style={styles.fieldGroup}>
-                  <label style={styles.label}>Post topic</label>
+                  <label style={styles.label}>{tr('Post topic')}</label>
                   <textarea value={hTopic} onChange={e => setHTopic(e.target.value)}
-                    placeholder="Announcing our new protein shake product…"
+                    placeholder={tr('Announcing our new protein shake product…')}
                     rows={3} style={{ ...styles.textarea, marginTop: 6 }} />
                 </div>
 
                 <div style={styles.fieldGroup}>
-                  <label style={styles.label}>Post type</label>
+                  <label style={styles.label}>{tr('Post type')}</label>
                   <select value={hPostType} onChange={e => setHPostType(e.target.value)} style={styles.select}>
-                    {HASHTAG_POST_TYPES.map(pt => <option key={pt.value} value={pt.value}>{pt.label}</option>)}
+                    {HASHTAG_POST_TYPES.map(pt => <option key={pt.value} value={pt.value}>{tr(pt.label)}</option>)}
                   </select>
                 </div>
 
@@ -712,15 +833,15 @@ export default function CaptionWriterPage({ defaultTab = 'caption' }) {
                 <button onClick={handleGenerateHashtags} disabled={hashLoading}
                   style={{ ...styles.generateBtn, background: 'linear-gradient(135deg, var(--brand-primary), var(--brand-primary))', opacity: hashLoading ? 0.85 : 1, cursor: hashLoading ? 'not-allowed' : 'pointer' }}>
                   {hashLoading ? (
-                    <><Loader2 size={18} style={{ animation: 'spin .8s linear infinite' }} />Researching… (5-10 seconds)</>
+                    <><Loader2 size={18} style={{ animation: 'spin .8s linear infinite' }} />{tr('Researching… (5-10 seconds)')}</>
                   ) : (
-                    <><Hash size={18} /># Research Hashtags</>
+                    <><Hash size={18} />{tr('# Research Hashtags')}</>
                   )}
                 </button>
 
                 {hashHistory.length > 0 && (
                   <div style={{ marginTop: 16 }}>
-                    <div style={styles.recentLabel}>Recent searches</div>
+                    <div style={styles.recentLabel}>{tr('Recent searches')}</div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                       {hashHistory.slice(0, 5).map(h => (
                         <button key={h.id} onClick={() => handleRestoreHash(h)}
@@ -747,8 +868,8 @@ export default function CaptionWriterPage({ defaultTab = 'caption' }) {
               {!capLoading && !captions && (
                 <div style={styles.emptyState}>
                   <div style={styles.emptyIcon}><Sparkles size={40} color="var(--border-focus)" /></div>
-                  <h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 8px' }}>Your captions will appear here</h3>
-                  <p style={{ fontSize: 14, color: 'var(--text-tertiary)', margin: 0 }}>Fill in the form and click Generate</p>
+                  <h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 8px' }}>{tr('Your captions will appear here')}</h3>
+                  <p style={{ fontSize: 14, color: 'var(--text-tertiary)', margin: 0 }}>{tr('Fill in the form and click Generate')}</p>
                 </div>
               )}
 
@@ -773,7 +894,7 @@ export default function CaptionWriterPage({ defaultTab = 'caption' }) {
                   {activePlatforms.length > 1 && (
                     <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
                       <button onClick={() => setActivePlatform(null)}
-                        style={{ ...styles.platTab, ...(activePlatform === null ? styles.platTabActive : {}) }}>All</button>
+                        style={{ ...styles.platTab, ...(activePlatform === null ? styles.platTabActive : {}) }}>{tr('All')}</button>
                       {activePlatforms.map(p => {
                         const cfg = PLATFORMS[p] || {};
                         return (
@@ -798,25 +919,25 @@ export default function CaptionWriterPage({ defaultTab = 'caption' }) {
                   <div style={{ display: 'flex', gap: 10, marginTop: 8, flexWrap: 'wrap' }}>
                     <button onClick={() => globalCopy(allCaptionsText, 'all')} style={styles.bottomBtn}>
                       <Copy size={14} />
-                      {globalCopied === 'all' ? '✓ Copied All!' : 'Copy All Captions'}
+                      {globalCopied === 'all' ? tr('Copied!') : tr('Copy All Captions')}
                     </button>
                     <button onClick={handleGenerateCaption} disabled={capLoading} style={{ ...styles.bottomBtn, background: 'var(--surface-page)' }}>
-                      <RefreshCw size={14} />Regenerate
+                      <RefreshCw size={14} />{tr('Regenerate')}
                     </button>
                   </div>
 
                   <div style={{ marginTop: 24, border: '1px solid var(--border-default)', borderRadius: 14, overflow: 'hidden' }}>
                     <button onClick={() => setCapHistOpen(o => !o)}
                       style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', border: 'none', background: 'var(--surface-page)', cursor: 'pointer' }}>
-                      <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-secondary)' }}>History ({capHistory.length})</span>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-secondary)' }}>{tr('History')} ({capHistory.length})</span>
                       {capHistOpen ? <ChevronUp size={16} color="var(--text-secondary)" /> : <ChevronDown size={16} color="var(--text-secondary)" />}
                     </button>
                     {capHistOpen && (
                       <div style={{ maxHeight: 320, overflowY: 'auto' }}>
                         {capHistLoading
-                          ? <div style={{ padding: 16, color: 'var(--text-tertiary)', fontSize: 13 }}>Loading…</div>
+                          ? <div style={{ padding: 16, color: 'var(--text-tertiary)', fontSize: 13 }}>{tr('Loading…')}</div>
                           : capHistory.length === 0
-                            ? <div style={{ padding: 16, color: 'var(--text-tertiary)', fontSize: 13 }}>No history yet.</div>
+                            ? <div style={{ padding: 16, color: 'var(--text-tertiary)', fontSize: 13 }}>{tr('No history yet.')}</div>
                             : capHistory.map(h => <CaptionHistoryItem key={h.id} item={h} onRestore={handleRestoreCaption} />)}
                       </div>
                     )}
@@ -829,8 +950,8 @@ export default function CaptionWriterPage({ defaultTab = 'caption' }) {
               {!hashLoading && !hashResult && (
                 <div style={styles.emptyState}>
                   <div style={{ ...styles.emptyIcon, background: 'var(--surface-sunken)' }}><Hash size={40} color="var(--brand-primary)" /></div>
-                  <h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 8px' }}>Hashtag research will appear here</h3>
-                  <p style={{ fontSize: 14, color: 'var(--text-tertiary)', margin: 0 }}>Click each tag to select it, then copy or save your set</p>
+                  <h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 8px' }}>{tr('Hashtag research will appear here')}</h3>
+                  <p style={{ fontSize: 14, color: 'var(--text-tertiary)', margin: 0 }}>{tr('Click each tag to select it, then copy or save your set')}</p>
                 </div>
               )}
 
@@ -877,7 +998,7 @@ export default function CaptionWriterPage({ defaultTab = 'caption' }) {
                     <div style={{ border: '1px solid var(--border-default)', borderRadius: 14, padding: '14px 16px', marginBottom: 12, background: 'var(--surface-page)' }}>
                       <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
                         <SocialPlatformIcon platform={hPlatform} size={14} />
-                        {HASHTAG_PLATFORMS[hPlatform]?.label} Tips
+                        {HASHTAG_PLATFORMS[hPlatform]?.label} {tr('Tips')}
                       </div>
                       <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0, lineHeight: 'var(--line-height-body)' }}>{hashResult.platform_tips}</p>
                     </div>
@@ -886,7 +1007,7 @@ export default function CaptionWriterPage({ defaultTab = 'caption' }) {
                   {/* Avoid list */}
                   {hashResult.avoid && hashResult.avoid.length > 0 && (
                     <div style={{ border: '1px solid var(--danger-bg)', borderRadius: 14, padding: '14px 16px', marginBottom: 16, background: 'var(--danger-bg)' }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--danger)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Tags to Avoid</div>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--danger)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>{tr('Tags to Avoid')}</div>
                       <ul style={{ margin: 0, padding: '0 0 0 16px', display: 'flex', flexDirection: 'column', gap: 4 }}>
                         {hashResult.avoid.map((item, i) => (
                           <li key={i} style={{ fontSize: 13, color: 'var(--danger)', lineHeight: 'var(--line-height-body)' }}>{item}</li>
@@ -898,22 +1019,22 @@ export default function CaptionWriterPage({ defaultTab = 'caption' }) {
                   {/* Regenerate + history */}
                   <div style={{ display: 'flex', gap: 10, marginTop: 8, flexWrap: 'wrap' }}>
                     <button onClick={handleGenerateHashtags} disabled={hashLoading} style={{ ...styles.bottomBtn, background: 'var(--surface-page)' }}>
-                      <RefreshCw size={14} />Regenerate
+                      <RefreshCw size={14} />{tr('Regenerate')}
                     </button>
                   </div>
 
                   <div style={{ marginTop: 20, border: '1px solid var(--border-default)', borderRadius: 14, overflow: 'hidden' }}>
                     <button onClick={() => setHashHistOpen(o => !o)}
                       style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', border: 'none', background: 'var(--surface-page)', cursor: 'pointer' }}>
-                      <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-secondary)' }}>History ({hashHistory.length})</span>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-secondary)' }}>{tr('History')} ({hashHistory.length})</span>
                       {hashHistOpen ? <ChevronUp size={16} color="var(--text-secondary)" /> : <ChevronDown size={16} color="var(--text-secondary)" />}
                     </button>
                     {hashHistOpen && (
                       <div style={{ maxHeight: 280, overflowY: 'auto' }}>
                         {hashHistLoading
-                          ? <div style={{ padding: 16, color: 'var(--text-tertiary)', fontSize: 13 }}>Loading…</div>
+                          ? <div style={{ padding: 16, color: 'var(--text-tertiary)', fontSize: 13 }}>{tr('Loading…')}</div>
                           : hashHistory.length === 0
-                            ? <div style={{ padding: 16, color: 'var(--text-tertiary)', fontSize: 13 }}>No history yet.</div>
+                            ? <div style={{ padding: 16, color: 'var(--text-tertiary)', fontSize: 13 }}>{tr('No history yet.')}</div>
                             : hashHistory.map(h => <HashHistoryItem key={h.id} item={h} onRestore={handleRestoreHash} />)}
                       </div>
                     )}
@@ -930,10 +1051,10 @@ export default function CaptionWriterPage({ defaultTab = 'caption' }) {
         <div style={styles.stickyBar}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, flexWrap: 'wrap' }}>
             <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>
-              {selectedTags.length} tag{selectedTags.length !== 1 ? 's' : ''} selected
+              {selectedTags.length} {tr('tags')} {tr('selected')}
             </span>
             <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
-              {selectedTags.join(' ').length} chars
+              {selectedTags.join(' ').length} {tr('chars')}
             </span>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, flex: 1 }}>
               {selectedTags.map(tag => (
@@ -947,15 +1068,15 @@ export default function CaptionWriterPage({ defaultTab = 'caption' }) {
           <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
             <button onClick={() => globalCopy(selectedTags.join(' '), 'sel')} style={styles.barBtn}>
               <Copy size={13} />
-              {globalCopied === 'sel' ? '✓ Copied!' : 'Copy'}
+              {globalCopied === 'sel' ? tr('Copied!') : tr('Copy')}
             </button>
             {hashResultId && (
               <button onClick={() => { setSaveModal(true); setSaveError(''); setSaveName(''); }} style={{ ...styles.barBtn, background: 'var(--brand-primary)', color: 'var(--text-on-brand)', border: 'none' }}>
-                <Save size={13} />Save Set
+                <Save size={13} />{tr('Save Set')}
               </button>
             )}
             <button onClick={() => setSelectedTags([])} style={{ ...styles.barBtn, color: 'var(--text-tertiary)' }}>
-              <X size={13} />Clear
+              <X size={13} />{tr('Clear')}
             </button>
           </div>
         </div>
@@ -966,31 +1087,31 @@ export default function CaptionWriterPage({ defaultTab = 'caption' }) {
         <div style={styles.modalOverlay} onClick={() => setSaveModal(false)}>
           <div style={styles.modal} onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-              <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>Save Hashtag Set</h3>
+              <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>{tr('Save Hashtag Set')}</h3>
               <button onClick={() => setSaveModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)' }}><X size={18} /></button>
             </div>
-            <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '0 0 16px' }}>Saving {selectedTags.length} tags</p>
+            <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '0 0 16px' }}>{tr('Saving')} {selectedTags.length} {tr('tags')}</p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 16, maxHeight: 100, overflowY: 'auto' }}>
               {selectedTags.map(tag => (
                 <span key={tag} style={{ padding: '3px 10px', borderRadius: 99, background: 'var(--brand-primary-soft)', color: 'var(--brand-primary)', fontSize: 12, fontWeight: 600 }}>{tag}</span>
               ))}
             </div>
-            <label style={styles.label}>Set name</label>
+            <label style={styles.label}>{tr('Set name')}</label>
             <input
               type="text"
               value={saveName}
               onChange={e => setSaveName(e.target.value)}
-              placeholder="e.g. Fitness promo tags"
+              placeholder={tr('e.g. Fitness promo tags')}
               style={{ ...styles.input, marginTop: 6, marginBottom: 12 }}
               onKeyDown={e => e.key === 'Enter' && handleSaveSet()}
               autoFocus
             />
             {saveError && <div style={{ ...styles.errorBox, marginBottom: 12 }}>{saveError}</div>}
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-              <button onClick={() => setSaveModal(false)} style={styles.bottomBtn}>Cancel</button>
+              <button onClick={() => setSaveModal(false)} style={styles.bottomBtn}>{tr('Cancel')}</button>
               <button onClick={handleSaveSet} disabled={saving}
                 style={{ ...styles.generateBtn, width: 'auto', padding: '0 20px', height: 40, fontSize: 13, background: 'linear-gradient(135deg,var(--brand-primary),var(--brand-primary))', opacity: saving ? 0.7 : 1, cursor: saving ? 'not-allowed' : 'pointer' }}>
-                {saving ? <Loader2 size={14} style={{ animation: 'spin .8s linear infinite' }} /> : <><Save size={14} />Save Set</>}
+                {saving ? <Loader2 size={14} style={{ animation: 'spin .8s linear infinite' }} /> : <><Save size={14} />{tr('Save Set')}</>}
               </button>
             </div>
           </div>

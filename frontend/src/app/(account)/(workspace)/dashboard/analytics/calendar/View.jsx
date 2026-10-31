@@ -1,8 +1,7 @@
 'use client';
 import Feature from "@/features/CalendarPage.jsx";
-import { useSession } from "@/core/session";
+import useWorkspaceScope from "@/hooks/useWorkspaceScope";
 export default function View() {
-  const { user } = useSession();
-  const clientId = user?.workspace_id ?? user?.client_id ?? null;
+  const { workspaceId: clientId } = useWorkspaceScope();
   return <Feature clientId={clientId} />;
 }
