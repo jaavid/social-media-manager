@@ -182,7 +182,7 @@ class AITrainedAsset(models.Model):
                                    help_text="Vector — empty until RAG is enabled")
     metadata   = models.JSONField(default=dict, blank=True)
     indexed_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField("آخرین ویرایش", auto_now=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ["-updated_at"]
@@ -231,7 +231,7 @@ class GeminiConfiguration(models.Model):
     deep_model = models.ForeignKey(
         GeminiModel, verbose_name="مدل عمیق", null=True, blank=True, on_delete=models.PROTECT, related_name="+",
     )
-    updated_at = models.DateTimeField(auto_now=True)
+    updated_at = models.DateTimeField("آخرین ویرایش", auto_now=True)
 
     class Meta:
         verbose_name = "تنظیمات سرویس هوش مصنوعی"
