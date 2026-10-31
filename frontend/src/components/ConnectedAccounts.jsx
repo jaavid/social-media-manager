@@ -8,7 +8,7 @@
  * ========================================================================== */
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { AlertTriangle, CheckCircle2, HelpCircle, Globe, RefreshCw } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, HelpCircle, Globe, RefreshCw, ChevronDown, Eye, ShieldCheck } from 'lucide-react';
 import { connectionsAPI } from '@/services/domains/connections';
 import { apiError } from '@/services/http/errors';
 import { QK } from '@/services/queryClient';
@@ -90,9 +90,13 @@ function ConnectionCollection({ workspaceId }) {
     {data.categories.map(category => {
       const providers = data.providers.filter(p => p.category === category.key);
       if (!providers.length) return null;
-      return <section key={category.key} aria-label={category[isPersian ? 'title_fa' : 'title_en']}>
-        <h3 className="mb-3 text-sm font-semibold text-muted-foreground">{category[isPersian ? 'title_fa' : 'title_en']}</h3>
-        <div className="grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-2">
+      const categoryName = category[isPersian ? 'title_fa' : 'title_en'];
+      return <section key={category.key} aria-label={categoryName} className="space-y-3">
+        <div className="flex items-center justify-between gap-3 border-b border-[var(--border-subtle)] pb-2">
+          <h3 className="m-0 text-sm font-semibold text-foreground">{categoryName}</h3>
+          <span className="text-xs text-muted-foreground">{formatNumber(providers.length)}</span>
+        </div>
+        <div className="grid min-w-0 grid-cols-1 items-start gap-3 md:grid-cols-2">
           {providers.map(provider => {
             const account = provider.accounts.find(a => a.id === selected[provider.key]) || provider.accounts[0];
             const auth = provider.contract.auth;
@@ -102,56 +106,123 @@ function ConnectionCollection({ workspaceId }) {
             const accountReconnect = account?.permissions.reconnect && enabled(provider.capabilities.connection)
               && provider.auth_type !== 'unsupported' && !['blocked', 'deprecated'].includes(provider.rollout_status) && (auth.start_path || auth.fields.length > 0);
             const variant = healthVariant[account?.health.state] || 'default';
-            return <Card key={provider.key} padding="md" className="min-w-0" data-provider={provider.key}>
-              <div className="flex min-w-0 flex-wrap items-start justify-between gap-3">
+            const HealthIcon = healthIcon[account?.health.state] || HelpCircle;
+            const canDisconnect = account?.permissions.disconnect && enabled(provider.capabilities.disconnect);
+            return <Card key={provider.key} padding="sm"
+              className="min-w-0 self-start space-y-3 border-[var(--border-subtle)] shadow-sm"
+              data-provider={provider.key}>
+              <div className="flex min-w-0 items-start justify-between gap-2">
                 <div className="flex min-w-0 items-center gap-3">
-                  <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-muted" aria-hidden>
-                    {provider.contract.brand.icon ? <SocialPlatformIcon platform={provider.contract.brand.icon} color={/^#[0-9a-f]{6}$/i.test(provider.contract.brand.color) ? provider.contract.brand.color : undefined} size={24} /> : <Globe size={24} />}
+                  <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[var(--surface-sunken)]">
+                    {provider.contract.brand.icon
+                      ? <SocialPlatformIcon platform={provider.contract.brand.icon} size={23} />
+                      : <Globe size={21} aria-hidden />}
                   </span>
-                  <h4 className="m-0 break-words text-base font-semibold">{label(provider)}</h4>
+                  <div className="min-w-0">
+                    <h4 className="m-0 break-words text-sm font-semibold text-foreground">{label(provider)}</h4>
+                    <span className="text-xs text-muted-foreground">
+                      {account
+                        ? (account.identity.name || account.name)
+                        : t('connections.auth.' + provider.auth_type)}
+                    </span>
+                  </div>
                 </div>
-                <Badge>{t(`connections.rollout.${provider.rollout_status}`)}</Badge>
+                <Badge variant={account ? variant : 'default'} icon={account ? HealthIcon : undefined}>
+                  {account ? t(`connections.health.${account.health.state}`) : t(`connections.rollout.${provider.rollout_status}`)}
+                </Badge>
               </div>
-              <p className="mb-1 mt-4 text-xs text-muted-foreground">{t('connections.authenticationLabel', undefined, { strategy: t(`connections.auth.${provider.auth_type}`) })}</p>
-              <p className="mb-3 mt-1 text-xs text-muted-foreground">{t('connections.capability', undefined, { status: t(`connections.cap.${provider.capabilities.connection}`) })}</p>
-              {provider.accounts.length > 0 && <NativeSelect label={t('connections.select')} value={account.id}
-                onChange={event => setSelected(current => ({ ...current, [provider.key]: Number(event.target.value) }))}>
-                {provider.accounts.map(item => <option key={item.id} value={item.id}>{item.name || item.external_id} · {item.destination.id}</option>)}
+              {provider.accounts.length > 1 && <NativeSelect label={t('connections.select')}
+                value={account.id} onChange={event => setSelected(current => ({
+                  ...current, [provider.key]: Number(event.target.value),
+                }))}>
+                {provider.accounts.map(item => <option key={item.id} value={item.id}>
+                  {item.name || item.external_id} · {item.destination.id}
+                </option>)}
               </NativeSelect>}
-              {account && <div className="mt-4 space-y-3" data-account-id={account.id}>
-                <dl className="grid gap-1 text-sm">
-                  <dt className="text-muted-foreground">{t('connections.account')}</dt>
-                  <dd className="m-0 break-all"><bdi>{account.identity.name || account.name} · {account.identity.id}</bdi></dd>
-                  <dt className="mt-1 text-muted-foreground">{t('connections.destination')}</dt>
-                  <dd className="m-0 break-all"><bdi>{account.destination.kind} · {account.destination.id}</bdi></dd>
-                </dl>
-                <Badge variant={variant} icon={healthIcon[account.health.state] || HelpCircle}>{t(`connections.health.${account.health.state}`)}</Badge>
-                <p className="text-xs text-muted-foreground">{t('connections.localHealth')}</p>
-                <p className="text-xs text-muted-foreground">{account.expires_at ? t('accounts.tokenExpires', undefined, { date: formatDate(account.expires_at) }) : t('connections.expiryUnknown')}</p>
-                <div className="space-y-1 text-xs">
-                  <Badge variant={account.sync.state === 'failure' ? 'danger' : account.sync.state === 'stale' ? 'warning' : 'default'}>{t(`connections.sync.${account.sync.state}`)}</Badge>
-                  {account.sync.last_success_at && <p>{t('connections.lastSuccess', undefined, { date: formatDate(account.sync.last_success_at) })}</p>}
-                  {account.sync.last_failure_at && <p>{t('connections.lastFailure', undefined, { date: formatDate(account.sync.last_failure_at) })}</p>}
-                  {account.sync.state !== 'not_available' && <p className="text-muted-foreground">{t('connections.stalePolicy', undefined, { hours: formatNumber(account.sync.stale_after_seconds / 3600) })}</p>}
+              {account && <div className="space-y-2 rounded-xl bg-[var(--surface-sunken)] px-3 py-2.5" data-account-id={account.id}>
+                <div className="flex flex-wrap items-center gap-2">
+                  <ShieldCheck size={15} className="shrink-0 text-muted-foreground" aria-hidden />
+                  <span className="min-w-0 break-all text-xs font-medium text-foreground" dir="auto">
+                    <bdi>{account.identity.name || account.name} · {account.identity.id}</bdi>
+                  </span>
+                  <Badge variant={account.sync.state === 'failure' ? 'danger' : account.sync.state === 'stale' ? 'warning' : 'default'}>
+                    {t(`connections.sync.${account.sync.state}`)}
+                  </Badge>
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  <bdi>{account.destination.kind} · {account.destination.id}</bdi>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {accountReconnect && !needsSetup && <Button size="sm" icon={RefreshCw} onClick={() => start(provider, account)}>{t('connections.reconnect')}</Button>}
-                  {account.permissions.disconnect && enabled(provider.capabilities.disconnect) && <Button size="sm" variant="danger" onClick={() => { setMutationError(false); setDisconnect({ provider, account }); }}>{t('accounts.disconnect')}</Button>}
+                  {accountReconnect && !needsSetup && <Button size="sm" icon={RefreshCw}
+                    onClick={() => start(provider, account)}>{t('connections.reconnect')}</Button>}
+                  {canDisconnect && <Button size="sm" variant="ghost"
+                    onClick={() => { setMutationError(false); setDisconnect({ provider, account }); }}>
+                    {t('accounts.disconnect')}
+                  </Button>}
                 </div>
               </div>}
-              {provider.readiness?.configured === true && <p className="mt-3 text-sm text-muted-foreground">{t('connections.providerReady')}</p>}
-              {account && <ProviderExtensions key={`${workspaceId}:${account.id}`} names={provider.contract.ui_extensions} workspaceId={workspaceId} accountId={account.id} permissions={account.permissions} />}
-              {needsSetup && <p className="mt-3 text-sm text-muted-foreground">{t('connections.setup')}</p>}
-              {oauthUnknown && <p className="mt-3 text-sm text-muted-foreground">{t('connections.readinessUnknown')}</p>}
-              {allowed && !needsSetup && <Button className="mt-4" variant="secondary" size="sm" onClick={() => start(provider)}>{t('connections.add')}</Button>}
+              {!account && allowed && !needsSetup && <Button size="sm" variant="secondary"
+                onClick={() => start(provider)}>{t('connections.add')}</Button>}
+              {account && allowed && !needsSetup && <Button size="sm" variant="ghost"
+                onClick={() => start(provider)}>{t('connections.add')}</Button>}
+              {needsSetup && <p className="m-0 text-xs text-muted-foreground">{t('connections.setup')}</p>}
+              {oauthUnknown && <p className="m-0 text-xs text-muted-foreground">{t('connections.readinessUnknown')}</p>}
+              {account && <ProviderExtensions key={`${workspaceId}:${account.id}`}
+                names={provider.contract.ui_extensions} workspaceId={workspaceId}
+                accountId={account.id} permissions={account.permissions} />}
+              <details className="group border-t border-[var(--border-subtle)] pt-2">
+                <summary className="flex min-h-8 cursor-pointer list-none items-center justify-between gap-3 text-xs text-muted-foreground [&::-webkit-details-marker]:hidden">
+                  <span>{isPersian ? 'جزئیات اتصال' : 'Connection details'}</span>
+                  <ChevronDown size={15} className="transition-transform group-open:rotate-180" aria-hidden />
+                </summary>
+                <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-2 text-xs">
+                  <dt className="text-muted-foreground">{t('connections.authenticationLabel', undefined, { strategy: t(`connections.auth.${provider.auth_type}`) })}</dt>
+                  <dd className="m-0 text-end">{t(`connections.cap.${provider.capabilities.connection}`)}</dd>
+                  <dt className="text-muted-foreground">{t('connections.capability', undefined, { status: t(`connections.cap.${provider.capabilities.connection}`) })}</dt>
+                  <dd className="m-0 text-end">{t(`connections.rollout.${provider.rollout_status}`)}</dd>
+                  {account && <>
+                    <dt>{t('connections.account')}</dt>
+                    <dd className="m-0 break-all text-end"><bdi>{account.identity.id}</bdi></dd>
+                    <dt>{t('connections.destination')}</dt>
+                    <dd className="m-0 break-all text-end"><bdi>{account.destination.kind} · {account.destination.id}</bdi></dd>
+                    <dt>{t('connections.localHealth')}</dt>
+                    <dd className="m-0 text-end">{t(`connections.health.${account.health.state}`)}</dd>
+                    <dt>{t('connections.sync.' + account.sync.state)}</dt>
+                    <dd className="m-0 text-end">{account.sync.last_failure_at
+                      ? t('connections.lastFailure', undefined, { date: formatDate(account.sync.last_failure_at) })
+                      : account.sync.last_success_at
+                        ? t('connections.lastSuccess', undefined, { date: formatDate(account.sync.last_success_at) })
+                        : t('connections.expiryUnknown')}</dd>
+                    <dt>{t('connections.expiryUnknown')}</dt>
+                    <dd className="m-0 text-end">{account.expires_at
+                      ? t('accounts.tokenExpires', undefined, { date: formatDate(account.expires_at) })
+                      : t('connections.expiryUnknown')}</dd>
+                    {account.sync.state !== 'not_available' && <dd className="col-span-2 m-0 text-muted-foreground">
+                      {t('connections.stalePolicy', undefined, { hours: formatNumber(account.sync.stale_after_seconds / 3600) })}
+                    </dd>}
+                  </>}
+                </dl>
+              </details>
             </Card>;
           })}
         </div>
       </section>;
     })}
-    {data.providers.some(p => p.key === 'instagram') && <AccountWatchlist workspaceId={workspaceId}
-      canAdd={Boolean(data.providers.find(p => p.key === 'instagram')?.permissions.connect)}
-      canVerify={Boolean(data.providers.find(p => p.key === 'instagram')?.contract.auth.start_path)} />}
+    {data.providers.some(p => p.key === 'instagram') && <details className="group rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-card shadow-sm">
+      <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-semibold text-foreground [&::-webkit-details-marker]:hidden">
+        <span className="flex items-center gap-2">
+          <Eye size={17} className="text-muted-foreground" aria-hidden />
+          {t('watchlist.title')}
+          <Badge variant="outline">{isPersian ? 'رصد عمومی' : 'Public monitoring'}</Badge>
+        </span>
+        <ChevronDown size={17} className="text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
+      </summary>
+      <div className="border-t border-[var(--border-subtle)] p-3">
+        <AccountWatchlist workspaceId={workspaceId}
+          canAdd={Boolean(data.providers.find(p => p.key === 'instagram')?.permissions.connect)}
+          canVerify={Boolean(data.providers.find(p => p.key === 'instagram')?.contract.auth.start_path)} />
+      </div>
+    </details>}
     <ApiConnectivityPanel />
     <PlatformConnectModal key={connect ? `${connect.provider.key}:${connect.account?.id || 'new'}` : 'closed'}
       open={Boolean(connect)} provider={connect?.provider} account={connect?.account} workspaceId={workspaceId}
