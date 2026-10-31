@@ -5,9 +5,10 @@ import { calendarAPI } from '@/services/domains/publishing';
 import { connectionsAPI } from '@/services/domains/connections';
 import { useLanguage } from '@/i18n';
 import Button from '@/components/ui/Button';
-import Card from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
 import DataState from '@/components/ui/DataState';
+import Badge from '@/components/ui/Badge';
+import SocialPlatformIcon from '@/components/ui/SocialPlatformIcon';
 
 export default function AccountWatchlist({ workspaceId, canAdd, canVerify }) {
   const { t, formatDate } = useLanguage();
@@ -34,9 +35,8 @@ export default function AccountWatchlist({ workspaceId, canAdd, canVerify }) {
       setPending(false);
     }
   };
-  return <Card padding="md" className="space-y-4">
-    <h3 className="text-lg font-semibold">{t('watchlist.title')}</h3>
-    <p className="text-sm text-muted-foreground">{t('watchlist.description')}</p>
+  return <div className="space-y-4">
+    <p className="m-0 text-xs leading-relaxed text-muted-foreground">{t('watchlist.description')}</p>
     {canAdd && <form className="flex flex-wrap items-end gap-3" onSubmit={event => {
       event.preventDefault();
       void mutate(() => calendarAPI.addSource({ client: workspaceId, platform: 'instagram', username }));
@@ -48,18 +48,23 @@ export default function AccountWatchlist({ workspaceId, canAdd, canVerify }) {
       action={<Button variant="secondary" onClick={() => query.refetch()}>{t('connections.retry')}</Button>} />}
     {query.isPending && <DataState compact state="loading" title={t('connections.loading')} />}
     {!query.isPending && !query.isError && !sources.length && <p>{t('watchlist.empty')}</p>}
-    <ul className="space-y-3">
-      {sources.map(source => <li key={source.id} className="flex flex-wrap items-center justify-between gap-3 border-t pt-3">
-        <div className="min-w-0 flex-1 space-y-3">
-          <p className="font-medium" dir="ltr">@{source.username}</p>
+    <ul className="m-0 divide-y divide-[var(--border-subtle)] p-0">
+      {sources.map(source => <li key={source.id} className="flex min-w-0 flex-wrap items-start justify-between gap-3 py-3 first:pt-0">
+        <div className="min-w-0 flex-1 space-y-2">
+          <div className="flex min-w-0 items-center gap-2">
+            <SocialPlatformIcon platform="instagram" size={19} />
+            <strong className="min-w-0 truncate text-sm" dir="ltr">@{source.username}</strong>
+            <Badge variant={source.publishing_ready ? 'success' : 'info'}>
+              {t(source.publishing_ready ? 'watchlist.connected' : 'watchlist.readOnly')}
+            </Badge>
+          </div>
           <p className="text-sm text-muted-foreground">{t(source.is_active ? `watchlist.status.${source.sync_status}` : 'watchlist.paused')}</p>
           {source.is_active && source.error_code === 'brightdata_empty_result' &&
             <p role="status" className="text-sm text-muted-foreground">{t('watchlist.emptyResult')}</p>}
           {source.last_synced_at && <p className="text-xs text-muted-foreground">{t('watchlist.updated', undefined, { date: formatDate(source.last_synced_at) })}</p>}
-          <PublicProfileSummary data={source.public_data} />
-          <p className="text-xs">{t(source.publishing_ready ? 'watchlist.connected' : 'watchlist.readOnly')}</p>
+          <PublicProfileSummary data={source.public_data} compact />
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {source.is_active && source.permissions?.connect_platforms && <Button size="sm" variant="secondary" disabled={pending}
             onClick={() => mutate(() => calendarAPI.syncSource(source.id))}>{t('watchlist.refresh')}</Button>}
           {!source.is_active && source.permissions?.connect_platforms && <Button size="sm" disabled={pending}
@@ -73,5 +78,5 @@ export default function AccountWatchlist({ workspaceId, canAdd, canVerify }) {
         </div>
       </li>)}
     </ul>
-  </Card>;
+  </div>;
 }

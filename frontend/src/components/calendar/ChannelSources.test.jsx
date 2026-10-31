@@ -11,6 +11,9 @@ jest.mock('../../services/domains/publishing', () => ({ calendarAPI: {
 jest.mock('../../i18n', () => ({ useLanguage: () => ({ isPersian: false, formatDate: value => value, t: key => key }) }));
 
 beforeEach(() => { jest.clearAllMocks(); });
+function expandSources() {
+  fireEvent.click(screen.getByRole('button', { name: /Tracked channels/ }));
+}
 
 test('switching workspace clears source and form state and ignores the old response', async () => {
   let finishOld;
@@ -19,8 +22,10 @@ test('switching workspace clears source and form state and ignores the old respo
     : Promise.resolve({ data: [{ id: 22, username: 'newbrand' }] }));
   const props = { onRefresh: jest.fn(), selectedSource: '', onSelectSource: jest.fn() };
   const view = render(<ChannelSources {...props} clientId={1} />);
+  expandSources();
   fireEvent.change(screen.getByLabelText('Username or profile URL'), { target: { value: '@oldbrand' } });
   view.rerender(<ChannelSources {...props} clientId={2} />);
+  expandSources();
   expect(screen.getByLabelText('Username or profile URL')).toHaveValue('');
   expect(await screen.findByRole('option', { name: '@newbrand' })).toBeInTheDocument();
   await act(async () => finishOld({ data: [{ id: 11, username: 'oldbrand' }] }));
@@ -43,6 +48,7 @@ test('allows a public profile and explains the required reader session', async (
   calendarAPI.addSource.mockResolvedValue({ data: {} });
   const refresh = jest.fn();
   render(<ChannelSources clientId={1} onRefresh={refresh} selectedSource="" onSelectSource={jest.fn()} />);
+  expandSources();
   fireEvent.change(screen.getByLabelText('Username or profile URL'), { target: { value: '@example' } });
   fireEvent.click(screen.getByRole('button', { name: 'Add channel' }));
   await waitFor(() => expect(calendarAPI.addSource).toHaveBeenCalledWith({ client: 1, platform: 'instagram', username: '@example' }));
@@ -60,8 +66,10 @@ test('adds a named competitor in the selected brand', async () => {
   calendarAPI.getSources.mockResolvedValue({ data: [] });
   calendarAPI.addSource.mockResolvedValue({ data: {} });
   render(<ChannelSources clientId={7} onRefresh={jest.fn()} selectedSource="" onSelectSource={jest.fn()} />);
+  expandSources();
   fireEvent.click(screen.getByRole('checkbox', { name: 'Competitor' }));
   fireEvent.change(screen.getByLabelText('Competitor name'), { target: { value: 'Rival' } });
+  expandSources();
   fireEvent.change(screen.getByLabelText('Username or profile URL'), { target: { value: '@rival' } });
   fireEvent.click(screen.getByRole('button', { name: 'Add competitor' }));
   await waitFor(() => expect(calendarAPI.addSource).toHaveBeenCalledWith({
@@ -80,9 +88,20 @@ test('action success with reload failure shows an accurate notification', async 
   calendarAPI.getSources.mockResolvedValueOnce({ data: [] }).mockRejectedValueOnce(new Error('reload failed'));
   calendarAPI.addSource.mockResolvedValue({ data: {} });
   render(<ChannelSources clientId={1} onRefresh={jest.fn()} selectedSource="" onSelectSource={jest.fn()} />);
+  expandSources();
   fireEvent.change(screen.getByLabelText('Username or profile URL'), { target: { value: '@example' } });
   fireEvent.click(screen.getByRole('button', { name: 'Add channel' }));
   await waitFor(() => expect(toast.success).toHaveBeenCalledWith('Channel added.'));
   await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Action completed, but the list could not refresh.'));
   expect(toast.error).not.toHaveBeenCalledWith('Operation failed.');
+});
+
+test('tracked sources are compact by default and open with an accessible control', async () => {
+  calendarAPI.getSources.mockResolvedValue({ data: [{ id: 5, username: 'example' }] });
+  render(<ChannelSources clientId={1} onRefresh={jest.fn()} selectedSource="" onSelectSource={jest.fn()} />);
+  expect(screen.getByRole('button', { name: /Tracked channels/ })).toHaveAttribute('aria-expanded', 'false');
+  expect(screen.queryByLabelText('Username or profile URL')).not.toBeInTheDocument();
+  expandSources();
+  expect(screen.getByRole('button', { name: /Tracked channels/ })).toHaveAttribute('aria-expanded', 'true');
+  expect(screen.getByLabelText('Username or profile URL')).toBeInTheDocument();
 });

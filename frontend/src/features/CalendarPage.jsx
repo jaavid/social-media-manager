@@ -8,7 +8,7 @@
  * ========================================================================== */
 import { useState, useCallback, useMemo, useRef } from 'react';
 import { addMonths, subMonths, format, parseISO, endOfMonth } from 'date-fns';
-import { ChevronLeft, ChevronRight, Plus, Calendar, List, BarChart2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Calendar, List, BarChart2, Layers3 } from 'lucide-react';
 import { useAppSearchParams as useSearchParams } from '../core/navigation';
 import { useSession as useAuth } from '../core/session';
 import { useWorkspaces } from '../hooks/useData';
@@ -25,6 +25,7 @@ import CalendarStats from '../components/calendar/CalendarStats';
 import UpcomingPosts from '../components/calendar/UpcomingPosts';
 import PageHeader from '../components/layout/PageHeader';
 import SocialPlatformIcon from '../components/ui/SocialPlatformIcon';
+import Button from '../components/ui/Button';
 import { useLanguage } from '../i18n';
 import {
   addPersianMonths,
@@ -313,7 +314,7 @@ export default function CalendarPage({ clientId: propClientId }) {
 
   if (showClientSelector && !clientId) {
     return (
-      <div style={pageStyle}>
+      <div style={pageStyle} className="px-4 py-5 sm:px-6 sm:py-7 lg:px-8">
         <div className="calendar-container">
           <PageHeader
             title={pageTitle}
@@ -344,7 +345,7 @@ export default function CalendarPage({ clientId: propClientId }) {
   }
 
   return (
-    <div style={pageStyle}>
+    <div style={pageStyle} className="px-4 py-5 sm:px-6 sm:py-7 lg:px-8">
       <div className={isEmbedded ? 'calendar-container calendar-container--embedded' : 'calendar-container'}>
         <PageHeader
           title={pageTitle}
@@ -378,22 +379,27 @@ export default function CalendarPage({ clientId: propClientId }) {
             <button onClick={goToday} style={todayBtnStyle}>{t('common.today', 'Today')}</button>
           </div>
 
-          <div className="calendar-platform-filter">
-            {[{ key: 'all', label: t('common.all', 'All'), color: 'var(--brand-primary)' }, ...calendarPlatforms.map(p => ({ key: p.key, label: p.labels[language] || p.labels.en, color: p.color }))].map(item => (
-              <button key={item.key} onClick={() => setPlatform(item.key)} className={platform === item.key ? 'calendar-platform-button calendar-platform-button--active' : 'calendar-platform-button'}>
-                <span className="calendar-inline-control">
-                  {item.key === 'all' ? null : <SocialPlatformIcon platform={item.key} size={14} />}
+          <div className="w-full min-w-0 flex-[1_1_100%] overflow-x-auto pb-1 [scrollbar-width:thin]"
+            role="group" aria-label={isPersian ? 'فیلتر شبکهٔ اجتماعی' : 'Filter by social network'}>
+            <div className="flex w-max min-w-full items-center gap-2">
+              {[{ key: 'all', label: t('common.all', 'All') }, ...calendarPlatforms.map(p => ({ key: p.key, label: p.labels[language] || p.labels.en }))].map(item => (
+                <button key={item.key} type="button" aria-pressed={platform === item.key}
+                  onClick={() => setPlatform(item.key)}
+                  className={`inline-flex min-h-9 shrink-0 items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${platform === item.key
+                    ? 'border-[var(--brand-primary)] bg-[var(--brand-primary-soft)] text-foreground'
+                    : 'border-[var(--border-subtle)] bg-card text-[var(--text-secondary)] hover:bg-accent hover:text-foreground'}`}>
+                  {item.key === 'all' ? <Layers3 size={15} aria-hidden /> : <SocialPlatformIcon platform={item.key} size={16} />}
                   {item.label || t('common.all', 'All')}
-                </span>
-              </button>
-            ))}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className={isEmbedded ? 'calendar-toolbar-actions calendar-toolbar-actions--embedded' : 'calendar-toolbar-actions'}>
             {isAdmin && (
-              <button onClick={event => openFormForDate(new Date(), event.currentTarget)} style={scheduleBtnStyle}>
-                <Plus size={16} /> {t('calendar.schedulePost', 'Schedule Post')}
-              </button>
+              <Button icon={Plus} size="md" onClick={event => openFormForDate(new Date(), event.currentTarget)}>
+                {t('calendar.schedulePost', 'Schedule Post')}
+              </Button>
             )}
             <div className="calendar-view-switcher">
               {views.map(item => (
@@ -494,26 +500,20 @@ export default function CalendarPage({ clientId: propClientId }) {
 }
 
 const pageStyle = {
-  padding: '28px 32px 40px', background: 'var(--surface-page)', minHeight: '100vh',
+  background: 'var(--surface-page)', minHeight: '100vh',
   width: '100%', maxWidth: '100%', overflowX: 'hidden', boxSizing: 'border-box',
 };
 
 const navBtnStyle = {
-  width: 32, height: 32, borderRadius: '50%', background: 'var(--surface-card)',
+  width: 40, height: 40, minHeight: 40, borderRadius: '50%', background: 'var(--surface-card)',
   border: '1px solid var(--border-default)', cursor: 'pointer', display: 'flex',
   alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', transition: 'background 0.15s',
 };
 
 const todayBtnStyle = {
-  padding: '6px 12px', borderRadius: 8, background: 'var(--surface-page)',
+  minHeight: 40, padding: '6px 12px', borderRadius: 8, background: 'var(--surface-page)',
   border: '1px solid var(--border-default)', cursor: 'pointer', fontSize: 12,
   fontWeight: 600, color: 'var(--text-secondary)',
-};
-
-const scheduleBtnStyle = {
-  display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8,
-  background: '#00d7ff', color: 'var(--text-primary)', border: 'none', cursor: 'pointer',
-  fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap',
 };
 
 const adminClientSelectStyle = {

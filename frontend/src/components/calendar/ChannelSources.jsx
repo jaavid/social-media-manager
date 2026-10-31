@@ -1,14 +1,12 @@
-import PublicProfileSummary from '../PublicProfileSummary';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { ChevronDown, Eye, Plus, RefreshCw, Trash2 } from 'lucide-react';
 import { calendarAPI } from '../../services/domains/publishing';
 import { useLanguage } from '../../i18n';
+import Button from '../ui/Button';
+import Badge from '../ui/Badge';
+import SocialPlatformIcon from '../ui/SocialPlatformIcon';
+import PublicProfileSummary from '../PublicProfileSummary';
 import toast from '../ui/toast';
-
-const controlStyle = {
-  minHeight: 44, padding: '8px 12px', borderRadius: 8,
-  border: '1px solid var(--border-default)', background: 'var(--surface-card)',
-  color: 'var(--text-primary)',
-};
 
 export default function ChannelSources({ clientId, onRefresh, selectedSource, onSelectSource }) {
   const { isPersian } = useLanguage();
@@ -18,6 +16,7 @@ export default function ChannelSources({ clientId, onRefresh, selectedSource, on
 
 function ScopedChannelSources({ clientId, onRefresh, selectedSource, onSelectSource }) {
   const { isPersian, formatDate } = useLanguage();
+  const [expanded, setExpanded] = useState(false);
   const [sources, setSources] = useState([]);
   const [username, setUsername] = useState('');
   const [isCompetitor, setIsCompetitor] = useState(false);
@@ -62,8 +61,8 @@ function ScopedChannelSources({ clientId, onRefresh, selectedSource, onSelectSou
         toast.error(code === 'cooldown'
           ? text('۱۵ دقیقه بعد دوباره تلاش کنید.', 'Try again in 15 minutes.')
           : text('عملیات انجام نشد.', 'Operation failed.'));
+        setBusy(false);
       }
-      if (generation.current === token) setBusy(false);
       return;
     }
     if (generation.current !== token) return;
@@ -73,9 +72,7 @@ function ScopedChannelSources({ clientId, onRefresh, selectedSource, onSelectSou
       await load();
       if (generation.current === token) onRefresh();
     } catch {
-      if (generation.current === token) {
-        toast.error(text('عملیات انجام شد، اما فهرست به‌روز نشد.', 'Action completed, but the list could not refresh.'));
-      }
+      if (generation.current === token) toast.error(text('عملیات انجام شد، اما فهرست به‌روز نشد.', 'Action completed, but the list could not refresh.'));
     } finally {
       if (generation.current === token) setBusy(false);
     }
@@ -83,60 +80,118 @@ function ScopedChannelSources({ clientId, onRefresh, selectedSource, onSelectSou
 
   if (!clientId) return null;
   return (
-    <details className="mb-4 min-w-0 rounded-xl border border-[var(--border-default)] p-3 sm:p-4">
-      <summary className="min-h-8 cursor-pointer text-sm font-medium">{text('کانال‌های رصدشده', 'Tracked channels')}{sources.length > 0 ? ` (${sources.length})` : ''}</summary>
-      <label htmlFor="calendar-channel-filter">{text('نمایش', 'Show')}</label>{' '}
-      <select id="calendar-channel-filter" value={selectedSource} onChange={event => onSelectSource(event.target.value)} className="max-w-full min-w-0" style={controlStyle}>
-        <option value="">{text('همه محتواها', 'All content')}</option>
-        <option value="competitors">{text('فقط رقبا', 'Competitors only')}</option>
-        <option value="owned">{text('فقط محتوای خودمان', 'Owned content only')}</option>
-        {sources.map(source => <option key={source.id} value={String(source.id)}>{source.display_name ? `${source.display_name} · ` : ''}@{source.username}</option>)}
-      </select>
-      <form onSubmit={event => {
-        event.preventDefault();
-        act(async () => {
-          await calendarAPI.addSource({ client: clientId, platform: 'instagram', username,
+    <section className="mb-5 min-w-0 overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-card shadow-sm" aria-label={text('کانال‌های رصدشده', 'Tracked channels')}>
+      <button type="button" aria-expanded={expanded} aria-controls="calendar-tracked-content"
+        onClick={() => setExpanded(value => !value)}
+        className="flex min-h-14 w-full min-w-0 items-center justify-between gap-3 px-4 py-3 text-start transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:px-5">
+        <span className="flex min-w-0 items-center gap-3">
+          <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-[var(--brand-primary-soft)] text-[var(--brand-primary)]">
+            <Eye size={18} aria-hidden />
+          </span>
+          <span className="min-w-0">
+            <span className="flex items-center gap-2 text-sm font-semibold text-foreground">
+              {text('کانال‌های رصدشده', 'Tracked channels')}
+              <Badge variant="brand">{sources.length}</Badge>
+            </span>
+            <span className="mt-0.5 block truncate text-xs text-muted-foreground">
+              {sources.length
+                ? sources.slice(0, 2).map(source => `@${source.username}`).join(' · ')
+                : text('هنوز کانالی اضافه نشده است', 'No channels added yet')}
+            </span>
+          </span>
+        </span>
+        <span className="flex shrink-0 items-center gap-2 text-xs text-muted-foreground">
+          <SocialPlatformIcon platform="instagram" size={17} />
+          <ChevronDown size={17} className={`transition-transform ${expanded ? 'rotate-180' : ''}`} aria-hidden />
+        </span>
+      </button>
+      {expanded && <div id="calendar-tracked-content" className="space-y-4 border-t border-[var(--border-subtle)] px-4 py-4 sm:px-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <label htmlFor="calendar-channel-filter" className="text-xs font-medium text-muted-foreground">
+            {text('نمایش محتوای', 'Show content from')}
+          </label>
+          <select id="calendar-channel-filter" value={selectedSource}
+            onChange={event => onSelectSource(event.target.value)}
+            className="ds-native-select w-full max-w-full sm:max-w-64">
+            <option value="">{text('همه محتواها', 'All content')}</option>
+            <option value="competitors">{text('فقط رقبا', 'Competitors only')}</option>
+            <option value="owned">{text('فقط محتوای خودمان', 'Owned content only')}</option>
+            {sources.map(source => <option key={source.id} value={String(source.id)}>
+              {source.display_name ? `${source.display_name} · ` : ''}@{source.username}
+            </option>)}
+          </select>
+        </div>
+        <form onSubmit={event => {
+          event.preventDefault();
+          void act(() => calendarAPI.addSource({
+            client: clientId, platform: 'instagram', username,
             ...(isCompetitor ? { competitor_name: competitorName.trim() } : {}),
+          }), text('کانال اضافه شد.', 'Channel added.'), () => {
+            setUsername('');
+            setCompetitorName('');
           });
-        }, text('کانال اضافه شد.', 'Channel added.'), () => {
-          setUsername('');
-          setCompetitorName('');
-        });
-      }} className="mt-3 flex min-w-0 flex-wrap items-center gap-2">
-        <label htmlFor="calendar-instagram-username" className="sr-only">{text('نام کاربری یا لینک پروفایل', 'Username or profile URL')}</label>
-        <input id="calendar-instagram-username" value={username} onChange={event => setUsername(event.target.value)} required dir="ltr" placeholder={text('نام کاربری یا لینک اینستاگرام', 'Instagram username or URL')} className="min-w-0 basis-full grow sm:basis-48" style={controlStyle} />
-        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minHeight: 44 }}>
-          <input type="checkbox" checked={isCompetitor} onChange={event => setIsCompetitor(event.target.checked)} />
-          {text('رقیب است', 'Competitor')}
-        </label>
-        {isCompetitor && <>
-          <label htmlFor="calendar-competitor-name" className="sr-only">{text('نام رقیب', 'Competitor name')}</label>
-          <input id="calendar-competitor-name" value={competitorName} maxLength={200} required placeholder={text('نام رقیب', 'Competitor name')}
-            onChange={event => setCompetitorName(event.target.value)} className="min-w-0 basis-full grow sm:basis-36" style={controlStyle} />
-        </>}
-        <button type="submit" disabled={busy || !username.trim() || (isCompetitor && !competitorName.trim())} style={controlStyle}>{isCompetitor ? text('افزودن رقیب', 'Add competitor') : text('افزودن کانال', 'Add channel')}</button>
-        <button type="button" disabled={busy} onClick={() => act(async () => {})} style={controlStyle}>{text('تازه‌سازی', 'Refresh')}</button>
-      </form>
-      <ul className="list-none space-y-2 p-0">
-        {sources.map(source => (
-          <li key={source.id} className="min-w-0 rounded-lg border border-[var(--border-default)] p-3">
-            {source.is_competitor && <strong>{source.display_name} · {text('رقیب', 'Competitor')} · </strong>}
-            <strong dir="ltr">@{source.username}</strong>{' · '}
-            {source.last_synced_at ? formatDate(source.last_synced_at) : text('هنوز دریافت نشده', 'Not synced yet')}
-            <PublicProfileSummary data={source.public_data} compact />
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 6 }}>
-              <button type="button" disabled={busy} style={controlStyle} onClick={() => act(async () => {
-                await calendarAPI.syncSource(source.id);
-              }, text('دریافت در صف قرار گرفت.', 'Sync queued.'), () => setPending(true))}>{text('دریافت پست‌ها', 'Sync posts')}</button>
-              <button type="button" disabled={busy} style={controlStyle} onClick={() => act(async () => {
-                await calendarAPI.removeSource(source.id);
-              }, text('کانال حذف شد.', 'Channel removed.'), () => {
-                if (String(source.id) === selectedSource) onSelectSource('');
-              })}>{text('حذف از رصد', 'Stop tracking')}</button>
+        }} className="flex min-w-0 flex-col gap-2 rounded-xl bg-[var(--surface-sunken)] p-3 sm:flex-row sm:flex-wrap sm:items-center">
+          <SocialPlatformIcon platform="instagram" size={20} />
+          <label htmlFor="calendar-instagram-username" className="sr-only">{text('نام کاربری یا لینک پروفایل', 'Username or profile URL')}</label>
+          <input id="calendar-instagram-username" value={username}
+            onChange={event => setUsername(event.target.value)} required dir="ltr"
+            placeholder={text('نام کاربری یا لینک اینستاگرام', 'Instagram username or URL')}
+            className="ds-input min-w-0 flex-1 sm:basis-36" />
+          <label className="inline-flex min-h-9 shrink-0 cursor-pointer items-center gap-2 text-xs text-foreground">
+            <input type="checkbox" checked={isCompetitor} onChange={event => setIsCompetitor(event.target.checked)} />
+            {text('رقیب است', 'Competitor')}
+          </label>
+          {isCompetitor && <>
+            <label htmlFor="calendar-competitor-name" className="sr-only">{text('نام رقیب', 'Competitor name')}</label>
+            <input id="calendar-competitor-name" value={competitorName} maxLength={200} required
+              placeholder={text('نام رقیب', 'Competitor name')}
+              onChange={event => setCompetitorName(event.target.value)}
+              className="ds-input min-w-0 flex-1 sm:basis-32" />
+          </>}
+          <Button size="sm" type="submit" icon={Plus} loading={busy}
+            disabled={!username.trim() || (isCompetitor && !competitorName.trim())}>
+            {isCompetitor ? text('افزودن رقیب', 'Add competitor') : text('افزودن کانال', 'Add channel')}
+          </Button>
+        </form>
+        {sources.length === 0 && <p className="m-0 text-center text-xs text-muted-foreground">
+          {text('برای رصد محتوای عمومی، یک نام کاربری اینستاگرام وارد کنید.', 'Enter an Instagram username to track public content.')}
+        </p>}
+        {sources.length > 0 && <ul className="m-0 divide-y divide-[var(--border-subtle)] p-0">
+          {sources.map(source => <li key={source.id} className="flex min-w-0 flex-col gap-3 py-3 first:pt-0 sm:flex-row sm:items-center">
+            <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-muted">
+              <SocialPlatformIcon platform="instagram" size={19} />
+            </span>
+            <div className="min-w-0 flex-1 space-y-1">
+              <div className="flex min-w-0 flex-wrap items-center gap-2">
+                <strong dir="ltr" className="max-w-full truncate text-sm">@{source.username}</strong>
+                {source.is_competitor && <Badge variant="warning">{source.display_name || text('رقیب', 'Competitor')}</Badge>}
+              </div>
+              <p className="m-0 text-xs text-muted-foreground">
+                {source.last_synced_at
+                  ? text('آخرین دریافت: ', 'Last sync: ') + formatDate(source.last_synced_at)
+                  : text('هنوز دریافت نشده', 'Not synced yet')}
+              </p>
+              <PublicProfileSummary data={source.public_data} compact />
             </div>
-          </li>
-        ))}
-      </ul>
-    </details>
+            <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
+              <Button variant="secondary" size="sm" icon={RefreshCw} disabled={busy}
+                onClick={() => void act(() => calendarAPI.syncSource(source.id),
+                  text('دریافت در صف قرار گرفت.', 'Sync queued.'), () => setPending(true))}>
+                {text('دریافت پست‌ها', 'Sync posts')}
+              </Button>
+              <Button variant="ghost" size="sm" icon={Trash2} disabled={busy}
+                onClick={() => void act(() => calendarAPI.removeSource(source.id),
+                  text('کانال حذف شد.', 'Channel removed.'), () => {
+                    if (String(source.id) === selectedSource) onSelectSource('');
+                  })}>
+                {text('حذف از رصد', 'Stop tracking')}
+              </Button>
+            </div>
+          </li>)}
+        </ul>}
+        <Button variant="ghost" size="sm" icon={RefreshCw} disabled={busy}
+          onClick={() => void act(async () => {})}>{text('تازه‌سازی', 'Refresh')}</Button>
+      </div>}
+    </section>
   );
 }
