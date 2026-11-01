@@ -122,12 +122,11 @@ test('immediate confirmation Escape preserves the tablet inspector across repeat
     await page.keyboard.press('Escape');
     await expect(confirmation).toHaveCount(0);
     await expect(inspector).toBeVisible();
-    // In the rare saving window the trigger becomes disabled; focus must move
-    // to the labelled canvas instead of being lost in the dismissed portal.
+    // Focus remains inside the modal inspector when its trigger is disabled.
     if (await remove.isEnabled()) {
       await expect(remove).toBeFocused();
     } else {
-      await expect(page.getByLabel(enMessages['bot.canvas'])).toBeFocused();
+      await expect(inspector.getByRole('region', { name: enMessages['editor.inspector'] })).toBeFocused();
     }
   }
   await expect(page.locator('.react-flow__node[data-id="wait"]')).toBeVisible();
