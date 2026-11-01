@@ -109,8 +109,9 @@ export default function Modal({
                 node?.isConnected && !node.matches(':disabled,[aria-disabled="true"]');
               if (available(target)) target?.focus();
               // Hidden targets can refuse focus even when connected and enabled.
-              if (document.activeElement !== target && available(fallbackFocusRef?.current)) {
-                fallbackFocusRef.current?.focus();
+              const fallback = fallbackFocusRef?.current;
+              if (document.activeElement !== target && available(fallback)) {
+                fallback?.focus();
               }
             });
           }}
