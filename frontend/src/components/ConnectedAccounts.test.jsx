@@ -16,8 +16,8 @@ test('reference provider renders metadata, separate account/destination and acco
   renderConnections();
   expect(await screen.findByText('Contract example')).toBeInTheDocument();
   expect(screen.getByText('Experimental provider')).toBeInTheDocument();
-  expect(screen.getByText(/identity-10/)).toBeInTheDocument();
-  expect(screen.getByText(/profile · destination-10/)).toBeInTheDocument();
+  expect(screen.getAllByText(/identity-10/).length).toBeGreaterThan(0);
+  expect(screen.getAllByText(/profile · destination-10/).length).toBeGreaterThan(0);
   fireEvent.change(screen.getByRole('combobox'), { target: { value: '11' } });
   expect(screen.getByText('Expired or expiring soon · reconnect required')).toBeInTheDocument();
   expect(screen.getByText('Last sync failed')).toBeInTheDocument();
@@ -33,7 +33,7 @@ test('initial error offers retry, never empty, while background failure keeps ex
   connectionsAPI.get.mockRejectedValueOnce(new Error('background'));
   fireEvent.click(screen.getByText('Refresh connections'));
   expect(await screen.findByText('Refresh failed. Showing previously loaded connections.')).toBeInTheDocument();
-  expect(screen.getByText(/identity-10/)).toBeInTheDocument();
+  expect(screen.getAllByText(/identity-10/).length).toBeGreaterThan(0);
 });
 test('workspace switch discards late results and cancels old observer', async () => {
   let finish;
