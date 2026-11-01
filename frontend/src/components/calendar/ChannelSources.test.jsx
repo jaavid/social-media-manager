@@ -8,7 +8,7 @@ jest.mock('../ui/toast', () => ({ __esModule: true, default: { error: jest.fn(),
 jest.mock('../../services/domains/publishing', () => ({ calendarAPI: {
   getSources: jest.fn(), addSource: jest.fn(), syncSource: jest.fn(), removeSource: jest.fn(),
 } }));
-jest.mock('../../i18n', () => ({ useLanguage: () => ({ isPersian: false, formatDate: value => value, t: key => key }) }));
+jest.mock('../../i18n', () => ({ useLanguage: () => ({ isPersian: false, formatDate: value => value, t: key => key, tr: value => value }) }));
 
 beforeEach(() => { jest.clearAllMocks(); });
 function expandSources() {
@@ -58,6 +58,7 @@ test('allows a public profile and explains the required reader session', async (
 test('allows anonymous sync without a reader session', async () => {
   calendarAPI.getSources.mockResolvedValue({ data: [{ id: 2, username: 'example', reader_ready: false }] });
   render(<ChannelSources clientId={1} onRefresh={jest.fn()} selectedSource="" onSelectSource={jest.fn()} />);
+  expandSources();
   await waitFor(() => expect(screen.getByRole('button', { name: 'Sync posts' })).toBeEnabled());
   expect(screen.queryByText(/Anonymous public access/)).not.toBeInTheDocument();
 });
@@ -69,7 +70,6 @@ test('adds a named competitor in the selected brand', async () => {
   expandSources();
   fireEvent.click(screen.getByRole('checkbox', { name: 'Competitor' }));
   fireEvent.change(screen.getByLabelText('Competitor name'), { target: { value: 'Rival' } });
-  expandSources();
   fireEvent.change(screen.getByLabelText('Username or profile URL'), { target: { value: '@rival' } });
   fireEvent.click(screen.getByRole('button', { name: 'Add competitor' }));
   await waitFor(() => expect(calendarAPI.addSource).toHaveBeenCalledWith({

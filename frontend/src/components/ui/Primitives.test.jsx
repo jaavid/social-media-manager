@@ -129,3 +129,23 @@ it('immediate Escape closes only the focused nested confirmation over repeated o
     await waitFor(() => expect(screen.getByRole('button', { name: 'Delete item' })).toHaveFocus());
   }
 });
+
+it('alertdialog returns focus to a named fallback when its trigger becomes disabled', async () => {
+  function Example() {
+    const [open, setOpen] = useState(false);
+    const fallback = React.useRef(null);
+    const trigger = React.useRef(null);
+    return <>
+      <button ref={trigger} onClick={() => setOpen(true)}>Delete node</button>
+      <div ref={fallback} role="region" aria-label="Canvas" tabIndex={-1}>Canvas</div>
+      <Modal open={open} role="alertdialog" title="Confirm"
+        onClose={() => { trigger.current.disabled = true; setOpen(false); }}
+        returnFocusRef={trigger} fallbackFocusRef={fallback}
+        footer={<button onClick={() => { trigger.current.disabled = true; setOpen(false); }}>Cancel</button>} />
+    </>;
+  }
+  render(<Example />);
+  await userEvent.click(screen.getByRole('button', { name: 'Delete node' }));
+  await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+  await waitFor(() => expect(screen.getByRole('region', { name: 'Canvas' })).toHaveFocus());
+});

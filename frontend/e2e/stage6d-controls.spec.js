@@ -122,7 +122,14 @@ test('immediate confirmation Escape preserves the tablet inspector across repeat
     await page.keyboard.press('Escape');
     await expect(confirmation).toHaveCount(0);
     await expect(inspector).toBeVisible();
-    await expect(remove).toBeFocused();
+    // Focus remains inside the modal inspector when its trigger is disabled.
+    if (await remove.isEnabled()) {
+      await expect(remove).toBeFocused();
+    } else {
+      await expect(inspector.getByRole('region', { name: enMessages['editor.inspector'] })).toBeFocused();
+    }
   }
   await expect(page.locator('.react-flow__node[data-id="wait"]')).toBeVisible();
+  await expect(inspector).toBeVisible();
+  expect(state.writes).toHaveLength(0);
 });

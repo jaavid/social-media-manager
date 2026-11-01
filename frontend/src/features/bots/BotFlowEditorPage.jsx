@@ -90,6 +90,8 @@ function Editor() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [panel, setPanel] = useState(null);
   const cancelDelete = useRef(null);
+  const deleteTrigger = useRef(null);
+  const inspectorFocus = useRef(null);
   const [saveError, setSaveError] = useState(null);
   const [actionError, setActionError] = useState(null); const actionBusy = useRef(false);
   const revision = useRef(0);
@@ -246,7 +248,13 @@ function Editor() {
       : n));
     markDirty();
   }
-  function deleteSelected() { if (selectedId) { setDeleteReturnFocus(false); setDeleteTarget(selectedId); setDeleteOpen(true); } }
+  function deleteSelected(event) {
+    if (!selectedId) return;
+    deleteTrigger.current = event?.currentTarget || null;
+    setDeleteReturnFocus(false);
+    setDeleteTarget(selectedId);
+    setDeleteOpen(true);
+  }
   function deleteConfirmed() {
     if (!deleteTarget) return;
     setDeleteReturnFocus(true);
@@ -361,7 +369,8 @@ function Editor() {
 
   return (
     <div className="flex min-w-0 flex-col bg-background" style={{ height: 'calc(100dvh - var(--topbar-height, 64px))' }}>
-      <Modal open={deleteOpen} returnFocusRef={deleteReturnFocus ? wrapperRef : undefined} role="alertdialog" initialFocusRef={cancelDelete} title={t('editor.deleteNode')} description={t('editor.deleteConfirm')} onClose={() => setDeleteOpen(false)} footer={<><Button ref={cancelDelete} onClick={() => setDeleteOpen(false)}>{t('reports.cancel')}</Button><Button variant="danger" onClick={deleteConfirmed}>{t('editor.deleteNode')}</Button></>} />
+      <Modal open={deleteOpen} returnFocusRef={deleteReturnFocus ? wrapperRef : deleteTrigger}
+          fallbackFocusRef={deleteReturnFocus ? wrapperRef : inspectorFocus} role="alertdialog" initialFocusRef={cancelDelete} title={t('editor.deleteNode')} description={t('editor.deleteConfirm')} onClose={() => setDeleteOpen(false)} footer={<><Button ref={cancelDelete} onClick={() => setDeleteOpen(false)}>{t('reports.cancel')}</Button><Button variant="danger" onClick={deleteConfirmed}>{t('editor.deleteNode')}</Button></>} />
       {!online && <DataState state="offline" compact title={t('catalog.state.offline.title')} />}
       {actionError && <DataState focusRef={errorRef} state="error" compact title={t('editor.actionFailed')} referenceId={apiError(actionError).referenceId} />}
       {saveError && <DataState focusRef={errorRef} state="error" compact title={t('editor.saveFailed')} referenceId={apiError(saveError).referenceId} action={<Button onClick={save}>{t('analytics.report.retry')}</Button>} />}
@@ -433,7 +442,7 @@ function Editor() {
 
       <div className="flex gap-2 p-2 xl:hidden"><Button onClick={() => { setDeleteReturnFocus(false); setPanel('palette'); }}>{t('editor.nodes')}</Button><Button onClick={() => { setDeleteReturnFocus(false); setPanel('inspector'); }}>{t('editor.inspector')}</Button></div>
       <Drawer returnFocusRef={deleteReturnFocus ? wrapperRef : undefined} open={panel !== null} onClose={() => setPanel(null)} title={t(panel === 'palette' ? 'editor.nodes' : 'editor.inspector')} width={320}>
-        {panel === 'palette' ? <Palette compact onAdd={(...args) => { addNode(...args); setPanel(null); }} /> : <NodeInspector node={selected} onChange={patchSelected} onDelete={deleteSelected} variables={variables} disabled={saving} workspaceId={flow?.workspace ?? flow?.client} drafts={inspectorDrafts} onDraftChange={onInspectorDraft} />}
+        {panel === 'palette' ? <Palette compact onAdd={(...args) => { addNode(...args); setPanel(null); }} /> : <div ref={inspectorFocus} tabIndex={-1} role="region" aria-label={t('editor.inspector')}><NodeInspector node={selected} onChange={patchSelected} onDelete={deleteSelected} variables={variables} disabled={saving} workspaceId={flow?.workspace ?? flow?.client} drafts={inspectorDrafts} onDraftChange={onInspectorDraft} /></div>}
       </Drawer>
       {/* Desktop panels use the same components as the narrow-screen drawer. */}
       <div className="flex min-h-0 min-w-0 flex-1 overflow-auto">

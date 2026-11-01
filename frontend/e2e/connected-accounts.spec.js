@@ -55,10 +55,10 @@ test('slow initial read, failed read, explicit retry and failed background refre
   await expect(page.getByText('Connections could not be loaded.')).toBeVisible();
   await expect(page.getByText('No connected accounts yet.')).toHaveCount(0);
   await page.getByRole('button', { name: 'Try again', exact: true }).click();
-  await expect(surface(page).getByText(/identity-10/)).toBeVisible();
+  await expect(surface(page).getByText('identity-10', { exact: true })).toBeVisible();
   await surface(page).getByRole('button', { name: 'Refresh connections' }).click();
   await expect(page.getByText('Refresh failed. Showing previously loaded connections.')).toBeVisible();
-  await expect(surface(page).getByText(/identity-10/)).toBeVisible();
+  await expect(surface(page).getByText('identity-10', { exact: true })).toBeVisible();
   expect(calls).toBe(3);
 });
 for (const status of [403, 404, 429, 500]) {
@@ -136,7 +136,7 @@ test('rapid account and workspace navigation cannot reveal a late old-workspace 
   await finishOld();
   await surface(page).getByRole('combobox').selectOption('11');
   await surface(page).getByRole('combobox').selectOption('10');
-  await expect(surface(page).getByText(/identity-10/)).toBeVisible();
+  await expect(surface(page).getByText('identity-10', { exact: true })).toBeVisible();
   await expect(surface(page).getByText('Contract example')).toHaveCount(0);
 });
 test('network outage preserves existing content and explicit retry recovers', async ({ page }) => {
@@ -145,7 +145,7 @@ test('network outage preserves existing content and explicit retry recovers', as
   await expect(surface(page).getByText('Contract example')).toBeVisible(); failed = true;
   await surface(page).getByRole('button', { name: 'Refresh connections' }).click();
   await expect(page.getByText('Refresh failed. Showing previously loaded connections.')).toBeVisible();
-  await expect(surface(page).getByText(/identity-10/)).toBeVisible(); failed = false;
+  await expect(surface(page).getByText('identity-10', { exact: true })).toBeVisible(); failed = false;
   await page.getByRole('button', { name: 'Try again' }).click();
   await expect(page.getByText('Refresh failed. Showing previously loaded connections.')).toHaveCount(0);
 });
@@ -183,7 +183,7 @@ test('the standard custom provider connects through its declared schema and refr
   await dialog.getByLabel('Destination ID').fill('new-destination');
   await dialog.getByRole('button', { name: 'Verify and connect' }).click();
   await expect(dialog).toHaveCount(0);
-  await expect(surface(page).getByText(/identity-10/)).toBeVisible();
+  await expect(surface(page).getByText('identity-10', { exact: true })).toBeVisible();
   expect(writes).toBe(1);
 });
 test('forbidden background refresh hides cached identities and denied actions stay absent', async ({ page }) => {
@@ -191,7 +191,7 @@ test('forbidden background refresh hides cached identities and denied actions st
   const data = connectionFixture(); const provider = data.providers[0];
   provider.permissions.connect = false; provider.accounts.forEach(a => { a.permissions = { reconnect: false, disconnect: false }; });
   await setup(page, { respond: route => forbidden ? route.fulfill({ status: 403, json: { code: 'permission_denied' } }) : route.fulfill({ json: data }) });
-  await open(page); await expect(surface(page).getByText(/identity-10/)).toBeVisible();
+  await open(page); await expect(surface(page).getByText('identity-10', { exact: true })).toBeVisible();
   await expect(surface(page).getByRole('button', { name: 'Reconnect' })).toHaveCount(0);
   await expect(surface(page).getByRole('button', { name: 'Disconnect' })).toHaveCount(0);
   forbidden = true; await surface(page).getByRole('button', { name: 'Refresh connections' }).click();
