@@ -171,8 +171,8 @@ def compose_post(request):
     try:
         raw = _complete_text(client, request.user, 'compose-post',
                              sys_prompt, user_prompt, 2048, fast=True)
-    out = parse_json_response(raw)
-    variants = out.get('variants') or {}
+        out = parse_json_response(raw)
+        variants = out.get('variants') or {}
     except (RateLimited, GeminiGatewayError, AIError, ValueError, TypeError, KeyError) as exc:
         return _ai_failure(exc)
     except Exception:
@@ -226,8 +226,8 @@ def suggest_hashtags(request):
     try:
         raw = _complete_text(client, request.user, 'suggest-hashtags',
                              sys_prompt, user_prompt, 512, fast=True)
-    out = parse_json_response(raw)
-    tags = out.get('hashtags') or []
+        out = parse_json_response(raw)
+        tags = out.get('hashtags') or []
     except (RateLimited, GeminiGatewayError, AIError, ValueError, TypeError, KeyError) as exc:
         return _ai_failure(exc)
     except Exception:
@@ -382,8 +382,8 @@ def suggest_reply(request):
     try:
         raw = _complete_text(client, request.user, 'suggest-reply',
                              sys_prompt, user_prompt, 600, fast=True)
-    out = parse_json_response(raw)
-    suggestions = [s for s in (out.get('suggestions') or []) if isinstance(s, str)]
+        out = parse_json_response(raw)
+        suggestions = [s for s in (out.get('suggestions') or []) if isinstance(s, str)]
     except (RateLimited, GeminiGatewayError, AIError, ValueError, TypeError, KeyError) as exc:
         return _ai_failure(exc)
     except Exception:
@@ -434,7 +434,7 @@ def rewrite(request):
     try:
         raw = _complete_text(client, request.user, 'rewrite',
                              sys_prompt, user_prompt, 1024, fast=True)
-    out = raw.strip().strip('"').strip()
+        out = raw.strip().strip('"').strip()
     except (RateLimited, GeminiGatewayError, AIError, ValueError, TypeError, KeyError) as exc:
         return _ai_failure(exc)
     except Exception:
@@ -482,7 +482,7 @@ def translate(request):
     try:
         raw = _complete_text(client, request.user, 'translate',
                              sys_prompt, user_prompt, 2048, fast=True)
-    out = raw.strip()
+        out = raw.strip()
     except (RateLimited, GeminiGatewayError, AIError, ValueError, TypeError, KeyError) as exc:
         return _ai_failure(exc)
     except Exception:
@@ -611,8 +611,8 @@ def content_calendar(request):
     try:
         raw = _complete_text(client, request.user, 'content-calendar',
                              sys_prompt, user_prompt, 4096, fast=False)
-    out = parse_json_response(raw)
-    calendar = out.get('calendar') or []
+        out = parse_json_response(raw)
+        calendar = out.get('calendar') or []
     except (RateLimited, GeminiGatewayError, AIError, ValueError, TypeError, KeyError) as exc:
         return _ai_failure(exc)
     except Exception:
@@ -667,7 +667,7 @@ def train_brand_voice(request):
     try:
         raw = _complete_text(client, request.user, 'train-brand-voice',
                              sys_prompt, user_prompt, 1024, fast=True)
-    analysis = parse_json_response(raw)
+        analysis = parse_json_response(raw)
     except (RateLimited, GeminiGatewayError, AIError, ValueError, TypeError, KeyError) as exc:
         return _ai_failure(exc)
     except Exception:
