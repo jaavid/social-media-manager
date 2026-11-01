@@ -36,7 +36,7 @@ function SvgWrap({ size, title, children, viewBox = '0 0 24 24', style }) {
   );
 }
 
-export default function SocialPlatformIcon({ platform, size = 18, title, label, style }) {
+export default function SocialPlatformIcon({ platform, size = 18, title, label, color = 'currentColor', style }) {
   const key = normalizePlatform(platform);
 
   switch (key) {
@@ -70,48 +70,48 @@ export default function SocialPlatformIcon({ platform, size = 18, title, label, 
     case 'telegram':
       return (
         <SvgWrap size={size} title={title || 'Telegram'} style={style}>
-          <circle cx="12" cy="12" r="11" fill="#229ED9" />
-          <path fill="#fff" d="M5.3 11.4 18.5 6.5c.7-.2 1.3.2 1 1.3l-2.3 10.5c-.2.8-.7 1-1.4.6l-3.5-2.6-1.7 1.7c-.2.2-.4.3-.7.3l.3-4 7.3-6.6-9 5.7-3.5-1.1c-.8-.2-.8-.7.3-.9z" />
+          <circle cx="12" cy="12" r="11" fill="#229ED9" /> {/* design-token-exempt: fixed-asset — official platform glyph color */}
+          <path fill="#fff" d="M5.3 11.4 18.5 6.5c.7-.2 1.3.2 1 1.3l-2.3 10.5c-.2.8-.7 1-1.4.6l-3.5-2.6-1.7 1.7c-.2.2-.4.3-.7.3l.3-4 7.3-6.6-9 5.7-3.5-1.1c-.8-.2-.8-.7.3-.9z" /> {/* design-token-exempt: fixed-asset — official platform glyph color */}
         </SvgWrap>
       );
     case 'bale':
       return (
         <SvgWrap size={size} title={title || 'Bale'} style={style}>
-          <rect x="1" y="1" width="22" height="22" rx="7" fill="#14A778" />
-          <path d="M6 11c0-3.1 2.6-5.5 6-5.5s6 2.4 6 5.5c0 3.2-2.7 5.6-6 5.6-.8 0-1.6-.1-2.3-.4L6 18l.8-3.7C6.3 13.3 6 12.2 6 11z" fill="#fff" />
-          <path d="M9 10h6M9 12.8h4" stroke="#14A778" strokeWidth="1.4" strokeLinecap="round" />
+          <rect x="1" y="1" width="22" height="22" rx="7" fill="#14A778" /> {/* design-token-exempt: fixed-asset — official platform glyph color */}
+          <path d="M6 11c0-3.1 2.6-5.5 6-5.5s6 2.4 6 5.5c0 3.2-2.7 5.6-6 5.6-.8 0-1.6-.1-2.3-.4L6 18l.8-3.7C6.3 13.3 6 12.2 6 11z" fill="#fff" /> {/* design-token-exempt: fixed-asset — official platform glyph color */}
+          <path d="M9 10h6M9 12.8h4" stroke="#14A778" strokeWidth="1.4" strokeLinecap="round" /> {/* design-token-exempt: fixed-asset — official platform glyph color */}
         </SvgWrap>
       );
     case 'eitaa':
       return (
         <SvgWrap size={size} title={title || 'Eitaa'} style={style}>
-          <rect x="1" y="1" width="22" height="22" rx="7" fill="#F59A23" />
-          <path d="M6 12a6 6 0 1 1 5.4 6H7l.9-2.5A5.9 5.9 0 0 1 6 12z" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinejoin="round" />
-          <path d="M9.5 11h5M9.5 14h3.5" stroke="#fff" strokeLinecap="round" strokeWidth="1.6" />
+          <rect x="1" y="1" width="22" height="22" rx="7" fill="#F59A23" /> {/* design-token-exempt: fixed-asset — official platform glyph color */}
+          <path d="M6 12a6 6 0 1 1 5.4 6H7l.9-2.5A5.9 5.9 0 0 1 6 12z" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinejoin="round" /> {/* design-token-exempt: fixed-asset — official platform glyph color */}
+          <path d="M9.5 11h5M9.5 14h3.5" stroke="#fff" strokeLinecap="round" strokeWidth="1.6" /> {/* design-token-exempt: fixed-asset — official platform glyph color */}
         </SvgWrap>
       );
     case 'aparat':
       return (
         <SvgWrap size={size} title={title || 'Aparat'} style={style}>
-          <rect x="1" y="1" width="22" height="22" rx="7" fill="#E23A62" />
-          <circle cx="12" cy="12" r="7" fill="none" stroke="#fff" strokeWidth="1.8" />
-          <path d="m10 8 6 4-6 4z" fill="#fff" />
+          <rect x="1" y="1" width="22" height="22" rx="7" fill="#E23A62" /> {/* design-token-exempt: fixed-asset — official platform glyph color */}
+          <circle cx="12" cy="12" r="7" fill="none" stroke="#fff" strokeWidth="1.8" /> {/* design-token-exempt: fixed-asset — official platform glyph color */}
+          <path d="m10 8 6 4-6 4z" fill="#fff" /> {/* design-token-exempt: fixed-asset — official platform glyph color */}
         </SvgWrap>
       );
     case 'tiktok':
       return (
         <SvgWrap size={size} title={title || 'TikTok'} style={style}>
-          <rect x="1" y="1" width="22" height="22" rx="6" fill="#111827" />
-          <path fill="#25F4EE" d="M13.3 4.8h2.4c.1 2 1 3.1 3 3.4v2.4a7.5 7.5 0 0 1-3-1v5.6a4.3 4.3 0 1 1-4.3-4.3v2.5a1.8 1.8 0 1 0 1.9 1.8V4.8z" />
-          <path fill="#fff" d="M14 4.8h2.2c.1 2 1 3.1 3 3.4v2.4a7.5 7.5 0 0 1-3-1v5.6a4.3 4.3 0 1 1-4.3-4.3v2.5a1.8 1.8 0 1 0 1.9 1.8V4.8z" opacity=".85" />
+          <rect x="1" y="1" width="22" height="22" rx="6" fill="#111827" /> {/* design-token-exempt: fixed-asset — official platform glyph color */}
+          <path fill="#25F4EE" d="M13.3 4.8h2.4c.1 2 1 3.1 3 3.4v2.4a7.5 7.5 0 0 1-3-1v5.6a4.3 4.3 0 1 1-4.3-4.3v2.5a1.8 1.8 0 1 0 1.9 1.8V4.8z" /> {/* design-token-exempt: fixed-asset — official platform glyph color */}
+          <path fill="#fff" d="M14 4.8h2.2c.1 2 1 3.1 3 3.4v2.4a7.5 7.5 0 0 1-3-1v5.6a4.3 4.3 0 1 1-4.3-4.3v2.5a1.8 1.8 0 1 0 1.9 1.8V4.8z" opacity=".85" /> {/* design-token-exempt: fixed-asset — official platform glyph color */}
         </SvgWrap>
       );
     case 'neshan':
       return (
         <SvgWrap size={size} title={title || 'Neshan'} style={style}>
-          <rect x="1" y="1" width="22" height="22" rx="7" fill="#566CCB" />
-          <path d="M12 4.7a6 6 0 0 0-6 6c0 3.6 6 9 6 9s6-5.4 6-9a6 6 0 0 0-6-6z" fill="none" stroke="#fff" strokeWidth="2" />
-          <circle cx="12" cy="10.8" r="2" fill="#fff" />
+          <rect x="1" y="1" width="22" height="22" rx="7" fill="#566CCB" /> {/* design-token-exempt: fixed-asset — official platform glyph color */}
+          <path d="M12 4.7a6 6 0 0 0-6 6c0 3.6 6 9 6 9s6-5.4 6-9a6 6 0 0 0-6-6z" fill="none" stroke="#fff" strokeWidth="2" /> {/* design-token-exempt: fixed-asset — official platform glyph color */}
+          <circle cx="12" cy="10.8" r="2" fill="#fff" /> {/* design-token-exempt: fixed-asset — official platform glyph color */}
         </SvgWrap>
       );
     case 'youtube':
@@ -153,7 +153,7 @@ export default function SocialPlatformIcon({ platform, size = 18, title, label, 
       const fallbackLabel = label || title || String(platform || 'Platform');
       return <span role="img" aria-label={fallbackLabel} title={fallbackLabel}
         className="inline-flex shrink-0 items-center justify-center rounded-md bg-[var(--surface-sunken)] text-[var(--text-secondary)]"
-        style={{ width: size, height: size, ...style }}>
+        style={{ width: size, height: size, color, ...style }}>
         <Globe2 size={Math.max(12, Number(size) * 0.75)} aria-hidden />
       </span>;
     }
