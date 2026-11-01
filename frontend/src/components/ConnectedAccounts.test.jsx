@@ -17,7 +17,7 @@ test('reference provider renders metadata, separate account/destination and acco
   expect(await screen.findByText('Contract example')).toBeInTheDocument();
   expect(screen.getByText('Experimental provider')).toBeInTheDocument();
   expect(screen.getAllByText(/identity-10/).length).toBeGreaterThan(0);
-  expect(screen.getAllByText(/profile · destination-10/).length).toBeGreaterThan(0);
+  expect(screen.getAllByText(/profile · destination-10/)).toHaveLength(1);
   fireEvent.change(screen.getByRole('combobox'), { target: { value: '11' } });
   expect(screen.getByText('Expired or expiring soon · reconnect required')).toBeInTheDocument();
   expect(screen.getByText('Last sync failed')).toBeInTheDocument();
