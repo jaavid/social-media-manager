@@ -489,7 +489,8 @@ def translate(request):
         logger.exception('translate failed')
         return Response({'error': 'ai_generation_failed'}, status=502)
 
-    cache.set(ckey, out, CACHE_TTL * 24)  # translations are stable; 24h cache
+    if ckey:
+        cache.set(ckey, out, CACHE_TTL * 24)  # translations are stable; 24h cache
     return Response({'text': out, 'cached': False})
 
 

@@ -62,13 +62,13 @@ class ComposePostTests(TestCase):
         self.api = _api_for(self.user)
         cache.clear()
 
-    @patch('social_stats.views.ai.get_claude')
+    @patch('social_stats.views.ai._complete_text')
     def test_compose_returns_variants_per_platform(self, mock_get_claude):
         client = MagicMock()
         client.messages.create.return_value = _claude_returning(
             '{"variants": {"facebook": ["v1", "v2", "v3"], "instagram": ["a", "b", "c"]}}'
         )
-        mock_get_claude.return_value = client
+        mock_get_claude.return_value = c.messages.create.return_value.content[0].textlient.messages.create.return_value.content[0].text
 
         res = self.api.post('/api/ai/compose-post/', {
             'topic': 'launch announcement', 'tone': 'friendly',
@@ -78,13 +78,13 @@ class ComposePostTests(TestCase):
         self.assertEqual(res.data['variants']['facebook'], ['v1', 'v2', 'v3'])
         self.assertEqual(res.data['variants']['instagram'], ['a', 'b', 'c'])
 
-    @patch('social_stats.views.ai.get_claude')
+    @patch('social_stats.views.ai._complete_text')
     def test_compose_caches_repeat_call(self, mock_get_claude):
         client = MagicMock()
         client.messages.create.return_value = _claude_returning(
             '{"variants": {"facebook": ["x", "y", "z"]}}'
         )
-        mock_get_claude.return_value = client
+        mock_get_claude.return_value = c.messages.create.return_value.content[0].textlient.messages.create.return_value.content[0].text
 
         body = {'topic': 'x', 'tone': 'friendly', 'platforms': ['facebook']}
         first = self.api.post('/api/ai/compose-post/', body, format='json')
@@ -92,7 +92,7 @@ class ComposePostTests(TestCase):
         self.assertEqual(first.status_code, 200)
         self.assertEqual(second.status_code, 200)
         self.assertTrue(second.data['cached'])
-        self.assertEqual(client.messages.create.call_count, 1)  # only first hit Claude
+        self.assertEqual(mock_get_claude.call_count, 1)  # only first provider completion
 
     def test_compose_missing_topic_400(self):
         res = self.api.post('/api/ai/compose-post/',
@@ -108,13 +108,13 @@ class SuggestHashtagsTests(TestCase):
         self.api = _api_for(self.user)
         cache.clear()
 
-    @patch('social_stats.views.ai.get_claude')
+    @patch('social_stats.views.ai._complete_text')
     def test_normalizes_and_caps_hashtags(self, mock_get_claude):
         client = MagicMock()
         client.messages.create.return_value = _claude_returning(
             '{"hashtags": ["startup", "#startup", "marketing", "  growth  ", "GROWTH"]}'
         )
-        mock_get_claude.return_value = client
+        mock_get_claude.return_value = c.messages.create.return_value.content[0].textlient.messages.create.return_value.content[0].text
 
         res = self.api.post('/api/ai/suggest-hashtags/', {
             'content': 'we just launched our marketing tool',
@@ -200,13 +200,13 @@ class SuggestReplyTests(TestCase):
         )
         cache.clear()
 
-    @patch('social_stats.views.ai.get_claude')
+    @patch('social_stats.views.ai._complete_text')
     def test_returns_three_suggestions_and_persists_first(self, mock_get_claude):
         c = MagicMock()
         c.messages.create.return_value = _claude_returning(
             '{"suggestions": ["Thanks!", "Glad you liked it 🙌", "Means a lot."]}'
         )
-        mock_get_claude.return_value = c
+        mock_get_claude.return_value = c.messages.create.return_value.content[0].text
 
         res = self.api.post('/api/ai/suggest-reply/',
                              {'message_id': self.in_msg.id}, format='json')
@@ -234,11 +234,11 @@ class RewriteTranslateTests(TestCase):
         self.api = _api_for(self.user)
         cache.clear()
 
-    @patch('social_stats.views.ai.get_claude')
+    @patch('social_stats.views.ai._complete_text')
     def test_rewrite_returns_text(self, mock_get_claude):
         c = MagicMock()
         c.messages.create.return_value = _claude_returning('Shorter version here.')
-        mock_get_claude.return_value = c
+        mock_get_claude.return_value = c.messages.create.return_value.content[0].text
 
         res = self.api.post('/api/ai/rewrite/', {
             'text': 'A long-winded original message that should be shortened.',
@@ -247,11 +247,11 @@ class RewriteTranslateTests(TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertEqual(res.data['text'], 'Shorter version here.')
 
-    @patch('social_stats.views.ai.get_claude')
+    @patch('social_stats.views.ai._complete_text')
     def test_translate_returns_text(self, mock_get_claude):
         c = MagicMock()
         c.messages.create.return_value = _claude_returning('Hola, mundo')
-        mock_get_claude.return_value = c
+        mock_get_claude.return_value = c.messages.create.return_value.content[0].text
 
         res = self.api.post('/api/ai/translate/', {
             'text': 'Hello, world',
@@ -274,7 +274,7 @@ class BrandVoiceTests(TestCase):
         self.api = _api_for(self.user)
         cache.clear()
 
-    @patch('social_stats.views.ai.get_claude')
+    @patch('social_stats.views.ai._complete_text')
     def test_train_persists_profile(self, mock_get_claude):
         c = MagicMock()
         c.messages.create.return_value = _claude_returning(
@@ -283,7 +283,7 @@ class BrandVoiceTests(TestCase):
             ' "style_rules": ["use second person", "avoid jargon"], '
             ' "forbidden_words": ["disrupt", "synergize"]}'
         )
-        mock_get_claude.return_value = c
+        mock_get_claude.return_value = c.messages.create.return_value.content[0].text
 
         res = self.api.post('/api/ai/train-brand-voice/', {
             'sample_posts': ['Post 1 here', 'Post 2 here', 'Post 3 here'],
@@ -333,3 +333,79 @@ class AIDownTests(TestCase):
             'topic': 'x', 'platforms': ['facebook'],
         }, format='json')
         self.assertEqual(res.status_code, 503)
+
+
+@override_settings(ANTHROPIC_API_KEY='')
+class LegacyProviderSelectionTests(TestCase):
+    """Endpoints consume the configured provider, without any per-view Anthropic key."""
+
+    def setUp(self):
+        from social_stats.models.ai import GeminiModel, GeminiConfiguration
+        self.workspace = _client_factory('gemini-legacy')
+        self.user = _user_for(self.workspace)
+        self.api = _api_for(self.user)
+        self.model = GeminiModel.objects.create(model_id='gemini-2.5-flash', available=True)
+        GeminiConfiguration.objects.create(
+            provider='gemini', default_model=self.model,
+            fast_model=self.model, deep_model=self.model,
+        )
+        cache.clear()
+
+    @patch('social_stats.views.ai.AIClient')
+    @patch('social_stats.views.ai.get_claude')
+    def test_all_text_flows_use_selected_provider(self, old_claude, ai_client):
+        fixtures = [
+            ('compose-post', {'topic': 'Launch', 'platforms': ['instagram']},
+             '{"variants": {"instagram": ["One", "Two", "Three"]}}', 'variants'),
+            ('suggest-hashtags', {'content': 'Launch', 'platform': 'instagram'},
+             '{"hashtags": ["#launch"]}', 'hashtags'),
+            ('rewrite', {'text': 'Long text'}, 'Short text', 'text'),
+            ('translate', {'text': 'Hello', 'target_language': 'Persian'}, 'سلام', 'text'),
+            ('content-calendar', {'weeks': 1, 'count_per_week': 1},
+             '{"calendar": [{"week": 1, "day": "Mon"}]}', 'calendar'),
+            ('train-brand-voice', {'sample_posts': ['One', 'Two', 'Three']},
+             '{"voice_summary": "Warm", "tone_descriptors": ["warm"], "style_rules": [], "forbidden_words": []}', 'voice_summary'),
+        ]
+        for endpoint, payload, response, key in fixtures:
+            with self.subTest(endpoint=endpoint):
+                ai_client.return_value.complete.return_value = response
+                result = self.api.post(f'/api/ai/{endpoint}/', payload, format='json')
+                self.assertEqual(result.status_code, 200, result.data)
+                self.assertIn(key, result.data)
+                self.assertEqual(ai_client.call_args.kwargs['client'], self.workspace)
+                self.assertEqual(ai_client.call_args.kwargs['user'], self.user)
+                self.assertFalse(ai_client.return_value.complete.call_args.kwargs['use_cache'])
+        old_claude.assert_not_called()
+
+    @patch('social_stats.views.ai.AIClient')
+    def test_gateway_failure_never_exposes_secret_or_falls_back(self, ai_client):
+        from social_stats.ai.gemini import GeminiGatewayError
+        ai_client.return_value.complete.side_effect = GeminiGatewayError('access token secret.example')
+        result = self.api.post('/api/ai/compose-post/',
+                               {'topic': 'Launch', 'platforms': ['instagram']}, format='json')
+        self.assertEqual(result.status_code, 503)
+        self.assertNotIn('secret.example', str(result.data))
+
+    @patch('social_stats.views.ai.get_claude')
+    def test_image_url_vision_explicitly_unsupported_with_gemini(self, old_claude):
+        result = self.api.post('/api/ai/generate-image-caption/',
+                               {'image_url': 'https://example.test/image.jpg'}, format='json')
+        self.assertEqual(result.status_code, 501)
+        self.assertEqual(result.data['error'], 'image_caption_provider_unsupported')
+        old_claude.assert_not_called()
+
+    @patch('social_stats.views.ai.AIClient')
+    def test_cache_cannot_replay_a_response_after_model_switch(self, ai_client):
+        from social_stats.models.ai import GeminiModel, GeminiConfiguration
+        ai_client.return_value.complete.return_value = 'first'
+        payload = {'text': 'Hello', 'target_language': 'Persian'}
+        one = self.api.post('/api/ai/translate/', payload, format='json')
+        self.assertFalse(one.data['cached'])
+        second_model = GeminiModel.objects.create(model_id='gemini-2.5-pro', available=True)
+        cfg = GeminiConfiguration.objects.get(pk=1)
+        cfg.fast_model = second_model
+        cfg.save()
+        ai_client.return_value.complete.return_value = 'second'
+        two = self.api.post('/api/ai/translate/', payload, format='json')
+        self.assertFalse(two.data['cached'])
+        self.assertEqual(two.data['text'], 'second')
