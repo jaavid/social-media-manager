@@ -68,7 +68,7 @@ class ComposePostTests(TestCase):
         client.messages.create.return_value = _claude_returning(
             '{"variants": {"facebook": ["v1", "v2", "v3"], "instagram": ["a", "b", "c"]}}'
         )
-        mock_get_claude.return_value = c.messages.create.return_value.content[0].textlient.messages.create.return_value.content[0].text
+        mock_get_claude.return_value = client.messages.create.return_value.content[0].text
 
         res = self.api.post('/api/ai/compose-post/', {
             'topic': 'launch announcement', 'tone': 'friendly',
@@ -84,7 +84,7 @@ class ComposePostTests(TestCase):
         client.messages.create.return_value = _claude_returning(
             '{"variants": {"facebook": ["x", "y", "z"]}}'
         )
-        mock_get_claude.return_value = c.messages.create.return_value.content[0].textlient.messages.create.return_value.content[0].text
+        mock_get_claude.return_value = client.messages.create.return_value.content[0].text
 
         body = {'topic': 'x', 'tone': 'friendly', 'platforms': ['facebook']}
         first = self.api.post('/api/ai/compose-post/', body, format='json')
@@ -114,7 +114,7 @@ class SuggestHashtagsTests(TestCase):
         client.messages.create.return_value = _claude_returning(
             '{"hashtags": ["startup", "#startup", "marketing", "  growth  ", "GROWTH"]}'
         )
-        mock_get_claude.return_value = c.messages.create.return_value.content[0].textlient.messages.create.return_value.content[0].text
+        mock_get_claude.return_value = client.messages.create.return_value.content[0].text
 
         res = self.api.post('/api/ai/suggest-hashtags/', {
             'content': 'we just launched our marketing tool',
@@ -345,10 +345,13 @@ class LegacyProviderSelectionTests(TestCase):
         self.user = _user_for(self.workspace)
         self.api = _api_for(self.user)
         self.model = GeminiModel.objects.create(model_id='gemini-2.5-flash', available=True)
-        GeminiConfiguration.objects.create(
-            provider='gemini', default_model=self.model,
-            fast_model=self.model, deep_model=self.model,
-        )
+        # Singleton record exists from a data migration; modify it instead.
+        config = GeminiConfiguration.objects.get(pk=1)
+        config.provider = 'gemini'
+        config.default_model = self.model
+        config.fast_model = self.model
+        config.deep_model = self.model
+        config.save()
         cache.clear()
 
     @patch('social_stats.views.ai.AIClient')

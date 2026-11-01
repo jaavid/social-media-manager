@@ -45,6 +45,7 @@ from social_stats.ai_context import build_client_ai_context
 from social_stats.ai.client import AIClient, AIError
 from social_stats.ai.gemini import GeminiGatewayError, get_ai_configuration, selected_model
 from social_stats.ai.rate_limiter import RateLimited
+from social_stats.entitlements import EntitlementDenied, require_capacity
 from social_stats.models import (
     Client, BrandVoiceProfile, PostMetric, Message,
 )
@@ -107,6 +108,9 @@ def _provider_cache_key(client, feature, payload, *, fast=True):
 
 def _complete_text(client, user, feature, system, prompt, max_tokens, *, fast=True):
     """The centralized model selector, gateway, entitlement and AI usage logger."""
+    # Read-only preflight preserves legacy HTTP 403 for exhausted org quota;
+    # AIClient reserves atomically before sending any billable request.
+    require_capacity(client.organization, 'ai_generations_per_month')
     return AIClient(client=client, user=user, feature=feature).complete(
         prompt, system=system, max_tokens=max_tokens, fast=fast, use_cache=False,
     )
@@ -114,6 +118,8 @@ def _complete_text(client, user, feature, system, prompt, max_tokens, *, fast=Tr
 
 def _ai_failure(error):
     """Do not expose model URLs, credentials or transport diagnostics to clients."""
+    if isinstance(error, EntitlementDenied):
+        return Response({'error': 'ai_entitlement_exhausted'}, status=403)
     if isinstance(error, RateLimited):
         return Response({'error': 'ai_limit_reached'}, status=429)
     if isinstance(error, GeminiGatewayError):
@@ -173,7 +179,7 @@ def compose_post(request):
                              sys_prompt, user_prompt, 2048, fast=True)
         out = parse_json_response(raw)
         variants = out.get('variants') or {}
-    except (RateLimited, GeminiGatewayError, AIError, ValueError, TypeError, KeyError) as exc:
+    except (EntitlementDenied, RateLimited, GeminiGatewayError, AIError, ValueError, TypeError, KeyError) as exc:
         return _ai_failure(exc)
     except Exception:
         logger.exception('compose_post failed')
@@ -228,7 +234,7 @@ def suggest_hashtags(request):
                              sys_prompt, user_prompt, 512, fast=True)
         out = parse_json_response(raw)
         tags = out.get('hashtags') or []
-    except (RateLimited, GeminiGatewayError, AIError, ValueError, TypeError, KeyError) as exc:
+    except (EntitlementDenied, RateLimited, GeminiGatewayError, AIError, ValueError, TypeError, KeyError) as exc:
         return _ai_failure(exc)
     except Exception:
         logger.exception('suggest_hashtags failed')
@@ -384,7 +390,7 @@ def suggest_reply(request):
                              sys_prompt, user_prompt, 600, fast=True)
         out = parse_json_response(raw)
         suggestions = [s for s in (out.get('suggestions') or []) if isinstance(s, str)]
-    except (RateLimited, GeminiGatewayError, AIError, ValueError, TypeError, KeyError) as exc:
+    except (EntitlementDenied, RateLimited, GeminiGatewayError, AIError, ValueError, TypeError, KeyError) as exc:
         return _ai_failure(exc)
     except Exception:
         logger.exception('suggest_reply failed')
@@ -435,7 +441,7 @@ def rewrite(request):
         raw = _complete_text(client, request.user, 'rewrite',
                              sys_prompt, user_prompt, 1024, fast=True)
         out = raw.strip().strip('"').strip()
-    except (RateLimited, GeminiGatewayError, AIError, ValueError, TypeError, KeyError) as exc:
+    except (EntitlementDenied, RateLimited, GeminiGatewayError, AIError, ValueError, TypeError, KeyError) as exc:
         return _ai_failure(exc)
     except Exception:
         logger.exception('rewrite failed')
@@ -483,7 +489,7 @@ def translate(request):
         raw = _complete_text(client, request.user, 'translate',
                              sys_prompt, user_prompt, 2048, fast=True)
         out = raw.strip()
-    except (RateLimited, GeminiGatewayError, AIError, ValueError, TypeError, KeyError) as exc:
+    except (EntitlementDenied, RateLimited, GeminiGatewayError, AIError, ValueError, TypeError, KeyError) as exc:
         return _ai_failure(exc)
     except Exception:
         logger.exception('translate failed')
@@ -613,7 +619,7 @@ def content_calendar(request):
                              sys_prompt, user_prompt, 4096, fast=False)
         out = parse_json_response(raw)
         calendar = out.get('calendar') or []
-    except (RateLimited, GeminiGatewayError, AIError, ValueError, TypeError, KeyError) as exc:
+    except (EntitlementDenied, RateLimited, GeminiGatewayError, AIError, ValueError, TypeError, KeyError) as exc:
         return _ai_failure(exc)
     except Exception:
         logger.exception('content_calendar failed')
@@ -668,7 +674,7 @@ def train_brand_voice(request):
         raw = _complete_text(client, request.user, 'train-brand-voice',
                              sys_prompt, user_prompt, 1024, fast=True)
         analysis = parse_json_response(raw)
-    except (RateLimited, GeminiGatewayError, AIError, ValueError, TypeError, KeyError) as exc:
+    except (EntitlementDenied, RateLimited, GeminiGatewayError, AIError, ValueError, TypeError, KeyError) as exc:
         return _ai_failure(exc)
     except Exception:
         logger.exception('train_brand_voice failed')
