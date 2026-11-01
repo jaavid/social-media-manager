@@ -37,11 +37,15 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from social_stats.ai_helpers import (
-    HAIKU, SONNET, get_claude, parse_json_response,
+    HAIKU, get_claude, parse_json_response,
     unified_voice_prompt,
     rate_limit_check, cache_key_for,
 )
 from social_stats.ai_context import build_client_ai_context
+from social_stats.ai.client import AIClient, AIError
+from social_stats.ai.gemini import GeminiGatewayError, get_ai_configuration, selected_model
+from social_stats.ai.rate_limiter import RateLimited
+from social_stats.entitlements import EntitlementDenied, require_capacity
 from social_stats.models import (
     Client, BrandVoiceProfile, PostMetric, Message,
 )
@@ -93,6 +97,37 @@ def _ai_unavailable():
     )
 
 
+def _provider_cache_key(client, feature, payload, *, fast=True):
+    """Cache cannot replay content from another tenant or provider/model."""
+    try:
+        model = selected_model(fast=fast)
+    except GeminiGatewayError:
+        return None  # Do not serve old cached content on invalid model config.
+    return cache_key_for(feature, {'client_id': client.pk, 'model': model, **payload})
+
+
+def _complete_text(client, user, feature, system, prompt, max_tokens, *, fast=True):
+    """The centralized model selector, gateway, entitlement and AI usage logger."""
+    # Read-only preflight preserves legacy HTTP 403 for exhausted org quota;
+    # AIClient reserves atomically before sending any billable request.
+    require_capacity(client.organization, 'ai_generations_per_month')
+    return AIClient(client=client, user=user, feature=feature).complete(
+        prompt, system=system, max_tokens=max_tokens, fast=fast, use_cache=False,
+    )
+
+
+def _ai_failure(error):
+    """Do not expose model URLs, credentials or transport diagnostics to clients."""
+    if isinstance(error, EntitlementDenied):
+        return Response({'error': 'ai_entitlement_exhausted'}, status=403)
+    if isinstance(error, RateLimited):
+        return Response({'error': 'ai_limit_reached'}, status=429)
+    if isinstance(error, GeminiGatewayError):
+        return _ai_unavailable()
+    logger.warning('Legacy AI completion failed (%s)', type(error).__name__)
+    return Response({'error': 'ai_generation_failed'}, status=502)
+
+
 # ══════════════════════════════════════════════════════════════════════
 # 1. compose-post
 # ══════════════════════════════════════════════════════════════════════
@@ -118,16 +153,12 @@ def compose_post(request):
     if not platforms:
         return Response({'error': 'platforms is required'}, status=400)
 
-    ckey = cache_key_for('compose-post', {
+    ckey = _provider_cache_key(client, 'compose-post', {
         'c': client.id, 'topic': topic, 'tone': tone, 'length': length, 'platforms': platforms,
     })
-    cached = cache.get(ckey)
+    cached = cache.get(ckey) if ckey else None
     if cached:
         return Response({'variants': cached, 'cached': True})
-
-    claude = get_claude()
-    if not claude:
-        return _ai_unavailable()
 
     bv = unified_voice_prompt(client)
     cc = build_client_ai_context(client)
@@ -143,23 +174,19 @@ def compose_post(request):
         '{"variants": {"<platform>": ["<v1>", "<v2>", "<v3>"]}}'
     )
 
-    from social_stats.entitlements import reserve_ai
-    if client is not None:
-        reserve_ai(client)
-
     try:
-        msg = claude.messages.create(
-            model=HAIKU, max_tokens=2048, timeout=30,
-            system=sys_prompt,
-            messages=[{'role': 'user', 'content': user_prompt}],
-        )
-        out = parse_json_response(msg.content[0].text)
+        raw = _complete_text(client, request.user, 'compose-post',
+                             sys_prompt, user_prompt, 2048, fast=True)
+        out = parse_json_response(raw)
         variants = out.get('variants') or {}
-    except Exception as e:
+    except (EntitlementDenied, RateLimited, GeminiGatewayError, AIError, ValueError, TypeError, KeyError) as exc:
+        return _ai_failure(exc)
+    except Exception:
         logger.exception('compose_post failed')
-        return Response({'error': f'AI error: {e}'}, status=502)
+        return Response({'error': 'ai_generation_failed'}, status=502)
 
-    cache.set(ckey, variants, CACHE_TTL)
+    if ckey:
+        cache.set(ckey, variants, CACHE_TTL)
     return Response({'variants': variants, 'cached': False})
 
 
@@ -186,14 +213,10 @@ def suggest_hashtags(request):
     if not content:
         return Response({'error': 'content is required'}, status=400)
 
-    ckey = cache_key_for('hashtags', {'c': client.id, 'p': platform, 'n': count, 't': content[:200]})
-    cached = cache.get(ckey)
+    ckey = _provider_cache_key(client, 'hashtags', {'c': client.id, 'p': platform, 'n': count, 't': content[:200]})
+    cached = cache.get(ckey) if ckey else None
     if cached:
         return Response({'hashtags': cached, 'cached': True})
-
-    claude = get_claude()
-    if not claude:
-        return _ai_unavailable()
 
     bv = unified_voice_prompt(client)
     sys_prompt = (
@@ -206,21 +229,16 @@ def suggest_hashtags(request):
         'Return JSON: {"hashtags": ["#tag1", ...]}'
     )
 
-    from social_stats.entitlements import reserve_ai
-    if client is not None:
-        reserve_ai(client)
-
     try:
-        msg = claude.messages.create(
-            model=HAIKU, max_tokens=512, timeout=20,
-            system=sys_prompt,
-            messages=[{'role': 'user', 'content': user_prompt}],
-        )
-        out = parse_json_response(msg.content[0].text)
+        raw = _complete_text(client, request.user, 'suggest-hashtags',
+                             sys_prompt, user_prompt, 512, fast=True)
+        out = parse_json_response(raw)
         tags = out.get('hashtags') or []
-    except Exception as e:
+    except (EntitlementDenied, RateLimited, GeminiGatewayError, AIError, ValueError, TypeError, KeyError) as exc:
+        return _ai_failure(exc)
+    except Exception:
         logger.exception('suggest_hashtags failed')
-        return Response({'error': f'AI error: {e}'}, status=502)
+        return Response({'error': 'ai_generation_failed'}, status=502)
 
     # Normalize: prefix #, dedupe, cap at count
     seen, cleaned = set(), []
@@ -235,7 +253,8 @@ def suggest_hashtags(request):
         if len(cleaned) >= count:
             break
 
-    cache.set(ckey, cleaned, CACHE_TTL)
+    if ckey:
+        cache.set(ckey, cleaned, CACHE_TTL)
     return Response({'hashtags': cleaned, 'cached': False})
 
 
@@ -350,10 +369,6 @@ def suggest_reply(request):
     if not rate_limit_check(client.id, 'suggest-reply', DAILY_LIMIT_DEFAULT):
         return Response({'error': 'Daily AI limit reached'}, status=429)
 
-    claude = get_claude()
-    if not claude:
-        return _ai_unavailable()
-
     bv = unified_voice_prompt(client)
     conv = message.conversation
     sys_prompt = (
@@ -370,21 +385,16 @@ def suggest_reply(request):
         'Make the 3 replies distinct: one warm, one concise/professional, one playful (only if appropriate).'
     )
 
-    from social_stats.entitlements import reserve_ai
-    if client is not None:
-        reserve_ai(client)
-
     try:
-        msg = claude.messages.create(
-            model=HAIKU, max_tokens=600, timeout=20,
-            system=sys_prompt,
-            messages=[{'role': 'user', 'content': user_prompt}],
-        )
-        out = parse_json_response(msg.content[0].text)
+        raw = _complete_text(client, request.user, 'suggest-reply',
+                             sys_prompt, user_prompt, 600, fast=True)
+        out = parse_json_response(raw)
         suggestions = [s for s in (out.get('suggestions') or []) if isinstance(s, str)]
-    except Exception as e:
+    except (EntitlementDenied, RateLimited, GeminiGatewayError, AIError, ValueError, TypeError, KeyError) as exc:
+        return _ai_failure(exc)
+    except Exception:
         logger.exception('suggest_reply failed')
-        return Response({'error': f'AI error: {e}'}, status=502)
+        return Response({'error': 'ai_generation_failed'}, status=502)
 
     # Persist the first suggestion onto the message for use in the inbox UI
     if suggestions:
@@ -414,14 +424,10 @@ def rewrite(request):
     if not text:
         return Response({'error': 'text is required'}, status=400)
 
-    ckey = cache_key_for('rewrite', {'c': client.id, 't': text, 'i': instruction})
-    cached = cache.get(ckey)
+    ckey = _provider_cache_key(client, 'rewrite', {'c': client.id, 't': text, 'i': instruction})
+    cached = cache.get(ckey) if ckey else None
     if cached:
         return Response({'text': cached, 'cached': True})
-
-    claude = get_claude()
-    if not claude:
-        return _ai_unavailable()
 
     bv = unified_voice_prompt(client)
     sys_prompt = (
@@ -431,22 +437,18 @@ def rewrite(request):
     )
     user_prompt = f'Transformation: {instruction}\n\nOriginal:\n"""{text[:3000]}"""'
 
-    from social_stats.entitlements import reserve_ai
-    if client is not None:
-        reserve_ai(client)
-
     try:
-        msg = claude.messages.create(
-            model=HAIKU, max_tokens=1024, timeout=20,
-            system=sys_prompt,
-            messages=[{'role': 'user', 'content': user_prompt}],
-        )
-        out = (msg.content[0].text or '').strip().strip('"').strip()
-    except Exception as e:
+        raw = _complete_text(client, request.user, 'rewrite',
+                             sys_prompt, user_prompt, 1024, fast=True)
+        out = raw.strip().strip('"').strip()
+    except (EntitlementDenied, RateLimited, GeminiGatewayError, AIError, ValueError, TypeError, KeyError) as exc:
+        return _ai_failure(exc)
+    except Exception:
         logger.exception('rewrite failed')
-        return Response({'error': f'AI error: {e}'}, status=502)
+        return Response({'error': 'ai_generation_failed'}, status=502)
 
-    cache.set(ckey, out, CACHE_TTL)
+    if ckey:
+        cache.set(ckey, out, CACHE_TTL)
     return Response({'text': out, 'cached': False})
 
 
@@ -471,14 +473,10 @@ def translate(request):
     if not text or not target:
         return Response({'error': 'text and target_language are required'}, status=400)
 
-    ckey = cache_key_for('translate', {'t': text, 'lang': target.lower()})
-    cached = cache.get(ckey)
+    ckey = _provider_cache_key(client, 'translate', {'t': text, 'lang': target.lower()})
+    cached = cache.get(ckey) if ckey else None
     if cached:
         return Response({'text': cached, 'cached': True})
-
-    claude = get_claude()
-    if not claude:
-        return _ai_unavailable()
 
     sys_prompt = (
         'You are a professional translator. Preserve meaning, tone, and any '
@@ -487,22 +485,18 @@ def translate(request):
     )
     user_prompt = f'Translate to {target}:\n\n"""{text[:5000]}"""'
 
-    from social_stats.entitlements import reserve_ai
-    if client is not None:
-        reserve_ai(client)
-
     try:
-        msg = claude.messages.create(
-            model=HAIKU, max_tokens=2048, timeout=25,
-            system=sys_prompt,
-            messages=[{'role': 'user', 'content': user_prompt}],
-        )
-        out = (msg.content[0].text or '').strip()
-    except Exception as e:
+        raw = _complete_text(client, request.user, 'translate',
+                             sys_prompt, user_prompt, 2048, fast=True)
+        out = raw.strip()
+    except (EntitlementDenied, RateLimited, GeminiGatewayError, AIError, ValueError, TypeError, KeyError) as exc:
+        return _ai_failure(exc)
+    except Exception:
         logger.exception('translate failed')
-        return Response({'error': f'AI error: {e}'}, status=502)
+        return Response({'error': 'ai_generation_failed'}, status=502)
 
-    cache.set(ckey, out, CACHE_TTL * 24)  # translations are stable; 24h cache
+    if ckey:
+        cache.set(ckey, out, CACHE_TTL * 24)  # translations are stable; 24h cache
     return Response({'text': out, 'cached': False})
 
 
@@ -519,6 +513,16 @@ def generate_image_caption(request):
     client, err = _resolved_client(request)
     if err:
         return err
+    config = get_ai_configuration()
+    if config and config.provider == 'gemini':
+        # The legacy endpoint supplies arbitrary URLs, while the official SDK
+        # bridge accepts validated base64 image parts only. Never route images
+        # through the Claude fallback when Gemini is selected.
+        return Response({
+            'error': 'image_caption_provider_unsupported',
+            'detail': 'Image URL captions are not available with the selected provider.',
+        }, status=501)
+
     if not rate_limit_check(client.id, 'image-caption', DAILY_LIMIT_DEFAULT):
         return Response({'error': 'Daily AI limit reached'}, status=429)
 
@@ -589,14 +593,10 @@ def content_calendar(request):
     count_per_week = max(1, min(int(request.data.get('count_per_week') or 3), 7))
     weeks          = max(1, min(int(request.data.get('weeks') or 4), 12))
 
-    ckey = cache_key_for('cal', {'c': client.id, 'i': industry, 'n': count_per_week, 'w': weeks})
-    cached = cache.get(ckey)
+    ckey = _provider_cache_key(client, 'cal', {'c': client.id, 'i': industry, 'n': count_per_week, 'w': weeks})
+    cached = cache.get(ckey) if ckey else None
     if cached:
         return Response({'calendar': cached, 'cached': True})
-
-    claude = get_claude()
-    if not claude:
-        return _ai_unavailable()
 
     bv = unified_voice_prompt(client)
     cc = build_client_ai_context(client)
@@ -614,21 +614,16 @@ def content_calendar(request):
         '"topic": "...", "caption_hint": "...", "hashtags": ["#a", "#b"]}]}'
     )
 
-    from social_stats.entitlements import reserve_ai
-    if client is not None:
-        reserve_ai(client)
-
     try:
-        msg = claude.messages.create(
-            model=SONNET, max_tokens=4096, timeout=60,
-            system=sys_prompt,
-            messages=[{'role': 'user', 'content': user_prompt}],
-        )
-        out = parse_json_response(msg.content[0].text)
+        raw = _complete_text(client, request.user, 'content-calendar',
+                             sys_prompt, user_prompt, 4096, fast=False)
+        out = parse_json_response(raw)
         calendar = out.get('calendar') or []
-    except Exception as e:
+    except (EntitlementDenied, RateLimited, GeminiGatewayError, AIError, ValueError, TypeError, KeyError) as exc:
+        return _ai_failure(exc)
+    except Exception:
         logger.exception('content_calendar failed')
-        return Response({'error': f'AI error: {e}'}, status=502)
+        return Response({'error': 'ai_generation_failed'}, status=502)
 
     cache.set(ckey, calendar, CACHE_TTL * 4)  # 4h cache for calendars
     return Response({'calendar': calendar, 'cached': False})
@@ -661,10 +656,6 @@ def train_brand_voice(request):
     if not rate_limit_check(client.id, 'train-brand-voice', 5):
         return Response({'error': 'Daily limit reached'}, status=429)
 
-    claude = get_claude()
-    if not claude:
-        return _ai_unavailable()
-
     sys_prompt = (
         'Analyze these sample posts and capture the brand voice. '
         'Output ONLY valid JSON.'
@@ -679,20 +670,15 @@ def train_brand_voice(request):
         '"forbidden_words": ["<word>", ...]}'
     )
 
-    from social_stats.entitlements import reserve_ai
-    if client is not None:
-        reserve_ai(client)
-
     try:
-        msg = claude.messages.create(
-            model=HAIKU, max_tokens=1024, timeout=30,
-            system=sys_prompt,
-            messages=[{'role': 'user', 'content': user_prompt}],
-        )
-        analysis = parse_json_response(msg.content[0].text)
-    except Exception as e:
+        raw = _complete_text(client, request.user, 'train-brand-voice',
+                             sys_prompt, user_prompt, 1024, fast=True)
+        analysis = parse_json_response(raw)
+    except (EntitlementDenied, RateLimited, GeminiGatewayError, AIError, ValueError, TypeError, KeyError) as exc:
+        return _ai_failure(exc)
+    except Exception:
         logger.exception('train_brand_voice failed')
-        return Response({'error': f'AI error: {e}'}, status=502)
+        return Response({'error': 'ai_generation_failed'}, status=502)
 
     profile, _ = BrandVoiceProfile.objects.update_or_create(
         client=client,
