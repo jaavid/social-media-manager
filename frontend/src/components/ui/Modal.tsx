@@ -18,6 +18,7 @@ export interface DialogProps {
   role?: 'dialog' | 'alertdialog';
   initialFocusRef?: RefObject<HTMLElement>;
   returnFocusRef?: RefObject<HTMLElement>;
+  fallbackFocusRef?: RefObject<HTMLElement>;
   onClose?: () => void;
   title?: ReactNode;
   description?: ReactNode;
@@ -33,6 +34,7 @@ export default function Modal({
   role = 'dialog',
   initialFocusRef,
   returnFocusRef,
+  fallbackFocusRef,
   onClose,
   title,
   description,
@@ -47,9 +49,18 @@ export default function Modal({
   const previousFocus = useRef<HTMLElement | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
   const initialFocusFrame = useRef<number | null>(null);
+  const restoreFocusFrame = useRef<number | null>(null);
+  useEffect(() => {
+    // A new opening invalidates any restoration scheduled for the prior dialog.
+    if (open && restoreFocusFrame.current !== null) {
+      cancelAnimationFrame(restoreFocusFrame.current);
+      restoreFocusFrame.current = null;
+    }
+  }, [open]);
   useEffect(() => () => {
     if (initialFocusFrame.current !== null) cancelAnimationFrame(initialFocusFrame.current);
-  }, [open]);
+    if (restoreFocusFrame.current !== null) cancelAnimationFrame(restoreFocusFrame.current);
+  }, []);
   return (
     <DialogPrimitive.Root
       open={open}
@@ -90,8 +101,16 @@ export default function Modal({
           onCloseAutoFocus={(event) => {
             event.preventDefault();
             const target = returnFocusRef?.current || previousFocus.current;
-            // Resume the underlying Radix focus scope before restoring its trigger.
-            queueMicrotask(() => { if (target?.isConnected) target.focus(); });
+            // Focus after Radix has unmounted the inner focus scope. On a busy
+            // inspector, the former trigger may be disabled or removed.
+            restoreFocusFrame.current = requestAnimationFrame(() => {
+              restoreFocusFrame.current = null;
+              const available = (node: HTMLElement | null | undefined) =>
+                node?.isConnected && !node.matches(':disabled,[aria-disabled="true"]');
+              const destination = available(target) ? target
+                : available(fallbackFocusRef?.current) ? fallbackFocusRef?.current : null;
+              destination?.focus();
+            });
           }}
           dir={isPersian ? 'rtl' : 'ltr'}
           {...(!description ? { 'aria-describedby': undefined } : {})}

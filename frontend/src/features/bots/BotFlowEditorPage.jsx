@@ -90,6 +90,7 @@ function Editor() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [panel, setPanel] = useState(null);
   const cancelDelete = useRef(null);
+  const deleteTrigger = useRef(null);
   const [saveError, setSaveError] = useState(null);
   const [actionError, setActionError] = useState(null); const actionBusy = useRef(false);
   const revision = useRef(0);
@@ -246,7 +247,13 @@ function Editor() {
       : n));
     markDirty();
   }
-  function deleteSelected() { if (selectedId) { setDeleteReturnFocus(false); setDeleteTarget(selectedId); setDeleteOpen(true); } }
+  function deleteSelected(event) {
+    if (!selectedId) return;
+    deleteTrigger.current = event?.currentTarget || null;
+    setDeleteReturnFocus(false);
+    setDeleteTarget(selectedId);
+    setDeleteOpen(true);
+  }
   function deleteConfirmed() {
     if (!deleteTarget) return;
     setDeleteReturnFocus(true);
@@ -361,7 +368,8 @@ function Editor() {
 
   return (
     <div className="flex min-w-0 flex-col bg-background" style={{ height: 'calc(100dvh - var(--topbar-height, 64px))' }}>
-      <Modal open={deleteOpen} returnFocusRef={deleteReturnFocus ? wrapperRef : undefined} role="alertdialog" initialFocusRef={cancelDelete} title={t('editor.deleteNode')} description={t('editor.deleteConfirm')} onClose={() => setDeleteOpen(false)} footer={<><Button ref={cancelDelete} onClick={() => setDeleteOpen(false)}>{t('reports.cancel')}</Button><Button variant="danger" onClick={deleteConfirmed}>{t('editor.deleteNode')}</Button></>} />
+      <Modal open={deleteOpen} returnFocusRef={deleteReturnFocus ? wrapperRef : deleteTrigger}
+          fallbackFocusRef={wrapperRef} role="alertdialog" initialFocusRef={cancelDelete} title={t('editor.deleteNode')} description={t('editor.deleteConfirm')} onClose={() => setDeleteOpen(false)} footer={<><Button ref={cancelDelete} onClick={() => setDeleteOpen(false)}>{t('reports.cancel')}</Button><Button variant="danger" onClick={deleteConfirmed}>{t('editor.deleteNode')}</Button></>} />
       {!online && <DataState state="offline" compact title={t('catalog.state.offline.title')} />}
       {actionError && <DataState focusRef={errorRef} state="error" compact title={t('editor.actionFailed')} referenceId={apiError(actionError).referenceId} />}
       {saveError && <DataState focusRef={errorRef} state="error" compact title={t('editor.saveFailed')} referenceId={apiError(saveError).referenceId} action={<Button onClick={save}>{t('analytics.report.retry')}</Button>} />}

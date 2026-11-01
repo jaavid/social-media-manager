@@ -36,7 +36,7 @@ function SvgWrap({ size, title, children, viewBox = '0 0 24 24', style }) {
   );
 }
 
-export default function SocialPlatformIcon({ platform, size = 18, title, label, color = '#64748B', style }) {
+export default function SocialPlatformIcon({ platform, size = 18, title, label, style }) {
   const key = normalizePlatform(platform);
 
   switch (key) {
