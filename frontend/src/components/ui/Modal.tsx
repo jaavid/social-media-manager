@@ -107,9 +107,11 @@ export default function Modal({
               restoreFocusFrame.current = null;
               const available = (node: HTMLElement | null | undefined) =>
                 node?.isConnected && !node.matches(':disabled,[aria-disabled="true"]');
-              const destination = available(target) ? target
-                : available(fallbackFocusRef?.current) ? fallbackFocusRef?.current : null;
-              destination?.focus();
+              if (available(target)) target?.focus();
+              // Hidden targets can refuse focus even when connected and enabled.
+              if (document.activeElement !== target && available(fallbackFocusRef?.current)) {
+                fallbackFocusRef.current?.focus();
+              }
             });
           }}
           dir={isPersian ? 'rtl' : 'ltr'}
