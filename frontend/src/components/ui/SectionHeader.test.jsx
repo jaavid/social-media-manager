@@ -16,7 +16,7 @@ describe('SectionHeader design-system contract', () => {
   });
 
   test('centered headers keep actions hidden and use logical alignment', () => {
-    const { container } = render(
+    render(
       <SectionHeader level={1} title="Overview" align="center"
         actions={<button type="button">Hidden</button>} />,
     );
