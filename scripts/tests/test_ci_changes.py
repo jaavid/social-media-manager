@@ -16,7 +16,12 @@ class ChangeSelectionTests(unittest.TestCase):
 
     def test_feature_changes_keep_full_jest_and_browser_smoke(self):
         result = ci.classify(["frontend/src/features/posts/Post.jsx"], "pull_request")
-        self.assertEqual(result, {"frontend": True, "backend": False, "docker": True, "full_browser": False})
+        self.assertEqual(result, {"frontend": True, "backend": False, "docker": False, "full_browser": False})
+
+    def test_normal_frontend_edits_skip_duplicate_docker_build(self):
+        for path in ["frontend/src/components/ui/Button.jsx", "frontend/src/features/posts/Post.jsx"]:
+            with self.subTest(path=path):
+                self.assertFalse(ci.classify([path], "pull_request")["docker"])
 
     def test_backend_only_still_tests_browser_integration(self):
         result = ci.classify(["backend/social_stats/views.py"], "pull_request")
@@ -26,6 +31,7 @@ class ChangeSelectionTests(unittest.TestCase):
         for path in ["frontend/package-lock.json", "frontend/next.config.mjs", "frontend/e2e/new.spec.js", "frontend/src/core/session/Auth.jsx", "frontend/src/services/api.js", "frontend/src/app/layout.tsx", "frontend/src/lib/session.ts", "frontend/src/contexts/AuthContext.js", "frontend/src/features/LoginPage.jsx", "frontend/src/components/ui/PermissionGate.jsx", "frontend/src/proxy.ts", "frontend/src/instrumentation.ts"]:
             with self.subTest(path=path):
                 self.assertTrue(ci.classify([path], "pull_request")["full_browser"])
+                self.assertTrue(ci.classify([path], "pull_request")["docker"])
 
     def test_unknown_and_ci_paths_run_all_jobs(self):
         for path in [".github/workflows/tests.yml", "Dockerfile", "compose.yml", "scripts/ci_changes.py", "new-root-config"]:
