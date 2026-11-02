@@ -27,6 +27,14 @@ describe('PageHeader shared action contract', () => {
     expect(screen.getByRole('button', { name: 'Refresh' })).toBeInTheDocument();
   });
 
+  it('does not mount an empty wrapper for conditional boolean slots', () => {
+    const { container } = render(
+      <PageHeader title="Conditional" sticky={false} action={false} actions={false} />,
+    );
+    expect(screen.getByRole('heading', { name: 'Conditional' })).toBeInTheDocument();
+    expect(container.querySelector('div.flex.max-w-full.shrink-0')).not.toBeInTheDocument();
+  });
+
   it('renders no empty action wrapper when both slots are absent', () => {
     const { container } = render(<PageHeader title="Overview" />);
     expect(screen.getByRole('heading', { name: 'Overview' })).toBeInTheDocument();
