@@ -7,20 +7,19 @@
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
 /**
- * SectionHeader — title + description + optional right-side actions.
- *
- * Props:
- *   title:       string
- *   description: string (optional)
- *   actions:     ReactNode (optional)
- *   level:       1 (page) | 2 (section, default) | 3 (sub-section)
- *   eyebrow:     small uppercase tag rendered above the title (optional)
- *   align:       'left' (default) | 'center'
+ * SectionHeader — shared responsive heading with logical (RTL-safe) alignment.
+ * Keep the optional style prop for unmigrated callers. New callers should use
+ * className and design tokens instead of adding more inline styles.
  */
-const STYLES = {
-  1: { titleSize: 28, titleWeight: 600, gap: 4, descSize: 14 },
-  2: { titleSize: 18, titleWeight: 600, gap: 2, descSize: 13 },
-  3: { titleSize: 15, titleWeight: 600, gap: 2, descSize: 12 },
+const TITLE_CLASSES = {
+  1: 'text-[1.75rem] font-semibold',
+  2: 'text-lg font-semibold',
+  3: 'text-[0.9375rem] font-semibold',
+};
+const DESCRIPTION_CLASSES = {
+  1: 'mt-1 text-sm',
+  2: 'mt-0.5 text-[0.8125rem]',
+  3: 'mt-0.5 text-xs',
 };
 
 export default function SectionHeader({
@@ -31,64 +30,37 @@ export default function SectionHeader({
   eyebrow,
   align = 'left',
   style,
-  className,
+  className = '',
 }) {
-  const Tag = `h${Math.min(Math.max(level, 1), 6)}`;
-  const s = STYLES[level] || STYLES[2];
+  const safeLevel = Number.isInteger(level) ? Math.min(Math.max(level, 1), 6) : 2;
+  const Tag = `h${safeLevel}`;
+  const visualLevel = TITLE_CLASSES[safeLevel] ? safeLevel : 2;
+  const centered = align === 'center';
 
   return (
     <header
-      className={className}
-      style={{
-        display: 'flex',
-        alignItems: 'flex-start',
-        justifyContent: align === 'center' ? 'center' : 'space-between',
-        gap: 16,
-        textAlign: align,
-        ...style,
-      }}
+      className={`flex min-w-0 flex-wrap items-start gap-4 ${centered ? 'justify-center text-center' : 'justify-between text-start'} ${className}`}
+      {...(style ? { style } : {})}
     >
-      <div style={{ minWidth: 0, flex: align === 'center' ? '0 0 auto' : 1 }}>
+      <div className={`min-w-0 ${centered ? 'flex-none' : 'flex-1'}`}>
         {eyebrow && (
-          <div style={{
-            display: 'inline-block',
-            fontSize: 11,
-            fontWeight: 600,
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
-            color: 'var(--brand-primary-hover)',
-            marginBottom: 6,
-          }}>
+          <div className="mb-1.5 inline-block text-[0.6875rem] font-semibold uppercase tracking-wider text-[var(--brand-primary-hover)]">
             {eyebrow}
           </div>
         )}
         {title && (
-          <Tag style={{
-            margin: 0,
-            fontSize: s.titleSize,
-            fontWeight: s.titleWeight,
-            letterSpacing: '-0.02em',
-            color: 'var(--text-primary)',
-            lineHeight: 'var(--line-height-body)',
-          }}>
+          <Tag className={`m-0 break-words leading-[var(--line-height-body)] tracking-tight text-[var(--text-primary)] ${TITLE_CLASSES[visualLevel]}`}>
             {title}
           </Tag>
         )}
         {description && (
-          <p style={{
-            margin: `${s.gap}px 0 0`,
-            fontSize: s.descSize,
-            color: 'var(--text-secondary)',
-            lineHeight: 'var(--line-height-body)',
-            maxWidth: align === 'center' ? 600 : undefined,
-          }}>
+          <p className={`m-0 break-words leading-[var(--line-height-body)] text-[var(--text-secondary)] ${centered ? 'max-w-[600px]' : ''} ${DESCRIPTION_CLASSES[visualLevel]}`}>
             {description}
           </p>
         )}
       </div>
-
-      {actions && align !== 'center' && (
-        <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+      {actions && !centered && (
+        <div className="flex min-w-0 shrink-0 flex-wrap items-center gap-2 max-sm:w-full" data-section-actions>
           {actions}
         </div>
       )}
