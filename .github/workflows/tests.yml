@@ -253,8 +253,8 @@ jobs:
           fi
 
   docker:
-    needs: [changes, frontend_checks]
-    if: ${{ always() && needs.changes.outputs.docker == 'true' && (needs.changes.outputs.frontend != 'true' || needs.frontend_checks.result == 'success') }}
+    needs: changes
+    if: ${{ needs.changes.outputs.docker == 'true' }}
     name: Docker — unified stack boots
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -335,7 +335,7 @@ jobs:
         env:
           CI: "true"
           E2E_BASE_URL: http://127.0.0.1:3000
-          FULL_BROWSER: ${{ needs.changes.outputs.full_browser }}
+          FULL_BROWSER: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
         run: |
           if [ "$FULL_BROWSER" = true ]; then
             npm run test:next
