@@ -75,7 +75,8 @@ export default function PageHeader({
           )}
         </div>
       </div>
-      {(action != null || actions != null) && (
+      {((action != null && typeof action !== 'boolean') ||
+        (actions != null && typeof actions !== 'boolean')) && (
         <div className="flex max-w-full shrink-0 flex-wrap items-center gap-2">
           {action}
           {actions}
