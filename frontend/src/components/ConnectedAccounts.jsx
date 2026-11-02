@@ -83,7 +83,7 @@ function ConnectionCollection({ workspaceId }) {
     }
   };
   const content = <div className="space-y-6" data-connected-accounts>
-    <SectionHeader className="flex-wrap" style={{ textAlign: 'start' }} title={t('accounts.title')} description={t('accounts.subtitle')}
+    <SectionHeader className="flex-wrap" title={t('accounts.title')} description={t('accounts.subtitle')}
       actions={<Button variant="secondary" size="sm" icon={RefreshCw} disabled={query.isFetching} onClick={() => query.refetch()}>{t('connections.refresh')}</Button>} />
     {!data.providers.length && <DataState state="empty" title={t('connections.noProviders')} />}
     {data.providers.length > 0 && data.providers.every(p => !p.accounts.length) && <DataState compact state="empty" title={t('connections.empty')} />}

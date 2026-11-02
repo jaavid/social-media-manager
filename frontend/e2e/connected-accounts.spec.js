@@ -259,3 +259,37 @@ test('a rejected browser session hides account identities and uses the existing 
   await expect(page).toHaveURL(/\/login/);
   await expect(page.getByText(/identity-10/)).toHaveCount(0);
 });
+
+
+for (const language of ['fa', 'en']) for (const width of [360, 1280]) {
+  test(`#253 shared section header layout ${language}/${width}`, async ({ page }, testInfo) => {
+    await page.setViewportSize({ width, height: 950 });
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await setup(page, { language });
+    await open(page);
+    const section = surface(page).locator('header').first();
+    const title = section.getByRole('heading');
+    const actions = section.locator('[data-section-actions]');
+    await expect(title).toBeVisible();
+    await expect(actions.getByRole('button')).toBeVisible();
+    await expect(page.locator('html')).toHaveAttribute('dir', language === 'fa' ? 'rtl' : 'ltr');
+    await expect(section).toHaveCSS('text-align', 'start');
+    const geometry = await section.evaluate(node => {
+      const heading = node.querySelector('h1,h2,h3,h4,h5,h6');
+      const actions = node.querySelector('[data-section-actions]');
+      const head = heading.getBoundingClientRect();
+      const action = actions.getBoundingClientRect();
+      const viewport = document.documentElement.clientWidth;
+      return { viewport, headLeft: head.left, headRight: head.right,
+        actionLeft: action.left, actionRight: action.right,
+        actionsWidth: action.width, sectionWidth: node.getBoundingClientRect().width };
+    });
+    expect(geometry.headLeft).toBeGreaterThanOrEqual(0);
+    expect(geometry.headRight).toBeLessThanOrEqual(geometry.viewport + 1);
+    expect(geometry.actionLeft).toBeGreaterThanOrEqual(0);
+    expect(geometry.actionRight).toBeLessThanOrEqual(geometry.viewport + 1);
+    if (width === 360) expect(geometry.actionsWidth).toBeGreaterThan(geometry.sectionWidth * 0.9);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
+    await section.screenshot({ path: testInfo.outputPath(`section-header-${language}-${width}.png`) });
+  });
+}
