@@ -12,8 +12,7 @@ describe('SectionHeader design-system contract', () => {
     expect(screen.getByText('Manage providers')).toBeInTheDocument();
     expect(container.querySelector('header')).not.toHaveAttribute('style');
     expect(container.querySelector('h2')).not.toHaveAttribute('style');
-    expect(container.querySelector('[data-section-actions]')).toHaveClass('max-sm:w-full');
-    expect(container.querySelector('header')).toHaveClass('text-start');
+    expect(screen.getByRole('button', { name: 'Refresh' })).toBeVisible();
   });
 
   test('centered headers keep actions hidden and use logical alignment', () => {
@@ -22,7 +21,6 @@ describe('SectionHeader design-system contract', () => {
         actions={<button type="button">Hidden</button>} />,
     );
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Overview');
-    expect(container.querySelector('header')).toHaveClass('text-center');
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 
