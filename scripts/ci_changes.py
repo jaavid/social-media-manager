@@ -16,7 +16,7 @@ def classify(paths, event):
         } or path.startswith(".github/ISSUE_TEMPLATE/"):
             continue
         if path.startswith("frontend/"):
-            result["frontend"] = result["docker"] = True
+            result["frontend"] = True
             # Shared identity, routing and build changes warrant the full suite pre-merge.
             if path.startswith((
                 "frontend/e2e/", "frontend/src/core/", "frontend/src/app/",
@@ -26,14 +26,14 @@ def classify(paths, event):
                 "frontend/src/components/auth/", "frontend/src/components/shell/",
                 "frontend/src/features/settings/", "frontend/src/features/marketplace/",
             )) or not path.startswith(("frontend/src/", "frontend/public/")):
-                result["full_browser"] = True
+                result["full_browser"] = result["docker"] = True
             if path.rsplit("/", 1)[-1] in {
                 "AuthCallbackPage.jsx", "OAuthCallbackPage.jsx", "LoginPage.jsx",
                 "ResetPasswordPage.jsx", "SignupPage.jsx", "EndUserSignupPage.jsx",
                 "PermissionGate.jsx",
                 "proxy.ts", "instrumentation.ts",
             }:
-                result["full_browser"] = True
+                result["full_browser"] = result["docker"] = True
         elif path.startswith("backend/"):
             # Backend changes can affect sessions and the unified production ingress.
             result["backend"] = result["docker"] = result["full_browser"] = True
