@@ -273,7 +273,7 @@ for (const language of ['fa', 'en']) for (const width of [360, 1280]) {
     await expect(title).toBeVisible();
     await expect(actions.getByRole('button')).toBeVisible();
     await expect(page.locator('html')).toHaveAttribute('dir', language === 'fa' ? 'rtl' : 'ltr');
-    await expect(section).toHaveCSS('text-align', language === 'fa' ? 'right' : 'left');
+    await expect(section).toHaveCSS('text-align', 'start');
     const geometry = await section.evaluate(node => {
       const heading = node.querySelector('h1,h2,h3,h4,h5,h6');
       const actions = node.querySelector('[data-section-actions]');
