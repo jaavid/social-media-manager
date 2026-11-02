@@ -6,7 +6,7 @@ jest.mock('../../core/navigation', () => ({
   useAppNavigate: () => jest.fn(),
 }));
 jest.mock('../../i18n', () => ({
-  useLanguage: () => ({ tr: value => value, isPersian: false }),
+  useLanguage: () => ({ tr: (value: string) => value, isPersian: false }),
 }));
 
 describe('PageHeader shared action contract', () => {
