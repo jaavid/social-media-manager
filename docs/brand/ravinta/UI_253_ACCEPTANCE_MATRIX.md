@@ -16,10 +16,10 @@ Do not count redirects, aliases, `View.jsx` and dynamic segments as independent 
 
 | Component | Canonical source | Rules / ownership |
 | --- | --- | --- |
-| PageHeader | `src/components/layout/PageHeader.tsx` | One page heading; `action` and `actions` both render if provided; back button is localized; actions wrap on narrow screens |
-| SectionHeader | `src/components/ui/SectionHeader.jsx` | Logical text-start for RTL/LTR; heading levels remain semantic; legacy `style` prop is compatibility-only (#241) |
-| EmptyState | `src/components/ui/EmptyState.tsx` | Use only for genuinely empty collections, not API failure or missing authorization (#106) |
-| DataState | `src/components/ui/DataState` | Explicit loading/error/forbidden/empty states; actionable recovery where appropriate (#106) |
+| PageHeader | `frontend/src/components/layout/PageHeader.tsx` | One page heading; `action` and `actions` both render if provided; back button is localized; actions wrap on narrow screens |
+| SectionHeader | `frontend/src/components/ui/SectionHeader.jsx` | Logical text-start for RTL/LTR; heading levels remain semantic; legacy `style` prop is compatibility-only (#241) |
+| EmptyState | `frontend/src/components/ui/EmptyState.tsx` | Use only for genuinely empty collections, not API failure or missing authorization (#106) |
+| DataState | `frontend/src/components/ui/DataState` | Explicit loading/error/forbidden/empty states; actionable recovery where appropriate (#106) |
 | Workspace scope | Existing shell and `useWorkspaceScope` | Do not introduce a page-local second workspace picker; verify Back/Forward and tenant boundaries (#108) |
 | Platform controls | Existing connection and calendar components | Separate OAuth-connected, public monitoring-only, setup-required and unavailable; never infer connection from monitoring (#253/#112) |
 
