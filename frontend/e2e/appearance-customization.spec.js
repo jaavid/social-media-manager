@@ -53,4 +53,19 @@ test('density changes shared button, card, badge metrics and preserves touch tar
   } else {
     expect(compact['--density-button-md']).toBeLessThanOrEqual(comfortable['--density-button-md']);
   }
+  // Verify the compiled utility classes actually consume the custom properties,
+  // not merely that the properties change on the root.
+  const rendered = await page.evaluate(() => {
+    const element = document.createElement('div');
+    element.className = 'p-[var(--density-card-md)]';
+    document.body.appendChild(element);
+    const measure = density => {
+      document.documentElement.dataset.density = density;
+      return parseFloat(getComputedStyle(element).paddingTop);
+    };
+    const metrics = [measure('comfortable'), measure('compact')];
+    element.remove();
+    return metrics;
+  });
+  expect(rendered[1]).toBeLessThan(rendered[0]);
 });
