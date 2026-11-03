@@ -31,12 +31,12 @@ export default function AccountControls() {
         await organizationAPI.selectWorkspace(workspace.organization, workspace.id);
         await refreshAuth();
       }
-      const next = workspaceScopedSearch(
-        search,
-        ['/u/calendar', '/u/connections'].includes(pathname) || !workspace.organization
-          ? workspace.id
-          : null,
-      );
+      // Always scrub the previous brand's account/channel filters first,
+      // including the organization-backed flow that does not retain ?workspace.
+      const next = workspaceScopedSearch(search, workspace.id);
+      if (workspace.organization && !['/u/calendar', '/u/connections'].includes(pathname)) {
+        next.delete('workspace');
+      }
       setSearch(next, { replace: true });
     } catch {
       setMessage(text('تغییر برند تأیید نشد؛ دوباره تلاش کنید.', 'Brand change could not be confirmed. Try again.'));
