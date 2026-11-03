@@ -7,6 +7,7 @@
  *  Released under the MIT License — see LICENSE. Keep this notice.
  * ========================================================================== */
 import { Sparkles } from 'lucide-react';
+import { cn } from '../../lib/utils';
 
 /**
  * AILoading — the canonical "Ravinta is thinking…" shimmer used by every
@@ -30,6 +31,7 @@ export default function AILoading({
   height = 18,
   width = '100%',
   style,
+  className,
   ...rest
 }) {
   if (variant === 'inline') {
@@ -37,7 +39,7 @@ export default function AILoading({
       <span
         role="status"
         aria-live="polite"
-        className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--brand-primary-hover)]"
+        className={cn("inline-flex items-center gap-1.5 text-xs font-medium text-[var(--brand-primary-hover)]", className)}
         style={style}
         {...rest}
       >
@@ -54,7 +56,7 @@ export default function AILoading({
         role="status"
         aria-live="polite"
         aria-label={label}
-        className="inline-flex items-center gap-2"
+        className={cn("inline-flex items-center gap-2", className)}
         style={style}
         {...rest}
       >
@@ -81,7 +83,7 @@ export default function AILoading({
       role="status"
       aria-live="polite"
       aria-label={label}
-      className="relative overflow-hidden rounded-[var(--radius-sm)] bg-[var(--surface-sunken)]"
+      className={cn("relative overflow-hidden rounded-[var(--radius-sm)] bg-[var(--surface-sunken)]", className)}
       style={{ width, height, ...style }}
       {...rest}
     >
