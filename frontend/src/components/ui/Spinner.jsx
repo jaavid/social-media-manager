@@ -37,7 +37,7 @@ export default function Spinner({ size = 'md', color = 'var(--brand-primary)', l
         width={dim}
         height={dim}
         aria-hidden
-        style={{ animation: 'ds-spinner-rotate 0.9s linear infinite' }}
+        className="ds-spinner-animate"
       >
         <circle
           cx="25" cy="25" r="20"
@@ -49,12 +49,9 @@ export default function Spinner({ size = 'md', color = 'var(--brand-primary)', l
           strokeDashoffset="0"
         />
       </svg>
-      <span style={{ position: 'absolute', width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap', border: 0 }}>
+      <span className="sr-only">
         {label}
       </span>
-      <style>{`
-        @keyframes ds-spinner-rotate { to { transform: rotate(360deg); } }
-      `}</style>
     </span>
   );
 }
