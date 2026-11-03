@@ -521,7 +521,7 @@ def _safe_image_url(value):
             address = ipaddress.ip_address(host.strip('[]'))
         except ValueError:
             # Hosts without a public DNS suffix cannot be fetched.
-            if '.' not in host:
+            if '.' not in host or host.rsplit('.', 1)[-1].isdigit():
                 return None
         else:
             if not address.is_global:
