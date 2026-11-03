@@ -7,19 +7,19 @@ import { useLanguage } from '../../i18n';
 import { cn } from '../../lib/utils';
 
 const SIZE_CLASSES = {
-  xs: 'min-h-6 py-1 px-2.5 text-[11px]',
-  sm: 'min-h-7 py-1 px-3 text-xs',
-  md: 'min-h-9 py-1.5 px-3.5 text-[13px]',
-  lg: 'min-h-11 py-2 px-[18px] text-sm',
-  xl: 'min-h-[52px] py-2.5 px-[22px] text-[15px]',
+  xs: 'min-h-[var(--density-button-xs)] py-1 px-2.5 text-[11px]',
+  sm: 'min-h-[var(--density-button-sm)] py-1 px-3 text-xs',
+  md: 'min-h-[var(--density-button-md)] py-1.5 px-3.5 text-[13px]',
+  lg: 'min-h-[var(--density-button-lg)] py-2 px-[18px] text-sm',
+  xl: 'min-h-[var(--density-button-xl)] py-2.5 px-[22px] text-[15px]',
 };
 
 const ICON_ONLY_CLASSES = {
-  xs: 'size-6',
-  sm: 'size-7',
-  md: 'size-9',
-  lg: 'size-11',
-  xl: 'size-[52px]',
+  xs: 'size-[var(--density-button-xs)]',
+  sm: 'size-[var(--density-button-sm)]',
+  md: 'size-[var(--density-button-md)]',
+  lg: 'size-[var(--density-button-lg)]',
+  xl: 'size-[var(--density-button-xl)]',
 };
 
 const ICON_SIZES = { xs: 12, sm: 14, md: 16, lg: 18, xl: 20 };
