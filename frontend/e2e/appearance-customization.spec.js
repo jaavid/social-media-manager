@@ -36,7 +36,7 @@ test('without saved appearance the browser keeps canonical brand hover tokens', 
   expect(hover).toBe('#1a514b');
 });
 
-test('density changes shared button, card, badge metrics and preserves touch target sizes', { tag: '@smoke' }, async ({ page, isMobile }) => {
+test('density changes shared button, card, badge metrics and preserves touch target sizes', { tag: '@smoke' }, async ({ page }) => {
   await page.goto('/login');
   const metrics = async density => page.evaluate(nextDensity => {
     document.documentElement.dataset.density = nextDensity;
@@ -48,11 +48,7 @@ test('density changes shared button, card, badge metrics and preserves touch tar
   const compact = await metrics('compact');
   expect(compact['--density-card-md']).toBeLessThan(comfortable['--density-card-md']);
   expect(compact['--density-badge-inline-md']).toBeLessThan(comfortable['--density-badge-inline-md']);
-  if (isMobile) {
-    expect(compact['--density-button-md']).toBeGreaterThanOrEqual(44);
-  } else {
-    expect(compact['--density-button-md']).toBeLessThanOrEqual(comfortable['--density-button-md']);
-  }
+  expect(compact['--density-button-md']).toBeLessThan(comfortable['--density-button-md']);
   // Verify the compiled utility classes actually consume the custom properties,
   // not merely that the properties change on the root.
   const rendered = await page.evaluate(() => {
@@ -68,4 +64,28 @@ test('density changes shared button, card, badge metrics and preserves touch tar
     return metrics;
   });
   expect(rendered[1]).toBeLessThan(rendered[0]);
+});
+
+test('compact controls preserve 44px targets in an actual coarse-pointer browser', { tag: '@smoke' }, async ({ browser }) => {
+  const context = await browser.newContext({ hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 } });
+  try {
+    const page = await context.newPage();
+    await page.goto('/login');
+    const result = await page.evaluate(() => {
+      document.documentElement.dataset.density = 'compact';
+      const style = getComputedStyle(document.documentElement);
+      return {
+        coarse: matchMedia('(pointer: coarse)').matches,
+        button: parseFloat(style.getPropertyValue('--density-button-md')),
+        icon: parseFloat(style.getPropertyValue('--density-icon-control')),
+        control: parseFloat(style.getPropertyValue('--appearance-control-height')),
+      };
+    });
+    expect(result.coarse).toBe(true);
+    expect(result.button).toBeGreaterThanOrEqual(44);
+    expect(result.icon).toBeGreaterThanOrEqual(44);
+    expect(result.control).toBeGreaterThanOrEqual(44);
+  } finally {
+    await context.close();
+  }
 });
