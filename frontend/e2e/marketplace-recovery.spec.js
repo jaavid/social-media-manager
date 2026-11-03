@@ -51,3 +51,17 @@ test('successful empty marketplace response is a no-results state', async ({ pag
   await expect(page.getByText('آژانسی مطابق فیلترها پیدا نشد')).toBeVisible();
   await expect(page.locator('[data-data-state="error"], [data-data-state="forbidden"]')).toHaveCount(0);
 });
+
+test('404 marketplace response is not an empty search and safely recovers', { tag: '@smoke' }, async ({ page }) => {
+  let missing = true;
+  await fixture(page, route => missing
+    ? route.fulfill({ status: 404, json: { detail: 'Internal listing diagnostics' } })
+    : route.fulfill({ json: { agencies: [{ id: 15, slug: 'safe', name: 'Accessible agency', review_count: 0 }], count: 1 } }));
+  await page.goto('/marketplace');
+  await expect(page.locator('[data-data-state="not-found"]')).toBeVisible();
+  await expect(page.getByText('آژانسی مطابق فیلترها پیدا نشد')).toHaveCount(0);
+  await expect(page.getByText('Internal listing diagnostics')).toHaveCount(0);
+  missing = false;
+  await page.getByRole('button', { name: 'تلاش دوباره' }).click();
+  await expect(page.getByText('Accessible agency')).toBeVisible();
+});
