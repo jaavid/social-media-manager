@@ -457,6 +457,8 @@ class LegacyVisionBoundaryTests(TestCase):
             'http://example.com/image.png',
             'https://localhost/image.png',
             'https://127.0.0.1/private.jpg',
+            'https://127.1/private.jpg',
+            'https://0177.1/private.jpg',
             'https://192.168.1.12/image.png',
             'https://user:pass@example.com/image.jpg',
             'file:///etc/passwd',
