@@ -14,6 +14,8 @@
   --density-badge-inline-sm: 6px;
   --density-badge-inline-md: 8px;
   --density-badge-block: 2px;
+  --density-table-inline: 16px;
+  --density-table-block: 12px;
 }
 :root[data-density='compact'] {
   --appearance-control-height: 40px;
@@ -29,6 +31,8 @@
   --density-badge-inline-sm: 4px;
   --density-badge-inline-md: 6px;
   --density-badge-block: 1px;
+  --density-table-inline: 12px;
+  --density-table-block: 8px;
 }
 :root[data-density='compact'] .ds-input-frame,
 :root[data-density='compact'] .ds-input-control,
