@@ -35,3 +35,22 @@ test('without saved appearance the browser keeps canonical brand hover tokens', 
     getComputedStyle(document.documentElement).getPropertyValue('--brand-primary-hover').trim());
   expect(hover).toBe('#1a514b');
 });
+
+test('density changes shared button, card, badge metrics and preserves touch target sizes', async ({ page, isMobile }) => {
+  await page.goto('/login');
+  const metrics = async density => page.evaluate(nextDensity => {
+    document.documentElement.dataset.density = nextDensity;
+    const root = getComputedStyle(document.documentElement);
+    return Object.fromEntries(['--density-button-md', '--density-card-md', '--density-badge-inline-md']
+      .map(key => [key, parseFloat(root.getPropertyValue(key))]));
+  }, density);
+  const comfortable = await metrics('comfortable');
+  const compact = await metrics('compact');
+  expect(compact['--density-card-md']).toBeLessThan(comfortable['--density-card-md']);
+  expect(compact['--density-badge-inline-md']).toBeLessThan(comfortable['--density-badge-inline-md']);
+  if (isMobile) {
+    expect(compact['--density-button-md']).toBeGreaterThanOrEqual(44);
+  } else {
+    expect(compact['--density-button-md']).toBeLessThanOrEqual(comfortable['--density-button-md']);
+  }
+});
