@@ -37,12 +37,8 @@ export default function AILoading({
       <span
         role="status"
         aria-live="polite"
-        style={{
-          display: 'inline-flex', alignItems: 'center', gap: 6,
-          fontSize: 12, fontWeight: 500,
-          color: 'var(--brand-primary-hover)',
-          ...style,
-        }}
+        className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--brand-primary-hover)]"
+        style={style}
         {...rest}
       >
         <Sparkles size={11} strokeWidth={2.4} className="ai-loading-pulse" />
@@ -58,19 +54,14 @@ export default function AILoading({
         role="status"
         aria-live="polite"
         aria-label={label}
-        style={{ display: 'inline-flex', alignItems: 'center', gap: 8, ...style }}
+        className="inline-flex items-center gap-2"
+        style={style}
         {...rest}
       >
-        <span style={{
-          width: 22, height: 22,
-          borderRadius: '50%',
-          background: 'var(--brand-gradient)',
-          color: '#fff',
-          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-        }}>
+        <span className="inline-flex size-[22px] items-center justify-center rounded-full bg-[var(--brand-primary)] text-[var(--text-on-brand)]">
           <Sparkles size={12} strokeWidth={2.4} />
         </span>
-        <span style={{ display: 'inline-flex', gap: 3, alignItems: 'flex-end', height: 14 }}>
+        <span className="inline-flex h-[14px] items-end gap-[3px]">
           {[0, 0.15, 0.3].map((d, i) => (
             <span
               key={i}
@@ -90,15 +81,8 @@ export default function AILoading({
       role="status"
       aria-live="polite"
       aria-label={label}
-      style={{
-        position: 'relative',
-        width,
-        height,
-        borderRadius: 'var(--radius-sm)',
-        background: 'var(--surface-sunken)',
-        overflow: 'hidden',
-        ...style,
-      }}
+      className="relative overflow-hidden rounded-[var(--radius-sm)] bg-[var(--surface-sunken)]"
+      style={{ width, height, ...style }}
       {...rest}
     >
       <span className="ai-loading-shimmer" />
