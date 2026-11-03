@@ -3,10 +3,32 @@
   --space-unit: 4px;
   --appearance-control-height: 44px;
   --appearance-row-padding: 12px;
+  --density-button-xs: 24px;
+  --density-button-sm: 28px;
+  --density-button-md: 36px;
+  --density-button-lg: 44px;
+  --density-button-xl: 52px;
+  --density-card-sm: 12px;
+  --density-card-md: 20px;
+  --density-card-lg: 28px;
+  --density-badge-inline-sm: 6px;
+  --density-badge-inline-md: 8px;
+  --density-badge-block: 2px;
 }
 :root[data-density='compact'] {
   --appearance-control-height: 40px;
   --appearance-row-padding: 8px;
+  --density-button-xs: 24px;
+  --density-button-sm: 28px;
+  --density-button-md: 32px;
+  --density-button-lg: 40px;
+  --density-button-xl: 48px;
+  --density-card-sm: 8px;
+  --density-card-md: 12px;
+  --density-card-lg: 20px;
+  --density-badge-inline-sm: 4px;
+  --density-badge-inline-md: 6px;
+  --density-badge-block: 1px;
 }
 :root[data-density='compact'] .ds-input-frame,
 :root[data-density='compact'] .ds-input-control,
@@ -98,3 +120,15 @@
 }
 .appearance-note { color: var(--text-secondary); font-size: var(--text-sm); }
 .appearance-warning { color: var(--danger); font-size: var(--text-sm); }
+
+/* Pointer ergonomics take priority over compact density for touch devices. */
+@media (pointer: coarse) {
+  :root {
+    --density-button-xs: 44px;
+    --density-button-sm: 44px;
+    --density-button-md: 44px;
+    --density-button-lg: 44px;
+    --density-button-xl: 52px;
+    --appearance-control-height: 44px;
+  }
+}
