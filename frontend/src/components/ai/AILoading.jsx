@@ -47,7 +47,7 @@ export default function AILoading({
       >
         <Sparkles size={11} strokeWidth={2.4} className="ai-loading-pulse" />
         {label}
-        <style>{INLINE_KEYFRAMES}</style>
+
       </span>
     );
   }
@@ -79,7 +79,7 @@ export default function AILoading({
             />
           ))}
         </span>
-        <style>{DOTS_KEYFRAMES}</style>
+
       </span>
     );
   }
@@ -102,53 +102,8 @@ export default function AILoading({
       {...rest}
     >
       <span className="ai-loading-shimmer" />
-      <style>{SHIMMER_KEYFRAMES}</style>
+
     </div>
   );
 }
 
-const SHIMMER_KEYFRAMES = `
-  .ai-loading-shimmer {
-    position: absolute; inset: 0;
-    background: linear-gradient(
-      90deg,
-      transparent 0%,
-      var(--brand-primary-glow) 50%,
-      transparent 100%
-    );
-    animation: ai-shimmer-sweep 1.4s linear infinite;
-  }
-  @keyframes ai-shimmer-sweep {
-    0%   { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .ai-loading-shimmer { animation: none; opacity: 0.5; transform: none; }
-  }
-`;
-
-const DOTS_KEYFRAMES = `
-  .ai-loading-dot {
-    width: 5px; height: 5px; border-radius: 50%;
-    background: var(--brand-primary-hover);
-    animation: ai-loading-bounce 1.2s ease-in-out infinite;
-  }
-  @keyframes ai-loading-bounce {
-    0%,80%,100% { opacity: 0.3; transform: translateY(0); }
-    40%         { opacity: 1;   transform: translateY(-3px); }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .ai-loading-dot { animation: none; opacity: 0.7; }
-  }
-`;
-
-const INLINE_KEYFRAMES = `
-  .ai-loading-pulse { animation: ai-loading-pulse 1.6s ease-in-out infinite; }
-  @keyframes ai-loading-pulse {
-    0%,100% { opacity: 0.6; transform: scale(1); }
-    50%     { opacity: 1;   transform: scale(1.18); }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .ai-loading-pulse { animation: none; }
-  }
-`;
