@@ -56,8 +56,8 @@ function CardHeader({ title, subtitle, action, className, style, children, ...re
   return (
     <div
       className={cn(
-        'flex items-start justify-between gap-3',
-        (title || subtitle) && 'mb-3',
+        'flex items-start justify-between gap-[var(--density-card-gap)]',
+        (title || subtitle) && 'mb-[var(--density-card-gap)]',
         className,
       )}
       style={style}
@@ -93,7 +93,7 @@ function CardFooter({ children, className, style, ...rest }) {
   return (
     <div
       className={cn(
-        'mt-4 flex justify-end gap-2 border-t border-[var(--border-subtle)] pt-4',
+        'mt-[var(--density-card-gap)] flex justify-end gap-2 border-t border-[var(--border-subtle)] pt-[var(--density-card-gap)]',
         className,
       )}
       style={style}
