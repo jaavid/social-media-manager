@@ -95,6 +95,15 @@ test('admin workspace selector and route navigation scope badge requests', { tag
   await selector.selectOption('70');
   await expect(page).toHaveURL(/workspace=70/);
   await expect.poll(() => counts.at(-1)).toBe(70);
+  await page.goto('/admin/analytics/analytics?workspace=42&account_id=12&channel_id=33&page=4&tab=overview');
+  await expect(selector).toHaveValue('42');
+  await selector.selectOption('99');
+  await expect.poll(() => new URL(page.url()).searchParams.get('workspace')).toBe('99');
+  const scoped = new URL(page.url()).searchParams;
+  expect(scoped.has('account_id')).toBe(false);
+  expect(scoped.has('channel_id')).toBe(false);
+  expect(scoped.has('page')).toBe(false);
+  expect(scoped.get('tab')).toBe('overview');
   await page.locator('header.ds-topbar').getByRole('link', { name: /All workspaces|همه فضاهای کاری/ }).click();
   await expect(page).toHaveURL(/\/admin\/workspaces$/);
   const previous = counts.length;
