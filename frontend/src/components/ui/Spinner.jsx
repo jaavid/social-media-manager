@@ -24,13 +24,8 @@ export default function Spinner({ size = 'md', color = 'var(--brand-primary)', l
     <span
       role="status"
       aria-live="polite"
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: dim, height: dim,
-        ...style,
-      }}
+      className="inline-flex items-center justify-center"
+      style={{ width: dim, height: dim, ...style }}
     >
       <svg
         viewBox="0 0 50 50"
