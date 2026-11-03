@@ -47,7 +47,7 @@ export const TableHead = ({
   <th
     scope="col"
     className={cn(
-      'bg-muted px-4 py-3 text-start font-semibold text-[var(--text-secondary)]',
+      'bg-muted px-[var(--density-table-inline)] py-[var(--density-table-block)] text-start font-semibold text-[var(--text-secondary)]',
       className,
     )}
     {...props}
@@ -58,7 +58,7 @@ export const TableCell = ({
   ...props
 }: TdHTMLAttributes<HTMLTableCellElement>) => (
   <td
-    className={cn('px-4 py-3 text-start align-middle', className)}
+    className={cn('px-[var(--density-table-inline)] py-[var(--density-table-block)] text-start align-middle', className)}
     {...props}
   />
 );
