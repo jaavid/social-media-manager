@@ -103,3 +103,19 @@ test('denied refresh removes the previous agency cards and counts', async () => 
   expect(await screen.findByRole('alert')).toHaveTextContent('دسترسی به این فهرست مجاز نیست');
   expect(screen.queryByText('Private older agency')).not.toBeInTheDocument();
 });
+
+test('404 refresh invalidates previously displayed listing and offers safe GET recovery', async () => {
+  marketplaceAPI.list.mockResolvedValueOnce(response([agency(1, 'Removed agency')]))
+    .mockRejectedValueOnce(httpFailure(404))
+    .mockResolvedValueOnce(response([agency(2, 'Fresh agency')]));
+  mount();
+  await screen.findByText('Removed agency');
+  await act(async () => { await queryClient.invalidateQueries({ queryKey: ['marketplace.agencies'] }); });
+  expect(await screen.findByRole('alert')).toHaveTextContent('دریافت فهرست آژانس‌ها ناموفق بود');
+  expect(screen.queryByText('Removed agency')).not.toBeInTheDocument();
+  expect(screen.queryByText('آژانسی مطابق فیلترها پیدا نشد')).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: 'تلاش دوباره' }));
+  expect(await screen.findByText('Fresh agency')).toBeInTheDocument();
+  expect(marketplaceAPI.list).toHaveBeenCalledTimes(3);
+  expect(marketplaceAPI.list.mock.calls.every(([, signal]) => signal instanceof AbortSignal)).toBe(true);
+});
