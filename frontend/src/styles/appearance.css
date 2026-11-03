@@ -160,3 +160,9 @@
 :root .ds-sheet-footer {
   padding: var(--density-dialog-padding);
 }
+
+/* Reserve space for the dialog close control in both directions and densities. */
+:root .ds-dialog-heading,
+:root[data-density='compact'] .ds-dialog-heading {
+  padding-inline-end: max(64px, var(--density-dialog-padding));
+}
