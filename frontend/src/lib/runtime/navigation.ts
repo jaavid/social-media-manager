@@ -19,3 +19,23 @@ export function routeIsActive(href: string, pathname: string, end = false): bool
   const current = canonicalWorkspacePath(pathname).replace(/\/$/, '') || '/';
   return current === target || (!end && target !== '/' && current.startsWith(`${target}/`));
 }
+
+/**
+ * Update URL-owned workspace scope without carrying account-specific filters or
+ * pagination cursors into a different tenant. Preserve unrelated navigation
+ * state (locale, tab, sort and hash) so shared links remain meaningful.
+ * Authorization still happens on the server; a URL alone grants no access.
+ */
+export function workspaceScopedSearch(search: URLSearchParams | string, workspaceId: number | string | null): URLSearchParams {
+  const next = new URLSearchParams(search);
+  const old = next.get('workspace');
+  const target = workspaceId == null || workspaceId === '' ? null : String(workspaceId);
+  if (old !== target) {
+    for (const key of ['account', 'account_id', 'channel', 'channel_id',
+      'source', 'source_id', 'conversation', 'conversation_id',
+      'cursor', 'offset', 'page']) next.delete(key);
+  }
+  if (target === null) next.delete('workspace');
+  else next.set('workspace', target);
+  return next;
+}

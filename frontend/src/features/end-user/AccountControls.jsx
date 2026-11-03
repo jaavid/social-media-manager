@@ -6,6 +6,7 @@ import { useWorkspaces } from '@/hooks/useData';
 import useWorkspaceScope from '@/hooks/useWorkspaceScope';
 import { organizationAPI } from '@/services/domains/identity';
 import NativeSelect from '@/components/ui/NativeSelect';
+import { workspaceScopedSearch } from '@/lib/runtime/navigation';
 import Button from '@/components/ui/Button';
 
 export default function AccountControls() {
@@ -30,10 +31,10 @@ export default function AccountControls() {
         await organizationAPI.selectWorkspace(workspace.organization, workspace.id);
         await refreshAuth();
       }
-      const next = new URLSearchParams(search);
-      if (['/u/calendar', '/u/connections'].includes(pathname) || !workspace.organization) {
-        next.set('workspace', String(workspace.id));
-      } else {
+      // Always scrub the previous brand's account/channel filters first,
+      // including the organization-backed flow that does not retain ?workspace.
+      const next = workspaceScopedSearch(search, workspace.id);
+      if (workspace.organization && !['/u/calendar', '/u/connections'].includes(pathname)) {
         next.delete('workspace');
       }
       setSearch(next, { replace: true });

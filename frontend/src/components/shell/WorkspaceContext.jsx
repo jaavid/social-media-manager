@@ -3,6 +3,7 @@ import { useWorkspaces } from '../../hooks/useData';
 import useWorkspaceScope from '../../hooks/useWorkspaceScope';
 import { useLanguage } from '../../i18n';
 import NativeSelect from '../ui/NativeSelect';
+import { workspaceScopedSearch } from '../../lib/runtime/navigation';
 
 // Names come only from server-listed, accessible workspaces. A user/account name
 // or an organization role is not a workspace identity or a content permission.
@@ -25,8 +26,10 @@ export default function WorkspaceContext({ basePath = '/u', compact = false }) {
           if (!workspaces.some(row => row.id === id)) return;
           const match = location.pathname.match(/^\/admin\/(workspace|client)\/[^/]+/);
           if (match) {
-            const search = new URLSearchParams(location.search);
-            if (search.has('workspace')) search.set('workspace', String(id));
+            const search = workspaceScopedSearch(location.search, id);
+            // Route workspace ID remains authoritative; do not add a second
+            // competing workspace query when the URL never contained one.
+            if (!new URLSearchParams(location.search).has('workspace')) search.delete('workspace');
             navigate({ pathname: location.pathname.replace(match[0], `/admin/workspace/${id}`),
               search: search.size ? `?${search}` : '', hash: location.hash });
           } else if (basePath === '/admin' && location.pathname.startsWith('/admin/analytics')) {
@@ -34,8 +37,7 @@ export default function WorkspaceContext({ basePath = '/u', compact = false }) {
             // path-local ephemeral selection can disappear after Next updates
             // the route and leave the header unselected while stale scoped
             // counts remain. Make analytics workspace selection shareable.
-            const search = new URLSearchParams(location.search);
-            search.set('workspace', String(id));
+            const search = workspaceScopedSearch(location.search, id);
             navigate({ pathname: location.pathname, search: `?${search}`, hash: location.hash });
           } else {
             selectWorkspace(id);

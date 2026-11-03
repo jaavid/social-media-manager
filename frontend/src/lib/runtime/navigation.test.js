@@ -1,4 +1,4 @@
-import { destinationHref, routeIsActive } from './navigation';
+import { destinationHref, routeIsActive, workspaceScopedSearch } from './navigation';
 test('query, fragment and relative navigation preserve their URL meaning', () => {
   expect(destinationHref('?tab=team', '/admin/settings', '?old=1')).toBe('/admin/settings?tab=team');
   expect(destinationHref('#privacy', '/terms', '?lang=en')).toBe('/terms?lang=en#privacy');
@@ -22,4 +22,16 @@ test('workspace module links use short URLs and keep query, hash and draft IDs',
   expect(destinationHref('/dashboard/analytics/analytics', '/')).toBe('/dashboard/analytics');
   expect(destinationHref('/admin/analytics/inbox', '/')).toBe('/admin/analytics/inbox');
   expect(routeIsActive('/dashboard/analytics/inbox', '/dashboard/inbox')).toBe(true);
+});
+
+test('changing workspace clears stale account and paging filters but preserves shareable route state', () => {
+  const original = new URLSearchParams('workspace=7&account_id=12&channel=44&cursor=older&page=3&tab=calendar&sort=date');
+  const changed = workspaceScopedSearch(original, 99);
+  expect(changed.toString()).toBe('workspace=99&tab=calendar&sort=date');
+  expect(original.get('workspace')).toBe('7');
+  expect(workspaceScopedSearch(original, 7).get('account_id')).toBe('12');
+});
+test('clearing workspace removes private dependent query fields without changing locale', () => {
+  const result = workspaceScopedSearch('?workspace=7&source_id=8&offset=40&lang=fa', null);
+  expect(result.toString()).toBe('lang=fa');
 });

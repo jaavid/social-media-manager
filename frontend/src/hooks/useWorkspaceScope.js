@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { workspaceScopedSearch } from '../lib/runtime/navigation';
 import { useAppParams, useAppLocation, useAppSearchParams } from '../core/navigation';
 import { useSession } from '../core/session';
 import { useAppStore } from '../stores/appStore';
@@ -63,9 +64,7 @@ export default function useWorkspaceScope() {
     const id = normalizeWorkspaceId(value);
     if (id === null && value !== '' && value !== null) return;
     if (search.has('workspace')) {
-      const next = new URLSearchParams(search);
-      if (id === null) next.delete('workspace');
-      else next.set('workspace', String(id));
+      const next = workspaceScopedSearch(search, id);
       // The URL is authoritative here; do not also persist a competing choice.
       if (selected?.owner === user.id && selected.path === pathname) {
         useAppStore.setState({ workspaceSelection: null });
