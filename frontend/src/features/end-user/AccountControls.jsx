@@ -6,6 +6,7 @@ import { useWorkspaces } from '@/hooks/useData';
 import useWorkspaceScope from '@/hooks/useWorkspaceScope';
 import { organizationAPI } from '@/services/domains/identity';
 import NativeSelect from '@/components/ui/NativeSelect';
+import { workspaceScopedSearch } from '@/lib/runtime/navigation';
 import Button from '@/components/ui/Button';
 
 export default function AccountControls() {
@@ -30,12 +31,12 @@ export default function AccountControls() {
         await organizationAPI.selectWorkspace(workspace.organization, workspace.id);
         await refreshAuth();
       }
-      const next = new URLSearchParams(search);
-      if (['/u/calendar', '/u/connections'].includes(pathname) || !workspace.organization) {
-        next.set('workspace', String(workspace.id));
-      } else {
-        next.delete('workspace');
-      }
+      const next = workspaceScopedSearch(
+        search,
+        ['/u/calendar', '/u/connections'].includes(pathname) || !workspace.organization
+          ? workspace.id
+          : null,
+      );
       setSearch(next, { replace: true });
     } catch {
       setMessage(text('تغییر برند تأیید نشد؛ دوباره تلاش کنید.', 'Brand change could not be confirmed. Try again.'));
