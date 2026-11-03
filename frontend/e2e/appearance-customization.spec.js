@@ -36,7 +36,7 @@ test('without saved appearance the browser keeps canonical brand hover tokens', 
   expect(hover).toBe('#1a514b');
 });
 
-test('density changes shared button, card, badge metrics and preserves touch target sizes', async ({ page, isMobile }) => {
+test('density changes shared button, card, badge metrics and preserves touch target sizes', { tag: '@smoke' }, async ({ page, isMobile }) => {
   await page.goto('/login');
   const metrics = async density => page.evaluate(nextDensity => {
     document.documentElement.dataset.density = nextDensity;
