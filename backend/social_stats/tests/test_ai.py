@@ -412,3 +412,93 @@ class LegacyProviderSelectionTests(TestCase):
         two = self.api.post('/api/ai/translate/', payload, format='json')
         self.assertFalse(two.data['cached'])
         self.assertEqual(two.data['text'], 'second')
+
+
+@override_settings(ANTHROPIC_API_KEY='test-key')
+class LegacyVisionBoundaryTests(TestCase):
+    """Legacy Claude URL vision: cache and errors never cross a tenant boundary."""
+
+    def setUp(self):
+        self.workspace = _client_factory('vision-one')
+        self.other_workspace = _client_factory('vision-two')
+        self.api = _api_for(_user_for(self.workspace))
+        self.other_api = _api_for(_user_for(self.other_workspace))
+        cache.clear()
+
+    @patch('social_stats.views.ai.get_ai_configuration', return_value=None)
+    @patch('social_stats.views.ai.require_capacity')
+    @patch('social_stats.entitlements.reserve_ai')
+    @patch('social_stats.views.ai.get_claude')
+    def test_same_image_different_tenants_never_share_cached_caption(
+        self, get_claude, reserve_ai, capacity, config,
+    ):
+        sdk = MagicMock()
+        sdk.messages.create.side_effect = [
+            _claude_returning('Brand A caption'),
+            _claude_returning('Brand B caption'),
+        ]
+        get_claude.return_value = sdk
+        payload = {'image_url': 'https://cdn.example.com/shared.jpg'}
+        first = self.api.post('/api/ai/generate-image-caption/', payload, format='json')
+        repeat = self.api.post('/api/ai/generate-image-caption/', payload, format='json')
+        second = self.other_api.post('/api/ai/generate-image-caption/', payload, format='json')
+        self.assertEqual(first.status_code, 200, first.data)
+        self.assertEqual(repeat.status_code, 200, repeat.data)
+        self.assertTrue(repeat.data['cached'])
+        self.assertEqual(second.status_code, 200, second.data)
+        self.assertFalse(second.data['cached'])
+        self.assertEqual(second.data['caption'], 'Brand B caption')
+        self.assertEqual(sdk.messages.create.call_count, 2)
+
+    @patch('social_stats.views.ai.get_ai_configuration', return_value=None)
+    @patch('social_stats.views.ai.get_claude')
+    def test_rejects_non_public_or_credential_bearing_image_urls(self, get_claude, config):
+        for url in [
+            'http://example.com/image.png',
+            'https://localhost/image.png',
+            'https://127.0.0.1/private.jpg',
+            'https://192.168.1.12/image.png',
+            'https://user:pass@example.com/image.jpg',
+            'file:///etc/passwd',
+        ]:
+            with self.subTest(url=url):
+                result = self.api.post(
+                    '/api/ai/generate-image-caption/',
+                    {'image_url': url}, format='json',
+                )
+                self.assertEqual(result.status_code, 400, result.data)
+        get_claude.assert_not_called()
+
+    @patch('social_stats.views.ai.get_ai_configuration', return_value=None)
+    @patch('social_stats.views.ai.require_capacity')
+    @patch('social_stats.entitlements.reserve_ai')
+    @patch('social_stats.views.ai.get_claude')
+    def test_provider_exception_does_not_leak_credentials(
+        self, get_claude, reserve_ai, capacity, config,
+    ):
+        get_claude.return_value.messages.create.side_effect = RuntimeError(
+            'provider-url=https://gateway.example.test secret=private-token'
+        )
+        result = self.api.post(
+            '/api/ai/generate-image-caption/',
+            {'image_url': 'https://cdn.example.com/photo.png'}, format='json',
+        )
+        self.assertEqual(result.status_code, 502)
+        self.assertEqual(result.data, {'error': 'ai_generation_failed'})
+        self.assertNotIn('private-token', str(result.data))
+
+    @patch('social_stats.views.ai.get_ai_configuration', return_value=None)
+    @patch('social_stats.views.ai.require_capacity')
+    @patch('social_stats.entitlements.reserve_ai')
+    @patch('social_stats.views.ai.get_claude')
+    def test_entitlement_denial_is_not_an_internal_server_error(
+        self, get_claude, reserve_ai, capacity, config,
+    ):
+        from social_stats.entitlements import EntitlementDenied
+        capacity.side_effect = EntitlementDenied('ai_generations_per_month')
+        result = self.api.post(
+            '/api/ai/generate-image-caption/',
+            {'image_url': 'https://cdn.example.com/photo.png'}, format='json',
+        )
+        self.assertEqual(result.status_code, 403)
+        get_claude.return_value.messages.create.assert_not_called()
