@@ -502,3 +502,22 @@ class LegacyVisionBoundaryTests(TestCase):
         )
         self.assertEqual(result.status_code, 403)
         get_claude.return_value.messages.create.assert_not_called()
+
+    @override_settings(AI_FAST_MODEL='claude-configured-fast')
+    @patch('social_stats.views.ai.get_ai_configuration', return_value=None)
+    @patch('social_stats.views.ai.require_capacity')
+    @patch('social_stats.entitlements.reserve_ai')
+    @patch('social_stats.views.ai.get_claude')
+    def test_vision_respects_configured_claude_fast_model(
+        self, get_claude, reserve_ai, capacity, config,
+    ):
+        get_claude.return_value.messages.create.return_value = _claude_returning('Selected model')
+        result = self.api.post(
+            '/api/ai/generate-image-caption/',
+            {'image_url': 'https://cdn.example.com/photo.png'}, format='json',
+        )
+        self.assertEqual(result.status_code, 200, result.data)
+        self.assertEqual(
+            get_claude.return_value.messages.create.call_args.kwargs['model'],
+            'claude-configured-fast',
+        )
