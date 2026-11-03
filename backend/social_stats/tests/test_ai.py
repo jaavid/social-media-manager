@@ -452,7 +452,8 @@ class LegacyVisionBoundaryTests(TestCase):
 
     @patch('social_stats.views.ai.get_ai_configuration', return_value=None)
     @patch('social_stats.views.ai.get_claude')
-    def test_rejects_non_public_or_credential_bearing_image_urls(self, get_claude, config):
+    @patch('social_stats.views.ai.rate_limit_check')
+    def test_rejects_non_public_or_credential_bearing_image_urls(self, limit_check, get_claude, config):
         for url in [
             'http://example.com/image.png',
             'https://localhost/image.png',
@@ -470,6 +471,7 @@ class LegacyVisionBoundaryTests(TestCase):
                 )
                 self.assertEqual(result.status_code, 400, result.data)
         get_claude.assert_not_called()
+        limit_check.assert_not_called()
 
     @patch('social_stats.views.ai.get_ai_configuration', return_value=None)
     @patch('social_stats.views.ai.require_capacity')
