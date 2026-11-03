@@ -554,9 +554,6 @@ def generate_image_caption(request):
             'detail': 'Image URL captions are not available with the selected provider.',
         }, status=501)
 
-    if not rate_limit_check(client.id, 'image-caption', DAILY_LIMIT_DEFAULT):
-        return Response({'error': 'Daily AI limit reached'}, status=429)
-
     image_url = _safe_image_url(request.data.get('image_url'))
     platform  = (request.data.get('platform') or 'instagram').strip()
     length    = (request.data.get('length') or 'medium').strip()
@@ -569,6 +566,11 @@ def generate_image_caption(request):
         model = selected_model(fast=True)
     except GeminiGatewayError as exc:
         return _ai_failure(exc)
+    # Invalid image URLs and unavailable model settings must not consume a
+    # valid request's daily allowance.
+    if not rate_limit_check(client.id, 'image-caption', DAILY_LIMIT_DEFAULT):
+        return Response({'error': 'Daily AI limit reached'}, status=429)
+
     ckey = cache_key_for('img-caption', {
         'client_id': client.pk, 'model': model, 'u': image_url,
         'p': platform, 'l': length,
