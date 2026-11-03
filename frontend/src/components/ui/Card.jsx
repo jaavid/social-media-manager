@@ -4,9 +4,9 @@ import { cn } from '../../lib/utils';
 
 const PADDING_CLASSES = {
   none: 'p-0',
-  sm: 'p-3',
-  md: 'p-5',
-  lg: 'p-7',
+  sm: 'p-[var(--density-card-sm)]',
+  md: 'p-[var(--density-card-md)]',
+  lg: 'p-[var(--density-card-lg)]',
 };
 
 const Card = forwardRef(function Card(
