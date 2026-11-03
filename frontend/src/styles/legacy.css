@@ -217,12 +217,14 @@ button,
   touch-action: manipulation;
 }
 
-/* Minimum tap targets (Apple HIG: 44px) */
-button,
-a,
-[role='button'] {
-  min-height: 44px;
-  min-width: 44px;
+/* Minimum tap targets on touch devices; desktop density remains configurable. */
+@media (pointer: coarse) {
+  button,
+  a,
+  [role='button'] {
+    min-height: 44px;
+    min-width: 44px;
+  }
 }
 input:not([type='checkbox']):not([type='radio']),
 select,
@@ -681,11 +683,11 @@ button:active:not(:disabled),
     overflow-x: auto !important;
     -webkit-overflow-scrolling: touch !important;
   }
-  table {
+  table:not(.ds-density-table) {
     min-width: 500px;
   }
-  th,
-  td {
+  table:not(.ds-density-table) th,
+  table:not(.ds-density-table) td {
     padding: 10px 8px !important;
     font-size: 12px !important;
     white-space: nowrap !important;
@@ -795,7 +797,7 @@ button:active:not(:disabled),
     flex-wrap: wrap;
     gap: 6px;
   }
-  table {
+  table:not(.ds-density-table) {
     min-width: 420px;
   }
 }
