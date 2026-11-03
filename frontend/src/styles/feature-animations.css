@@ -71,9 +71,9 @@ input[type=range].roi-slider::-moz-range-thumb {
   min-width: min(280px, calc(100vw - 2rem));
   padding: var(--space-8);
   text-align: center;
-  border-radius: var(--radius-lg);
+  border-radius: var(--product-radius-lg);
   background: var(--surface-card);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--product-shadow-lg);
 }
 .oauth-callback-spinner {
   width: 44px;
@@ -84,7 +84,7 @@ input[type=range].roi-slider::-moz-range-thumb {
   border-radius: 50%;
   animation: ds-spinner-rotate 0.8s linear infinite;
 }
-.oauth-callback-message { margin: 0; color: var(--text-secondary); font-size: var(--text-md); }
+.oauth-callback-message { margin: 0; color: var(--text-secondary); font-size: var(--product-text-md); }
 @media (prefers-reduced-motion: reduce) {
   .ds-spinner-animate, .ai-loading-shimmer, .ai-loading-dot, .ai-loading-pulse, .oauth-callback-spinner {
     animation: none;
