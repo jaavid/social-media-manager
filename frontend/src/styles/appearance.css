@@ -11,6 +11,7 @@
   --density-card-sm: 12px;
   --density-card-md: 20px;
   --density-card-lg: 28px;
+  --density-card-gap: 12px;
   --density-badge-inline-sm: 6px;
   --density-badge-inline-md: 8px;
   --density-badge-block: 2px;
@@ -30,6 +31,7 @@
   --density-card-sm: 8px;
   --density-card-md: 12px;
   --density-card-lg: 20px;
+  --density-card-gap: 8px;
   --density-badge-inline-sm: 4px;
   --density-badge-inline-md: 6px;
   --density-badge-block: 1px;
