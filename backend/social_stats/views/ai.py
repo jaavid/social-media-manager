@@ -39,7 +39,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from social_stats.ai_helpers import (
-    HAIKU, get_claude, parse_json_response,
+    get_claude, parse_json_response,
     unified_voice_prompt,
     rate_limit_check, cache_key_for,
 )
@@ -563,10 +563,14 @@ def generate_image_caption(request):
     if not image_url:
         return Response({'error': 'valid_public_https_image_url_required'}, status=400)
 
-    # The image and brand voice must not be shared across workspaces. The
-    # old key omitted client_id and could replay another tenant's caption.
+    # Resolve the configured Claude fast model, just like other legacy AI tasks.
+    # The image and brand voice must not be shared across workspaces.
+    try:
+        model = selected_model(fast=True)
+    except GeminiGatewayError as exc:
+        return _ai_failure(exc)
     ckey = cache_key_for('img-caption', {
-        'client_id': client.pk, 'model': HAIKU, 'u': image_url,
+        'client_id': client.pk, 'model': model, 'u': image_url,
         'p': platform, 'l': length,
     })
     cached = cache.get(ckey)
@@ -590,7 +594,7 @@ def generate_image_caption(request):
         require_capacity(client.organization, 'ai_generations_per_month')
         reserve_ai(client)
         msg = claude.messages.create(
-            model=HAIKU, max_tokens=600, timeout=30,
+            model=model, max_tokens=600, timeout=30,
             system=sys_prompt,
             messages=[{
                 'role': 'user',
