@@ -13,8 +13,8 @@ const VARIANT_CLASSES = {
 };
 
 const SIZE_CLASSES = {
-  sm: 'px-1.5 py-0.5 text-[10px]',
-  md: 'px-2 py-0.5 text-[11px]',
+  sm: 'px-[var(--density-badge-inline-sm)] py-[var(--density-badge-block)] text-[10px]',
+  md: 'px-[var(--density-badge-inline-md)] py-[var(--density-badge-block)] text-[11px]',
 };
 
 const DOT_CLASSES = {
