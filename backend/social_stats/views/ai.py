@@ -28,6 +28,8 @@ All use the saved BrandVoiceProfile when generating content.
 from __future__ import annotations
 
 import logging
+import ipaddress
+from urllib.parse import urlsplit
 from datetime import timedelta
 
 from django.core.cache import cache
@@ -37,7 +39,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from social_stats.ai_helpers import (
-    HAIKU, get_claude, parse_json_response,
+    get_claude, parse_json_response,
     unified_voice_prompt,
     rate_limit_check, cache_key_for,
 )
@@ -500,6 +502,35 @@ def translate(request):
     return Response({'text': out, 'cached': False})
 
 
+def _safe_image_url(value):
+    """Reject URL forms that may expose private hosts, tokens or local files.
+
+    The legacy provider fetches images remotely. URLs remain a compatibility
+    contract, not an authorization mechanism for tenant-owned assets.
+    """
+    if not isinstance(value, str) or len(value) > 2048:
+        return None
+    try:
+        parts = urlsplit(value.strip())
+        host = (parts.hostname or '').lower().rstrip('.')
+        if parts.scheme.lower() != 'https' or not host or parts.username or parts.password:
+            return None
+        if parts.port not in (None, 443) or host == 'localhost' or host.endswith(('.localhost', '.local', '.internal')):
+            return None
+        try:
+            address = ipaddress.ip_address(host.strip('[]'))
+        except ValueError:
+            # Hosts without a public DNS suffix cannot be fetched.
+            if '.' not in host or host.rsplit('.', 1)[-1].isdigit():
+                return None
+        else:
+            if not address.is_global:
+                return None
+        return value.strip()
+    except (ValueError, TypeError):
+        return None
+
+
 # ══════════════════════════════════════════════════════════════════════
 # 7. generate-image-caption (Claude vision)
 # ══════════════════════════════════════════════════════════════════════
@@ -523,18 +554,29 @@ def generate_image_caption(request):
             'detail': 'Image URL captions are not available with the selected provider.',
         }, status=501)
 
-    if not rate_limit_check(client.id, 'image-caption', DAILY_LIMIT_DEFAULT):
-        return Response({'error': 'Daily AI limit reached'}, status=429)
-
-    image_url = (request.data.get('image_url') or '').strip()
+    image_url = _safe_image_url(request.data.get('image_url'))
     platform  = (request.data.get('platform') or 'instagram').strip()
     length    = (request.data.get('length') or 'medium').strip()
     if not image_url:
-        return Response({'error': 'image_url is required'}, status=400)
+        return Response({'error': 'valid_public_https_image_url_required'}, status=400)
 
-    ckey = cache_key_for('img-caption', {'u': image_url, 'p': platform, 'l': length})
+    # Resolve the configured Claude fast model, just like other legacy AI tasks.
+    # The image and brand voice must not be shared across workspaces.
+    try:
+        model = selected_model(fast=True)
+    except GeminiGatewayError as exc:
+        return _ai_failure(exc)
+    # Invalid image URLs and unavailable model settings must not consume a
+    # valid request's daily allowance.
+    if not rate_limit_check(client.id, 'image-caption', DAILY_LIMIT_DEFAULT):
+        return Response({'error': 'Daily AI limit reached'}, status=429)
+
+    ckey = cache_key_for('img-caption', {
+        'client_id': client.pk, 'model': model, 'u': image_url,
+        'p': platform, 'l': length,
+    })
     cached = cache.get(ckey)
-    if cached:
+    if cached is not None:
         return Response({'caption': cached, 'cached': True})
 
     claude = get_claude()
@@ -549,12 +591,12 @@ def generate_image_caption(request):
     )
 
     from social_stats.entitlements import reserve_ai
-    if client is not None:
-        reserve_ai(client)
 
     try:
+        require_capacity(client.organization, 'ai_generations_per_month')
+        reserve_ai(client)
         msg = claude.messages.create(
-            model=HAIKU, max_tokens=600, timeout=30,
+            model=model, max_tokens=600, timeout=30,
             system=sys_prompt,
             messages=[{
                 'role': 'user',
@@ -565,9 +607,11 @@ def generate_image_caption(request):
             }],
         )
         caption = (msg.content[0].text or '').strip().strip('"')
-    except Exception as e:
+    except EntitlementDenied as exc:
+        return _ai_failure(exc)
+    except Exception:
         logger.exception('generate_image_caption failed')
-        return Response({'error': f'AI error: {e}'}, status=502)
+        return Response({'error': 'ai_generation_failed'}, status=502)
 
     cache.set(ckey, caption, CACHE_TTL)
     return Response({'caption': caption, 'cached': False})
