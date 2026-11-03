@@ -14,7 +14,7 @@ export const Table = forwardRef<
     <table
       ref={ref}
       className={cn(
-        'w-full border-collapse text-sm text-foreground',
+        'ds-density-table w-full border-collapse text-sm text-foreground',
         className,
       )}
       {...props}
