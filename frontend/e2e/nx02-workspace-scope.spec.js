@@ -104,6 +104,13 @@ test('admin workspace selector and route navigation scope badge requests', { tag
   expect(scoped.has('channel_id')).toBe(false);
   expect(scoped.has('page')).toBe(false);
   expect(scoped.get('tab')).toBe('overview');
+  await page.goBack();
+  await expect.poll(() => new URL(page.url()).searchParams.get('workspace')).toBe('42');
+  await expect.poll(() => new URL(page.url()).searchParams.get('account_id')).toBe('12');
+  await page.goForward();
+  await expect.poll(() => new URL(page.url()).searchParams.get('workspace')).toBe('99');
+  expect(new URL(page.url()).searchParams.has('account_id')).toBe(false);
+
   await page.locator('header.ds-topbar').getByRole('link', { name: /All workspaces|همه فضاهای کاری/ }).click();
   await expect(page).toHaveURL(/\/admin\/workspaces$/);
   const previous = counts.length;
