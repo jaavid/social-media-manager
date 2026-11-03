@@ -95,7 +95,7 @@ export default function MarketplacePage() {
   });
   const failure = apiError(list.error);
   const denied = ['authentication', 'permission'].includes(failure.kind);
-  const hardFailure = list.isError && (!list.data || denied);
+  const hardFailure = list.isError && (!list.data || denied || failure.status === 404);
   const agencies = hardFailure ? [] : (list.data?.agencies || []);
   const count = hardFailure ? null : list.data?.count;
   const featured = featuredQuery.data || [];
