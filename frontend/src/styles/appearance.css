@@ -142,6 +142,11 @@
     --appearance-control-height: 44px;
   }
   :root[data-density='compact'] {
+    --density-button-xs: 44px;
+    --density-button-sm: 44px;
+    --density-button-md: 44px;
+    --density-button-lg: 44px;
+    --density-button-xl: 52px;
     --density-icon-control: 44px;
     --appearance-control-height: 44px;
   }
