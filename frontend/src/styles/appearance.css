@@ -16,6 +16,8 @@
   --density-badge-block: 2px;
   --density-table-inline: 16px;
   --density-table-block: 12px;
+  --density-icon-control: 44px;
+  --density-dialog-padding: 20px;
 }
 :root[data-density='compact'] {
   --appearance-control-height: 40px;
@@ -33,6 +35,8 @@
   --density-badge-block: 1px;
   --density-table-inline: 12px;
   --density-table-block: 8px;
+  --density-icon-control: 40px;
+  --density-dialog-padding: 12px;
 }
 :root[data-density='compact'] .ds-input-frame,
 :root[data-density='compact'] .ds-input-control,
@@ -135,4 +139,22 @@
     --density-button-xl: 52px;
     --appearance-control-height: 44px;
   }
+  :root[data-density='compact'] {
+    --density-icon-control: 44px;
+    --appearance-control-height: 44px;
+  }
+}
+
+/* One density contract for shared navigation controls and overlays. */
+:root .ds-icon-button {
+  inline-size: var(--density-icon-control);
+  block-size: var(--density-icon-control);
+}
+:root .ds-dialog-heading,
+:root .ds-dialog-body,
+:root .ds-dialog-footer,
+:root .ds-sheet-header,
+:root .ds-sheet-body,
+:root .ds-sheet-footer {
+  padding: var(--density-dialog-padding);
 }
